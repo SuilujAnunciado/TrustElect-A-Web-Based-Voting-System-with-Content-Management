@@ -1025,6 +1025,9 @@ exports.testSms = async (req, res) => {
     // Handle specific Twilio errors
     if (!smsResult.success) {
       if (smsResult.code === 21612) {
+        // Generate a test OTP to show in UI
+        const testOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        
         return res.status(200).json({
           success: true,
           message: 'SMS blocked due to trial restrictions, but system is working! Using test mode.',
@@ -1032,8 +1035,11 @@ exports.testSms = async (req, res) => {
           error: smsResult.error,
           code: smsResult.code,
           testMode: true,
+          devMode: true,
+          otp: testOtp,
           note: 'Your SMS system is working correctly. The restriction is due to Twilio trial account limitations.',
           solution: 'For production, either upgrade to paid Twilio account or use the test mode fallback',
+          warning: 'This is a test mode due to Twilio trial restrictions. Your verification code is: ' + testOtp,
           troubleshooting: {
             step1: 'Trial accounts can only send to verified numbers',
             step2: 'Your number is verified but may not have SMS capability',
