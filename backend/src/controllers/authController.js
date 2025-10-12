@@ -5,6 +5,7 @@ const { getAdminByEmail } = require("../models/adminModel");
 const { getStudentByEmail } = require("../models/studentModel");
 const pool = require("../config/db");
 const otpService = require('../services/otpService');
+const smsService = require('../services/smsService');
 const { logAction } = require('../middlewares/auditLogMiddleware');
 require("dotenv").config();
 
@@ -667,6 +668,108 @@ exports.resetPassword = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Password reset failed. Please try again.'
+    });
+  }
+};
+
+// Phone registration and SMS OTP functions using your existing schema
+exports.registerPhone = async (req, res) => {
+  try {
+    const { userId, email, phoneNumber } = req.body;
+    
+    if (!userId || !email || !phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID, email, and phone number are required'
+      });
+    }
+    
+    // Format phone number
+    const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
+    
+    // Use your database function to generate SMS OTP
+    const result = await pool.query('SELECT generate_sms_otp($1) as otp_code', [formattedPhone]);
+    const otp = result.rows[0].otp_code;
+    
+    // Send SMS
+    const smsResult = await smsService.sendOTPSMS(formattedPhone, otp);
+    
+    if (!smsResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send SMS. Please try again.',
+        error: smsResult.error
+      });
+    }
+    
+    // In development mode, return OTP for testing
+    if (process.env.NODE_ENV === 'development') {
+      return res.status(200).json({
+        success: true,
+        message: `SMS verification code sent to ${formattedPhone}`,
+        devMode: true,
+        otp: otp
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: `SMS verification code sent to ${formattedPhone}`
+    });
+    
+  } catch (error) {
+    console.error('Phone registration error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to register phone number. Please try again.'
+    });
+  }
+};
+
+exports.verifySmsOtp = async (req, res) => {
+  try {
+    const { userId, otp } = req.body;
+    
+    if (!userId || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and OTP are required'
+      });
+    }
+    
+    // Get user's phone number
+    const phoneResult = await pool.query('SELECT get_user_phone_number($1) as phone_number', [userId]);
+    const phoneNumber = phoneResult.rows[0].phone_number;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'No phone number found for this user'
+      });
+    }
+    
+    // Use your database function to verify SMS OTP
+    const verifyResult = await pool.query('SELECT verify_sms_otp($1, $2) as is_valid', [phoneNumber, otp]);
+    const isValid = verifyResult.rows[0].is_valid;
+    
+    if (!isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code'
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Phone number verified successfully',
+      phoneNumber: phoneNumber
+    });
+    
+  } catch (error) {
+    console.error('SMS OTP verification error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to verify SMS code. Please try again.'
     });
   }
 };

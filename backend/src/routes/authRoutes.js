@@ -10,7 +10,9 @@ const {
   forgotPassword,
   verifyResetOTP,
   resetPassword,
-  logoutUser
+  logoutUser,
+  registerPhone,
+  verifySmsOtp
 } = require("../controllers/authController");
 const { verifyToken } = require("../middlewares/authMiddleware");
 const router = express.Router();
@@ -52,5 +54,9 @@ router.post('/reset-password', [
   check("resetToken", "Reset token is required").not().isEmpty(),
   check("newPassword", "Password must be at least 8 characters").isLength({ min: 8 }),
 ], resetPassword);
+
+// Phone registration and SMS OTP routes
+router.post('/register-phone', registerPhone);
+router.post('/verify-sms-otp', verifySmsOtp);
 
 module.exports = router;
