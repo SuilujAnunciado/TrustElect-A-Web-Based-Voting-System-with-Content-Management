@@ -694,21 +694,31 @@ exports.registerPhone = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     console.log('Generated OTP:', otp);
     
-    // Store OTP in database
+    // Store OTP in database - simple insert without conflict handling
     const insertQuery = `
       INSERT INTO otps (user_id, phone_number, otp, otp_hash, expires_at, otp_type, verified, attempts, purpose)
       VALUES ($1, $2, $3, crypt($3, gen_salt('bf')), NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
-      ON CONFLICT (user_id, phone_number, otp_type) 
-      DO UPDATE SET 
-        otp = EXCLUDED.otp,
-        otp_hash = EXCLUDED.otp_hash,
-        expires_at = EXCLUDED.expires_at,
-        verified = FALSE,
-        attempts = 0
     `;
     
-    await pool.query(insertQuery, [userId, formattedPhone, otp]);
-    console.log('OTP stored in database');
+    try {
+      // First, update user's phone number
+      await pool.query(
+        'UPDATE users SET phone_number = $1 WHERE id = $2',
+        [formattedPhone, userId]
+      );
+      console.log('Phone number updated for user:', userId);
+      
+      // Then store OTP
+      await pool.query(insertQuery, [userId, formattedPhone, otp]);
+      console.log('OTP stored in database successfully');
+    } catch (dbError) {
+      console.error('Database error storing OTP:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to store verification code. Please try again.',
+        error: dbError.message
+      });
+    }
     
     // Send SMS
     const smsResult = await smsService.sendOTPSMS(formattedPhone, otp);
