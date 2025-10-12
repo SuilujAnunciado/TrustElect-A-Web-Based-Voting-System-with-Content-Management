@@ -1082,8 +1082,8 @@ export default function LoginForm({ onClose }) {
 
               {smsDevOtp && (
                 <div className="mt-2 p-2 bg-gray-100 rounded text-center">
-                  <p className="text-xs text-gray-500">Development SMS OTP:</p>
-                  <p className="font-mono text-sm">{smsDevOtp}</p>
+                  <p className="text-xs text-black">Testing OTP:</p>
+                  <p className="font-mono text-sm text-black">{smsDevOtp}</p>
                 </div>
               )}
               
