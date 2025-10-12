@@ -961,7 +961,7 @@ exports.sendSmsOtp = async (req, res) => {
         console.log('Twilio trial issue detected, returning OTP for testing');
         return res.status(200).json({
           success: true,
-          message: `SMS verification code sent to ${phoneNumber}. Your code: ${otp}`,
+          message: `SMS verification code sent to ${phoneNumber}`,
           devMode: true,
           otp: otp
         });

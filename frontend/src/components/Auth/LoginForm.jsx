@@ -1058,9 +1058,9 @@ export default function LoginForm({ onClose }) {
             <Button
               onClick={handleSendSmsOtp}
               className="cursor-pointer mb-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
-              disabled={loading}
+              disabled={loading || smsCooldownActive}
             >
-              {loading ? "Sending..." : "Send SMS OTP"}
+              {loading ? "Sending..." : smsCooldownActive ? `Send SMS OTP (${smsCooldownTime}s)` : "Send SMS OTP"}
             </Button>
 
             <form onSubmit={(e) => {
