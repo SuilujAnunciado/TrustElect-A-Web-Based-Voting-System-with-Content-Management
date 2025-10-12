@@ -694,12 +694,6 @@ exports.registerPhone = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     console.log('Generated OTP:', otp);
     
-    // Store OTP in database - simple insert without conflict handling
-    const insertQuery = `
-      INSERT INTO otps (user_id, phone_number, otp, otp_hash, expires_at, otp_type, verified, attempts, purpose)
-      VALUES ($1, $2, $3, crypt($3, gen_salt('bf')), NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
-    `;
-    
     try {
       // First, update user's phone number
       await pool.query(
@@ -708,8 +702,13 @@ exports.registerPhone = async (req, res) => {
       );
       console.log('Phone number updated for user:', userId);
       
-      // Then store OTP
-      await pool.query(insertQuery, [userId, formattedPhone, otp]);
+      // Store OTP with minimal required columns
+      const insertQuery = `
+        INSERT INTO otps (user_id, otp, otp_hash, expires_at)
+        VALUES ($1, $2, crypt($2, gen_salt('bf')), NOW() + INTERVAL '5 minutes')
+      `;
+      
+      await pool.query(insertQuery, [userId, otp]);
       console.log('OTP stored in database successfully');
     } catch (dbError) {
       console.error('Database error storing OTP:', dbError);
@@ -778,20 +777,16 @@ exports.verifySmsOtp = async (req, res) => {
       });
     }
     
-    // Verify SMS OTP directly in backend
+    // Verify SMS OTP directly in backend - simplified query
     const verifyQuery = `
-      SELECT id, otp, attempts FROM otps 
+      SELECT id, otp FROM otps 
       WHERE user_id = $1 
-      AND phone_number = $2 
-      AND otp_type = 'sms'
       AND expires_at > NOW() 
-      AND verified = FALSE
-      AND attempts < 5
       ORDER BY created_at DESC 
       LIMIT 1
     `;
     
-    const verifyResult = await pool.query(verifyQuery, [userId, phoneNumber]);
+    const verifyResult = await pool.query(verifyQuery, [userId]);
     
     if (verifyResult.rows.length === 0) {
       return res.status(400).json({
@@ -804,12 +799,6 @@ exports.verifySmsOtp = async (req, res) => {
     
     // Check if OTP matches
     if (otpRecord.otp === otp) {
-      // Mark OTP as verified
-      await pool.query(
-        'UPDATE otps SET verified = TRUE, attempts = attempts + 1 WHERE id = $1',
-        [otpRecord.id]
-      );
-      
       // Mark phone as verified in users table
       await pool.query(
         'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
@@ -822,12 +811,6 @@ exports.verifySmsOtp = async (req, res) => {
         phoneNumber: phoneNumber
       });
     } else {
-      // Increment attempts
-      await pool.query(
-        'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
-        [otpRecord.id]
-      );
-      
       return res.status(400).json({
         success: false,
         message: 'Invalid verification code'
