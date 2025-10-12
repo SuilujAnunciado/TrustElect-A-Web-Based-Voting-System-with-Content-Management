@@ -675,6 +675,8 @@ exports.resetPassword = async (req, res) => {
 // Phone registration and SMS OTP functions using your existing schema
 exports.registerPhone = async (req, res) => {
   try {
+    console.log('Phone registration request:', req.body);
+    
     const { userId, email, phoneNumber } = req.body;
     
     if (!userId || !email || !phoneNumber) {
@@ -686,13 +688,16 @@ exports.registerPhone = async (req, res) => {
     
     // Format phone number
     const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
+    console.log('Formatted phone:', formattedPhone);
     
     // Use your database function to generate SMS OTP
     const result = await pool.query('SELECT generate_sms_otp($1) as otp_code', [formattedPhone]);
     const otp = result.rows[0].otp_code;
+    console.log('Generated OTP:', otp);
     
     // Send SMS
     const smsResult = await smsService.sendOTPSMS(formattedPhone, otp);
+    console.log('SMS result:', smsResult);
     
     if (!smsResult.success) {
       return res.status(500).json({

@@ -662,7 +662,7 @@ export default function LoginForm({ onClose }) {
       setPhoneRegistrationStep(2);
       setSmsCooldownActive(true);
       setSmsCooldownTime(COOLDOWN_SECONDS);
-      setSmsResendMessage("SMS verification code sent to your phone.");
+      setSmsResendMessage("Phone number registered! SMS verification code sent to your phone.");
     } catch (err) {
       console.error("Phone registration error:", err);
       setError(err.response?.data?.message || "Failed to register phone number. Please try again.");
@@ -963,7 +963,7 @@ export default function LoginForm({ onClose }) {
           }}>
             <h2 className="text-[#01579B] font-semibold mb-2">Register Phone Number</h2>
             <p className="text-sm text-gray-700 mb-2">
-              Enter your  phone number to receive SMS verification codes.
+              Enter your phone number to register it for SMS verification.
             </p>
             <Input
               type="tel"
@@ -979,7 +979,7 @@ export default function LoginForm({ onClose }) {
               className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
               disabled={loading}
             >
-              {loading ? "Sending..." : "Send SMS Code"}
+              {loading ? "Registering..." : "Register Phone Number"}
             </Button>
 
             <div className="mt-4 text-center">
@@ -999,9 +999,9 @@ export default function LoginForm({ onClose }) {
             e.preventDefault();
             handleSmsOtpVerification();
           }}>
-            <h2 className="text-[#01579B] font-semibold mb-2">Enter SMS OTP</h2>
+            <h2 className="text-[#01579B] font-semibold mb-2">Verify Phone Number</h2>
             <p className="text-sm text-gray-700 mb-2">
-              A verification code has been sent to your phone number.
+              Your phone number has been registered! Enter the verification code sent to your phone.
             </p>
             <Input
               type="text"
@@ -1024,7 +1024,7 @@ export default function LoginForm({ onClose }) {
               className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
               disabled={loading}
             >
-              {loading ? "Verifying..." : "Verify SMS Code"}
+              {loading ? "Verifying..." : "Verify Phone Number"}
             </Button>
             
 
@@ -1037,7 +1037,7 @@ export default function LoginForm({ onClose }) {
               >
                 {smsResendLoading ? "Sending..." : 
                  smsCooldownActive ? `Resend available in ${smsCooldownTime}s` : 
-                 "Resend SMS verification code"}
+                 "Resend verification code"}
               </button>
               {smsResendMessage && (
                 <p className="text-xs mt-1 text-gray-600">{smsResendMessage}</p>
