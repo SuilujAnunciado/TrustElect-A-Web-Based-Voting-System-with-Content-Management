@@ -702,18 +702,22 @@ exports.registerPhone = async (req, res) => {
       );
       console.log('Phone number updated for user:', userId);
       
-      // Store OTP using only the most basic columns that definitely exist
+      // Store OTP using the existing table structure
       const insertQuery = `
-        INSERT INTO otps (user_id, otp_hash, expires_at)
-        VALUES ($1, crypt($2, gen_salt('bf')), NOW() + INTERVAL '5 minutes')
+        INSERT INTO otps (user_id, otp, phone_number, otp_type, expires_at, verified, attempts, purpose)
+        VALUES ($1, $2, $3, $4, NOW() + INTERVAL '5 minutes', $5, $6, $7)
       `;
       
-      await pool.query(insertQuery, [userId, otp]);
+      await pool.query(insertQuery, [
+        userId, 
+        otp, 
+        formattedPhone, 
+        'sms', 
+        false, 
+        0, 
+        'verification'
+      ]);
       console.log('OTP stored in database successfully');
-      
-      // Store the plain OTP in a separate way (we'll use this for verification)
-      // We'll store it in the user's session or use a different approach
-      console.log('Plain OTP for verification:', otp);
     } catch (dbError) {
       console.error('Database error storing OTP:', dbError);
       return res.status(500).json({
@@ -781,11 +785,13 @@ exports.verifySmsOtp = async (req, res) => {
       });
     }
     
-    // Verify SMS OTP using hash comparison
+    // Verify SMS OTP using direct comparison
     const verifyQuery = `
-      SELECT id, otp_hash FROM otps 
+      SELECT id, otp, attempts FROM otps 
       WHERE user_id = $1 
+      AND otp_type = 'sms'
       AND expires_at > NOW() 
+      AND verified = false
       ORDER BY created_at DESC 
       LIMIT 1
     `;
@@ -801,19 +807,14 @@ exports.verifySmsOtp = async (req, res) => {
     
     const otpRecord = verifyResult.rows[0];
     
-    // Check if OTP matches using hash comparison
-    const hashCheckQuery = `
-      SELECT EXISTS(
-        SELECT 1 FROM otps 
-        WHERE id = $1 
-        AND otp_hash = crypt($2, otp_hash)
-      ) as is_valid
-    `;
-    
-    const hashResult = await pool.query(hashCheckQuery, [otpRecord.id, otp]);
-    const isValid = hashResult.rows[0].is_valid;
-    
-    if (isValid) {
+    // Check if OTP matches
+    if (otpRecord.otp === otp) {
+      // Mark OTP as verified
+      await pool.query(
+        'UPDATE otps SET verified = TRUE, attempts = attempts + 1 WHERE id = $1',
+        [otpRecord.id]
+      );
+      
       // Mark phone as verified in users table
       await pool.query(
         'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
@@ -826,6 +827,12 @@ exports.verifySmsOtp = async (req, res) => {
         phoneNumber: phoneNumber
       });
     } else {
+      // Increment attempts
+      await pool.query(
+        'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
+        [otpRecord.id]
+      );
+      
       return res.status(400).json({
         success: false,
         message: 'Invalid verification code'
@@ -872,7 +879,6 @@ exports.resendSmsOtp = async (req, res) => {
     const updateQuery = `
       UPDATE otps 
       SET otp = $1, 
-          otp_hash = crypt($1, gen_salt('bf')), 
           expires_at = NOW() + INTERVAL '5 minutes',
           verified = FALSE,
           attempts = 0
@@ -887,8 +893,8 @@ exports.resendSmsOtp = async (req, res) => {
     if (updateResult.rowCount === 0) {
       // No recent OTP found, create new one
       const insertQuery = `
-        INSERT INTO otps (user_id, phone_number, otp, otp_hash, expires_at, otp_type, verified, attempts, purpose)
-        VALUES ($1, $2, $3, crypt($3, gen_salt('bf')), NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
+        INSERT INTO otps (user_id, phone_number, otp, expires_at, otp_type, verified, attempts, purpose)
+        VALUES ($1, $2, $3, NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
       `;
       await pool.query(insertQuery, [userId, phoneNumber, otp]);
     }
