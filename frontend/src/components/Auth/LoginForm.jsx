@@ -641,7 +641,7 @@ export default function LoginForm({ onClose }) {
       
       // Normalize phone number to +63 format
       let normalizedPhone = phoneNumber.replace(/\s/g, '');
-      if (normalizedPhone.startsWith('0')) {
+      if (normalizedPhone.startsWith('09')) {
         normalizedPhone = '+63' + normalizedPhone.substring(1);
       } else if (normalizedPhone.startsWith('63')) {
         normalizedPhone = '+' + normalizedPhone;

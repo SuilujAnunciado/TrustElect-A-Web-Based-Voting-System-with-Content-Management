@@ -17,7 +17,7 @@ const formatPhoneNumber = (phoneNumber) => {
   
   // If starts with 09, replace with +63
   if (cleaned.startsWith('09')) {
-    cleaned = '+63' + cleaned.substring(2);
+    cleaned = '+63' + cleaned.substring(1);
   }
   
   // If starts with 63, add +
