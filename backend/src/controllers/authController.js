@@ -702,14 +702,18 @@ exports.registerPhone = async (req, res) => {
       );
       console.log('Phone number updated for user:', userId);
       
-      // Store OTP with minimal required columns
+      // Store OTP using only the most basic columns that definitely exist
       const insertQuery = `
-        INSERT INTO otps (user_id, otp, otp_hash, expires_at)
-        VALUES ($1, $2, crypt($2, gen_salt('bf')), NOW() + INTERVAL '5 minutes')
+        INSERT INTO otps (user_id, otp_hash, expires_at)
+        VALUES ($1, crypt($2, gen_salt('bf')), NOW() + INTERVAL '5 minutes')
       `;
       
       await pool.query(insertQuery, [userId, otp]);
       console.log('OTP stored in database successfully');
+      
+      // Store the plain OTP in a separate way (we'll use this for verification)
+      // We'll store it in the user's session or use a different approach
+      console.log('Plain OTP for verification:', otp);
     } catch (dbError) {
       console.error('Database error storing OTP:', dbError);
       return res.status(500).json({
@@ -777,9 +781,9 @@ exports.verifySmsOtp = async (req, res) => {
       });
     }
     
-    // Verify SMS OTP directly in backend - simplified query
+    // Verify SMS OTP using hash comparison
     const verifyQuery = `
-      SELECT id, otp FROM otps 
+      SELECT id, otp_hash FROM otps 
       WHERE user_id = $1 
       AND expires_at > NOW() 
       ORDER BY created_at DESC 
@@ -797,8 +801,19 @@ exports.verifySmsOtp = async (req, res) => {
     
     const otpRecord = verifyResult.rows[0];
     
-    // Check if OTP matches
-    if (otpRecord.otp === otp) {
+    // Check if OTP matches using hash comparison
+    const hashCheckQuery = `
+      SELECT EXISTS(
+        SELECT 1 FROM otps 
+        WHERE id = $1 
+        AND otp_hash = crypt($2, otp_hash)
+      ) as is_valid
+    `;
+    
+    const hashResult = await pool.query(hashCheckQuery, [otpRecord.id, otp]);
+    const isValid = hashResult.rows[0].is_valid;
+    
+    if (isValid) {
       // Mark phone as verified in users table
       await pool.query(
         'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
