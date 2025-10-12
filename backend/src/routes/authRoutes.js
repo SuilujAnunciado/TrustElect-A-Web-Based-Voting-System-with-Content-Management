@@ -12,6 +12,8 @@ const {
   resetPassword,
   logoutUser,
   registerPhone,
+  checkPhoneRegistration,
+  sendSmsOtp,
   verifySmsOtp,
   resendSmsOtp
 } = require("../controllers/authController");
@@ -58,6 +60,8 @@ router.post('/reset-password', [
 
 // Phone registration and SMS OTP routes
 router.post('/register-phone', registerPhone);
+router.post('/check-phone-registration', checkPhoneRegistration);
+router.post('/send-sms-otp', sendSmsOtp);
 router.post('/verify-sms-otp', verifySmsOtp);
 router.post('/resend-sms-otp', resendSmsOtp);
 

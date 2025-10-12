@@ -690,68 +690,46 @@ exports.registerPhone = async (req, res) => {
     const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
     console.log('Formatted phone:', formattedPhone);
     
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('Generated OTP:', otp);
-    
     try {
-      // First, update user's phone number
+      // Check if user already has a phone number
+      const existingPhoneResult = await pool.query(
+        'SELECT phone_number FROM users WHERE id = $1',
+        [userId]
+      );
+      
+      const existingPhone = existingPhoneResult.rows[0]?.phone_number;
+      
+      if (existingPhone) {
+        return res.status(200).json({
+          success: true,
+          message: `Phone number ${existingPhone} is already registered. Click "Send OTP" to receive verification code.`,
+          phoneNumber: existingPhone,
+          alreadyRegistered: true
+        });
+      }
+      
+      // Only update user's phone number if not already registered
       await pool.query(
         'UPDATE users SET phone_number = $1 WHERE id = $2',
         [formattedPhone, userId]
       );
       console.log('Phone number updated for user:', userId);
       
-      // Store OTP using the existing table structure
-      const insertQuery = `
-        INSERT INTO otps (user_id, otp, phone_number, otp_type, expires_at, verified, attempts, purpose)
-        VALUES ($1, $2, $3, $4, NOW() + INTERVAL '5 minutes', $5, $6, $7)
-      `;
-      
-      await pool.query(insertQuery, [
-        userId, 
-        otp, 
-        formattedPhone, 
-        'sms', 
-        false, 
-        0, 
-        'verification'
-      ]);
-      console.log('OTP stored in database successfully');
     } catch (dbError) {
-      console.error('Database error storing OTP:', dbError);
+      console.error('Database error storing phone number:', dbError);
       return res.status(500).json({
         success: false,
-        message: 'Failed to store verification code. Please try again.',
+        message: 'Failed to register phone number. Please try again.',
         error: dbError.message
       });
     }
     
-    // Send SMS
-    const smsResult = await smsService.sendOTPSMS(formattedPhone, otp);
-    console.log('SMS result:', smsResult);
-    
-    if (!smsResult.success) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to send SMS. Please try again.',
-        error: smsResult.error
-      });
-    }
-    
-    // In development mode, return OTP for testing
-    if (process.env.NODE_ENV === 'development') {
-      return res.status(200).json({
-        success: true,
-        message: `SMS verification code sent to ${formattedPhone}`,
-        devMode: true,
-        otp: otp
-      });
-    }
-    
+    // Return success without sending OTP
     return res.status(200).json({
       success: true,
-      message: `SMS verification code sent to ${formattedPhone}`
+      message: `Phone number ${formattedPhone} registered successfully. Click "Send OTP" to receive verification code.`,
+      phoneNumber: formattedPhone,
+      alreadyRegistered: false
     });
     
   } catch (error) {
@@ -849,6 +827,135 @@ exports.verifySmsOtp = async (req, res) => {
 };
 
 // Resend SMS OTP function
+// Send SMS OTP after phone registration
+// Check if user has registered phone number
+exports.checkPhoneRegistration = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+    
+    // Check if user has a phone number
+    const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
+    const phoneNumber = phoneResult.rows[0]?.phone_number;
+    
+    if (phoneNumber) {
+      return res.status(200).json({
+        success: true,
+        hasPhone: true,
+        phoneNumber: phoneNumber,
+        message: `Phone number ${phoneNumber} is registered. You can use SMS OTP.`
+      });
+    } else {
+      return res.status(200).json({
+        success: true,
+        hasPhone: false,
+        message: 'No phone number registered. Please register your phone number first.'
+      });
+    }
+    
+  } catch (error) {
+    console.error('Check phone registration error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to check phone registration. Please try again.'
+    });
+  }
+};
+
+exports.sendSmsOtp = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+    
+    // Get user's phone number
+    const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
+    const phoneNumber = phoneResult.rows[0]?.phone_number;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'No phone number found for this user. Please register your phone number first.'
+      });
+    }
+    
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('Generated SMS OTP:', otp);
+    
+    try {
+      // Store OTP in database
+      const insertQuery = `
+        INSERT INTO otps (user_id, otp, phone_number, otp_type, expires_at, verified, attempts, purpose)
+        VALUES ($1, $2, $3, $4, NOW() + INTERVAL '5 minutes', $5, $6, $7)
+      `;
+      
+      await pool.query(insertQuery, [
+        userId, 
+        otp, 
+        phoneNumber, 
+        'sms', 
+        false, 
+        0, 
+        'verification'
+      ]);
+      console.log('OTP stored in database successfully');
+    } catch (dbError) {
+      console.error('Database error storing OTP:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate verification code. Please try again.',
+        error: dbError.message
+      });
+    }
+    
+    // Send SMS
+    const smsResult = await smsService.sendOTPSMS(phoneNumber, otp);
+    console.log('SMS result:', smsResult);
+    
+    if (!smsResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send SMS. Please try again.',
+        error: smsResult.error
+      });
+    }
+    
+    // In development mode, return OTP for testing
+    if (process.env.NODE_ENV === 'development') {
+      return res.status(200).json({
+        success: true,
+        message: `SMS verification code sent to ${phoneNumber}`,
+        devMode: true,
+        otp: otp
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: `SMS verification code sent to ${phoneNumber}`
+    });
+    
+  } catch (error) {
+    console.error('Send SMS OTP error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to send SMS code. Please try again.'
+    });
+  }
+};
+
 exports.resendSmsOtp = async (req, res) => {
   try {
     const { userId } = req.body;

@@ -127,7 +127,11 @@ export default function LoginForm({ onClose }) {
             if (phoneRegistrationStep === 1) {
               handlePhoneRegistration();
             } else if (phoneRegistrationStep === 2) {
-              handleSmsOtpVerification();
+              if (smsOtp.length === 6) {
+                handleSmsOtpVerification();
+              } else {
+                handleSendSmsOtp();
+              }
             }
           } else {
             handleOtpVerification();
@@ -615,10 +619,33 @@ export default function LoginForm({ onClose }) {
     setError("");
     setSmsResendMessage("");
     setUseSmsOtp(true);
-    setPhoneRegistrationStep(1);
     setPhoneNumber("");
     setSmsOtp("");
     setSmsDevOtp("");
+    
+    // Check if user already has a registered phone number
+    try {
+      const userId = Cookies.get("userId");
+      const response = await axios.post(
+        `/api/auth/check-phone-registration`,
+        { userId },
+        { withCredentials: true }
+      );
+      
+      if (response.data.success && response.data.hasPhone) {
+        // User already has a phone number, skip registration step
+        setPhoneRegistrationStep(2);
+        setSmsResendMessage(response.data.message);
+        setPhoneNumber(response.data.phoneNumber);
+      } else {
+        // User needs to register phone number
+        setPhoneRegistrationStep(1);
+      }
+    } catch (err) {
+      console.error("Check phone registration error:", err);
+      // If check fails, default to registration step
+      setPhoneRegistrationStep(1);
+    }
   };
 
   const handlePhoneRegistration = async () => {
@@ -655,17 +682,38 @@ export default function LoginForm({ onClose }) {
         { withCredentials: true }
       );
 
+      // Phone number registered successfully, now show "Send OTP" button
+      setPhoneRegistrationStep(2);
+      setSmsResendMessage(response.data.message);
+    } catch (err) {
+      console.error("Phone registration error:", err);
+      setError(err.response?.data?.message || "Failed to register phone number. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendSmsOtp = async () => {
+    setLoading(true);
+    try {
+      const userId = Cookies.get("userId");
+      
+      const response = await axios.post(
+        `/api/auth/send-sms-otp`,
+        { userId },
+        { withCredentials: true }
+      );
+
       if (response.data.devMode && response.data.otp) {
         setSmsDevOtp(response.data.otp);
       }
 
-      setPhoneRegistrationStep(2);
       setSmsCooldownActive(true);
       setSmsCooldownTime(COOLDOWN_SECONDS);
-      setSmsResendMessage("Phone number registered! SMS verification code sent to your phone.");
+      setSmsResendMessage(response.data.message);
     } catch (err) {
-      console.error("Phone registration error:", err);
-      setError(err.response?.data?.message || "Failed to register phone number. Please try again.");
+      console.error("Send SMS OTP error:", err);
+      setError(err.response?.data?.message || "Failed to send SMS OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -995,65 +1043,93 @@ export default function LoginForm({ onClose }) {
         )}
 
         {step === 2 && useSmsOtp && phoneRegistrationStep === 2 && (
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handleSmsOtpVerification();
-          }}>
-            <h2 className="text-[#01579B] font-semibold mb-2">Verify Phone Number</h2>
+          <div>
+            <h2 className="text-[#01579B] font-semibold mb-2">Phone Number Registered</h2>
             <p className="text-sm text-gray-700 mb-2">
-              Your phone number has been registered! Enter the verification code sent to your phone.
+              {smsResendMessage}
             </p>
-            <Input
-              type="text"
-              placeholder="Enter 6-digit SMS OTP"
-              value={smsOtp}
-              onChange={(e) => setSmsOtp(e.target.value)}
-              onKeyDown={handleSmsOtpKeyDown}
-              required
-            />
-
-            {smsDevOtp && (
-              <div className="mt-2 p-2 bg-gray-100 rounded text-center">
-                <p className="text-xs text-gray-500">Development SMS OTP:</p>
-                <p className="font-mono text-sm">{smsDevOtp}</p>
+            {phoneNumber && (
+              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+                <p className="text-sm text-gray-600">Registered Phone Number:</p>
+                <p className="text-sm font-semibold text-gray-800">{phoneNumber}</p>
               </div>
             )}
             
             <Button
-              type="submit"
-              className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
+              onClick={handleSendSmsOtp}
+              className="cursor-pointer mb-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
               disabled={loading}
             >
-              {loading ? "Verifying..." : "Verify Phone Number"}
+              {loading ? "Sending..." : "Send SMS OTP"}
             </Button>
-            
 
-            <div className="mt-4 text-center">
-              <button 
-                type="button"
-                onClick={handleResendSmsOtp}
-                disabled={smsResendLoading || smsCooldownActive}
-                className={`text-sm ${smsCooldownActive ? 'text-gray-400 cursor-not-allowed' : 'text-[#01579B] hover:underline'}`}
-              >
-                {smsResendLoading ? "Sending..." : 
-                 smsCooldownActive ? `Resend available in ${smsCooldownTime}s` : 
-                 "Resend verification code"}
-              </button>
-              {smsResendMessage && (
-                <p className="text-xs mt-1 text-gray-600">{smsResendMessage}</p>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleSmsOtpVerification();
+            }}>
+              <h3 className="text-[#01579B] font-semibold mb-2">Enter Verification Code</h3>
+              <p className="text-sm text-gray-700 mb-2">
+                Enter the 6-digit code sent to your phone.
+              </p>
+              <Input
+                type="text"
+                placeholder="Enter 6-digit SMS OTP"
+                value={smsOtp}
+                onChange={(e) => setSmsOtp(e.target.value)}
+                onKeyDown={handleSmsOtpKeyDown}
+                required
+              />
+
+              {smsDevOtp && (
+                <div className="mt-2 p-2 bg-gray-100 rounded text-center">
+                  <p className="text-xs text-gray-500">Development SMS OTP:</p>
+                  <p className="font-mono text-sm">{smsDevOtp}</p>
+                </div>
               )}
-            </div>
-
-            <div className="mt-2 text-center">
-              <button 
-                type="button"
-                onClick={handleBackToEmailOtp}
-                className="text-sm text-[#01579B] hover:underline"
+              
+              <Button
+                type="submit"
+                className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
+                disabled={loading || smsOtp.length !== 6}
               >
-                Back to Email OTP
-              </button>
-            </div>
-          </form>
+                {loading ? "Verifying..." : "Verify SMS OTP"}
+              </Button>
+              
+
+              <div className="mt-4 text-center">
+                <button 
+                  type="button"
+                  onClick={handleResendSmsOtp}
+                  disabled={smsResendLoading || smsCooldownActive}
+                  className={`text-sm ${smsCooldownActive ? 'text-gray-400 cursor-not-allowed' : 'text-[#01579B] hover:underline'}`}
+                >
+                  {smsResendLoading ? "Sending..." : 
+                   smsCooldownActive ? `Resend available in ${smsCooldownTime}s` : 
+                   "Resend verification code"}
+                </button>
+              </div>
+
+              <div className="mt-2 text-center">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setPhoneRegistrationStep(1);
+                    setPhoneNumber("");
+                  }}
+                  className="text-sm text-[#01579B] hover:underline mr-4"
+                >
+                  Change Phone Number
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleBackToEmailOtp}
+                  className="text-sm text-[#01579B] hover:underline"
+                >
+                  Back to Email OTP
+                </button>
+              </div>
+            </form>
+          </div>
         )}
         
         {step === 3 && (
