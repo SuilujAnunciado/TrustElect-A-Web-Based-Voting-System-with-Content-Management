@@ -694,6 +694,12 @@ export default function LoginForm({ onClose }) {
   };
 
   const handleSendSmsOtp = async () => {
+    // Check if cooldown is active
+    if (smsCooldownActive) {
+      setSmsResendMessage(`Please wait ${smsCooldownTime} seconds before sending another code.`);
+      return;
+    }
+
     setLoading(true);
     try {
       const userId = Cookies.get("userId");
@@ -1058,7 +1064,7 @@ export default function LoginForm({ onClose }) {
             <Button
               onClick={handleSendSmsOtp}
               className="cursor-pointer mb-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
-              disabled={loading || smsCooldownActive}
+              disabled={loading}
             >
               {loading ? "Sending..." : smsCooldownActive ? `Send SMS OTP (${smsCooldownTime}s)` : "Send SMS OTP"}
             </Button>
