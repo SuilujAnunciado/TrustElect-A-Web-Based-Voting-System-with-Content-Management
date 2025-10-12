@@ -745,7 +745,7 @@ export default function LoginForm({ onClose }) {
       
       const response = await axios.post(
         `/api/auth/resend-sms-otp`,
-        { userId, email: userEmail, phoneNumber },
+        { userId },
         { withCredentials: true }
       );
 

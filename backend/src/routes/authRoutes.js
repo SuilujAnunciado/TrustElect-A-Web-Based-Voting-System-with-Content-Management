@@ -12,7 +12,8 @@ const {
   resetPassword,
   logoutUser,
   registerPhone,
-  verifySmsOtp
+  verifySmsOtp,
+  resendSmsOtp
 } = require("../controllers/authController");
 const { verifyToken } = require("../middlewares/authMiddleware");
 const router = express.Router();
@@ -58,5 +59,6 @@ router.post('/reset-password', [
 // Phone registration and SMS OTP routes
 router.post('/register-phone', registerPhone);
 router.post('/verify-sms-otp', verifySmsOtp);
+router.post('/resend-sms-otp', resendSmsOtp);
 
 module.exports = router;

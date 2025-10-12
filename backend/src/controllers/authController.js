@@ -690,10 +690,25 @@ exports.registerPhone = async (req, res) => {
     const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
     console.log('Formatted phone:', formattedPhone);
     
-    // Use your database function to generate SMS OTP
-    const result = await pool.query('SELECT generate_sms_otp($1) as otp_code', [formattedPhone]);
-    const otp = result.rows[0].otp_code;
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     console.log('Generated OTP:', otp);
+    
+    // Store OTP in database
+    const insertQuery = `
+      INSERT INTO otps (user_id, phone_number, otp, otp_hash, expires_at, otp_type, verified, attempts, purpose)
+      VALUES ($1, $2, $3, crypt($3, gen_salt('bf')), NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
+      ON CONFLICT (user_id, phone_number, otp_type) 
+      DO UPDATE SET 
+        otp = EXCLUDED.otp,
+        otp_hash = EXCLUDED.otp_hash,
+        expires_at = EXCLUDED.expires_at,
+        verified = FALSE,
+        attempts = 0
+    `;
+    
+    await pool.query(insertQuery, [userId, formattedPhone, otp]);
+    console.log('OTP stored in database');
     
     // Send SMS
     const smsResult = await smsService.sendOTPSMS(formattedPhone, otp);
@@ -743,8 +758,8 @@ exports.verifySmsOtp = async (req, res) => {
     }
     
     // Get user's phone number
-    const phoneResult = await pool.query('SELECT get_user_phone_number($1) as phone_number', [userId]);
-    const phoneNumber = phoneResult.rows[0].phone_number;
+    const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
+    const phoneNumber = phoneResult.rows[0]?.phone_number;
     
     if (!phoneNumber) {
       return res.status(400).json({
@@ -753,28 +768,154 @@ exports.verifySmsOtp = async (req, res) => {
       });
     }
     
-    // Use your database function to verify SMS OTP
-    const verifyResult = await pool.query('SELECT verify_sms_otp($1, $2) as is_valid', [phoneNumber, otp]);
-    const isValid = verifyResult.rows[0].is_valid;
+    // Verify SMS OTP directly in backend
+    const verifyQuery = `
+      SELECT id, otp, attempts FROM otps 
+      WHERE user_id = $1 
+      AND phone_number = $2 
+      AND otp_type = 'sms'
+      AND expires_at > NOW() 
+      AND verified = FALSE
+      AND attempts < 5
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `;
     
-    if (!isValid) {
+    const verifyResult = await pool.query(verifyQuery, [userId, phoneNumber]);
+    
+    if (verifyResult.rows.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'Invalid or expired verification code'
       });
     }
     
-    return res.status(200).json({
-      success: true,
-      message: 'Phone number verified successfully',
-      phoneNumber: phoneNumber
-    });
+    const otpRecord = verifyResult.rows[0];
+    
+    // Check if OTP matches
+    if (otpRecord.otp === otp) {
+      // Mark OTP as verified
+      await pool.query(
+        'UPDATE otps SET verified = TRUE, attempts = attempts + 1 WHERE id = $1',
+        [otpRecord.id]
+      );
+      
+      // Mark phone as verified in users table
+      await pool.query(
+        'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
+        [userId]
+      );
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Phone number verified successfully',
+        phoneNumber: phoneNumber
+      });
+    } else {
+      // Increment attempts
+      await pool.query(
+        'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
+        [otpRecord.id]
+      );
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification code'
+      });
+    }
     
   } catch (error) {
     console.error('SMS OTP verification error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to verify SMS code. Please try again.'
+    });
+  }
+};
+
+// Resend SMS OTP function
+exports.resendSmsOtp = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+    
+    // Get user's phone number
+    const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
+    const phoneNumber = phoneResult.rows[0]?.phone_number;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'No phone number found for this user'
+      });
+    }
+    
+    // Generate new 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('Resending SMS OTP:', otp);
+    
+    // Update OTP in database
+    const updateQuery = `
+      UPDATE otps 
+      SET otp = $1, 
+          otp_hash = crypt($1, gen_salt('bf')), 
+          expires_at = NOW() + INTERVAL '5 minutes',
+          verified = FALSE,
+          attempts = 0
+      WHERE user_id = $2 
+      AND phone_number = $3 
+      AND otp_type = 'sms'
+      AND expires_at > NOW() - INTERVAL '1 minute'
+    `;
+    
+    const updateResult = await pool.query(updateQuery, [otp, userId, phoneNumber]);
+    
+    if (updateResult.rowCount === 0) {
+      // No recent OTP found, create new one
+      const insertQuery = `
+        INSERT INTO otps (user_id, phone_number, otp, otp_hash, expires_at, otp_type, verified, attempts, purpose)
+        VALUES ($1, $2, $3, crypt($3, gen_salt('bf')), NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
+      `;
+      await pool.query(insertQuery, [userId, phoneNumber, otp]);
+    }
+    
+    // Send SMS
+    const smsResult = await smsService.sendOTPSMS(phoneNumber, otp);
+    
+    if (!smsResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send SMS. Please try again.',
+        error: smsResult.error
+      });
+    }
+    
+    // In development mode, return OTP for testing
+    if (process.env.NODE_ENV === 'development') {
+      return res.status(200).json({
+        success: true,
+        message: `SMS verification code resent to ${phoneNumber}`,
+        devMode: true,
+        otp: otp
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: `SMS verification code resent to ${phoneNumber}`
+    });
+    
+  } catch (error) {
+    console.error('Resend SMS OTP error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to resend SMS code. Please try again.'
     });
   }
 };
