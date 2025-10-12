@@ -870,6 +870,8 @@ exports.checkPhoneRegistration = async (req, res) => {
 
 exports.sendSmsOtp = async (req, res) => {
   try {
+    console.log('Send SMS OTP request:', req.body);
+    
     const { userId } = req.body;
     
     if (!userId) {
@@ -879,9 +881,17 @@ exports.sendSmsOtp = async (req, res) => {
       });
     }
     
+    // Check Twilio configuration
+    console.log('Twilio config check:');
+    console.log('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID ? 'Set' : 'Missing');
+    console.log('TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN ? 'Set' : 'Missing');
+    console.log('TWILIO_PHONE_NUMBER:', process.env.TWILIO_PHONE_NUMBER ? process.env.TWILIO_PHONE_NUMBER : 'Missing');
+    
     // Get user's phone number
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
     const phoneNumber = phoneResult.rows[0]?.phone_number;
+    
+    console.log('User phone number:', phoneNumber);
     
     if (!phoneNumber) {
       return res.status(400).json({
@@ -921,14 +931,30 @@ exports.sendSmsOtp = async (req, res) => {
     }
     
     // Send SMS
+    console.log('Attempting to send SMS to:', phoneNumber);
     const smsResult = await smsService.sendOTPSMS(phoneNumber, otp);
     console.log('SMS result:', smsResult);
     
     if (!smsResult.success) {
+      console.error('SMS sending failed:', smsResult);
+      
+      // If it's a Twilio trial issue, return the OTP for testing
+      if (smsResult.code === 21610 || smsResult.code === 'CONFIG_ERROR') {
+        console.log('Twilio trial issue detected, returning OTP for testing');
+        return res.status(200).json({
+          success: true,
+          message: `SMS sending failed due to Twilio trial limitations. Your verification code is: ${otp}`,
+          devMode: true,
+          otp: otp,
+          warning: 'This is a test mode due to Twilio trial restrictions.'
+        });
+      }
+      
       return res.status(500).json({
         success: false,
         message: 'Failed to send SMS. Please try again.',
-        error: smsResult.error
+        error: smsResult.error,
+        code: smsResult.code
       });
     }
     
@@ -951,7 +977,56 @@ exports.sendSmsOtp = async (req, res) => {
     console.error('Send SMS OTP error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to send SMS code. Please try again.'
+      message: 'Failed to send SMS code. Please try again.',
+      error: error.message
+    });
+  }
+};
+
+// Test SMS with your Twilio number
+exports.testSms = async (req, res) => {
+  try {
+    console.log('Testing SMS with Twilio number...');
+    
+    // Check Twilio configuration
+    const config = {
+      accountSid: process.env.TWILIO_ACCOUNT_SID ? 'Set' : 'Missing',
+      authToken: process.env.TWILIO_AUTH_TOKEN ? 'Set' : 'Missing',
+      phoneNumber: process.env.TWILIO_PHONE_NUMBER || 'Missing'
+    };
+    
+    console.log('Twilio config:', config);
+    
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+      return res.status(400).json({
+        success: false,
+        message: 'Twilio configuration incomplete',
+        config: config
+      });
+    }
+    
+    // Test sending SMS to your verified number
+    const testPhone = '+639120083491'; // Your verified number
+    const testMessage = 'Test from TrustElect - SMS is working! 🎉';
+    
+    console.log('Sending SMS from:', process.env.TWILIO_PHONE_NUMBER);
+    console.log('Sending SMS to:', testPhone);
+    
+    const smsResult = await smsService.sendSMS(testPhone, testMessage);
+    
+    return res.status(200).json({
+      success: true,
+      message: 'SMS test completed',
+      config: config,
+      smsResult: smsResult
+    });
+    
+  } catch (error) {
+    console.error('SMS test error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'SMS test failed',
+      error: error.message
     });
   }
 };

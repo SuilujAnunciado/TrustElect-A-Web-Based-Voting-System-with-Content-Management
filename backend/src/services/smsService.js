@@ -42,7 +42,23 @@ const formatPhoneNumber = (phoneNumber) => {
  */
 const sendSMS = async (phoneNumber, message) => {
   try {
+    // Check if Twilio is properly configured
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+      console.error('Twilio configuration missing:', {
+        accountSid: !!process.env.TWILIO_ACCOUNT_SID,
+        authToken: !!process.env.TWILIO_AUTH_TOKEN,
+        phoneNumber: !!process.env.TWILIO_PHONE_NUMBER
+      });
+      return { 
+        success: false, 
+        error: 'Twilio configuration is incomplete. Please check your environment variables.',
+        code: 'CONFIG_ERROR'
+      };
+    }
+    
     const formattedNumber = formatPhoneNumber(phoneNumber);
+    console.log('Sending SMS to:', formattedNumber);
+    console.log('From Twilio number:', process.env.TWILIO_PHONE_NUMBER);
     
     const result = await client.messages.create({
       body: message,
@@ -59,10 +75,30 @@ const sendSMS = async (phoneNumber, message) => {
     };
   } catch (error) {
     console.error('SMS sending error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      moreInfo: error.moreInfo
+    });
+    
+    // Handle specific Twilio errors
+    let errorMessage = error.message;
+    if (error.code === 21211) {
+      errorMessage = 'Invalid phone number format. Please check the number and try again.';
+    } else if (error.code === 21214) {
+      errorMessage = 'Phone number is not a valid mobile number.';
+    } else if (error.code === 21610) {
+      errorMessage = 'Phone number is not verified for your Twilio trial account. Please verify the number in your Twilio console.';
+    } else if (error.code === 21614) {
+      errorMessage = 'Phone number is not a valid mobile number.';
+    }
+    
     return { 
       success: false, 
-      error: error.message,
-      code: error.code
+      error: errorMessage,
+      code: error.code,
+      originalError: error.message
     };
   }
 };
