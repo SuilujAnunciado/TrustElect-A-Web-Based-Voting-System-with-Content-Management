@@ -1,13 +1,11 @@
-const twilio = require('twilio');
+const axios = require('axios');
 
-// Initialize Twilio client
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+// EasySendSMS Configuration (15 free SMS trial available)
+const EASYSENDSMS_API_KEY = process.env.EASYSENDSMS_API_KEY;
+const EASYSENDSMS_SENDER_NAME = process.env.EASYSENDSMS_SENDER_NAME || 'TrustElect';
 
 /**
- * Format phone number to international format for Twilio
+ * Format phone number to international format for EasySendSMS
  * @param {string} phoneNumber - Phone number in various formats
  * @returns {string} - Formatted phone number with +63 prefix
  */
@@ -35,70 +33,89 @@ const formatPhoneNumber = (phoneNumber) => {
 };
 
 /**
- * Send SMS using Twilio
+ * Send SMS using EasySendSMS (15 free SMS trial available)
  * @param {string} phoneNumber - Phone number to send SMS to
  * @param {string} message - SMS message content
- * @returns {Promise<Object>} - Twilio message result
+ * @returns {Promise<Object>} - EasySendSMS message result
  */
 const sendSMS = async (phoneNumber, message) => {
   try {
-    // Check if Twilio is properly configured
-    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
-      console.error('Twilio configuration missing:', {
-        accountSid: !!process.env.TWILIO_ACCOUNT_SID,
-        authToken: !!process.env.TWILIO_AUTH_TOKEN,
-        phoneNumber: !!process.env.TWILIO_PHONE_NUMBER
+    // Check if EasySendSMS is properly configured
+    if (!EASYSENDSMS_API_KEY) {
+      console.error('EasySendSMS configuration missing:', {
+        apiKey: !!EASYSENDSMS_API_KEY
       });
       return { 
         success: false, 
-        error: 'Twilio configuration is incomplete. Please check your environment variables.',
+        error: 'EasySendSMS configuration is incomplete. Please check your EASYSENDSMS_API_KEY environment variable.',
         code: 'CONFIG_ERROR'
       };
     }
     
     const formattedNumber = formatPhoneNumber(phoneNumber);
     console.log('Sending SMS to:', formattedNumber);
-    console.log('From Twilio number:', process.env.TWILIO_PHONE_NUMBER);
+    console.log('Using EasySendSMS service');
     
-    const result = await client.messages.create({
-      body: message,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: formattedNumber
-    });
+    // Prepare EasySendSMS API request
+    const smsData = {
+      from: EASYSENDSMS_SENDER_NAME,
+      to: formattedNumber.replace('+', ''), // Remove + for EasySendSMS
+      text: message,
+      type: "0" // 0 for plain text, 1 for Unicode
+    };
     
-    console.log('SMS sent successfully:', result.sid);
+    // Make API request to EasySendSMS
+    const response = await axios.post(
+      'https://restapi.easysendsms.app/v1/rest/sms/send',
+      smsData,
+      {
+        headers: {
+          'apikey': EASYSENDSMS_API_KEY,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      }
+    );
+    
+    console.log('SMS sent successfully via EasySendSMS:', response.data);
+    
+    // Extract message ID from response
+    const messageId = response.data?.messageIds?.[0] || 'unknown';
+    
     return { 
       success: true, 
-      messageId: result.sid,
+      messageId: messageId,
       to: formattedNumber,
-      status: result.status
+      status: 'sent',
+      provider: 'EasySendSMS',
+      cost: 'Using free trial credits'
     };
   } catch (error) {
     console.error('SMS sending error:', error);
     console.error('Error details:', {
       message: error.message,
-      code: error.code,
-      status: error.status,
-      moreInfo: error.moreInfo
+      status: error.response?.status,
+      data: error.response?.data
     });
     
-    // Handle specific Twilio errors
+    // Handle specific EasySendSMS errors
     let errorMessage = error.message;
-    if (error.code === 21211) {
-      errorMessage = 'Invalid phone number format. Please check the number and try again.';
-    } else if (error.code === 21214) {
-      errorMessage = 'Phone number is not a valid mobile number.';
-    } else if (error.code === 21610) {
-      errorMessage = 'Phone number is not verified for your Twilio trial account. Please verify the number in your Twilio console.';
-    } else if (error.code === 21614) {
-      errorMessage = 'Phone number is not a valid mobile number.';
+    if (error.response?.status === 401) {
+      errorMessage = 'EasySendSMS authentication failed. Please check your API key.';
+    } else if (error.response?.status === 400) {
+      errorMessage = 'Invalid request. Please check phone number format and message content.';
+    } else if (error.response?.data?.error === 4012) {
+      errorMessage = 'Invalid mobile number format.';
+    } else if (error.response?.data?.error === 4013) {
+      errorMessage = 'Insufficient credits. Please top up your account.';
     }
     
     return { 
       success: false, 
       error: errorMessage,
-      code: error.code,
-      originalError: error.message
+      code: error.response?.data?.error || error.response?.status || 'UNKNOWN_ERROR',
+      originalError: error.message,
+      provider: 'EasySendSMS'
     };
   }
 };

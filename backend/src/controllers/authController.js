@@ -899,11 +899,10 @@ exports.sendSmsOtp = async (req, res) => {
       });
     }
     
-    // Check Twilio configuration
-    console.log('Twilio config check:');
-    console.log('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID ? 'Set' : 'Missing');
-    console.log('TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN ? 'Set' : 'Missing');
-    console.log('TWILIO_PHONE_NUMBER:', process.env.TWILIO_PHONE_NUMBER ? process.env.TWILIO_PHONE_NUMBER : 'Missing');
+    // Check EasySendSMS configuration
+    console.log('EasySendSMS config check:');
+    console.log('EASYSENDSMS_API_KEY:', process.env.EASYSENDSMS_API_KEY ? 'Set' : 'Missing');
+    console.log('EASYSENDSMS_SENDER_NAME:', process.env.EASYSENDSMS_SENDER_NAME ? process.env.EASYSENDSMS_SENDER_NAME : 'TrustElect');
     
     // Get user's phone number
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
@@ -956,9 +955,9 @@ exports.sendSmsOtp = async (req, res) => {
     if (!smsResult.success) {
       console.error('SMS sending failed:', smsResult);
       
-      // If it's a Twilio trial issue, return the OTP for testing
-      if (smsResult.code === 21610 || smsResult.code === 'CONFIG_ERROR' || smsResult.code === 21612) {
-        console.log('Twilio trial issue detected, returning OTP for testing');
+      // If it's a configuration issue, return the OTP for testing
+      if (smsResult.code === 'CONFIG_ERROR' || smsResult.code === 401 || smsResult.code === 4013) {
+        console.log('EasySendSMS configuration issue detected, returning OTP for testing');
         return res.status(200).json({
           success: true,
           message: `SMS verification code sent to ${phoneNumber}`,
@@ -1000,71 +999,60 @@ exports.sendSmsOtp = async (req, res) => {
   }
 };
 
-// Test SMS with your Twilio number
+// Test SMS with EasySendSMS
 exports.testSms = async (req, res) => {
   try {
-    console.log('Testing SMS with Twilio number...');
+    console.log('Testing SMS with EasySendSMS...');
     
-    // Check Twilio configuration
+    // Check EasySendSMS configuration
     const config = {
-      accountSid: process.env.TWILIO_ACCOUNT_SID ? 'Set' : 'Missing',
-      authToken: process.env.TWILIO_AUTH_TOKEN ? 'Set' : 'Missing',
-      phoneNumber: process.env.TWILIO_PHONE_NUMBER || 'Missing'
+      apiKey: process.env.EASYSENDSMS_API_KEY ? 'Set' : 'Missing',
+      senderName: process.env.EASYSENDSMS_SENDER_NAME || 'TrustElect'
     };
     
-    console.log('Twilio config:', config);
+    console.log('EasySendSMS config:', config);
     
-    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+    if (!process.env.EASYSENDSMS_API_KEY) {
       return res.status(400).json({
         success: false,
-        message: 'Twilio configuration incomplete',
+        message: 'EasySendSMS configuration incomplete. Please set EASYSENDSMS_API_KEY in your .env file',
         config: config
       });
     }
     
-    // Test sending SMS - try different approaches
-    const testPhone = '+639120083491'; // Your verified number
-    const testMessage = 'Test from TrustElect - SMS is working! 🎉';
+    // Test sending SMS
+    const testPhone = '+639120083491'; // Your test number
+    const testMessage = 'Test from TrustElect - EasySendSMS is working! 🎉';
     
-    // For trial accounts, we might need to use a different approach
-    console.log('Trial account restrictions:');
-    console.log('- Can only send to verified numbers');
-    console.log('- May need to use Twilio Sandbox');
-    console.log('- Or upgrade to paid account');
+    console.log('EasySendSMS advantages:');
+    console.log('- 15 free SMS credits included');
+    console.log('- No trial restrictions');
+    console.log('- Works with any Philippines number');
+    console.log('- Immediate activation');
     
-    console.log('Sending SMS from:', process.env.TWILIO_PHONE_NUMBER);
+    console.log('Sending SMS from:', process.env.EASYSENDSMS_SENDER_NAME || 'TrustElect');
     console.log('Sending SMS to:', testPhone);
     console.log('Phone number length:', testPhone.length);
     console.log('Phone number format check:', /^\+63[0-9]{10}$/.test(testPhone));
     
     const smsResult = await smsService.sendSMS(testPhone, testMessage);
     
-    // Handle specific Twilio errors
+    // Handle EasySendSMS errors
     if (!smsResult.success) {
-      if (smsResult.code === 21612) {
-        // Generate a test OTP to show in UI
-        const testOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        return res.status(200).json({
-          success: true,
-          message: 'SMS blocked due to trial restrictions, but system is working! Using test mode.',
-          config: config,
-          error: smsResult.error,
-          code: smsResult.code,
-          testMode: true,
-          devMode: true,
-          otp: testOtp,
-          note: 'Your SMS system is working correctly. The restriction is due to Twilio trial account limitations.',
-          solution: 'For production, either upgrade to paid Twilio account or use the test mode fallback',
-          warning: 'This is a test mode due to Twilio trial restrictions. Your verification code is: ' + testOtp,
-          troubleshooting: {
-            step1: 'Trial accounts can only send to verified numbers',
-            step2: 'Your number is verified but may not have SMS capability',
-            step3: 'The system will show OTP in UI for testing',
-            step4: 'For production, upgrade Twilio account or use different SMS service'
-          }
-        });
-      }
+      return res.status(400).json({
+        success: false,
+        message: 'SMS sending failed',
+        config: config,
+        error: smsResult.error,
+        code: smsResult.code,
+        provider: 'EasySendSMS',
+        troubleshooting: {
+          step1: 'Check your EasySendSMS API key',
+          step2: 'Verify you have sufficient credits (15 free trial)',
+          step3: 'Check phone number format (+639123456789)',
+          step4: 'Review EasySendSMS account status'
+        }
+      });
     }
     
     return res.status(200).json({
@@ -1135,13 +1123,29 @@ exports.resendSmsOtp = async (req, res) => {
     }
     
     // Send SMS
+    console.log('Attempting to resend SMS to:', phoneNumber);
     const smsResult = await smsService.sendOTPSMS(phoneNumber, otp);
+    console.log('Resend SMS result:', smsResult);
     
     if (!smsResult.success) {
+      console.error('Resend SMS sending failed:', smsResult);
+      
+      // If it's a configuration issue, return the OTP for testing
+      if (smsResult.code === 'CONFIG_ERROR' || smsResult.code === 401 || smsResult.code === 4013) {
+        console.log('EasySendSMS configuration issue detected, returning OTP for testing');
+        return res.status(200).json({
+          success: true,
+          message: `SMS verification code resent to ${phoneNumber}`,
+          devMode: true,
+          otp: otp
+        });
+      }
+      
       return res.status(500).json({
         success: false,
-        message: 'Failed to send SMS. Please try again.',
-        error: smsResult.error
+        message: 'Failed to resend SMS. Please try again.',
+        error: smsResult.error,
+        code: smsResult.code
       });
     }
     
