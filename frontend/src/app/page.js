@@ -284,7 +284,7 @@ export default function Home() {
       <header 
         className="w-full flex justify-between items-center p-6 shadow-md fixed top-0 left-0 right-0 z-50"
         style={{
-          backgroundColor: landingContent.header?.bgColor || '#01579B',
+          backgroundColor: landingContent.header?.bgColor || '#00000FF',
           backgroundImage: landingContent.header?.backgroundImage ? `url(${formatImageUrl(landingContent.header.backgroundImage)})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -355,7 +355,7 @@ export default function Home() {
           {/* Removed About button */}
           <Button
             onClick={() => setShowLogin(true)}
-            className="cursor-pointer px-6 py-2 br-5 bg-[#0000FF] text-white font-semibold rounded-lg shadow-md hover:bg-blue-800"
+            className="cursor-pointer px-6 py-2 br-5 bg-[#01579B] text-white font-semibold rounded-lg shadow-md hover:bg-blue-800"
           >
             Login
           </Button>
