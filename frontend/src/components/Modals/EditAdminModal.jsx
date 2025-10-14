@@ -360,11 +360,6 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
             className={`border w-full p-2 rounded text-black ${isEditingOwnProfile ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             disabled={isEditingOwnProfile}
           />
-          {isEditingOwnProfile && (
-            <p className="text-amber-600 text-sm font-medium">
-            You cannot edit your own email address.
-            </p>
-          )}
           {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
           {checkingEmail && <p className="text-blue-500 text-sm">Checking email availability...</p>}
 
