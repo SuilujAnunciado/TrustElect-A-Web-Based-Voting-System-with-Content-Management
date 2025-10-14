@@ -29,7 +29,13 @@ const hostingerTransporter = nodemailer.createTransport({
   },
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  // Connection pooling settings to avoid rate limiting
+  pool: true,
+  maxConnections: 1, // Only 1 connection at a time
+  maxMessages: 1, // Only 1 message per connection
+  rateLimit: 1, // 1 email per second
+  rateDelta: 1000 // 1 second between emails
 });
 
 const logEmailStatus = async (userId, email, emailType, status, messageId = null, errorMessage = null, isSystemAccount = false, recipientEmail = null) => {

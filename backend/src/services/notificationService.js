@@ -3,6 +3,7 @@ const {
   createNotificationForUsers,
 } = require('../models/notificationModel');
 const emailService = require('./emailService');
+const { addElectionNotificationToQueue } = require('./emailQueueService');
 const pool = require('../config/db');
 
 /**
@@ -440,38 +441,24 @@ const notifyStudentsAboutElection = async (election) => {
       election.id
     );
 
-    // Send email notifications to all eligible students
-    console.log(`📧 Sending election notification emails to ${studentEmails.length} students...`);
+    // Add email notifications to queue for processing
+    console.log(`📧 Adding ${studentEmails.length} election notification emails to queue...`);
     
-    const emailPromises = studentEmails.map(async (email, index) => {
-      try {
-        const userId = studentUserIds[index];
-        const electionData = {
-          title: election.title,
-          startDate: election.start_date,
-          endDate: election.end_date
-        };
-
-        await emailService.sendElectionNotification(userId, email, electionData);
-        console.log(`✅ Election notification sent to ${email}`);
-      } catch (emailError) {
-        console.error(`❌ Failed to send election notification to ${email}:`, emailError.message);
-      }
-    });
-
-    // Send emails in parallel (but limit concurrency to avoid overwhelming the email service)
-    const emailBatchSize = 10;
-    for (let i = 0; i < emailPromises.length; i += emailBatchSize) {
-      const batch = emailPromises.slice(i, i + emailBatchSize);
-      await Promise.all(batch);
+    for (let i = 0; i < studentEmails.length; i++) {
+      const email = studentEmails[i];
+      const userId = studentUserIds[i];
       
-      // Small delay between batches to avoid rate limiting
-      if (i + emailBatchSize < emailPromises.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      const electionData = {
+        title: election.title,
+        startDate: election.start_date,
+        endDate: election.end_date
+      };
+
+      // Add to queue instead of sending immediately
+      addElectionNotificationToQueue(userId, email, electionData);
     }
 
-    console.log(`📧 Election notification emails sent to ${studentEmails.length} students`);
+    console.log(`📧 All election notification emails added to queue for processing`);
     
     return notifications;
   } catch (error) {
