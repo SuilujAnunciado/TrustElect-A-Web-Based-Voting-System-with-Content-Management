@@ -18,6 +18,11 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     department: admin.department || "",
   });
 
+  // Clear any existing errors when component mounts
+  useEffect(() => {
+    setErrors({});
+  }, []);
+
   const [departments, setDepartments] = useState([]);
   const [errors, setErrors] = useState({});
   const [loadingDepartments, setLoadingDepartments] = useState(true);
@@ -128,6 +133,11 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
       setErrors({ ...errors, [name]: "" });
     }
     
+    // Clear department error when department changes
+    if (name === 'department' && errors.department) {
+      setErrors({ ...errors, department: "" });
+    }
+    
     // Check email if it's an email field and has changed
     if (name === 'email' && processedValue !== admin.email && !isEditingOwnProfile) {
       if (processedValue.endsWith("@novaliches.sti.edu.ph") || processedValue.endsWith("@novaliches.sti.edu")) {
@@ -142,6 +152,8 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
 
   const validateInputs = async () => {
     let newErrors = {};
+    
+    console.log("🔍 Debug - Validating inputs:", formData);
     
     // First Name validation
     if (!formData.firstName.trim()) {
@@ -193,12 +205,13 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
       newErrors.employeeNumber = "Employee Number must not exceed 8 characters.";
     }
     
-    // Department validation
+    // Department validation - ONLY check if department is selected
     if (!formData.department) {
       newErrors.department = "Select a department.";
     }
-    // Removed department restriction - multiple admins can be in the same department
+    // NO department restriction - multiple admins can be in the same department
     
+    console.log("🔍 Debug - Validation errors:", newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
