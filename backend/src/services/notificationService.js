@@ -450,8 +450,10 @@ const notifyStudentsAboutElection = async (election) => {
       
       const electionData = {
         title: election.title,
-        startDate: election.start_date,
-        endDate: election.end_date
+        startDate: election.date_from,
+        endDate: election.date_to,
+        startTime: election.start_time,
+        endTime: election.end_time
       };
 
       // Add to queue instead of sending immediately

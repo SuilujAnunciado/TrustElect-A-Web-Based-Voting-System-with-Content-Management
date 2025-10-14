@@ -336,12 +336,20 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
       to: recipientEmail,
       subject: subject,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background-color: #ffffff;">
-          <!-- Header -->
-          <div style="background-color: #01579B; padding: 25px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
-            <h1 style="margin: 0; font-size: 28px; font-weight: bold;">STI TrustElect</h1>
-            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Vote Receipt Confirmation</p>
-          </div>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Vote Receipt Confirmation</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f5f5f5;">
+          <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <!-- Header -->
+            <div style="background-color: #01579B !important; padding: 25px; text-align: center; color: white !important; border-radius: 10px 10px 0 0; width: 100%; box-sizing: border-box;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: bold; color: white !important;">STI TrustElect</h1>
+              <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9; color: white !important;">Vote Receipt Confirmation</p>
+            </div>
 
           <!-- Main Content -->
           <div style="padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
@@ -430,6 +438,8 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
             </div>
           </div>
         </div>
+        </body>
+        </html>
       `,
       text: `Vote Receipt - ${receiptData.electionTitle}\n\nVerification Code: ${verificationCode}\nReceipt ID: ${receiptData.voteToken}\nVote Date: ${voteDate}\n\nThank you for voting!`
     };
@@ -462,23 +472,47 @@ const sendElectionNotification = async (userId, email, electionData) => {
       recipientEmail = await getAdminForwardingEmail(originalEmail);
     }
 
-    const electionStartDate = new Date(electionData.startDate).toLocaleString('en-PH', {
-      timeZone: 'Asia/Manila',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    // Debug: Log the election data being received
+    console.log('📧 Election data received:', {
+      title: electionData.title,
+      startDate: electionData.startDate,
+      endDate: electionData.endDate,
+      startTime: electionData.startTime,
+      endTime: electionData.endTime,
+      startDateType: typeof electionData.startDate,
+      endDateType: typeof electionData.endDate
     });
 
-    const electionEndDate = new Date(electionData.endDate).toLocaleString('en-PH', {
-      timeZone: 'Asia/Manila',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    // Format dates using the same logic as the frontend
+    const formatElectionDate = (dateStr, timeStr) => {
+      try {
+        if (!dateStr || !timeStr) return 'Date not set';
+        
+        const [year, month, day] = dateStr.split('T')[0].split('-').map(Number);
+        const timeParts = timeStr.includes(':') ? timeStr.split(':') : [timeStr, '00'];
+        const hours = parseInt(timeParts[0], 10);
+        const minutes = parseInt(timeParts[1], 10);
+        
+        const dateObj = new Date(year, month - 1, day, hours, minutes);
+        
+        if (isNaN(dateObj.getTime())) return 'Invalid date';
+        
+        return new Intl.DateTimeFormat('en-PH', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true 
+        }).format(dateObj);
+      } catch (error) {
+        console.error('Date formatting error:', error);
+        return 'Invalid date';
+      }
+    };
+
+    const electionStartDate = formatElectionDate(electionData.startDate, electionData.startTime);
+    const electionEndDate = formatElectionDate(electionData.endDate, electionData.endTime);
 
     const subject = isSuperAdmin ? `[${originalEmail}] Election Notification - ${electionData.title}` : `Election Notification - ${electionData.title}`;
 
