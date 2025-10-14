@@ -1178,7 +1178,7 @@ exports.submitVote = async (req, res) => {
         // Get vote selections for email
         const voteSelections = await client.query(`
           SELECT 
-            p.position_name,
+            p.name as position_name,
             json_agg(
               json_build_object(
                 'name', CONCAT(c.first_name, ' ', c.last_name),
@@ -1189,7 +1189,7 @@ exports.submitVote = async (req, res) => {
           JOIN positions p ON v.position_id = p.id
           JOIN candidates c ON v.candidate_id = c.id
           WHERE v.election_id = $1 AND v.student_id = $2
-          GROUP BY p.position_name, p.id
+          GROUP BY p.name, p.id
           ORDER BY p.id
         `, [electionId, studentId]);
 
