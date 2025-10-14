@@ -2,6 +2,7 @@ const {
   createNotification,
   createNotificationForUsers,
 } = require('../models/notificationModel');
+const emailService = require('./emailService');
 const pool = require('../config/db');
 
 /**
@@ -398,13 +399,14 @@ const notifyStudentsAboutElection = async (election) => {
 
     const studentUserIds = [];
     const studentRoleMappings = [];
+    const studentEmails = [];
 
     const batchSize = 50;
     for (let i = 0; i < studentIds.length; i += batchSize) {
       const batch = studentIds.slice(i, i + batchSize);
 
       const { rows } = await pool.query(`
-        SELECT s.id as student_id, u.id as user_id
+        SELECT s.id as student_id, u.id as user_id, s.email
         FROM students s
         JOIN users u ON s.email = u.email
         WHERE s.id = ANY($1)
@@ -412,6 +414,7 @@ const notifyStudentsAboutElection = async (election) => {
 
       rows.forEach(row => {
         studentUserIds.push(row.user_id);
+        studentEmails.push(row.email);
   
         studentRoleMappings.push({
           userId: row.user_id,
@@ -426,6 +429,7 @@ const notifyStudentsAboutElection = async (election) => {
 
     const normalizedRole = normalizeRole('Student');
     
+    // Create in-app notifications
     const notifications = await createNotificationForUsers(
       studentUserIds,
       normalizedRole,
@@ -435,9 +439,43 @@ const notifyStudentsAboutElection = async (election) => {
       RELATED_ENTITIES.ELECTION,
       election.id
     );
+
+    // Send email notifications to all eligible students
+    console.log(`📧 Sending election notification emails to ${studentEmails.length} students...`);
+    
+    const emailPromises = studentEmails.map(async (email, index) => {
+      try {
+        const userId = studentUserIds[index];
+        const electionData = {
+          title: election.title,
+          startDate: election.start_date,
+          endDate: election.end_date
+        };
+
+        await emailService.sendElectionNotification(userId, email, electionData);
+        console.log(`✅ Election notification sent to ${email}`);
+      } catch (emailError) {
+        console.error(`❌ Failed to send election notification to ${email}:`, emailError.message);
+      }
+    });
+
+    // Send emails in parallel (but limit concurrency to avoid overwhelming the email service)
+    const emailBatchSize = 10;
+    for (let i = 0; i < emailPromises.length; i += emailBatchSize) {
+      const batch = emailPromises.slice(i, i + emailBatchSize);
+      await Promise.all(batch);
+      
+      // Small delay between batches to avoid rate limiting
+      if (i + emailBatchSize < emailPromises.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    console.log(`📧 Election notification emails sent to ${studentEmails.length} students`);
     
     return notifications;
   } catch (error) {
+    console.error('❌ Error in notifyStudentsAboutElection:', error);
     return [];
   }
 };
