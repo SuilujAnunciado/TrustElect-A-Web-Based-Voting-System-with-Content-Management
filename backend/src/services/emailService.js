@@ -332,7 +332,7 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
     }).join('');
 
     const mailOptions = {
-      from: `"STI TrustElect" <${process.env.GMAIL_USER}>`,
+      from: `"STI TrustElect" <${process.env.HOSTINGER_EMAIL_USER}>`,
       to: recipientEmail,
       subject: subject,
       html: `
