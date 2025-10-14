@@ -56,11 +56,22 @@ exports.loginUser = async (req, res) => {
     if (superAdminResult.rows.length > 0) {
       user = superAdminResult.rows[0];
       role = "Super Admin";
+      // Set default department for Super Admin
+      user.department = "Administrator";
     }
 
     if (!user) {
       user = await getAdminByEmail(email);
       role = "Admin";
+      
+      // Get department information for admin users
+      if (user) {
+        const adminQuery = "SELECT department FROM admins WHERE user_id = $1";
+        const adminResult = await pool.query(adminQuery, [user.id]);
+        if (adminResult.rows.length > 0) {
+          user.department = adminResult.rows[0].department;
+        }
+      }
     }
 
    
@@ -141,6 +152,10 @@ exports.loginUser = async (req, res) => {
       role 
     };
     
+    // Include department for admin and super admin users
+    if ((role === "Admin" || role === "Super Admin") && user.department) {
+      tokenPayload.department = user.department;
+    }
 
     if (role === "Student" && studentId) {
       tokenPayload.studentId = studentId;
@@ -163,6 +178,7 @@ exports.loginUser = async (req, res) => {
         email: user.email,
         username: user.username,
         role,
+        department: user.department || null,
       },
       role: role,
     };

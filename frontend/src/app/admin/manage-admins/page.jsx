@@ -77,7 +77,26 @@ export default function ManageAdminsPage() {
 
       const tokenData = JSON.parse(atob(token.split('.')[1]));
       setCurrentUserId(tokenData.id);
-      setCurrentUserDepartment(tokenData.department);
+      
+      // Get department from token or fetch from API
+      if (tokenData.department) {
+        setCurrentUserDepartment(tokenData.department);
+        console.log("🔍 Debug - Department from token:", tokenData.department);
+      } else {
+        // Fetch current user data to get department
+        try {
+          const userRes = await axios.get("/api/admin/profile", {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          });
+          if (userRes.data.department) {
+            setCurrentUserDepartment(userRes.data.department);
+            console.log("🔍 Debug - Department from API:", userRes.data.department);
+          }
+        } catch (error) {
+          console.error("Error fetching user department:", error);
+        }
+      }
       
       console.log("🔍 Debug - Token data:", tokenData);
 
