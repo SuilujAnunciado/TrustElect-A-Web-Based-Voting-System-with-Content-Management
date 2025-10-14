@@ -3,7 +3,8 @@ const pool = require('../config/db');
 const { generateUniqueCode } = require('../utils/verificationCodeGenerator');
 
 
-const transporter = nodemailer.createTransport({
+// Gmail transporter for OTP emails (unchanged)
+const gmailTransporter = nodemailer.createTransport({
   service: 'gmail',
   host: 'smtp.gmail.com',
   port: 587,
@@ -11,6 +12,20 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
+// Hostinger transporter for notifications
+const hostingerTransporter = nodemailer.createTransport({
+  host: process.env.HOSTINGER_EMAIL_HOST,
+  port: parseInt(process.env.HOSTINGER_EMAIL_PORT),
+  secure: process.env.HOSTINGER_EMAIL_SECURE === 'true',
+  auth: {
+    user: process.env.HOSTINGER_EMAIL_USER,
+    pass: process.env.HOSTINGER_EMAIL_PASSWORD
   },
   tls: {
     rejectUnauthorized: false
@@ -147,7 +162,7 @@ const sendOTPEmail = async (userId, email, otp, purpose = 'login') => {
     if (process.env.NODE_ENV === 'development') {
       
       try {
-        const info = await transporter.sendMail(mailOptions);
+        const info = await gmailTransporter.sendMail(mailOptions);
         
         await logEmailStatus(
           userId, 
@@ -173,7 +188,7 @@ const sendOTPEmail = async (userId, email, otp, purpose = 'login') => {
       };
     }
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await gmailTransporter.sendMail(mailOptions);
     console.log(`OTP ${otp} successfully sent to ${email}`);
 
     await logEmailStatus(
@@ -223,10 +238,20 @@ const sendOTPEmail = async (userId, email, otp, purpose = 'login') => {
 const testConnection = async () => {
   try {
   
-    const result = await transporter.verify();
+    const result = await gmailTransporter.verify();
     return { success: true };
   } catch (error) {
     console.error('Gmail connection failed:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+const testHostingerConnection = async () => {
+  try {
+    const result = await hostingerTransporter.verify();
+    return { success: true };
+  } catch (error) {
+    console.error('Hostinger connection failed:', error);
     return { success: false, error: error.message };
   }
 };
@@ -339,18 +364,18 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
               </div>
             </div>
 
-            <!-- Verification Code Card -->
-            <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 10px; padding: 25px; margin-bottom: 25px; text-align: center;">
-              <h3 style="color: #01579B; margin: 0 0 15px 0; font-size: 20px;">Verification Code</h3>
-              <div style="background-color: #ffffff; border: 2px solid #2196f3; border-radius: 8px; padding: 20px; margin: 15px 0;">
-                <p style="margin: 0; font-size: 14px; color: #666; font-weight: bold;">YOUR UNIQUE VERIFICATION CODE</p>
-                <div style="font-size: 32px; font-weight: bold; color: #1976d2; letter-spacing: 4px; margin: 10px 0; font-family: 'Courier New', monospace;">
+            <!-- Verification Code Card - HIGHLIGHTED -->
+            <div style="background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 100%); border: 3px solid #ff9800; border-radius: 15px; padding: 30px; margin-bottom: 25px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+              <h3 style="color: #e65100; margin: 0 0 20px 0; font-size: 24px; font-weight: bold;">🔐 VERIFICATION CODE</h3>
+              <div style="background-color: #ffffff; border: 3px solid #ff9800; border-radius: 12px; padding: 25px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <p style="margin: 0; font-size: 16px; color: #e65100; font-weight: bold; text-transform: uppercase;">YOUR UNIQUE VERIFICATION CODE</p>
+                <div style="font-size: 48px; font-weight: bold; color: #ff5722; letter-spacing: 6px; margin: 20px 0; font-family: 'Courier New', monospace; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
                   ${verificationCode}
                 </div>
-                <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">Use this code to verify your vote was recorded correctly</p>
+                <p style="margin: 15px 0 0 0; font-size: 14px; color: #e65100; font-weight: bold;">Use this code to verify your vote was recorded correctly</p>
               </div>
-              <div style="background-color: #ffffff; border-radius: 6px; padding: 15px; margin-top: 15px;">
-                <p style="margin: 0; font-size: 12px; color: #666;">
+              <div style="background-color: #fff3e0; border: 2px solid #ff9800; border-radius: 8px; padding: 15px; margin-top: 20px;">
+                <p style="margin: 0; font-size: 12px; color: #e65100; font-weight: bold;">
                   <strong>Receipt ID:</strong> <span style="font-family: monospace; font-size: 11px; word-break: break-all;">${receiptData.voteToken}</span>
                 </p>
               </div>
@@ -403,8 +428,8 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
       text: `Vote Receipt - ${receiptData.electionTitle}\n\nVerification Code: ${verificationCode}\nReceipt ID: ${receiptData.voteToken}\nVote Date: ${voteDate}\n\nThank you for voting!`
     };
 
-    // Send email directly without email_logs dependency (same as OTP emails)
-    const info = await transporter.sendMail(mailOptions);
+    // Send email using Hostinger for notifications
+    const info = await hostingerTransporter.sendMail(mailOptions);
     console.log(`Vote receipt email successfully sent to ${email}`);
     
     return { 
@@ -421,10 +446,128 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
   }
 };
 
+const sendElectionNotification = async (userId, email, electionData) => {
+  try {
+    const isSuperAdmin = email.toLowerCase() === 'systemadmin.00000@novaliches.sti.edu.ph';
+    const originalEmail = email;
+
+    let recipientEmail = email;
+    if (isSuperAdmin) {
+      recipientEmail = await getAdminForwardingEmail(originalEmail);
+    }
+
+    const electionStartDate = new Date(electionData.startDate).toLocaleString('en-PH', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const electionEndDate = new Date(electionData.endDate).toLocaleString('en-PH', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const subject = isSuperAdmin ? `[${originalEmail}] Election Notification - ${electionData.title}` : `Election Notification - ${electionData.title}`;
+
+    const mailOptions = {
+      from: `"STI TrustElect" <${process.env.HOSTINGER_EMAIL_USER}>`,
+      to: recipientEmail,
+      subject: subject,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background-color: #01579B; padding: 15px; text-align: center; color: white;">
+            <h2>STI TrustElect</h2>
+          </div>
+          <div style="padding: 15px; border: 1px solid #e0e0e0;">
+            <p>Hello${isSuperAdmin ? ' Administrator' : ''},</p>
+            ${isSuperAdmin ? `<p>This notification is for account: <strong>${originalEmail}</strong></p>` : ''}
+            
+            <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 20px; margin: 20px 0;">
+              <h3 style="color: #01579B; margin: 0 0 15px 0; font-size: 20px;">🗳️ Election Notification</h3>
+              <p style="font-size: 16px; color: #333; margin-bottom: 15px;">
+                <strong>You are eligible to vote in the upcoming election!</strong>
+              </p>
+              <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                <strong>Election:</strong> ${electionData.title}
+              </p>
+              <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                <strong>Start Date:</strong> ${electionStartDate}
+              </p>
+              <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                <strong>End Date:</strong> ${electionEndDate}
+              </p>
+            </div>
+
+            <div style="background-color: #e3f2fd; border: 2px solid #2196f3; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center;">
+              <h3 style="color: #01579B; margin: 0 0 15px 0; font-size: 18px;">Ready to Vote?</h3>
+              <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+                Click the button below to access the voting system and cast your vote.
+              </p>
+              <a href="https://trustelectonline.com" 
+                 style="background-color: #01579B; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                Go to TrustElect
+              </a>
+            </div>
+
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px; padding: 15px; margin: 20px 0;">
+              <h4 style="color: #856404; margin: 0 0 10px 0; font-size: 16px;">📋 Important Information</h4>
+              <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 14px; line-height: 1.6;">
+                <li style="margin-bottom: 5px;">Make sure to vote within the specified time period</li>
+                <li style="margin-bottom: 5px;">Your vote is confidential and secure</li>
+                <li style="margin-bottom: 5px;">You will receive a receipt after voting</li>
+                <li style="margin-bottom: 5px;">Contact support if you encounter any issues</li>
+              </ul>
+            </div>
+
+            <div style="margin-top: 20px; font-size: 12px; color: #666; text-align: center;">
+              <p>STI Novaliches - TrustElect System</p>
+            </div>
+          </div>
+        </div>
+      `,
+      text: `Election Notification - ${electionData.title}\n\nYou are eligible to vote in the upcoming election!\n\nElection: ${electionData.title}\nStart Date: ${electionStartDate}\nEnd Date: ${electionEndDate}\n\nVisit: https://trustelectonline.com to cast your vote.\n\nSTI Novaliches - TrustElect System`
+    };
+
+    const info = await hostingerTransporter.sendMail(mailOptions);
+    console.log(`Election notification successfully sent to ${email}`);
+
+    await logEmailStatus(
+      userId, 
+      originalEmail, 
+      'election_notification', 
+      'sent', 
+      info.messageId,
+      null,
+      isSuperAdmin,
+      isSuperAdmin ? recipientEmail : null
+    );
+    
+    return { 
+      success: true, 
+      messageId: info.messageId,
+      originalEmail,
+      recipientEmail,
+      isSystemAccount: isSuperAdmin
+    };
+  } catch (error) {
+    console.error(`❌ ERROR SENDING ELECTION NOTIFICATION to ${email}:`, error.message);
+    throw new Error(`Failed to send election notification: ${error.message}`);
+  }
+};
+
 module.exports = {
   sendOTPEmail,
   sendVoteReceiptEmail,
+  sendElectionNotification,
   testConnection,
+  testHostingerConnection,
   isSystemAccount,
   testSystemAccount,
   checkIfAdminEmail,
