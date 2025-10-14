@@ -84,16 +84,32 @@ export default function ManageAdminsPage() {
         department: admin.department === "Administration" ? "Administrator" : admin.department
       }));
 
+      console.log("🔍 Debug - All admins from API:", updatedAdmins);
+      console.log("🔍 Debug - Current user data:", tokenData);
+
       // Filter out system admins/root admins and only show active admins
       let filteredAdmins = updatedAdmins.filter((admin) => 
         admin.is_active && !isSuperAdmin(admin)
       );
 
+      console.log("🔍 Debug - After basic filtering:", filteredAdmins);
+
       // Apply department-based visibility filtering
       filteredAdmins = applyDepartmentVisibilityFilter(filteredAdmins, tokenData);
 
-      setAdmins(filteredAdmins);
-      setFilteredAdmins(filteredAdmins);
+      console.log("🔍 Debug - After department filtering:", filteredAdmins);
+
+      // TEMPORARY: For debugging, let's show all admins regardless of department filtering
+      // TODO: Remove this after fixing the filtering logic
+      if (filteredAdmins.length === 0) {
+        console.log("🔍 Debug - No admins after filtering, showing all active admins for debugging");
+        const debugAdmins = updatedAdmins.filter((admin) => admin.is_active && !isSuperAdmin(admin));
+        setAdmins(debugAdmins);
+        setFilteredAdmins(debugAdmins);
+      } else {
+        setAdmins(filteredAdmins);
+        setFilteredAdmins(filteredAdmins);
+      }
     } catch (error) {
       console.error("Error fetching admins:", error);
       setError("Failed to fetch admins");
@@ -245,7 +261,14 @@ export default function ManageAdminsPage() {
   }, [refreshTrigger]);
 
   const isSuperAdmin = (admin) => {
-    return admin.role_id === 1 || (admin.department === "Administrator" && !admin.employee_number);
+    const isSuper = admin.role_id === 1 || (admin.department === "Administrator" && !admin.employee_number);
+    console.log(`🔍 Debug - isSuperAdmin check for ${admin.first_name} ${admin.last_name}:`, {
+      role_id: admin.role_id,
+      department: admin.department,
+      employee_number: admin.employee_number,
+      isSuper
+    });
+    return isSuper;
   };
 
   const isCurrentUser = (admin) => {
@@ -257,31 +280,47 @@ export default function ManageAdminsPage() {
     const currentUserDept = currentUser.department;
     const currentUserId = currentUser.id;
 
+    console.log("🔍 Debug - Filtering with:", { currentUserDept, currentUserId });
+    console.log("🔍 Debug - Admins to filter:", admins.map(a => ({ 
+      id: a.id, 
+      name: `${a.first_name} ${a.last_name}`, 
+      dept: a.department, 
+      created_by: a.created_by 
+    })));
+
     // If current user is Administrator, they can see all admins
     if (currentUserDept === "Administrator" || currentUserDept === "Administration") {
+      console.log("🔍 Debug - User is Administrator, showing all admins");
       return admins;
     }
 
     // For non-Administrator users, filter based on department and creation
-    return admins.filter(admin => {
+    const filtered = admins.filter(admin => {
       // Always show admins from the same department
       if (admin.department === currentUserDept) {
+        console.log(`🔍 Debug - Showing admin ${admin.first_name} ${admin.last_name} - same department`);
         return true;
       }
 
       // Show admins created by the current user (regardless of department)
       if (admin.created_by === currentUserId) {
+        console.log(`🔍 Debug - Showing admin ${admin.first_name} ${admin.last_name} - created by current user`);
         return true;
       }
 
       // Don't show Administrator department admins to non-Administrator users
       if (admin.department === "Administrator" || admin.department === "Administration") {
+        console.log(`🔍 Debug - Hiding admin ${admin.first_name} ${admin.last_name} - Administrator department`);
         return false;
       }
 
       // Don't show admins from other departments
+      console.log(`🔍 Debug - Hiding admin ${admin.first_name} ${admin.last_name} - different department`);
       return false;
     });
+
+    console.log("🔍 Debug - Final filtered admins:", filtered.length);
+    return filtered;
   };
 
   const handleManagePermissions = (admin) => {
