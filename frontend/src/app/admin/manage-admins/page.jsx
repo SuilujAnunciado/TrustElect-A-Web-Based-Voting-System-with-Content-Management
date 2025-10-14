@@ -99,17 +99,8 @@ export default function ManageAdminsPage() {
 
       console.log("🔍 Debug - After department filtering:", filteredAdmins);
 
-      // TEMPORARY: For debugging, let's show all admins regardless of department filtering
-      // TODO: Remove this after fixing the filtering logic
-      if (filteredAdmins.length === 0) {
-        console.log("🔍 Debug - No admins after filtering, showing all active admins for debugging");
-        const debugAdmins = updatedAdmins.filter((admin) => admin.is_active && !isSuperAdmin(admin));
-        setAdmins(debugAdmins);
-        setFilteredAdmins(debugAdmins);
-      } else {
-        setAdmins(filteredAdmins);
-        setFilteredAdmins(filteredAdmins);
-      }
+      setAdmins(filteredAdmins);
+      setFilteredAdmins(filteredAdmins);
     } catch (error) {
       console.error("Error fetching admins:", error);
       setError("Failed to fetch admins");
@@ -243,12 +234,12 @@ export default function ManageAdminsPage() {
   const getVisibleDepartments = () => {
     if (!currentUserDepartment) return availableDepartments;
     
-    // If current user is Administrator, they can see all departments
-    if (currentUserDepartment === "Administrator" || currentUserDepartment === "Administration") {
+    // If current user is Administrator/Administration/System, they can see all departments
+    if (currentUserDepartment === "Administrator" || currentUserDepartment === "Administration" || currentUserDepartment === "System") {
       return availableDepartments;
     }
     
-    // For non-Administrator users, only show their own department
+    // For academic/organization department users, only show their own department
     return availableDepartments.filter(dept => {
       const deptName = dept.department_name || dept;
       return deptName === currentUserDepartment;
@@ -288,34 +279,28 @@ export default function ManageAdminsPage() {
       created_by: a.created_by 
     })));
 
-    // If current user is Administrator, they can see all admins
-    if (currentUserDept === "Administrator" || currentUserDept === "Administration") {
-      console.log("🔍 Debug - User is Administrator, showing all admins");
+    // If current user is Administrator or Administration, they can see all admins
+    if (currentUserDept === "Administrator" || currentUserDept === "Administration" || currentUserDept === "System") {
+      console.log("🔍 Debug - User is Administrator/System, showing all admins");
       return admins;
     }
 
-    // For non-Administrator users, filter based on department and creation
+    // For academic/organization department users, only show admins from their department
     const filtered = admins.filter(admin => {
-      // Always show admins from the same department
+      // Only show admins from the same department
       if (admin.department === currentUserDept) {
-        console.log(`🔍 Debug - Showing admin ${admin.first_name} ${admin.last_name} - same department`);
+        console.log(`🔍 Debug - Showing admin ${admin.first_name} ${admin.last_name} - same department (${admin.department})`);
         return true;
       }
 
-      // Show admins created by the current user (regardless of department)
-      if (admin.created_by === currentUserId) {
-        console.log(`🔍 Debug - Showing admin ${admin.first_name} ${admin.last_name} - created by current user`);
-        return true;
-      }
-
-      // Don't show Administrator department admins to non-Administrator users
-      if (admin.department === "Administrator" || admin.department === "Administration") {
-        console.log(`🔍 Debug - Hiding admin ${admin.first_name} ${admin.last_name} - Administrator department`);
+      // Hide Administrator/Administration/System department admins
+      if (admin.department === "Administrator" || admin.department === "Administration" || admin.department === "System") {
+        console.log(`🔍 Debug - Hiding admin ${admin.first_name} ${admin.last_name} - Administrator/System department`);
         return false;
       }
 
-      // Don't show admins from other departments
-      console.log(`🔍 Debug - Hiding admin ${admin.first_name} ${admin.last_name} - different department`);
+      // Hide admins from other departments
+      console.log(`🔍 Debug - Hiding admin ${admin.first_name} ${admin.last_name} - different department (${admin.department} vs ${currentUserDept})`);
       return false;
     });
 
@@ -441,28 +426,10 @@ export default function ManageAdminsPage() {
         <tbody>
           {filteredAdmins.map((admin) => (
             <tr key={admin.id} className="text-center border-b">
-              <td className="p-3">
-                <div className="flex items-center justify-center gap-2">
-                  <span>{`${admin.first_name} ${admin.last_name}`}</span>
-                  {admin.created_by === currentUserId && (
-                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full" title="Created by you">
-                      You
-                    </span>
-                  )}
-                </div>
-              </td>
+              <td className="p-3">{`${admin.first_name} ${admin.last_name}`}</td>
               <td className="p-3">{admin.email}</td>
               <td className="p-3">{admin.employee_number || '-'}</td>
-              <td className="p-3">
-                <div className="flex items-center justify-center gap-2">
-                  <span>{admin.department}</span>
-                  {admin.department !== currentUserDepartment && admin.created_by === currentUserId && (
-                    <span className="text-xs text-gray-500" title="Different department, but created by you">
-                      (Cross-dept)
-                    </span>
-                  )}
-                </div>
-              </td>
+              <td className="p-3">{admin.department}</td>
               <td className="p-3">
                 <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
                   Admin

@@ -23,7 +23,6 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
   const [loadingDepartments, setLoadingDepartments] = useState(true);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [departmentsWithAdmins, setDepartmentsWithAdmins] = useState([]);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
@@ -73,29 +72,7 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
       }
     };
 
-    // Fetch list of departments with assigned admins
-    const fetchDepartmentsWithAdmins = async () => {
-      try {
-        const token = Cookies.get("token");
-        const res = await axios.get("/api/superadmin/admins", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        if (res.data && res.data.admins) {
-          // Create a map of department names to admin IDs (excluding the current admin)
-          const departmentMap = res.data.admins
-            .filter(a => a.id !== admin.id && a.department)
-            .map(a => a.department);
-          
-          setDepartmentsWithAdmins(departmentMap);
-        }
-      } catch (error) {
-        console.error("Error fetching departments with admins:", error);
-      }
-    };
-
     fetchDepartments();
-    fetchDepartmentsWithAdmins();
   }, [admin.id]);
 
   // Check if email already exists
@@ -219,12 +196,8 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     // Department validation
     if (!formData.department) {
       newErrors.department = "Select a department.";
-    } else if (
-      formData.department !== admin.department && 
-      departmentsWithAdmins.includes(formData.department)
-    ) {
-      newErrors.department = "This department already has an assigned admin.";
     }
+    // Removed department restriction - multiple admins can be in the same department
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
