@@ -480,7 +480,11 @@ const sendElectionNotification = async (userId, email, electionData) => {
       startTime: electionData.startTime,
       endTime: electionData.endTime,
       startDateType: typeof electionData.startDate,
-      endDateType: typeof electionData.endDate
+      endDateType: typeof electionData.endDate,
+      startTimeType: typeof electionData.startTime,
+      endTimeType: typeof electionData.endTime,
+      startDateConstructor: electionData.startDate?.constructor?.name,
+      endDateConstructor: electionData.endDate?.constructor?.name
     });
 
     // Format dates using the same logic as the frontend
@@ -488,7 +492,27 @@ const sendElectionNotification = async (userId, email, electionData) => {
       try {
         if (!dateStr || !timeStr) return 'Date not set';
         
-        const [year, month, day] = dateStr.split('T')[0].split('-').map(Number);
+        // Handle different date formats (Date object, string, etc.)
+        let dateString;
+        if (dateStr instanceof Date) {
+          dateString = dateStr.toISOString().split('T')[0];
+        } else if (typeof dateStr === 'string') {
+          dateString = dateStr.split('T')[0];
+        } else if (dateStr && typeof dateStr.toString === 'function') {
+          // Try to convert to string first
+          const str = dateStr.toString();
+          if (str.includes('-') || str.includes('/')) {
+            dateString = str.split('T')[0].split(' ')[0];
+          } else {
+            console.error('Unexpected date format:', typeof dateStr, dateStr);
+            return 'Invalid date format';
+          }
+        } else {
+          console.error('Unexpected date format:', typeof dateStr, dateStr);
+          return 'Invalid date format';
+        }
+        
+        const [year, month, day] = dateString.split('-').map(Number);
         const timeParts = timeStr.includes(':') ? timeStr.split(':') : [timeStr, '00'];
         const hours = parseInt(timeParts[0], 10);
         const minutes = parseInt(timeParts[1], 10);
@@ -507,6 +531,8 @@ const sendElectionNotification = async (userId, email, electionData) => {
         }).format(dateObj);
       } catch (error) {
         console.error('Date formatting error:', error);
+        console.error('dateStr:', dateStr, 'type:', typeof dateStr);
+        console.error('timeStr:', timeStr, 'type:', typeof timeStr);
         return 'Invalid date';
       }
     };
@@ -548,7 +574,7 @@ const sendElectionNotification = async (userId, email, electionData) => {
             <div style="background-color: #e3f2fd; border: 2px solid #2196f3; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center;">
               <h3 style="color: #01579B; margin: 0 0 15px 0; font-size: 18px;">Ready to Vote?</h3>
               <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
-                Click the button below to access the voting system and cast your vote.
+                Click the button below to access TrustElect Voting System and cast your vote.
               </p>
               <a href="https://trustelectonline.com" 
                  style="background-color: #01579B; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
