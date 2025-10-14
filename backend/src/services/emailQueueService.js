@@ -4,9 +4,9 @@ class EmailQueue {
   constructor() {
     this.queue = [];
     this.processing = false;
-    this.batchSize = 25; // Process 25 emails at a time (increased from 5)
-    this.delayBetweenBatches = 2000; // 2 seconds between batches (reduced from 5)
-    this.delayBetweenEmails = 300; // 0.3 seconds between individual emails (reduced from 2)
+    this.batchSize = 15; // Process 10 emails at a time (reduced from 25)
+    this.delayBetweenBatches = 3000; // 3 seconds between batches (increased from 2)
+    this.delayBetweenEmails = 500; // 0.5 seconds between individual emails (increased from 0.3)
     this.maxRetries = 3; // Maximum retries for failed emails
   }
 
@@ -46,13 +46,20 @@ class EmailQueue {
               emailData.email, 
               emailData.electionData
             );
-            console.log(`✅ Email sent to ${emailData.email}`);
+            console.log(`Email sent to ${emailData.email}`);
             successCount++;
             emailSent = true;
             
           } catch (error) {
             retryCount++;
-            console.error(`❌ Failed to send email to ${emailData.email} (attempt ${retryCount}/${this.maxRetries}):`, error.message);
+            console.error(`Failed to send email to ${emailData.email} (attempt ${retryCount}/${this.maxRetries}):`, error.message);
+            
+            // If it's a date formatting error, don't retry - it will keep failing
+            if (error.message.includes('split is not a function') || error.message.includes('Date formatting error')) {
+              console.error(`Date formatting error for ${emailData.email}, skipping retry. Election data:`, emailData.electionData);
+              errorCount++;
+              break; // Exit retry loop
+            }
             
             // If rate limited, wait longer before retry
             if (error.message.includes('too many connections') || error.message.includes('421')) {

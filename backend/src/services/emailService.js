@@ -492,34 +492,49 @@ const sendElectionNotification = async (userId, email, electionData) => {
       try {
         if (!dateStr || !timeStr) return 'Date not set';
         
-        // Handle different date formats (Date object, string, etc.)
+        // Convert dateStr to a proper date string
         let dateString;
+        
+        // Handle Date objects
         if (dateStr instanceof Date) {
           dateString = dateStr.toISOString().split('T')[0];
-        } else if (typeof dateStr === 'string') {
-          dateString = dateStr.split('T')[0];
-        } else if (dateStr && typeof dateStr.toString === 'function') {
-          // Try to convert to string first
-          const str = dateStr.toString();
+        }
+        // Handle strings
+        else if (typeof dateStr === 'string') {
+          // Remove any time portion if present
+          dateString = dateStr.split('T')[0].split(' ')[0];
+        }
+        // Handle other types by converting to string first
+        else {
+          const str = String(dateStr);
           if (str.includes('-') || str.includes('/')) {
             dateString = str.split('T')[0].split(' ')[0];
           } else {
-            console.error('Unexpected date format:', typeof dateStr, dateStr);
-            return 'Invalid date format';
+            console.error('Cannot parse date:', typeof dateStr, dateStr);
+            return 'Invalid date';
           }
-        } else {
-          console.error('Unexpected date format:', typeof dateStr, dateStr);
+        }
+        
+        // Validate date string format (should be YYYY-MM-DD)
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+          console.error('Invalid date format:', dateString);
           return 'Invalid date format';
         }
         
         const [year, month, day] = dateString.split('-').map(Number);
-        const timeParts = timeStr.includes(':') ? timeStr.split(':') : [timeStr, '00'];
+        
+        // Handle time string
+        const timeString = String(timeStr);
+        const timeParts = timeString.includes(':') ? timeString.split(':') : [timeString, '00'];
         const hours = parseInt(timeParts[0], 10);
         const minutes = parseInt(timeParts[1], 10);
         
         const dateObj = new Date(year, month - 1, day, hours, minutes);
         
-        if (isNaN(dateObj.getTime())) return 'Invalid date';
+        if (isNaN(dateObj.getTime())) {
+          console.error('Invalid date object created:', { year, month, day, hours, minutes });
+          return 'Invalid date';
+        }
         
         return new Intl.DateTimeFormat('en-PH', {
           month: 'short',
