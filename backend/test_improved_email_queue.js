@@ -93,7 +93,7 @@ async function testImprovedEmailQueue() {
     console.log('   Speed improvement: 5x faster! 🚀');
 
   } catch (error) {
-    console.error('❌ Test failed:', error.message);
+    console.error('Test failed:', error.message);
     console.error(error.stack);
   }
 }

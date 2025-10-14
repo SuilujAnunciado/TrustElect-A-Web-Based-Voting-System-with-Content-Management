@@ -30,6 +30,7 @@ export default function ManageAdminsPage() {
   const [searchQuery, setSearchQuery] = useState(""); 
   const [departmentFilter, setDepartmentFilter] = useState(""); 
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUserDepartment, setCurrentUserDepartment] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [availableDepartments, setAvailableDepartments] = useState([]);
 
@@ -76,6 +77,7 @@ export default function ManageAdminsPage() {
 
       const tokenData = JSON.parse(atob(token.split('.')[1]));
       setCurrentUserId(tokenData.id);
+      setCurrentUserDepartment(tokenData.department);
 
       const updatedAdmins = res.data.admins.map(admin => ({
         ...admin,
@@ -83,9 +85,12 @@ export default function ManageAdminsPage() {
       }));
 
       // Filter out system admins/root admins and only show active admins
-      const filteredAdmins = updatedAdmins.filter((admin) => 
+      let filteredAdmins = updatedAdmins.filter((admin) => 
         admin.is_active && !isSuperAdmin(admin)
       );
+
+      // Apply department-based visibility filtering
+      filteredAdmins = applyDepartmentVisibilityFilter(filteredAdmins, tokenData);
 
       setAdmins(filteredAdmins);
       setFilteredAdmins(filteredAdmins);
@@ -217,6 +222,22 @@ export default function ManageAdminsPage() {
       setFilteredAdmins(admins.filter((admin) => admin.department === department));
     }
   };
+
+  // Get departments that the current user can see admins from
+  const getVisibleDepartments = () => {
+    if (!currentUserDepartment) return availableDepartments;
+    
+    // If current user is Administrator, they can see all departments
+    if (currentUserDepartment === "Administrator" || currentUserDepartment === "Administration") {
+      return availableDepartments;
+    }
+    
+    // For non-Administrator users, only show their own department
+    return availableDepartments.filter(dept => {
+      const deptName = dept.department_name || dept;
+      return deptName === currentUserDepartment;
+    });
+  };
   
   useEffect(() => {
     fetchAdmins();
@@ -229,6 +250,38 @@ export default function ManageAdminsPage() {
 
   const isCurrentUser = (admin) => {
     return admin.id === currentUserId;
+  };
+
+  // Apply department-based visibility filtering
+  const applyDepartmentVisibilityFilter = (admins, currentUser) => {
+    const currentUserDept = currentUser.department;
+    const currentUserId = currentUser.id;
+
+    // If current user is Administrator, they can see all admins
+    if (currentUserDept === "Administrator" || currentUserDept === "Administration") {
+      return admins;
+    }
+
+    // For non-Administrator users, filter based on department and creation
+    return admins.filter(admin => {
+      // Always show admins from the same department
+      if (admin.department === currentUserDept) {
+        return true;
+      }
+
+      // Show admins created by the current user (regardless of department)
+      if (admin.created_by === currentUserId) {
+        return true;
+      }
+
+      // Don't show Administrator department admins to non-Administrator users
+      if (admin.department === "Administrator" || admin.department === "Administration") {
+        return false;
+      }
+
+      // Don't show admins from other departments
+      return false;
+    });
   };
 
   const handleManagePermissions = (admin) => {
@@ -294,7 +347,7 @@ export default function ManageAdminsPage() {
           className="border p-2 rounded w-50 text-black"
         >
           <option value="">All Departments</option>
-          {availableDepartments.map((dept) => (
+          {getVisibleDepartments().map((dept) => (
             <option key={dept.department_name || dept} value={dept.department_name || dept}>
               {dept.department_name || dept}
             </option>
@@ -349,10 +402,28 @@ export default function ManageAdminsPage() {
         <tbody>
           {filteredAdmins.map((admin) => (
             <tr key={admin.id} className="text-center border-b">
-              <td className="p-3">{`${admin.first_name} ${admin.last_name}`}</td>
+              <td className="p-3">
+                <div className="flex items-center justify-center gap-2">
+                  <span>{`${admin.first_name} ${admin.last_name}`}</span>
+                  {admin.created_by === currentUserId && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full" title="Created by you">
+                      You
+                    </span>
+                  )}
+                </div>
+              </td>
               <td className="p-3">{admin.email}</td>
               <td className="p-3">{admin.employee_number || '-'}</td>
-              <td className="p-3">{admin.department}</td>
+              <td className="p-3">
+                <div className="flex items-center justify-center gap-2">
+                  <span>{admin.department}</span>
+                  {admin.department !== currentUserDepartment && admin.created_by === currentUserId && (
+                    <span className="text-xs text-gray-500" title="Different department, but created by you">
+                      (Cross-dept)
+                    </span>
+                  )}
+                </div>
+              </td>
               <td className="p-3">
                 <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
                   Admin
