@@ -4,15 +4,14 @@ class EmailQueue {
   constructor() {
     this.queue = [];
     this.processing = false;
-    this.batchSize = 15; // Process 10 emails at a time (reduced from 25)
-    this.delayBetweenBatches = 3000; // 3 seconds between batches (increased from 2)
-    this.delayBetweenEmails = 500; // 0.5 seconds between individual emails (increased from 0.3)
-    this.maxRetries = 3; // Maximum retries for failed emails
+    this.batchSize = 10; 
+    this.delayBetweenBatches = 3000; 
+    this.delayBetweenEmails = 500;
+    this.maxRetries = 3; 
   }
 
   addToQueue(emailData) {
     this.queue.push(emailData);
-    console.log(`📧 Added email to queue. Queue size: ${this.queue.length}`);
     
     if (!this.processing) {
       this.processQueue();
@@ -25,7 +24,6 @@ class EmailQueue {
     }
 
     this.processing = true;
-    console.log(`📧 Starting email queue processing. ${this.queue.length} emails in queue.`);
 
     let successCount = 0;
     let errorCount = 0;
@@ -33,7 +31,6 @@ class EmailQueue {
     while (this.queue.length > 0) {
       // Process emails in batches
       const batch = this.queue.splice(0, this.batchSize);
-      console.log(`📧 Processing batch of ${batch.length} emails...`);
 
       for (const emailData of batch) {
         let retryCount = 0;
@@ -58,7 +55,7 @@ class EmailQueue {
             if (error.message.includes('split is not a function') || error.message.includes('Date formatting error')) {
               console.error(`Date formatting error for ${emailData.email}, skipping retry. Election data:`, emailData.electionData);
               errorCount++;
-              break; // Exit retry loop
+              break; 
             }
             
             // If rate limited, wait longer before retry
@@ -85,12 +82,10 @@ class EmailQueue {
 
       // Delay between batches
       if (this.queue.length > 0) {
-        console.log(`⏳ Waiting ${this.delayBetweenBatches/1000} seconds before next batch...`);
         await new Promise(resolve => setTimeout(resolve, this.delayBetweenBatches));
       }
     }
 
-    console.log(`📧 Email queue processing completed: ${successCount} sent, ${errorCount} failed`);
     this.processing = false;
   }
 
@@ -106,7 +101,6 @@ class EmailQueue {
   setBatchSize(size) {
     if (size > 0 && size <= 50) { // Max 50 emails per batch to avoid overwhelming
       this.batchSize = size;
-      console.log(`📧 Batch size updated to ${this.batchSize} emails per batch`);
     } else {
       console.log('⚠️  Batch size must be between 1 and 50');
     }

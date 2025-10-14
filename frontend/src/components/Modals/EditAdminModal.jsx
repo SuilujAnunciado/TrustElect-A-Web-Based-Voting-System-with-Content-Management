@@ -6,6 +6,10 @@ import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 
 export default function EditAdminModal({ admin, onClose, onSuccess }) {
+  // Get current user info to check if editing own profile
+  const currentUserEmail = Cookies.get("email");
+  const isEditingOwnProfile = currentUserEmail === admin.email;
+  
   const [formData, setFormData] = useState({
     firstName: admin.first_name || "",
     lastName: admin.last_name || "",
@@ -26,13 +30,17 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
 
   // Check if form has been modified
   const hasFormChanged = () => {
-    return (
+    const baseChanges = (
       formData.firstName !== (admin.first_name || "") ||
       formData.lastName !== (admin.last_name || "") ||
-      formData.email !== (admin.email || "") ||
       formData.employeeNumber !== (admin.employee_number || "") ||
       formData.department !== (admin.department || "")
     );
+    
+    // Only check email changes if not editing own profile
+    const emailChanged = isEditingOwnProfile ? false : (formData.email !== (admin.email || ""));
+    
+    return baseChanges || emailChanged;
   };
 
   // Fetch departments when component mounts
@@ -119,6 +127,11 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
+    // Prevent email changes when editing own profile
+    if (name === 'email' && isEditingOwnProfile) {
+      return;
+    }
+    
     // Apply character limits and validation
     let processedValue = value;
     if (name === 'firstName' || name === 'lastName') {
@@ -139,7 +152,7 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     }
     
     // Check email if it's an email field and has changed
-    if (name === 'email' && processedValue !== admin.email) {
+    if (name === 'email' && processedValue !== admin.email && !isEditingOwnProfile) {
       if (processedValue.endsWith("@novaliches.sti.edu.ph") || processedValue.endsWith("@novaliches.sti.edu")) {
         checkEmailExists(processedValue).then(exists => {
           if (exists) {
@@ -175,18 +188,20 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
       newErrors.lastName = "Last Name must not exceed 35 characters.";
     }
     
-    // Email validation
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required.";
-    } else if (!formData.email.endsWith("@novaliches.sti.edu.ph") && !formData.email.endsWith("@novaliches.sti.edu")) {
-      newErrors.email = "Invalid STI email. Must end with @novaliches.sti.edu.ph or @novaliches.sti.edu";
-    } else if (formData.email.length > 50) {
-      newErrors.email = "Email must not exceed 50 characters.";
-    } else if (formData.email !== admin.email) {
-      // Check if email already exists (only if it's different from current email)
-      const emailExists = await checkEmailExists(formData.email);
-      if (emailExists) {
-        newErrors.email = "Email already exists. Please use a different email.";
+    // Email validation (skip if editing own profile)
+    if (!isEditingOwnProfile) {
+      if (!formData.email.trim()) {
+        newErrors.email = "Email is required.";
+      } else if (!formData.email.endsWith("@novaliches.sti.edu.ph") && !formData.email.endsWith("@novaliches.sti.edu")) {
+        newErrors.email = "Invalid STI email. Must end with @novaliches.sti.edu.ph or @novaliches.sti.edu";
+      } else if (formData.email.length > 50) {
+        newErrors.email = "Email must not exceed 50 characters.";
+      } else if (formData.email !== admin.email) {
+        // Check if email already exists (only if it's different from current email)
+        const emailExists = await checkEmailExists(formData.email);
+        if (emailExists) {
+          newErrors.email = "Email already exists. Please use a different email.";
+        }
       }
     }
     
@@ -235,10 +250,14 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
       const updateData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email,
         employeeNumber: formData.employeeNumber,
         department: formData.department
       };
+      
+      // Only include email if not editing own profile
+      if (!isEditingOwnProfile) {
+        updateData.email = formData.email;
+      }
 
       
       // Use the correct endpoint based on user role
@@ -338,8 +357,14 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
             onChange={handleChange}
             maxLength={50}
             placeholder="Enter STI email (@novaliches.sti.edu.ph or @novaliches.sti.edu)"
-            className="border w-full p-2 rounded text-black"
+            className={`border w-full p-2 rounded text-black ${isEditingOwnProfile ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            disabled={isEditingOwnProfile}
           />
+          {isEditingOwnProfile && (
+            <p className="text-amber-600 text-sm font-medium">
+            You cannot edit your own email address.
+            </p>
+          )}
           {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
           {checkingEmail && <p className="text-blue-500 text-sm">Checking email availability...</p>}
 
