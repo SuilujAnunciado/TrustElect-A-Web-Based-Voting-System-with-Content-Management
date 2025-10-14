@@ -338,7 +338,7 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background-color: #ffffff;">
           <!-- Header -->
-          <div style="background: linear-gradient(135deg, #01579B 0%, #0277BD 100%); padding: 25px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
+          <div style="background-color: #01579B; padding: 25px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
             <h1 style="margin: 0; font-size: 28px; font-weight: bold;">STI TrustElect</h1>
             <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Vote Receipt Confirmation</p>
           </div>
