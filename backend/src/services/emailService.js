@@ -528,7 +528,6 @@ const sendElectionNotification = async (userId, email, electionData) => {
                 <li style="margin-bottom: 5px;">Make sure to vote within the specified time period</li>
                 <li style="margin-bottom: 5px;">Your vote is confidential and secure</li>
                 <li style="margin-bottom: 5px;">You will receive a receipt after voting</li>
-                <li style="margin-bottom: 5px;">Contact support if you encounter any issues</li>
               </ul>
             </div>
 

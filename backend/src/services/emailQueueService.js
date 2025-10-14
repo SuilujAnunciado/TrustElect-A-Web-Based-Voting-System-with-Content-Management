@@ -4,9 +4,10 @@ class EmailQueue {
   constructor() {
     this.queue = [];
     this.processing = false;
-    this.batchSize = 5; // Process 5 emails at a time
-    this.delayBetweenBatches = 5000; // 5 seconds between batches
-    this.delayBetweenEmails = 2000; // 2 seconds between individual emails
+    this.batchSize = 25; // Process 25 emails at a time (increased from 5)
+    this.delayBetweenBatches = 2000; // 2 seconds between batches (reduced from 5)
+    this.delayBetweenEmails = 300; // 0.3 seconds between individual emails (reduced from 2)
+    this.maxRetries = 3; // Maximum retries for failed emails
   }
 
   addToQueue(emailData) {
@@ -35,29 +36,43 @@ class EmailQueue {
       console.log(`📧 Processing batch of ${batch.length} emails...`);
 
       for (const emailData of batch) {
-        try {
-          await emailService.sendElectionNotification(
-            emailData.userId, 
-            emailData.email, 
-            emailData.electionData
-          );
-          console.log(`✅ Email sent to ${emailData.email}`);
-          successCount++;
-          
-          // Delay between individual emails
-          if (this.queue.length > 0 || batch.indexOf(emailData) < batch.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, this.delayBetweenEmails));
+        let retryCount = 0;
+        let emailSent = false;
+        
+        while (retryCount < this.maxRetries && !emailSent) {
+          try {
+            await emailService.sendElectionNotification(
+              emailData.userId, 
+              emailData.email, 
+              emailData.electionData
+            );
+            console.log(`✅ Email sent to ${emailData.email}`);
+            successCount++;
+            emailSent = true;
+            
+          } catch (error) {
+            retryCount++;
+            console.error(`❌ Failed to send email to ${emailData.email} (attempt ${retryCount}/${this.maxRetries}):`, error.message);
+            
+            // If rate limited, wait longer before retry
+            if (error.message.includes('too many connections') || error.message.includes('421')) {
+              console.log('⏳ Rate limit detected, waiting 10 seconds before retry...');
+              await new Promise(resolve => setTimeout(resolve, 10000));
+            } else if (retryCount < this.maxRetries) {
+              // Wait a bit before retrying other errors
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
           }
-          
-        } catch (error) {
-          console.error(`❌ Failed to send email to ${emailData.email}:`, error.message);
+        }
+        
+        if (!emailSent) {
           errorCount++;
-          
-          // If rate limited, wait longer
-          if (error.message.includes('too many connections') || error.message.includes('421')) {
-            console.log('⏳ Rate limit detected, waiting 15 seconds...');
-            await new Promise(resolve => setTimeout(resolve, 15000));
-          }
+          console.error(`❌ Failed to send email to ${emailData.email} after ${this.maxRetries} attempts`);
+        }
+        
+        // Delay between individual emails (only if not the last email in batch)
+        if (this.queue.length > 0 || batch.indexOf(emailData) < batch.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, this.delayBetweenEmails));
         }
       }
 
@@ -79,6 +94,26 @@ class EmailQueue {
   isProcessing() {
     return this.processing;
   }
+
+  // Method to configure batch size dynamically
+  setBatchSize(size) {
+    if (size > 0 && size <= 50) { // Max 50 emails per batch to avoid overwhelming
+      this.batchSize = size;
+      console.log(`📧 Batch size updated to ${this.batchSize} emails per batch`);
+    } else {
+      console.log('⚠️  Batch size must be between 1 and 50');
+    }
+  }
+
+  // Method to get current configuration
+  getConfig() {
+    return {
+      batchSize: this.batchSize,
+      delayBetweenBatches: this.delayBetweenBatches,
+      delayBetweenEmails: this.delayBetweenEmails,
+      maxRetries: this.maxRetries
+    };
+  }
 }
 
 // Create a singleton instance
@@ -88,5 +123,11 @@ module.exports = {
   emailQueue,
   addElectionNotificationToQueue: (userId, email, electionData) => {
     emailQueue.addToQueue({ userId, email, electionData });
+  },
+  setEmailBatchSize: (size) => {
+    emailQueue.setBatchSize(size);
+  },
+  getEmailQueueConfig: () => {
+    return emailQueue.getConfig();
   }
 };
