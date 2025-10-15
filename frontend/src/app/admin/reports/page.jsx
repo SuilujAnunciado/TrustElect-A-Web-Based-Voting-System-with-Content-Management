@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { Download, Filter, Search } from "lucide-react";
+import { Download, Filter, Search, Loader2 } from "lucide-react";
 import ReportCard from "./components/ReportCard";
 import ReportDetailsModal from "./components/ReportDetailsModal";
 import ReportFilterModal from "./components/ReportFilterModal";
@@ -18,8 +18,12 @@ import SystemLoadDetail from "../../superadmin/reports/components/SystemLoadDeta
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+// Cache configuration
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_PREFIX = 'admin_reports_';
+
 export default function AdminReportsPage() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedReport, setSelectedReport] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -28,6 +32,8 @@ export default function AdminReportsPage() {
   const [filters, setFilters] = useState({
     reportType: "All"
   });
+  const [loadingReports, setLoadingReports] = useState(new Set());
+  const [reportCache, setReportCache] = useState(new Map());
 
   const staticReports = [
     {
@@ -92,114 +98,178 @@ export default function AdminReportsPage() {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  const fetchReportData = async (reportId) => {
+  // Cache management functions
+  const getCachedData = useCallback((reportId) => {
+    const cacheKey = `${CACHE_PREFIX}${reportId}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        return data;
+      }
+      localStorage.removeItem(cacheKey);
+    }
+    return null;
+  }, []);
+
+  const setCachedData = useCallback((reportId, data) => {
+    const cacheKey = `${CACHE_PREFIX}${reportId}`;
+    const cacheData = {
+      data,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+    setReportCache(prev => new Map(prev.set(reportId, data)));
+  }, []);
+
+  // Optimized data fetching with timeout and caching
+  const fetchReportData = useCallback(async (reportId, useCache = true) => {
     try {
-      setLoading(true);
-      setError(""); 
-      const token = Cookies.get("token");
+      // Check cache first
+      if (useCache) {
+        const cachedData = getCachedData(reportId);
+        if (cachedData) {
+          setReportData(cachedData);
+          return cachedData;
+        }
+      }
+
+      setLoadingReports(prev => new Set(prev).add(reportId));
+      setError("");
       
+      const token = Cookies.get("token");
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
       let endpoint;
       let transformedData;
 
-      switch(reportId) {
-        case 1: 
-          // Department Voter Report
-          endpoint = '/reports/department-voter';
-          const departmentResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = departmentResponse.data;
-          break;
+      // Set timeout for API calls
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
 
-        case 2: 
-          // Election Result Report - using admin summary for now
-          endpoint = '/reports/admin/summary';
-          const resultResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = resultResponse.data;
-          break;
+      const apiCall = async () => {
+        switch(reportId) {
+          case 1: 
+            endpoint = '/reports/department-voter';
+            const departmentResponse = await axios.get(`${API_BASE}${endpoint}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 8000
+            });
+            transformedData = departmentResponse.data;
+            break;
 
-        case 3: 
-          // Voting Time Report
-          endpoint = '/reports/voting-time';
-          const timeResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = timeResponse.data;
-          break;
+          case 2: 
+            endpoint = '/reports/admin/summary';
+            const resultResponse = await axios.get(`${API_BASE}${endpoint}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 8000
+            });
+            transformedData = resultResponse.data;
+            break;
 
-        case 4: 
-          // Election Summary Report
-          endpoint = '/reports/admin/summary';
-          const summaryResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = summaryResponse.data;
-          break;
+          case 3: 
+            endpoint = '/reports/voting-time';
+            const timeResponse = await axios.get(`${API_BASE}${endpoint}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 8000
+            });
+            transformedData = timeResponse.data;
+            break;
 
-        case 5: 
-          // Voter Participation Report
-          endpoint = '/reports/admin/voter-participation';
-          const participationResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = participationResponse.data;
-          break;
+          case 4: 
+            endpoint = '/reports/admin/summary';
+            const summaryResponse = await axios.get(`${API_BASE}${endpoint}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 8000
+            });
+            transformedData = summaryResponse.data;
+            break;
 
-        case 6: 
-          // Candidate List Report
-          endpoint = '/reports/candidate-list/admin/candidate-list';
-          const candidateResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = candidateResponse.data;
-          break;
+          case 5: 
+            endpoint = '/reports/admin/voter-participation';
+            const participationResponse = await axios.get(`${API_BASE}${endpoint}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 8000
+            });
+            transformedData = participationResponse.data;
+            break;
 
-        case 7: 
-          // Admin Activity Report
-          endpoint = '/reports/admin-activity/summary';
-          const activityResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = activityResponse.data;
-          break;
+          case 6: 
+            endpoint = '/reports/candidate-list/admin/candidate-list';
+            const candidateResponse = await axios.get(`${API_BASE}${endpoint}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 8000
+            });
+            transformedData = candidateResponse.data;
+            break;
 
-        case 8: 
-          // System Load Report
-          endpoint = '/reports/system-load?timeframe=24h';
-          const systemLoadResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = systemLoadResponse.data;
-          break;
+          case 7: 
+            endpoint = '/reports/admin-activity/summary';
+            const activityResponse = await axios.get(`${API_BASE}${endpoint}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 8000
+            });
+            transformedData = activityResponse.data;
+            break;
 
-        default:
-          throw new Error('Report type not implemented');
-      }
+          case 8: 
+            endpoint = '/reports/system-load?timeframe=24h';
+            const systemLoadResponse = await axios.get(`${API_BASE}${endpoint}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 8000
+            });
+            transformedData = systemLoadResponse.data;
+            break;
 
+          default:
+            throw new Error('Report type not implemented');
+        }
+      };
+
+      // Race between API call and timeout
+      await Promise.race([apiCall(), timeoutPromise]);
+
+      // Cache the result
+      setCachedData(reportId, transformedData);
       setReportData(transformedData);
       return transformedData;
+
     } catch (error) {
       console.error("Error fetching report data:", error);
-      setError(error.message || "Failed to fetch report data");
+      const errorMessage = error.message === 'Request timeout' 
+        ? 'Request timed out. Please try again.' 
+        : error.message || "Failed to fetch report data";
+      setError(errorMessage);
       return null;
     } finally {
-      setLoading(false);
+      setLoadingReports(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(reportId);
+        return newSet;
+      });
     }
-  };
+  }, [getCachedData, setCachedData]);
 
-  const handleViewReport = async (report) => {
+
+  const handleViewReport = useCallback(async (report) => {
+    // Show modal immediately with loading state
+    setSelectedReport({ ...report, data: null, loading: true });
+    
+    // Fetch data in background
     const data = await fetchReportData(report.id);
     if (data) {
-      setSelectedReport({ ...report, data });
+      setSelectedReport({ ...report, data, loading: false });
+    } else {
+      setSelectedReport({ ...report, data: null, loading: false, error: true });
     }
-  };
+  }, [fetchReportData]);
 
-  const downloadReport = async (reportId) => {
+  const downloadReport = useCallback(async (reportId) => {
     try {
-      const token = Cookies.get("token");
-      const data = await fetchReportData(reportId);
+      const data = await fetchReportData(reportId, false); // Force fresh data for download
       
       if (!data) {
         throw new Error('No data available for download');
@@ -219,9 +289,68 @@ export default function AdminReportsPage() {
       console.error("Error downloading report:", error);
       setError("Failed to download report.");
     }
-  };
+  }, [fetchReportData]);
 
   const renderReportDetail = (report) => {
+    const isLoading = report?.loading;
+    const hasError = report?.error;
+    
+    if (isLoading) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl max-h-[90vh] flex flex-col border border-gray-200">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-2xl font-bold text-gray-800">{report.title}</h2>
+              <button 
+                onClick={() => setSelectedReport(null)} 
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 flex-grow overflow-y-auto flex items-center justify-center">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#01579B]" />
+                <p className="text-gray-600">Loading report data...</p>
+                <p className="text-sm text-gray-500 mt-2">This may take a few seconds</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (hasError) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl max-h-[90vh] flex flex-col border border-gray-200">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-2xl font-bold text-gray-800">{report.title}</h2>
+              <button 
+                onClick={() => setSelectedReport(null)} 
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 flex-grow overflow-y-auto flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-red-500 text-6xl mb-4">⚠️</div>
+                <p className="text-red-600 text-lg mb-2">Failed to load report data</p>
+                <p className="text-gray-600 mb-4">Please try again or contact support if the problem persists.</p>
+                <button 
+                  onClick={() => handleViewReport(report)}
+                  className="bg-[#01579B] text-white px-4 py-2 rounded hover:bg-[#01416E]"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     switch (report?.id) {
       case 1:
         return (
@@ -409,13 +538,44 @@ export default function AdminReportsPage() {
     setShowFilterModal(false);
   };
 
+  // Initialize page - no initial loading needed since reports are static
+  useEffect(() => {
+    // Preload cache for better performance
+    const preloadCache = async () => {
+      const token = Cookies.get("token");
+      if (token) {
+        // Preload most commonly used reports
+        const commonReports = [1, 2, 4]; // Department Voter, Election Result, Election Summary
+        commonReports.forEach(reportId => {
+          const cached = getCachedData(reportId);
+          if (!cached) {
+            // Preload in background without showing loading state
+            fetchReportData(reportId).catch(console.error);
+          }
+        });
+      }
+    };
+    
+    preloadCache();
+  }, [getCachedData, fetchReportData]);
+
+  // Clear error when component unmounts or when new report is selected
+  useEffect(() => {
+    if (selectedReport) {
+      setError("");
+    }
+  }, [selectedReport]);
+
   return (
     <div className="min-h-screen bg-white">
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6 text-black">Reports Module</h1>
       
-      {loading && <p>Loading reports...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600">{error}</p>
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
         <div className="relative w-full md:w-1/3">
@@ -452,12 +612,22 @@ export default function AdminReportsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredReports.map((report) => (
-            <ReportCard
-              key={report.id}
-              report={report}
-              onView={() => handleViewReport(report)}
-              onDownload={() => downloadReport(report.id)}
-            />
+            <div key={report.id} className="relative">
+              <ReportCard
+                report={report}
+                onView={() => handleViewReport(report)}
+                onDownload={() => downloadReport(report.id)}
+                isLoading={loadingReports.has(report.id)}
+              />
+              {loadingReports.has(report.id) && (
+                <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+                  <div className="text-center">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#01579B]" />
+                    <p className="text-sm text-gray-600">Loading...</p>
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}

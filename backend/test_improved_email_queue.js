@@ -81,16 +81,6 @@ async function testImprovedEmailQueue() {
       console.log(`⚠️  Queue processing incomplete. Remaining: ${emailQueue.getQueueSize()}`);
     }
 
-    console.log('\n🎉 Improved email queue test completed!');
-    console.log('\n📋 Performance Summary:');
-    console.log(`- Batch size: ${config.batchSize} emails per batch (5x faster than before)`);
-    console.log(`- Email delay: ${config.delayBetweenEmails}ms (6x faster than before)`);
-    console.log(`- Batch delay: ${config.delayBetweenBatches/1000}s (2.5x faster than before)`);
-    console.log(`- Retry logic: ${config.maxRetries} attempts with smart delays`);
-    console.log('\n💡 Performance Comparison:');
-    console.log('   Old system (5 emails/batch): ~20 minutes for 500 emails');
-    console.log('   New system (25 emails/batch): ~4 minutes for 500 emails');
-    console.log('   Speed improvement: 5x faster! 🚀');
 
   } catch (error) {
     console.error('Test failed:', error.message);
