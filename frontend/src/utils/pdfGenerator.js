@@ -77,7 +77,7 @@ const addHeader = (doc, title, description) => {
   return 85; // Return the Y position after the header
 };
 
-// Add footer function with horizontal line, report title, and page number
+// Add footer function with horizontal line, STI TrustElect branding, and page number
 const addFooter = (doc, reportTitle) => {
   const pageHeight = doc.internal.pageSize.height;
   const pageWidth = doc.internal.pageSize.width;
@@ -88,10 +88,10 @@ const addFooter = (doc, reportTitle) => {
   doc.setDrawColor(128, 128, 128); // Grey color
   doc.line(14, footerY - 5, pageWidth - 14, footerY - 5);
   
-  // Add report title on the left
+  // Add STI TrustElect branding on the left
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text(reportTitle || 'TrustElect Report', 14, footerY);
+  doc.setFont('helvetica', 'bold');
+  doc.text('STI TrustElect', 14, footerY);
   
   // Add page number on the right
   const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
@@ -103,6 +103,26 @@ const addFooter = (doc, reportTitle) => {
   doc.text(pageText, pageWidth - 14 - textWidth, footerY);
   
   return footerY - 10; // Return Y position above footer
+};
+
+// Enhanced footer system - Add footer to all pages
+const addFooterToAllPages = (doc, reportTitle) => {
+  const totalPages = doc.internal.getNumberOfPages();
+  const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+  
+  // Save current page
+  const originalPage = currentPage;
+  
+  // Add footer to all pages
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    addFooter(doc, reportTitle || 'TrustElect Report');
+  }
+  
+  // Return to original page
+  if (originalPage) {
+    doc.setPage(originalPage);
+  }
 };
 
 // Override the internal addPage method to automatically add footer
@@ -127,11 +147,7 @@ autoTable.prototype.addPage = function() {
 const originalOutput = jsPDF.prototype.output;
 jsPDF.prototype.output = function(type, options) {
   // Add footer to all pages before output
-  const totalPages = this.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    this.setPage(i);
-    addFooter(this, this._reportTitle || 'TrustElect Report');
-  }
+  addFooterToAllPages(this, this._reportTitle || 'TrustElect Report');
   return originalOutput.call(this, type, options);
 };
 
@@ -1267,8 +1283,11 @@ export const generatePdfReport = (reportId, data) => {
         throw new Error('Invalid report ID');
     }
     
-    // Generate filename and save
+    // Ensure footer is added to all pages before saving
     const reportTitle = getReportTitle(reportId);
+    addFooterToAllPages(doc, reportTitle);
+    
+    // Generate filename and save
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     const filename = `${reportTitle.replace(/\s+/g, '_')}_${timestamp}.pdf`;
     
