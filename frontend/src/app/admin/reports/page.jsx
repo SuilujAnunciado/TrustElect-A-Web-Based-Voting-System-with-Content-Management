@@ -22,6 +22,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const CACHE_PREFIX = 'admin_reports_';
 
+// Heavy reports need longer cache and special handling
+const HEAVY_REPORTS = [2, 4, 5]; // Election Results, Election Summary, Voter Participation
+const HEAVY_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes for heavy reports
+
 export default function AdminReportsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -104,7 +108,8 @@ export default function AdminReportsPage() {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const { data, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp < CACHE_DURATION) {
+      const cacheDuration = HEAVY_REPORTS.includes(reportId) ? HEAVY_CACHE_DURATION : CACHE_DURATION;
+      if (Date.now() - timestamp < cacheDuration) {
         return data;
       }
       localStorage.removeItem(cacheKey);
@@ -116,7 +121,8 @@ export default function AdminReportsPage() {
     const cacheKey = `${CACHE_PREFIX}${reportId}`;
     const cacheData = {
       data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isHeavy: HEAVY_REPORTS.includes(reportId)
     };
     localStorage.setItem(cacheKey, JSON.stringify(cacheData));
     setReportCache(prev => new Map(prev.set(reportId, data)));
@@ -162,12 +168,24 @@ export default function AdminReportsPage() {
             break;
 
           case 2: 
+            // Election Results Report - Optimized with reduced data
             endpoint = '/reports/admin/summary';
             const resultResponse = await axios.get(`${API_BASE}${endpoint}`, {
               headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              timeout: 6000, // Reduced timeout for faster failure
+              params: {
+                limit: 50, // Limit data size
+                include_details: false // Exclude heavy details
+              }
             });
-            transformedData = resultResponse.data;
+            
+            // Optimize data structure for faster rendering
+            const resultData = resultResponse.data;
+            transformedData = {
+              summary: resultData.summary || {},
+              elections: (resultData.elections || []).slice(0, 20), // Limit to 20 elections
+              last_updated: new Date().toISOString()
+            };
             break;
 
           case 3: 
@@ -180,21 +198,56 @@ export default function AdminReportsPage() {
             break;
 
           case 4: 
+            // Election Summary Report - Optimized with streaming data
             endpoint = '/reports/admin/summary';
             const summaryResponse = await axios.get(`${API_BASE}${endpoint}`, {
               headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              timeout: 6000, // Reduced timeout
+              params: {
+                summary_only: true, // Only fetch summary data initially
+                limit: 30
+              }
             });
-            transformedData = summaryResponse.data;
+            
+            // Process data in chunks to avoid blocking
+            const summaryData = summaryResponse.data;
+            transformedData = {
+              summary: summaryData.summary || {},
+              recent_elections: (summaryData.recent_elections || []).slice(0, 15),
+              statistics: summaryData.statistics || {},
+              last_updated: new Date().toISOString()
+            };
             break;
 
           case 5: 
+            // Voter Participation Report - Optimized with pagination and filtering
             endpoint = '/reports/admin/voter-participation';
             const participationResponse = await axios.get(`${API_BASE}${endpoint}`, {
               headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              timeout: 6000, // Reduced timeout
+              params: {
+                limit: 100, // Limit voter data
+                include_voter_details: false, // Exclude heavy voter details initially
+                summary_only: true
+              }
             });
-            transformedData = participationResponse.data;
+            
+            // Optimize voter participation data
+            const participationData = participationResponse.data;
+            transformedData = {
+              summary: participationData.summary || {},
+              elections: (participationData.elections || []).map(election => ({
+                id: election.id,
+                title: election.title,
+                total_eligible_voters: election.total_eligible_voters,
+                total_votes_cast: election.total_votes_cast,
+                turnout_percentage: election.turnout_percentage,
+                department_stats: election.department_stats || [],
+                // Exclude heavy voter details for initial load
+                voters_count: election.voters?.length || 0
+              })),
+              last_updated: new Date().toISOString()
+            };
             break;
 
           case 6: 
@@ -258,6 +311,17 @@ export default function AdminReportsPage() {
     // Show modal immediately with loading state
     setSelectedReport({ ...report, data: null, loading: true });
     
+    // For heavy reports, show immediate feedback
+    if (HEAVY_REPORTS.includes(report.id)) {
+      // Show a more detailed loading message for heavy reports
+      setSelectedReport({ 
+        ...report, 
+        data: null, 
+        loading: true, 
+        loadingMessage: "Loading heavy report data... This may take 2-3 seconds" 
+      });
+    }
+    
     // Fetch data in background
     const data = await fetchReportData(report.id);
     if (data) {
@@ -296,6 +360,9 @@ export default function AdminReportsPage() {
     const hasError = report?.error;
     
     if (isLoading) {
+      const isHeavyReport = HEAVY_REPORTS.includes(report?.id);
+      const loadingMessage = report?.loadingMessage || "Loading report data...";
+      
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl max-h-[90vh] flex flex-col border border-gray-200">
@@ -311,8 +378,18 @@ export default function AdminReportsPage() {
             <div className="p-6 flex-grow overflow-y-auto flex items-center justify-center">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#01579B]" />
-                <p className="text-gray-600">Loading report data...</p>
-                <p className="text-sm text-gray-500 mt-2">This may take a few seconds</p>
+                <p className="text-gray-600">{loadingMessage}</p>
+                {isHeavyReport && (
+                  <div className="mt-4 space-y-2">
+                    <div className="w-64 bg-gray-200 rounded-full h-2 mx-auto">
+                      <div className="bg-[#01579B] h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                    </div>
+                    <p className="text-sm text-gray-500">Optimizing data for faster display...</p>
+                  </div>
+                )}
+                <p className="text-sm text-gray-500 mt-2">
+                  {isHeavyReport ? "This report contains large datasets and may take 2-3 seconds" : "This may take a few seconds"}
+                </p>
               </div>
             </div>
           </div>

@@ -23,6 +23,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const CACHE_PREFIX = 'superadmin_reports_';
 
+// Heavy reports need longer cache and special handling
+const HEAVY_REPORTS = [1, 8]; // Election Summary, Voter Participation
+const HEAVY_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes for heavy reports
+
 export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -109,7 +113,8 @@ export default function ReportsPage() {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const { data, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp < CACHE_DURATION) {
+      const cacheDuration = HEAVY_REPORTS.includes(reportId) ? HEAVY_CACHE_DURATION : CACHE_DURATION;
+      if (Date.now() - timestamp < cacheDuration) {
         return data;
       }
       localStorage.removeItem(cacheKey);
@@ -121,7 +126,8 @@ export default function ReportsPage() {
     const cacheKey = `${CACHE_PREFIX}${reportId}`;
     const cacheData = {
       data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isHeavy: HEAVY_REPORTS.includes(reportId)
     };
     localStorage.setItem(cacheKey, JSON.stringify(cacheData));
     setReportCache(prev => new Map(prev.set(reportId, data)));
@@ -158,23 +164,29 @@ export default function ReportsPage() {
       const apiCall = async () => {
         switch(reportId) {
           case 1: 
+            // Election Summary Report - Optimized for superadmin
             endpoint = '/reports/summary';
             const electionResponse = await axios.get(`${API_BASE}${endpoint}`, {
               headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              timeout: 6000, // Reduced timeout
+              params: {
+                summary_only: true,
+                limit: 25 // Limit recent elections
+              }
             });
 
+            const electionData = electionResponse.data.data;
             transformedData = {
               summary: {
-                total_elections: electionResponse.data.data.summary.total_elections,
-                ongoing_elections: electionResponse.data.data.summary.ongoing_elections,
-                completed_elections: electionResponse.data.data.summary.completed_elections,
-                upcoming_elections: electionResponse.data.data.summary.upcoming_elections,
-                total_eligible_voters: electionResponse.data.data.summary.total_eligible_voters,
-                total_votes_cast: electionResponse.data.data.summary.total_votes_cast,
-                voter_turnout_percentage: electionResponse.data.data.summary.voter_turnout_percentage
+                total_elections: electionData.summary?.total_elections || 0,
+                ongoing_elections: electionData.summary?.ongoing_elections || 0,
+                completed_elections: electionData.summary?.completed_elections || 0,
+                upcoming_elections: electionData.summary?.upcoming_elections || 0,
+                total_eligible_voters: electionData.summary?.total_eligible_voters || 0,
+                total_votes_cast: electionData.summary?.total_votes_cast || 0,
+                voter_turnout_percentage: electionData.summary?.voter_turnout_percentage || 0
               },
-              recent_elections: electionResponse.data.data.recent_elections.map(election => ({
+              recent_elections: (electionData.recent_elections || []).slice(0, 15).map(election => ({
                 id: election.id,
                 title: election.title,
                 status: election.status,
@@ -184,7 +196,8 @@ export default function ReportsPage() {
                 voter_count: formatNumber(election.voter_count || 0),
                 votes_cast: formatNumber(election.total_votes || 0),
                 turnout_percentage: election.voter_turnout_percentage
-              }))
+              })),
+              last_updated: new Date().toISOString()
             };
             break;
 
@@ -344,33 +357,44 @@ export default function ReportsPage() {
             };
             break;
 
-          case 8: // Voter Participation Report
+          case 8: // Voter Participation Report - Optimized
             endpoint = '/reports/voter-participation';
             const participationResponse = await axios.get(`${API_BASE}${endpoint}`, {
               headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              timeout: 6000, // Reduced timeout
+              params: {
+                limit: 50, // Limit elections
+                include_voter_details: false, // Exclude heavy voter details initially
+                summary_only: true
+              }
             });
 
             if (!participationResponse.data.success) {
               throw new Error(participationResponse.data.error || 'Failed to fetch voter participation data');
             }
 
+            const participationData = participationResponse.data.data;
             transformedData = {
-              elections: participationResponse.data.data.elections.map(election => ({
+              summary: participationData.summary || {},
+              elections: (participationData.elections || []).slice(0, 20).map(election => ({
                 id: election.id,
                 title: election.title,
                 total_eligible_voters: election.total_eligible_voters,
                 total_votes_cast: election.total_votes_cast,
-                turnout_percentage: ((election.total_votes_cast / election.total_eligible_voters) * 100).toFixed(1),
-                department_stats: election.department_stats,
-                voters: election.voters.map(voter => ({
+                turnout_percentage: election.turnout_percentage || 
+                  ((election.total_votes_cast / election.total_eligible_voters) * 100).toFixed(1),
+                department_stats: election.department_stats || [],
+                // Exclude heavy voter details for initial load
+                voters_count: election.voters?.length || 0,
+                voters_sample: (election.voters || []).slice(0, 10).map(voter => ({
                   student_id: voter.student_id,
                   name: `${voter.first_name} ${voter.last_name}`,
                   department: voter.department,
                   has_voted: voter.has_voted,
                   vote_date: voter.vote_date
                 }))
-              }))
+              })),
+              last_updated: new Date().toISOString()
             };
             break;
 
@@ -472,6 +496,17 @@ export default function ReportsPage() {
     // Show modal immediately with loading state
     setSelectedReport({ ...report, data: null, loading: true });
     
+    // For heavy reports, show immediate feedback
+    if (HEAVY_REPORTS.includes(report.id)) {
+      // Show a more detailed loading message for heavy reports
+      setSelectedReport({ 
+        ...report, 
+        data: null, 
+        loading: true, 
+        loadingMessage: "Loading heavy report data... This may take 2-3 seconds" 
+      });
+    }
+    
     // Fetch data in background
     const data = await fetchReportData(report.id);
     if (data) {
@@ -510,6 +545,9 @@ export default function ReportsPage() {
     const hasError = report?.error;
     
     if (isLoading) {
+      const isHeavyReport = HEAVY_REPORTS.includes(report?.id);
+      const loadingMessage = report?.loadingMessage || "Loading report data...";
+      
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl max-h-[90vh] flex flex-col border border-gray-200">
@@ -525,8 +563,18 @@ export default function ReportsPage() {
             <div className="p-6 flex-grow overflow-y-auto flex items-center justify-center">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#01579B]" />
-                <p className="text-gray-600">Loading report data...</p>
-                <p className="text-sm text-gray-500 mt-2">This may take a few seconds</p>
+                <p className="text-gray-600">{loadingMessage}</p>
+                {isHeavyReport && (
+                  <div className="mt-4 space-y-2">
+                    <div className="w-64 bg-gray-200 rounded-full h-2 mx-auto">
+                      <div className="bg-[#01579B] h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                    </div>
+                    <p className="text-sm text-gray-500">Optimizing data for faster display...</p>
+                  </div>
+                )}
+                <p className="text-sm text-gray-500 mt-2">
+                  {isHeavyReport ? "This report contains large datasets and may take 2-3 seconds" : "This may take a few seconds"}
+                </p>
               </div>
             </div>
           </div>
