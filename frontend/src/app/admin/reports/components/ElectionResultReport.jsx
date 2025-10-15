@@ -80,7 +80,7 @@ const ElectionResultReport = () => {
       if (response.data) {
         setData(prev => ({
           ...prev,
-          elections: response.data
+          elections: Array.isArray(response.data) ? response.data : []
         }));
         setError(null);
       }
@@ -111,31 +111,35 @@ const ElectionResultReport = () => {
       const { election, positions } = response.data.data;
       
       // Group candidates by position and sort by vote count
-      const groupedPositions = positions.map(position => {
-        const sortedCandidates = [...position.candidates].sort((a, b) => b.vote_count - a.vote_count);
+      const groupedPositions = Array.isArray(positions) ? positions.map(position => {
+        const sortedCandidates = Array.isArray(position.candidates) ? [...position.candidates].sort((a, b) => b.vote_count - a.vote_count) : [];
         return {
           ...position,
           sortedCandidates,
           winner: sortedCandidates[0] || null
         };
-      });
+      }) : [];
 
       // Flatten positions and candidates for table display (for pagination)
       const results = [];
-      positions.forEach(position => {
-        position.candidates.forEach(candidate => {
-          results.push({
-            position: position.position_name,
-            candidate_id: candidate.id,
-            candidate_name: `${candidate.first_name} ${candidate.last_name}`,
-            image_url: candidate.image_url,
-            partylist: candidate.partylist_name || '-',
-            vote_count: candidate.vote_count,
-            vote_percentage: candidate.vote_percentage || 0,
-            is_winner: candidate.is_winner
-          });
+      if (Array.isArray(positions)) {
+        positions.forEach(position => {
+          if (Array.isArray(position.candidates)) {
+            position.candidates.forEach(candidate => {
+              results.push({
+                position: position.position_name,
+                candidate_id: candidate.id,
+                candidate_name: `${candidate.first_name} ${candidate.last_name}`,
+                image_url: candidate.image_url,
+                partylist: candidate.partylist_name || '-',
+                vote_count: candidate.vote_count,
+                vote_percentage: candidate.vote_percentage || 0,
+                is_winner: candidate.is_winner
+              });
+            });
+          }
         });
-      });
+      }
 
       setData(prev => ({
         ...prev,
@@ -265,11 +269,11 @@ const ElectionResultReport = () => {
           className="w-64 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#01579B] text-black"
         >
           <option value="">Select Election</option>
-          {data.elections.map(election => (
+          {Array.isArray(data.elections) ? data.elections.map(election => (
             <option key={election.id} value={election.id}>
               {election.title} ({new Date(election.date_to).toLocaleDateString()})
             </option>
-          ))}
+          )) : []}
         </select>
         <button
           onClick={handleDownload}
@@ -311,7 +315,7 @@ const ElectionResultReport = () => {
         </div>
       ) : selectedElectionId && data.groupedPositions.length > 0 ? (
         <div className="space-y-8">
-          {data.groupedPositions.map((position, positionIndex) => (
+          {Array.isArray(data.groupedPositions) ? data.groupedPositions.map((position, positionIndex) => (
             <div key={position.position_id} className="bg-white/50 backdrop-blur-sm rounded-lg shadow border border-gray-200 p-6">
               <h3 className="text-xl font-semibold text-black mb-6 flex items-center">
                 <Trophy className="w-6 h-6 mr-2 text-[#01579B]" />
@@ -382,7 +386,7 @@ const ElectionResultReport = () => {
               {/* All Candidates Results */}
               <div className="space-y-3">
                 <h5 className="text-lg font-medium text-black mb-4">All Candidates Results</h5>
-                {position.sortedCandidates.map((candidate, candidateIndex) => (
+                {Array.isArray(position.sortedCandidates) ? position.sortedCandidates.map((candidate, candidateIndex) => (
                   <div 
                     key={candidate.id} 
                     className={`flex items-center justify-between p-4 rounded-lg border ${
@@ -453,10 +457,10 @@ const ElectionResultReport = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                )) : []}
               </div>
             </div>
-          ))}
+          )) : []}
         </div>
       ) : selectedElectionId ? (
         <div className="text-center py-8 text-gray-500">
@@ -465,7 +469,7 @@ const ElectionResultReport = () => {
       ) : null}
 
       {/* Summary Stats */}
-      {selectedElectionId && data.groupedPositions.length > 0 && (
+      {selectedElectionId && Array.isArray(data.groupedPositions) && data.groupedPositions.length > 0 && (
         <div className="mt-8 bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200">
           <h3 className="text-lg font-semibold text-black mb-4">Election Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -475,7 +479,7 @@ const ElectionResultReport = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-[#01579B]">
-                {data.groupedPositions.reduce((total, pos) => total + pos.sortedCandidates.length, 0)}
+                {data.groupedPositions.reduce((total, pos) => total + (Array.isArray(pos.sortedCandidates) ? pos.sortedCandidates.length : 0), 0)}
               </div>
               <div className="text-sm text-gray-600">Total Candidates</div>
             </div>

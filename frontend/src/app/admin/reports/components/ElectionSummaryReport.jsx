@@ -212,7 +212,7 @@ export default function ElectionSummaryReport() {
           total_votes_cast: summaryData.summary.total_votes_cast,
           voter_turnout_percentage: summaryData.summary.voter_turnout_percentage
         },
-        recent_elections: summaryData.recent_elections.map(election => ({
+        recent_elections: Array.isArray(summaryData.recent_elections) ? summaryData.recent_elections.map(election => ({
           title: election.title,
           election_type: election.election_type,
           status: election.status,
@@ -221,7 +221,7 @@ export default function ElectionSummaryReport() {
           voter_count: election.voter_count,
           total_votes: election.total_votes,
           turnout_percentage: formatPercentage((election.total_votes / election.voter_count * 100) || 0)
-        }))
+        })) : []
       };
 
       const result = await generatePdfReport(1, reportData); // 1 is the report ID for Election Summary
@@ -366,7 +366,7 @@ export default function ElectionSummaryReport() {
                 </tr>
               </thead>
               <tbody>
-                {summaryData.recent_elections.map((election) => (
+                {Array.isArray(summaryData.recent_elections) ? summaryData.recent_elections.map((election) => (
                   <tr key={election.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => handleViewDetails(election)}>
                     <td className="p-3 text-sm text-black flex items-center gap-2">
                       {election.title}
@@ -388,8 +388,8 @@ export default function ElectionSummaryReport() {
                     <td className="p-3 text-sm text-black">{formatNumber(election.total_votes)}</td>
                     <td className="p-3 text-sm text-black">{formatPercentage((election.total_votes / election.voter_count * 100) || 0)}</td>
                   </tr>
-                ))}
-                {summaryData.recent_elections.length === 0 && (
+                )) : []}
+                {Array.isArray(summaryData.recent_elections) && summaryData.recent_elections.length === 0 && (
                   <tr>
                     <td colSpan="8" className="p-3 text-center text-gray-500">No election data available</td>
                   </tr>
@@ -458,7 +458,7 @@ export default function ElectionSummaryReport() {
               
               <h3 className="text-lg font-semibold mb-4 text-black">Ballot Details</h3>
               <div className="space-y-8">
-                {electionDetails.positions?.map((position) => (
+                {Array.isArray(electionDetails.positions) ? electionDetails.positions.map((position) => (
                   <div key={position.id} className="border rounded-lg p-6 bg-gray-50">
                     <div className="flex justify-between items-center mb-6">
                       <div>
@@ -467,7 +467,7 @@ export default function ElectionSummaryReport() {
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {position.candidates?.map((candidate, index) => (
+                      {Array.isArray(position.candidates) ? position.candidates.map((candidate, index) => (
                         <div key={candidate.id} className="bg-white border rounded-lg p-4 flex items-start space-x-4 hover:shadow-md transition-shadow duration-200">
                           <div className="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded-lg bg-gray-200">
                             <Image
@@ -505,10 +505,10 @@ export default function ElectionSummaryReport() {
                             )}
                           </div>
                         </div>
-                      ))}
+                      )) : []}
                     </div>
                   </div>
-                ))}
+                )) : []}
               </div>
             </div>
           </div>
