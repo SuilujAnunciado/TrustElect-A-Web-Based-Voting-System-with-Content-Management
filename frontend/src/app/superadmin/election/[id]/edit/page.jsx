@@ -267,6 +267,10 @@ export default function EditElectionPage() {
         };
 
         setElectionData(formattedElectionData);
+        
+        // Debug: Log precinct programs to see what's being loaded
+        console.log("Loaded precinct programs:", criteria.precinctPrograms);
+        console.log("Mapped eligibleVoters.precinctPrograms:", eligibleVoters.precinctPrograms);
         setOriginalElectionData(formattedElectionData);
 
         // Fetch current semester from maintenance
@@ -545,18 +549,6 @@ export default function EditElectionPage() {
         updatePayload.start_time = electionData.start_time;
       }
       
-      // Update election basic details
-      const updateResponse = await axios.put(
-        `${API_BASE}/elections/${electionId}`,
-        updatePayload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-
       const currentCriteriaResponse = await axios.get(
         `${API_BASE}/elections/${electionId}/criteria`,
         {
@@ -583,6 +575,18 @@ export default function EditElectionPage() {
         precinct: currentCriteria.precincts || currentCriteria.precinct || [],
         precinctPrograms: currentCriteria.precinctPrograms || {}
       });
+      
+      // Update election basic details
+      const updateResponse = await axios.put(
+        `${API_BASE}/elections/${electionId}`,
+        updatePayload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
 
       if (hasEligibilityChanged) {
       

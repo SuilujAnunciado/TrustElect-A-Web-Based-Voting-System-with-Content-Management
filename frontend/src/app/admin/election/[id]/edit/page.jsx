@@ -296,6 +296,10 @@ export default function EditElectionPage() {
           status: election.status,
           eligibleVoters
         });
+        
+        // Debug: Log precinct programs to see what's being loaded
+        console.log("Loaded precinct programs:", criteria.precinctPrograms);
+        console.log("Mapped eligibleVoters.precinctPrograms:", eligibleVoters.precinctPrograms);
 
         // Fetch maintenance data (options for dropdowns)
         // Fix: The /api/maintenance/all endpoint doesn't exist
@@ -535,27 +539,15 @@ export default function EditElectionPage() {
         end_time: electionData.end_time
       };
       
-      // Update election basic details
-      const updateResponse = await axios.put(
-        `${API_BASE}/elections/${electionId}`,
-        updatePayload,
+      // Get current eligibility criteria to see if it's changed
+      const currentCriteriaResponse = await axios.get(
+        `${API_BASE}/elections/${electionId}/criteria`,
         {
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           }
         }
       );
-      
-        // Get current eligibility criteria to see if it's changed
-        const currentCriteriaResponse = await axios.get(
-          `${API_BASE}/elections/${electionId}/criteria`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
       
       const currentCriteria = currentCriteriaResponse.data.criteria || {};
       
@@ -575,6 +567,18 @@ export default function EditElectionPage() {
         precinct: currentCriteria.precincts || currentCriteria.precinct || [],
         precinctPrograms: currentCriteria.precinctPrograms || {}
       });
+      
+      // Update election basic details
+      const updateResponse = await axios.put(
+        `${API_BASE}/elections/${electionId}`,
+        updatePayload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
       
       // Only update eligibility criteria if it's changed
       if (hasEligibilityChanged) {
