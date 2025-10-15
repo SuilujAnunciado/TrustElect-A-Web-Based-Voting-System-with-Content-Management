@@ -279,6 +279,11 @@ export default function EditElectionPage() {
           precinctPrograms: criteria.precinctPrograms || {}
         };
 
+        // Debug: Log the loaded data
+        console.log("Raw criteria response:", criteria);
+        console.log("Loaded precinct programs:", criteria.precinctPrograms);
+        console.log("Mapped eligibleVoters.precinctPrograms:", eligibleVoters.precinctPrograms);
+
         // Format dates and times for the form
         const formattedDateFrom = formatDateForInput(election.date_from);
         const formattedDateTo = formatDateForInput(election.date_to);
@@ -541,43 +546,7 @@ export default function EditElectionPage() {
         end_time: electionData.end_time
       };
       
-      // Get current eligibility criteria to see if it's changed
-      let currentCriteriaResponse;
-      try {
-        currentCriteriaResponse = await axios.get(
-          `${API_BASE}/elections/${electionId}/criteria`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
-      } catch (err) {
-        console.error("Error fetching current criteria:", err);
-        // If we can't get current criteria, assume no change
-        currentCriteriaResponse = { data: { criteria: {} } };
-      }
-      
-      const currentCriteria = currentCriteriaResponse.data.criteria || {};
-      
-      // Check if eligibility criteria has changed
-      const hasEligibilityChanged = JSON.stringify({
-        programs: electionData.eligibleVoters.programs,
-        yearLevels: electionData.eligibleVoters.yearLevels,
-        gender: electionData.eligibleVoters.gender,
-        semester: electionData.eligibleVoters.semester,
-        precinct: electionData.eligibleVoters.precinct,
-        precinctPrograms: electionData.eligibleVoters.precinctPrograms
-      }) !== JSON.stringify({
-        programs: currentCriteria.programs || currentCriteria.courses || [],
-        yearLevels: currentCriteria.year_levels || currentCriteria.yearLevels || [],
-        gender: currentCriteria.genders || currentCriteria.gender || [],
-        semester: currentCriteria.semesters || currentCriteria.semester || [],
-        precinct: currentCriteria.precincts || currentCriteria.precinct || [],
-        precinctPrograms: currentCriteria.precinctPrograms || {}
-      });
-      
-      // Update election basic details
+      // Update election basic details first
       const updateResponse = await axios.put(
         `${API_BASE}/elections/${electionId}`,
         updatePayload,
@@ -589,36 +558,34 @@ export default function EditElectionPage() {
         }
       );
       
-      // Only update eligibility criteria if it's changed
-      if (hasEligibilityChanged) {
-        // Determine if all options for each category are selected
-        const allProgramsSelected = areAllSelected(electionData.eligibleVoters.programs, maintenanceData.programs);
-        const allYearLevelsSelected = areAllSelected(electionData.eligibleVoters.yearLevels, maintenanceData.yearLevels);
-        const allGendersSelected = areAllSelected(electionData.eligibleVoters.gender, maintenanceData.genders);
-        
-        // Create the optimized payload
-        const optimizedEligibleVoters = {
-          programs: allProgramsSelected ? [] : electionData.eligibleVoters.programs,
-          yearLevels: allYearLevelsSelected ? [] : electionData.eligibleVoters.yearLevels,
-          gender: allGendersSelected ? [] : electionData.eligibleVoters.gender,
-          semester: electionData.eligibleVoters.semester,
-          precinct: electionData.eligibleVoters.precinct,
-          precinctPrograms: electionData.eligibleVoters.precinctPrograms
-        };
-        
-        const eligibilityResponse = await axios.put(
-          `${API_BASE}/elections/${electionId}/criteria`,   
-          {
-            eligibility: optimizedEligibleVoters
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            }
+      // Always update eligibility criteria
+      // Determine if all options for each category are selected
+      const allProgramsSelected = areAllSelected(electionData.eligibleVoters.programs, maintenanceData.programs);
+      const allYearLevelsSelected = areAllSelected(electionData.eligibleVoters.yearLevels, maintenanceData.yearLevels);
+      const allGendersSelected = areAllSelected(electionData.eligibleVoters.gender, maintenanceData.genders);
+      
+      // Create the optimized payload
+      const optimizedEligibleVoters = {
+        programs: allProgramsSelected ? [] : electionData.eligibleVoters.programs,
+        yearLevels: allYearLevelsSelected ? [] : electionData.eligibleVoters.yearLevels,
+        gender: allGendersSelected ? [] : electionData.eligibleVoters.gender,
+        semester: electionData.eligibleVoters.semester,
+        precinct: electionData.eligibleVoters.precinct,
+        precinctPrograms: electionData.eligibleVoters.precinctPrograms
+      };
+      
+      const eligibilityResponse = await axios.put(
+        `${API_BASE}/elections/${electionId}/criteria`,   
+        {
+          eligibility: optimizedEligibleVoters
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           }
-        );
-      }
+        }
+      );
       
       setSuccess(true);
       toast.success('Election updated successfully!');

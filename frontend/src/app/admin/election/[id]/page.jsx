@@ -152,7 +152,7 @@ export default function ElectionDetailsPage() {
   const [bulletinCandidateVotes, setBulletinCandidateVotes] = useState([]);
   const [bulletinCarouselIndex, setBulletinCarouselIndex] = useState(0);
   const [bulletinCarouselInterval, setBulletinCarouselInterval] = useState(null);
-  
+
   // Permission management
   const { hasPermission, permissionsLoading } = usePermissions();
 
@@ -1212,13 +1212,13 @@ export default function ElectionDetailsPage() {
               Only System Admin can approve or reject elections.
             </p>
             {canEditElection() && (
-              <button
-                onClick={handleCancelElection}
-                disabled={isCancelling}
-                className="text-sm flex items-center text-red-600 hover:text-red-800"
-              >
-                {isCancelling ? 'Cancelling...' : 'Cancel this election request'}
-              </button>
+            <button
+              onClick={handleCancelElection}
+              disabled={isCancelling}
+              className="text-sm flex items-center text-red-600 hover:text-red-800"
+            >
+              {isCancelling ? 'Cancelling...' : 'Cancel this election request'}
+            </button>
             )}
           </div>
         </div>
