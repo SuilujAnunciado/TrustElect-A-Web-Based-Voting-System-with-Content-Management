@@ -53,7 +53,18 @@ export default function VotingTimeReport() {
       const response = await axios.get(`${API_BASE}/elections`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setElections(response.data);
+      
+      // Handle different response structures
+      let electionsData = [];
+      if (Array.isArray(response.data)) {
+        electionsData = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        electionsData = response.data.data;
+      } else if (response.data.elections && Array.isArray(response.data.elections)) {
+        electionsData = response.data.elections;
+      }
+      
+      setElections(electionsData);
     } catch (error) {
       console.error('Error fetching elections:', error);
       setError('Failed to fetch elections');
@@ -110,28 +121,76 @@ export default function VotingTimeReport() {
 
   const handleDownload = async () => {
     try {
+      // Get current election title for context
+      const currentElectionTitle = selectedElection === 'all' 
+        ? 'All Elections' 
+        : elections.find(e => e.id === selectedElection)?.title || 'Selected Election';
+
       const reportData = {
         title: "Voting Time Report",
-        description: "Detailed voter activity tracking including login times, session duration, and device information",
+        description: `Detailed voter activity tracking for ${currentElectionTitle} including login times, session duration, and device information`,
+        election_info: {
+          election_title: currentElectionTitle,
+          report_generated: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+          total_records: votingData.length
+        },
         summary: {
           total_voters: votingData.length,
           voted_count: votingData.filter(v => v.status === 'Voted').length,
-          not_voted_count: votingData.filter(v => v.status === 'Not Voted').length
+          not_voted_count: votingData.filter(v => v.status === 'Not Voted').length,
+          voted_percentage: votingData.length > 0 
+            ? ((votingData.filter(v => v.status === 'Voted').length / votingData.length) * 100).toFixed(1)
+            : 0
         },
-        voting_data: votingData.map(voter => ({
-          voter_id: voter.voter_id,
-          election_title: voter.election_title,
-          login_time: voter.login_time ? format(new Date(voter.login_time), 'yyyy-MM-dd HH:mm:ss') : '—',
-          vote_submitted_time: voter.vote_submitted_time ? format(new Date(voter.vote_submitted_time), 'yyyy-MM-dd HH:mm:ss') : '—',
-          session_duration: voter.session_duration || '—',
-          status: voter.status,
-          device_browser_info: voter.device_browser_info || '—'
-        }))
+        voting_data: votingData.map((voter, index) => ({
+          row_number: index + 1,
+          voter_id: voter.voter_id || 'N/A',
+          election_title: voter.election_title || 'N/A',
+          login_time: voter.login_time ? format(new Date(voter.login_time), 'MMM dd, yyyy HH:mm:ss') : 'Not Available',
+          vote_submitted_time: voter.vote_submitted_time ? format(new Date(voter.vote_submitted_time), 'MMM dd, yyyy HH:mm:ss') : 'Not Voted',
+          session_duration: voter.session_duration || 'N/A',
+          status: voter.status || 'Unknown',
+          device_browser_info: voter.device_browser_info || 'Not Available',
+          // Add calculated fields for better PDF formatting
+          time_to_vote: voter.login_time && voter.vote_submitted_time 
+            ? calculateTimeDifference(voter.login_time, voter.vote_submitted_time)
+            : 'N/A'
+        })),
+        // Add metadata for PDF generation
+        metadata: {
+          generated_at: new Date().toISOString(),
+          total_pages: Math.ceil(votingData.length / 25), // Assuming 25 records per page
+          records_per_page: 25
+        }
       };
 
+      console.log('Generating PDF with structured data:', reportData);
       await generatePdfReport(12, reportData); // 12 is the report ID for Voting Time Report
     } catch (error) {
       console.error('Error downloading report:', error);
+    }
+  };
+
+  // Helper function to calculate time difference
+  const calculateTimeDifference = (startTime, endTime) => {
+    try {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      const diffMs = end - start;
+      
+      if (diffMs < 0) return 'Invalid';
+      
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMinutes / 60);
+      const remainingMinutes = diffMinutes % 60;
+      
+      if (diffHours > 0) {
+        return `${diffHours}h ${remainingMinutes}m`;
+      } else {
+        return `${diffMinutes}m`;
+      }
+    } catch (error) {
+      return 'N/A';
     }
   };
 
@@ -162,11 +221,11 @@ export default function VotingTimeReport() {
             className="border rounded-md p-2 text-black focus:outline-none focus:ring-2 focus:ring-[#01579B]"
           >
             <option value="all">All Elections</option>
-            {elections.map(election => (
+            {Array.isArray(elections) ? elections.map(election => (
               <option key={election.id} value={election.id}>
                 {election.title}
               </option>
-            ))}
+            )) : []}
           </select>
           <select
             value={selectedStatus}
@@ -213,10 +272,10 @@ export default function VotingTimeReport() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {votingData.map((voter, index) => (
+              {Array.isArray(votingData) ? votingData.map((voter, index) => (
                 <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {voter.voter_id}
+                    {voter.voter_id || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {voter.login_time ? format(new Date(voter.login_time), 'yyyy-MM-dd HH:mm:ss') : '—'}
@@ -233,15 +292,15 @@ export default function VotingTimeReport() {
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {voter.status}
+                      {voter.status || 'Unknown'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {voter.device_browser_info || '—'}
                   </td>
                 </tr>
-              ))}
-              {votingData.length === 0 && (
+              )) : []}
+              {(!Array.isArray(votingData) || votingData.length === 0) && (
                 <tr>
                   <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                     No voting data available
@@ -254,7 +313,7 @@ export default function VotingTimeReport() {
       </div>
 
       {/* Pagination */}
-      {votingData.length > 0 && pagination.totalPages > 1 && (
+      {Array.isArray(votingData) && votingData.length > 0 && pagination.totalPages > 1 && (
         <div className="flex justify-between items-center mt-4 bg-white/50 backdrop-blur-sm rounded-lg p-4 border border-gray-200">
           <div className="text-sm text-gray-600">
             Showing {votingData.length} of {pagination.totalCount} results
