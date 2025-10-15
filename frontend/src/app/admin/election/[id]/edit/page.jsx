@@ -68,6 +68,45 @@ export default function EditElectionPage() {
   const [eligibleCount, setEligibleCount] = useState(0);
   const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
 
+  // Sorting functions to match create election page
+  const sortPrecincts = (a, b) => {
+    const extractNumber = (str) => parseInt(str.match(/\d+/)?.[0] || '0');
+    const aNum = extractNumber(a);
+    const bNum = extractNumber(b);
+    if (aNum !== 0 && bNum !== 0) {
+      return aNum - bNum;
+    }
+    return a.localeCompare(b);
+  };
+
+  const sortPrograms = (a, b) => {
+    const collegePrograms = [
+      'BSA', 'BSBAOM', 'BSCPE', 'BSCS', 'BSHM', 'BSIT', 'BMMA', 'BSTM'
+    ];
+    const seniorHighPrograms = [
+      'ABM', 'CUART', 'DIGAR', 'HUMMS', 'MAWD', 'STEM', 'TOPER'
+    ];
+
+    const aType = seniorHighPrograms.includes(a) ? 'seniorHigh' : 'college';
+    const bType = seniorHighPrograms.includes(b) ? 'seniorHigh' : 'college';
+
+    if (aType !== bType) {
+      return aType === 'college' ? -1 : 1;
+    }
+
+    if (aType === 'college') {
+      if (collegePrograms.includes(a) && collegePrograms.includes(b)) {
+        return collegePrograms.indexOf(a) - collegePrograms.indexOf(b);
+      }
+      return a.localeCompare(b);
+    }
+
+    if (seniorHighPrograms.includes(a) && seniorHighPrograms.includes(b)) {
+      return seniorHighPrograms.indexOf(a) - seniorHighPrograms.indexOf(b);
+    }
+    return a.localeCompare(b);
+  };
+
   // Add helper function to check if all items are selected
   const areAllSelected = (selectedItems, allItems) => {
     if (!selectedItems || !allItems) return false;
@@ -76,13 +115,13 @@ export default function EditElectionPage() {
            selectedItems.every(item => allItems.includes(item));
   };
 
-  // Add function to check if a program is already assigned to another precinct
-  const isProgramAssignedToOtherPrecinct = (program, currentPrecinct) => {
-    return Object.entries(electionData.eligibleVoters.precinctPrograms)
-      .some(([precinct, programs]) => 
-        precinct !== currentPrecinct && programs.includes(program)
-      );
-  };
+  // Remove the restriction - allow same program to be assigned to multiple precincts
+  // const isProgramAssignedToOtherPrecinct = (program, currentPrecinct) => {
+  //   return Object.entries(electionData.eligibleVoters.precinctPrograms)
+  //     .some(([precinct, programs]) => 
+  //       precinct !== currentPrecinct && programs.includes(program)
+  //     );
+  // };
 
   // Add function to toggle program selection visibility
   const toggleProgramSelection = (precinct) => {
@@ -94,13 +133,6 @@ export default function EditElectionPage() {
 
   // Add function to handle precinct program changes
   const handlePrecinctProgramChange = (precinct, program) => {
-    // Check if program is already assigned to another precinct
-    if (!electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) &&
-        isProgramAssignedToOtherPrecinct(program, precinct)) {
-      toast.error(`${program} is already assigned to another precinct`);
-      return;
-    }
-
     setElectionData(prev => {
       const precinctPrograms = { ...prev.eligibleVoters.precinctPrograms };
       
@@ -903,72 +935,88 @@ export default function EditElectionPage() {
                   <div className="border-b pb-4 last:border-b-0">
                     <h3 className="font-medium text-black mb-4">Precinct Course Assignment</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Assign specific programs to each selected precinct. Each program can only be assigned to one precinct.
+                      Assign specific programs to each selected precinct. Programs can be assigned to multiple precincts.
                     </p>
                     
                     <div className="space-y-4">
                       {electionData.eligibleVoters.precinct.map(precinct => (
-                        <div key={precinct} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-center mb-3">
-                            <h4 className="font-medium text-black">{precinct}</h4>
-                            <button
-                              type="button"
-                              onClick={() => toggleProgramSelection(precinct)}
-                              className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                        <div key={precinct} className="flex items-start space-x-4">
+                          <div className="flex-shrink-0">
+                            <label 
+                              className={`inline-flex items-center px-3 py-2 rounded-lg ${
+                                electionData.eligibleVoters.precinct.includes(precinct)
+                                  ? 'bg-blue-100 border border-blue-300' 
+                                  : 'border border-gray-200'
+                              }`}
                             >
-                              {visibleProgramSelections[precinct] ? (
-                                <>
-                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                  Hide Programs
-                                </>
-                              ) : (
-                                <>
-                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                  </svg>
-                                  Show Programs
-                                </>
-                              )}
-                            </button>
-                            {electionData.eligibleVoters.precinctPrograms[precinct]?.length > 0 && (
-                              <span className="text-sm text-gray-500">
-                                {electionData.eligibleVoters.precinctPrograms[precinct]?.length} program(s) selected
-                              </span>
-                            )}
+                              <input
+                                type="checkbox"
+                                checked={electionData.eligibleVoters.precinct.includes(precinct)}
+                                onChange={() => handleCheckboxChange('precinct', precinct)}
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                              />
+                              <span className="text-gray-700 font-medium">{precinct}</span>
+                            </label>
                           </div>
 
-                          {visibleProgramSelections[precinct] && (
-                            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                              <p className="text-sm font-medium text-gray-600 mb-2">Select programs for {precinct}:</p>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                {electionData.eligibleVoters.programs.map(program => {
-                                  const isAssignedToOther = isProgramAssignedToOtherPrecinct(program, precinct);
-                                  const isChecked = electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) || false;
-                                  
-                                  return (
-                                    <label 
-                                      key={program} 
-                                      className={`inline-flex items-center bg-white px-2 py-1 rounded ${
-                                        isChecked ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
-                                      } ${isAssignedToOther && !isChecked ? 'opacity-50' : ''}`}
-                                      title={isAssignedToOther && !isChecked ? 'This program is already assigned to another precinct' : ''}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isChecked}
-                                        onChange={() => handlePrecinctProgramChange(precinct, program)}
-                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                                        disabled={isAssignedToOther && !isChecked}
-                                      />
-                                      <span className={`text-sm ${isAssignedToOther && !isChecked ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        {program}
-                                      </span>
-                                    </label>
-                                  );
-                                })}
+                          {electionData.eligibleVoters.precinct.includes(precinct) && (
+                            <div className="flex-grow">
+                              <div className="flex justify-between items-center mb-2">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleProgramSelection(precinct)}
+                                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                                >
+                                  {visibleProgramSelections[precinct] ? (
+                                    <>
+                                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                      </svg>
+                                      Hide Programs
+                                    </>
+                                  ) : (
+                                    <>
+                                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                      </svg>
+                                      Show Programs
+                                    </>
+                                  )}
+                                </button>
+                                {electionData.eligibleVoters.precinctPrograms[precinct]?.length > 0 && (
+                                  <span className="text-sm text-gray-500">
+                                    {electionData.eligibleVoters.precinctPrograms[precinct]?.length} program(s) selected
+                                  </span>
+                                )}
                               </div>
+
+                              {visibleProgramSelections[precinct] && (
+                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                  <p className="text-sm font-medium text-gray-600 mb-2">Select programs for {precinct}:</p>
+                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    {electionData.eligibleVoters.programs.sort(sortPrograms).map(program => {
+                                      const isChecked = electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) || false;
+                                      
+                                      return (
+                                        <label 
+                                          key={program} 
+                                          className="inline-flex items-center bg-white px-2 py-1 rounded"
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={() => handlePrecinctProgramChange(precinct, program)}
+                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                                          />
+                                          <span className="text-sm text-gray-600">
+                                            {program}
+                                          </span>
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
