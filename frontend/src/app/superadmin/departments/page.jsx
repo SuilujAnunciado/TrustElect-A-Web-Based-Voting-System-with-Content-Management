@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import { PlusCircle, Edit, Trash, UserPlus, Archive } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
 export default function DepartmentsPage() {
   const router = useRouter();
@@ -16,7 +17,10 @@ export default function DepartmentsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All");
 
@@ -94,15 +98,19 @@ export default function DepartmentsPage() {
   });
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to archive this department? It will be moved to the archived folder.")) return;
-    
+    setSelectedDepartmentId(id);
+    setShowArchiveModal(true);
+  };
+
+  const confirmArchiveDepartment = async () => {
     try {
       const token = Cookies.get("token");
-      const res = await axios.delete(`/api/superadmin/departments/${id}`, {
+      const res = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
       toast.success(res.data.message || "Department archived successfully");
+      setShowArchiveModal(false);
       fetchDepartments();
     } catch (error) {
       console.error("Error archiving department:", error);
@@ -111,15 +119,19 @@ export default function DepartmentsPage() {
   };
 
   const handlePermanentDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this department? It will be moved to the deleted folder.")) return;
-    
+    setSelectedDepartmentId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmPermanentDeleteDepartment = async () => {
     try {
       const token = Cookies.get("token");
-      const res = await axios.delete(`/api/superadmin/departments/${id}?action=delete`, {
+      const res = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}?action=delete`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
       toast.success(res.data.message || "Department moved to deleted folder");
+      setShowDeleteModal(false);
       fetchDepartments();
     } catch (error) {
       console.error("Error deleting department:", error);
@@ -336,6 +348,30 @@ export default function DepartmentsPage() {
           onSuccess={fetchDepartments} 
         />
       }
+
+      <ConfirmationModal
+        isOpen={showArchiveModal}
+        onClose={() => setShowArchiveModal(false)}
+        onConfirm={confirmArchiveDepartment}
+        title="Confirm Archive"
+        message="Are you sure you want to archive this department? The department will be moved to the archived folder."
+        confirmText="Archive"
+        cancelText="Cancel"
+        type="warning"
+        isLoading={false}
+      />
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmPermanentDeleteDepartment}
+        title="Confirm Delete"
+        message="Are you sure you want to delete this department? The department will be moved to the deleted folder."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={false}
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { PlusCircle, Edit, Trash, UserPlus, Lock, Archive } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import usePermissions from "@/hooks/usePermissions";
+import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
 export default function AdminDepartmentsPage() {
   const router = useRouter();
@@ -17,7 +18,10 @@ export default function AdminDepartmentsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All");
   const { hasPermission, loading: permissionsLoading, refreshPermissions } = usePermissions();
@@ -219,8 +223,11 @@ export default function AdminDepartmentsPage() {
       return;
     }
 
-    if (!confirm("Are you sure you want to archive this department? It will be moved to the archive.")) return;
-    
+    setSelectedDepartmentId(id);
+    setShowArchiveModal(true);
+  };
+
+  const confirmArchiveDepartment = async () => {
     try {
       const token = Cookies.get("token");
       
@@ -230,7 +237,7 @@ export default function AdminDepartmentsPage() {
       
       try {
         // First try admin endpoint
-        response = await axios.delete(`/api/admin/departments/${id}`, {
+        response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         success = true;
@@ -239,7 +246,7 @@ export default function AdminDepartmentsPage() {
         
         try {
           // Try generic endpoint
-          response = await axios.delete(`/api/departments/${id}`, {
+          response = await axios.delete(`/api/departments/${selectedDepartmentId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           success = true;
@@ -247,7 +254,7 @@ export default function AdminDepartmentsPage() {
           console.error("Error on generic endpoint:", secondError.message);
           
           // Try superadmin endpoint as last resort
-          response = await axios.delete(`/api/superadmin/departments/${id}`, {
+          response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           success = true;
@@ -255,6 +262,7 @@ export default function AdminDepartmentsPage() {
       }
       
       toast.success(response.data.message || "Department archived successfully");
+      setShowArchiveModal(false);
       fetchDepartments();
     } catch (error) {
       console.error("Error archiving department:", error);
@@ -268,8 +276,11 @@ export default function AdminDepartmentsPage() {
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this department? It will be moved to the deleted folder.")) return;
-    
+    setSelectedDepartmentId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmPermanentDeleteDepartment = async () => {
     try {
       const token = Cookies.get("token");
       
@@ -279,7 +290,7 @@ export default function AdminDepartmentsPage() {
       
       try {
         // First try admin endpoint with delete action parameter
-        response = await axios.delete(`/api/admin/departments/${id}?action=delete`, {
+        response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}?action=delete`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         success = true;
@@ -288,7 +299,7 @@ export default function AdminDepartmentsPage() {
         
         try {
           // Try generic endpoint with delete action parameter
-          response = await axios.delete(`/api/departments/${id}?action=delete`, {
+          response = await axios.delete(`/api/departments/${selectedDepartmentId}?action=delete`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           success = true;
@@ -296,7 +307,7 @@ export default function AdminDepartmentsPage() {
           console.error("Error on generic delete endpoint:", secondError.message);
           
           // Try superadmin endpoint as last resort with delete action parameter
-          response = await axios.delete(`/api/superadmin/departments/${id}?action=delete`, {
+          response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}?action=delete`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           success = true;
@@ -304,6 +315,7 @@ export default function AdminDepartmentsPage() {
       }
       
       toast.success(response.data.message || "Department moved to deleted folder");
+      setShowDeleteModal(false);
       fetchDepartments();
     } catch (error) {
       console.error("Error deleting department:", error);
@@ -588,6 +600,30 @@ export default function AdminDepartmentsPage() {
           onSuccess={fetchDepartments} 
         />
       }
+
+      <ConfirmationModal
+        isOpen={showArchiveModal}
+        onClose={() => setShowArchiveModal(false)}
+        onConfirm={confirmArchiveDepartment}
+        title="Confirm Archive"
+        message="Are you sure you want to archive this department? The department will be moved to the archived folder."
+        confirmText="Archive"
+        cancelText="Cancel"
+        type="warning"
+        isLoading={false}
+      />
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmPermanentDeleteDepartment}
+        title="Confirm Delete"
+        message="Are you sure you want to delete this department? The department will be moved to the deleted folder."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={false}
+      />
       </div>
     </div>
   );
