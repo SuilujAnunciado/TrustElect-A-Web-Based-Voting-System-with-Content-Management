@@ -111,14 +111,22 @@ export default function AdminReportsPage() {
           transformedData = departmentResponse.data;
           break;
 
-        case 2: 
-          // Election Result Report - using admin summary for now
-          endpoint = '/reports/admin/summary';
-          const resultResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = resultResponse.data;
-          break;
+         case 2: 
+           // Election Result Report - using admin summary for now
+           endpoint = '/reports/admin/summary';
+           const resultResponse = await axios.get(`${API_BASE}${endpoint}`, {
+             headers: { Authorization: `Bearer ${token}` }
+           });
+           
+           // Ensure elections is always an array
+           const resultData = resultResponse.data;
+           transformedData = {
+             ...resultData,
+             elections: Array.isArray(resultData.elections) ? resultData.elections : [],
+             recent_elections: Array.isArray(resultData.recent_elections) ? resultData.recent_elections : [],
+             summary: resultData.summary || {}
+           };
+           break;
 
         case 3: 
           // Voting Time Report
@@ -129,14 +137,22 @@ export default function AdminReportsPage() {
           transformedData = timeResponse.data;
           break;
 
-        case 4: 
-          // Election Summary Report
-          endpoint = '/reports/admin/summary';
-          const summaryResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          transformedData = summaryResponse.data;
-          break;
+         case 4: 
+           // Election Summary Report
+           endpoint = '/reports/admin/summary';
+           const summaryResponse = await axios.get(`${API_BASE}${endpoint}`, {
+             headers: { Authorization: `Bearer ${token}` }
+           });
+           
+           // Ensure elections is always an array
+           const summaryData = summaryResponse.data;
+           transformedData = {
+             ...summaryData,
+             elections: Array.isArray(summaryData.elections) ? summaryData.elections : [],
+             recent_elections: Array.isArray(summaryData.recent_elections) ? summaryData.recent_elections : [],
+             summary: summaryData.summary || {}
+           };
+           break;
 
         case 5: 
           // Voter Participation Report
@@ -144,7 +160,14 @@ export default function AdminReportsPage() {
           const participationResponse = await axios.get(`${API_BASE}${endpoint}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          transformedData = participationResponse.data;
+          
+          // Ensure elections is always an array
+          const participationData = participationResponse.data;
+          transformedData = {
+            ...participationData,
+            elections: Array.isArray(participationData.elections) ? participationData.elections : [],
+            summary: participationData.summary || {}
+          };
           break;
 
         case 6: 

@@ -107,35 +107,38 @@ export default function ReportsPage() {
       let transformedData;
 
       switch(reportId) {
-        case 1: 
-          endpoint = '/reports/summary';
-          const electionResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+         case 1: 
+           endpoint = '/reports/summary';
+           const electionResponse = await axios.get(`${API_BASE}${endpoint}`, {
+             headers: { Authorization: `Bearer ${token}` }
+           });
 
-          transformedData = {
-            summary: {
-              total_elections: electionResponse.data.data.summary.total_elections,
-              ongoing_elections: electionResponse.data.data.summary.ongoing_elections,
-              completed_elections: electionResponse.data.data.summary.completed_elections,
-              upcoming_elections: electionResponse.data.data.summary.upcoming_elections,
-              total_eligible_voters: electionResponse.data.data.summary.total_eligible_voters,
-              total_votes_cast: electionResponse.data.data.summary.total_votes_cast,
-              voter_turnout_percentage: electionResponse.data.data.summary.voter_turnout_percentage
-            },
-            recent_elections: electionResponse.data.data.recent_elections.map(election => ({
-              id: election.id,
-              title: election.title,
-              status: election.status,
-              election_type: election.election_type,
-              start_date: election.start_date,
-              end_date: election.end_date,
-              voter_count: formatNumber(election.voter_count || 0),
-              votes_cast: formatNumber(election.total_votes || 0),
-              turnout_percentage: election.voter_turnout_percentage
-            }))
-          };
-          break;
+           const electionData = electionResponse.data.data || electionResponse.data;
+           transformedData = {
+             summary: {
+               total_elections: electionData.summary?.total_elections || 0,
+               ongoing_elections: electionData.summary?.ongoing_elections || 0,
+               completed_elections: electionData.summary?.completed_elections || 0,
+               upcoming_elections: electionData.summary?.upcoming_elections || 0,
+               total_eligible_voters: electionData.summary?.total_eligible_voters || 0,
+               total_votes_cast: electionData.summary?.total_votes_cast || 0,
+               voter_turnout_percentage: electionData.summary?.voter_turnout_percentage || 0
+             },
+             recent_elections: Array.isArray(electionData.recent_elections) 
+               ? electionData.recent_elections.map(election => ({
+                   id: election.id,
+                   title: election.title,
+                   status: election.status,
+                   election_type: election.election_type,
+                   start_date: election.start_date,
+                   end_date: election.end_date,
+                   voter_count: formatNumber(election.voter_count || 0),
+                   votes_cast: formatNumber(election.total_votes || 0),
+                   turnout_percentage: election.voter_turnout_percentage
+                 }))
+               : []
+           };
+           break;
 
         case 2: 
           endpoint = '/reports/role-based/summary';
@@ -216,32 +219,35 @@ export default function ReportsPage() {
           };
           break;
 
-        case 5: // Upcoming Elections Report
-          endpoint = '/reports/upcoming-elections';
-          const upcomingResponse = await axios.get(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+         case 5: // Upcoming Elections Report
+           endpoint = '/reports/upcoming-elections';
+           const upcomingResponse = await axios.get(`${API_BASE}${endpoint}`, {
+             headers: { Authorization: `Bearer ${token}` }
+           });
 
-          transformedData = {
-            summary: {
-              total_upcoming: upcomingResponse.data.data.total_upcoming || 0,
-              upcoming_this_month: upcomingResponse.data.data.upcoming_this_month || 0,
-              total_expected_voters: upcomingResponse.data.data.total_expected_voters || 0
-            },
-            upcoming_elections: upcomingResponse.data.data.elections.map(election => ({
-              id: election.id,
-              title: election.title,
-              description: election.description,
-              election_type: election.election_type,
-              date_from: election.date_from,
-              date_to: election.date_to,
-              start_time: election.start_time,
-              end_time: election.end_time,
-              voter_count: election.voter_count || 0,
-              ballot: election.ballot || null
-            }))
-          };
-          break;
+           const upcomingData = upcomingResponse.data.data;
+           transformedData = {
+             summary: {
+               total_upcoming: upcomingData.total_upcoming || 0,
+               upcoming_this_month: upcomingData.upcoming_this_month || 0,
+               total_expected_voters: upcomingData.total_expected_voters || 0
+             },
+             upcoming_elections: Array.isArray(upcomingData.elections) 
+               ? upcomingData.elections.map(election => ({
+                   id: election.id,
+                   title: election.title,
+                   description: election.description,
+                   election_type: election.election_type,
+                   date_from: election.date_from,
+                   date_to: election.date_to,
+                   start_time: election.start_time,
+                   end_time: election.end_time,
+                   voter_count: election.voter_count || 0,
+                   ballot: election.ballot || null
+                 }))
+               : []
+           };
+           break;
 
         case 6: // Live Vote Count Report
           endpoint = '/reports/live-vote-count';
@@ -287,44 +293,49 @@ export default function ReportsPage() {
           };
           break;
 
-        case 8: // Voter Participation Report
-          endpoint = '/reports/voter-participation';
-          try {
-            const participationResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
+         case 8: // Voter Participation Report
+           endpoint = '/reports/voter-participation';
+           try {
+             const participationResponse = await axios.get(`${API_BASE}${endpoint}`, {
+               headers: { Authorization: `Bearer ${token}` }
+             });
 
-            if (!participationResponse.data.success) {
-              throw new Error(participationResponse.data.error || 'Failed to fetch voter participation data');
-            }
+             if (!participationResponse.data.success) {
+               throw new Error(participationResponse.data.error || 'Failed to fetch voter participation data');
+             }
 
-            transformedData = {
-              elections: participationResponse.data.data.elections.map(election => ({
-                id: election.id,
-                title: election.title,
-                total_eligible_voters: election.total_eligible_voters,
-                total_votes_cast: election.total_votes_cast,
-                turnout_percentage: ((election.total_votes_cast / election.total_eligible_voters) * 100).toFixed(1),
-                department_stats: election.department_stats,
-                voters: election.voters.map(voter => ({
-                  student_id: voter.student_id,
-                  name: `${voter.first_name} ${voter.last_name}`,
-                  department: voter.department,
-                  has_voted: voter.has_voted,
-                  vote_date: voter.vote_date
-                }))
-              }))
-            };
-          } catch (error) {
-            console.error('Error fetching voter participation data:', error);
-            console.error('Error details:', error.response?.data);
-            throw new Error(
-              error.response?.data?.details || 
-              error.response?.data?.error || 
-              'Failed to fetch voter participation data'
-            );
-          }
-          break;
+             const participationData = participationResponse.data.data;
+             transformedData = {
+               elections: Array.isArray(participationData.elections) 
+                 ? participationData.elections.map(election => ({
+                     id: election.id,
+                     title: election.title,
+                     total_eligible_voters: election.total_eligible_voters,
+                     total_votes_cast: election.total_votes_cast,
+                     turnout_percentage: ((election.total_votes_cast / election.total_eligible_voters) * 100).toFixed(1),
+                     department_stats: election.department_stats || [],
+                     voters: Array.isArray(election.voters) 
+                       ? election.voters.map(voter => ({
+                           student_id: voter.student_id,
+                           name: `${voter.first_name} ${voter.last_name}`,
+                           department: voter.department,
+                           has_voted: voter.has_voted,
+                           vote_date: voter.vote_date
+                         }))
+                       : []
+                   }))
+                 : []
+             };
+           } catch (error) {
+             console.error('Error fetching voter participation data:', error);
+             console.error('Error details:', error.response?.data);
+             throw new Error(
+               error.response?.data?.details || 
+               error.response?.data?.error || 
+               'Failed to fetch voter participation data'
+             );
+           }
+           break;
 
         case 9: // Candidate List Report
           endpoint = '/reports/candidate-list';
@@ -337,8 +348,9 @@ export default function ReportsPage() {
               throw new Error(candidateResponse.data.error || 'Failed to fetch candidate list data');
             }
 
+            const candidateData = candidateResponse.data.data;
             transformedData = {
-              elections: candidateResponse.data.data.elections
+              elections: Array.isArray(candidateData.elections) ? candidateData.elections : []
             };
           } catch (error) {
             console.error('Error fetching candidate list data:', error);
