@@ -222,6 +222,11 @@ export default function EditElectionPage() {
 
         const election = electionResponse.data.election;
         
+        // Debug: Log election details to see what we're working with
+        console.log("Election details for superadmin edit:", election);
+        console.log("Election creator:", election.created_by || election.admin_id);
+        console.log("Election status:", election.status);
+        
         // Get eligibility criteria
         let eligibilityResponse;
         try {
@@ -720,11 +725,22 @@ export default function EditElectionPage() {
         </div>
       )}
 
-      {(electionData.status === 'upcoming' || electionData.status === 'ongoing' || electionData.status === 'completed') && !error && (
+      {!error && (
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Super Admin has full access to edit any election regardless of creator or status */}
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <InfoIcon className="h-5 w-5 text-blue-500" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-blue-700">
+                  <strong>Super Admin Access:</strong> You have full permission to edit any election regardless of who created it or its current status.
+                </p>
+              </div>
+            </div>
+          </div>
           
-          
-         
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Election Details */}
             <div className="space-y-4">
