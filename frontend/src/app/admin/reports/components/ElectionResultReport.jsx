@@ -73,19 +73,70 @@ const ElectionResultReport = () => {
     try {
       setLoading(true);
       const token = Cookies.get('token');
-      const response = await axios.get(`${API_BASE}/elections/status/completed`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      
+      // Try multiple endpoints to find completed elections
+      const endpoints = [
+        '/elections/status/completed',
+        '/elections/completed',
+        '/elections?status=completed',
+        '/elections'
+      ];
 
-      if (response.data) {
-        setData(prev => ({
-          ...prev,
-          elections: Array.isArray(response.data) ? response.data : []
-        }));
+      let electionsData = [];
+      let lastError = null;
+
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying endpoint: ${endpoint}`);
+          const response = await axios.get(`${API_BASE}${endpoint}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          console.log(`${endpoint} API response:`, response.data);
+
+          if (response.data) {
+            // Handle different response structures
+            if (Array.isArray(response.data)) {
+              electionsData = response.data.filter(election => 
+                election.status === 'completed' || election.status === 'finished'
+              );
+            } else if (response.data.data && Array.isArray(response.data.data)) {
+              electionsData = response.data.data.filter(election => 
+                election.status === 'completed' || election.status === 'finished'
+              );
+            } else if (response.data.elections && Array.isArray(response.data.elections)) {
+              electionsData = response.data.elections.filter(election => 
+                election.status === 'completed' || election.status === 'finished'
+              );
+            }
+
+            if (electionsData.length > 0) {
+              console.log('Found elections data:', electionsData);
+              break; // Found data, stop trying other endpoints
+            }
+          }
+        } catch (endpointError) {
+          console.log(`Endpoint ${endpoint} failed:`, endpointError.message);
+          lastError = endpointError;
+          continue; // Try next endpoint
+        }
+      }
+
+      console.log('Final elections data:', electionsData);
+
+      setData(prev => ({
+        ...prev,
+        elections: electionsData
+      }));
+
+      if (electionsData.length === 0) {
+        setError('No completed elections found. Please ensure there are elections with "completed" status.');
+      } else {
         setError(null);
       }
     } catch (err) {
       console.error('Error fetching elections:', err);
+      console.error('Error details:', err.response?.data);
       setError(err.response?.data?.message || 'Failed to fetch elections');
     } finally {
       setLoading(false);
@@ -255,13 +306,31 @@ const ElectionResultReport = () => {
   );
 
   if (error && !data.elections.length) return (
-    <div className="bg-red-50 p-4 rounded-md">
-      <p className="text-red-600">{error}</p>
+    <div className="bg-red-50 p-6 rounded-md border border-red-200">
+      <div className="flex items-center mb-2">
+        <h3 className="text-lg font-semibold text-red-800">No Elections Available</h3>
+      </div>
+      <p className="text-red-600 mb-4">{error}</p>
+      <div className="text-sm text-red-700">
+        <p className="mb-2">This could be because:</p>
+        <ul className="list-disc list-inside space-y-1">
+          <li>No elections have been created yet</li>
+          <li>No elections have been marked as "completed"</li>
+          <li>There's an issue with the API connection</li>
+        </ul>
+      </div>
+      <button 
+        onClick={fetchElections}
+        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+      >
+        Retry
+      </button>
     </div>
   );
 
   return (
     <div className="space-y-6">
+   
       <div className="flex justify-between items-center">
         <select
           value={selectedElectionId}
