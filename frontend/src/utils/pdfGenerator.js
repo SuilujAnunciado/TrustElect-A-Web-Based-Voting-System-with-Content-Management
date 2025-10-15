@@ -39,7 +39,8 @@ const addHeader = (doc, title, description) => {
   // Add STI logo from public folder (use PNG instead of SVG)
   try {
     // Use PNG logo from public/images/sti_logo.png instead of SVG
-    doc.addImage('/images/sti_logo.png', 'PNG', 14, 10, 30, 30); // x, y, width, height
+    // Adjusted size: reduced height from 30 to 20 to prevent stretching
+    doc.addImage('/images/sti_logo.png', 'PNG', 14, 10, 30, 20); // x, y, width, height
   } catch (error) {
     console.error('Error adding STI logo to PDF:', error);
     console.warn('Proceeding without logo');
@@ -122,6 +123,18 @@ autoTable.prototype.addPage = function() {
   return this;
 };
 
+// Override the internal output method to add footer to all pages
+const originalOutput = jsPDF.prototype.output;
+jsPDF.prototype.output = function(type, options) {
+  // Add footer to all pages before output
+  const totalPages = this.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    this.setPage(i);
+    addFooter(this, this._reportTitle || 'TrustElect Report');
+  }
+  return originalOutput.call(this, type, options);
+};
+
 // Helper function to create a summary table
 const createSummaryTable = (doc, data, columns, startY) => {
   // Use the imported autoTable function directly
@@ -182,8 +195,7 @@ const generateElectionReport = (data) => {
     { header: "End Date", key: "end_date" }
   ], currentY + 10);
   
-  // Add footer to the first page
-  addFooter(doc, 'Election Summary Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -221,8 +233,7 @@ const generateUserReport = (data) => {
     { header: "Inactive", key: "inactive_users" }
   ], currentY + 10);
   
-  // Add footer to the first page
-  addFooter(doc, 'User Management Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -278,8 +289,7 @@ const generateAdminActivityReport = (data) => {
     doc.text("No activities found for the selected period.", 14, currentY + 10);
   }
   
-  // Add footer to the first page
-  addFooter(doc, 'Admin Activity Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -356,8 +366,7 @@ const generateElectionDetailReport = (data) => {
     });
   }
   
-  // Add footer to all pages
-  addFooter(doc, data.title || 'Election Detail Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -471,8 +480,7 @@ const generateElectionResultReport = (data) => {
     });
   }
   
-  // Add footer to all pages
-  addFooter(doc, data.title || 'Election Result Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -516,8 +524,7 @@ const generateFailedLoginReport = (data) => {
     { header: "Status", key: "status" }
   ], yPos + 10);
   
-  // Add footer to the first page
-  addFooter(doc, 'Failed Login Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -567,8 +574,7 @@ const generateAuditLogReport = (data) => {
     { header: "Timestamp", key: "timestamp" }
   ], yPos + 10);
   
-  // Add footer to the first page
-  addFooter(doc, 'Activity Audit Log Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -615,8 +621,7 @@ const generateUpcomingElectionReport = (data) => {
     { header: "Expected Voters", key: "voters" }
   ], yPos + 10);
   
-  // Add footer to the first page
-  addFooter(doc, 'Upcoming Elections Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -666,8 +671,7 @@ const generateLiveVoteCountReport = (data) => {
     { header: "Time Remaining", key: "remaining" }
   ], yPos + 10);
   
-  // Add footer to the first page
-  addFooter(doc, 'Live Vote Count Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -717,8 +721,7 @@ const generateSystemLoadReport = (data) => {
     { header: "Average", key: "average" }
   ], yPos + 10);
   
-  // Add footer to the first page
-  addFooter(doc, 'System Load Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -778,8 +781,7 @@ const generateVoterParticipationReport = (data) => {
     ], yPos + 10);
   }
   
-  // Add footer to the first page
-  addFooter(doc, 'Voter Participation Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -837,8 +839,7 @@ const generateCandidateListReport = (data) => {
     ], yPos) + 20;
   });
   
-  // Add footer to all pages
-  addFooter(doc, 'Candidate List Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -911,7 +912,7 @@ const generateDepartmentVoterReport = (data) => {
     ], yPos);
   }
   
-  addFooter(doc, data.title || 'Department Voter Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -1122,8 +1123,7 @@ const generateComprehensiveElectionReport = (data) => {
     doc.text(`Report generated on: ${data.generated_at}`, 14, yPos);
   }
   
-  // Add footer to all pages
-  addFooter(doc, data.title || 'Comprehensive Election Report');
+  // Footer will be automatically added to all pages
   
   return doc;
 };
@@ -1208,8 +1208,7 @@ const generateVotingTimeReport = (data) => {
     doc.text('No voting data available.', 14, currentY);
   }
 
-  // Add footer to the first page
-  addFooter(doc, 'Voting Time Report');
+  // Footer will be automatically added to all pages
 
   return doc;
 };
