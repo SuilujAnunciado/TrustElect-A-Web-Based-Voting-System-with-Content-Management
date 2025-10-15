@@ -3,24 +3,34 @@ import { Download, Search, X } from 'lucide-react';
 import { generatePdfReport } from '@/utils/pdfGenerator';
 
 const CandidateListDetail = ({ report, onClose, onDownload }) => {
-  const [selectedElection, setSelectedElection] = useState(report.data.elections[0]?.id);
+  const [selectedElection, setSelectedElection] = useState(
+    Array.isArray(report.data?.elections) && report.data.elections.length > 0 
+      ? report.data.elections[0]?.id 
+      : null
+  );
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleElectionChange = (electionId) => {
     setSelectedElection(electionId);
   };
 
-  const currentElection = report.data.elections.find(e => e.id === selectedElection);
+  const currentElection = Array.isArray(report.data?.elections) 
+    ? report.data.elections.find(e => e.id === selectedElection)
+    : null;
 
-  const filteredPositions = currentElection?.positions.map(position => ({
-    ...position,
-    candidates: position.candidates.filter(candidate =>
-      candidate.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.party.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })).filter(position => position.candidates.length > 0);
+  const filteredPositions = currentElection?.positions && Array.isArray(currentElection.positions)
+    ? currentElection.positions.map(position => ({
+        ...position,
+        candidates: Array.isArray(position.candidates) 
+          ? position.candidates.filter(candidate =>
+              candidate.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              candidate.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              candidate.course?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              candidate.party?.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          : []
+      })).filter(position => position.candidates.length > 0)
+    : [];
 
   const formatDateTime = (date, time) => {
     try {
@@ -49,7 +59,11 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
   };
 
   const handleDownload = async () => {
-    const currentElection = report.data.elections.find(e => e.id === selectedElection);
+    const currentElection = Array.isArray(report.data?.elections) 
+      ? report.data.elections.find(e => e.id === selectedElection)
+      : null;
+    
+    if (!currentElection) return;
     
     const reportData = {
       title: "Candidate List Report",
@@ -61,17 +75,21 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
         date_from: formatDateTime(currentElection.date_from, currentElection.start_time),
         date_to: formatDateTime(currentElection.date_to, currentElection.end_time)
       },
-      positions: currentElection.positions.map(position => ({
-        name: position.position,
-        candidates: position.candidates.map(candidate => ({
-          name: `${candidate.first_name} ${candidate.last_name}`,
-          course: candidate.course,
-          party: candidate.party || 'Independent',
-          slogan: candidate.slogan,
-          platform: candidate.platform,
-          vote_count: candidate.vote_count
-        }))
-      }))
+      positions: Array.isArray(currentElection.positions) 
+        ? currentElection.positions.map(position => ({
+            name: position.position,
+            candidates: Array.isArray(position.candidates) 
+              ? position.candidates.map(candidate => ({
+                  name: `${candidate.first_name} ${candidate.last_name}`,
+                  course: candidate.course,
+                  party: candidate.party || 'Independent',
+                  slogan: candidate.slogan,
+                  platform: candidate.platform,
+                  vote_count: candidate.vote_count
+                }))
+              : []
+          }))
+        : []
     };
 
     try {
@@ -98,15 +116,15 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
           <div className="mb-6 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <select
-                value={selectedElection}
+                value={selectedElection || ''}
                 onChange={(e) => handleElectionChange(Number(e.target.value))}
                 className="border rounded p-2 text-black"
               >
-                {report.data.elections.map(election => (
+                {Array.isArray(report.data?.elections) ? report.data.elections.map(election => (
                   <option key={election.id} value={election.id}>
                     {election.title} ({election.status})
                   </option>
-                ))}
+                )) : []}
               </select>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-black" />
@@ -129,7 +147,11 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
           </div>
 
           <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
-            {currentElection && (
+            {!Array.isArray(report.data?.elections) || report.data.elections.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No elections available for candidate list report.</p>
+              </div>
+            ) : currentElection ? (
               <div className="space-y-6">
                 <div className="bg-gray-50 p-4 rounded">
                   <h3 className="font-semibold text-black text-xl mb-3">Election Details</h3>
@@ -156,13 +178,13 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
                   </div>
                 </div>
 
-                {filteredPositions?.map((position) => (
+                {Array.isArray(filteredPositions) ? filteredPositions.map((position) => (
                   <div key={position.position} className="border rounded-lg overflow-hidden">
                     <div className="bg-gray-100 p-4">
                       <h3 className="font-semibold text-black">{position.position}</h3>
                     </div>
                     <div className="divide-y">
-                      {position.candidates.map((candidate) => (
+                      {Array.isArray(position.candidates) ? position.candidates.map((candidate) => (
                         <div key={candidate.id} className="p-4 flex items-center gap-4">
                           {candidate.image_url && (
                             <img
@@ -184,10 +206,14 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
                             <p className="font-semibold text-black">{candidate.vote_count} votes</p>
                           </div>
                         </div>
-                      ))}
+                      )) : []}
                     </div>
                   </div>
-                ))}
+                )) : []}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>Please select an election to view candidates.</p>
               </div>
             )}
           </div>
