@@ -269,8 +269,10 @@ export default function EditElectionPage() {
         setElectionData(formattedElectionData);
         
         // Debug: Log precinct programs to see what's being loaded
+        console.log("Raw criteria response:", criteria);
         console.log("Loaded precinct programs:", criteria.precinctPrograms);
         console.log("Mapped eligibleVoters.precinctPrograms:", eligibleVoters.precinctPrograms);
+        console.log("Eligibility response data:", eligibilityResponse?.data);
         setOriginalElectionData(formattedElectionData);
 
         // Fetch current semester from maintenance
@@ -549,14 +551,21 @@ export default function EditElectionPage() {
         updatePayload.start_time = electionData.start_time;
       }
       
-      const currentCriteriaResponse = await axios.get(
-        `${API_BASE}/elections/${electionId}/criteria`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
+      let currentCriteriaResponse;
+      try {
+        currentCriteriaResponse = await axios.get(
+          `${API_BASE}/elections/${electionId}/criteria`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
           }
-        }
-      );
+        );
+      } catch (err) {
+        console.error("Error fetching current criteria:", err);
+        // If we can't get current criteria, assume no change
+        currentCriteriaResponse = { data: { criteria: {} } };
+      }
       
       const currentCriteria = currentCriteriaResponse.data.criteria || {};
 

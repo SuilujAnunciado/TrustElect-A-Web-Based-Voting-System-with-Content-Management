@@ -257,7 +257,7 @@ export default function EditElectionPage() {
         let eligibilityResponse;
         try {
           eligibilityResponse = await axios.get(
-            `/api/elections/${electionId}/criteria`,
+            `${API_BASE}/elections/${electionId}/criteria`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -298,8 +298,10 @@ export default function EditElectionPage() {
         });
         
         // Debug: Log precinct programs to see what's being loaded
+        console.log("Raw criteria response:", criteria);
         console.log("Loaded precinct programs:", criteria.precinctPrograms);
         console.log("Mapped eligibleVoters.precinctPrograms:", eligibleVoters.precinctPrograms);
+        console.log("Eligibility response data:", eligibilityResponse?.data);
 
         // Fetch maintenance data (options for dropdowns)
         // Fix: The /api/maintenance/all endpoint doesn't exist
@@ -540,14 +542,21 @@ export default function EditElectionPage() {
       };
       
       // Get current eligibility criteria to see if it's changed
-      const currentCriteriaResponse = await axios.get(
-        `${API_BASE}/elections/${electionId}/criteria`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
+      let currentCriteriaResponse;
+      try {
+        currentCriteriaResponse = await axios.get(
+          `${API_BASE}/elections/${electionId}/criteria`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
           }
-        }
-      );
+        );
+      } catch (err) {
+        console.error("Error fetching current criteria:", err);
+        // If we can't get current criteria, assume no change
+        currentCriteriaResponse = { data: { criteria: {} } };
+      }
       
       const currentCriteria = currentCriteriaResponse.data.criteria || {};
       
