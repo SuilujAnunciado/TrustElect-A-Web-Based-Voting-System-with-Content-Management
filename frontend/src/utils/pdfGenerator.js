@@ -1130,44 +1130,59 @@ const generateComprehensiveElectionReport = (data) => {
 
 const generateVotingTimeReport = (data) => {
   const doc = new jsPDF();
-  let yPos = 20;
-
-  // Add header
-  addHeader(doc, data.title || 'Voting Time Report', data.description || 'Detailed voter activity tracking');
-
+  doc._reportTitle = 'Voting Time Report'; // Set report title for footer
+  
+  let currentY = addHeader(doc, 'Voting Time Report', 'Detailed voter activity tracking including login times, session duration, and device information.');
+  
+  // Add election details section if available
+  if (data.election_details) {
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Election Information', 14, currentY);
+    currentY += 10;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Election: ${data.election_details.title}`, 14, currentY);
+    currentY += 6;
+    doc.text(`Total Records: ${data.election_details.total_records}`, 14, currentY);
+    currentY += 6;
+    doc.text(`Generated: ${data.election_details.report_generated}`, 14, currentY);
+    currentY += 15;
+  }
+  
   // Add summary section
   if (data.summary) {
+    const summaryData = [
+      { metric: 'Total Voters', value: formatNumber(data.summary.total_voters) },
+      { metric: 'Voted', value: formatNumber(data.summary.voted_count) },
+      { metric: 'Not Voted', value: formatNumber(data.summary.not_voted_count) }
+    ];
+    
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Summary', 14, yPos);
-    yPos += 10;
-
-    const summaryData = [
-      { label: 'Total Voters', value: data.summary.total_voters || 0 },
-      { label: 'Voted', value: data.summary.voted_count || 0 },
-      { label: 'Not Voted', value: data.summary.not_voted_count || 0 }
-    ];
-
-    yPos = createSummaryTable(doc, summaryData, [
-      { header: 'Metric', key: 'label' },
+    doc.text('Summary Statistics', 14, currentY);
+    
+    currentY = createSummaryTable(doc, summaryData, [
+      { header: 'Metric', key: 'metric' },
       { header: 'Count', key: 'value' }
-    ], yPos);
-
-    yPos += 20;
+    ], currentY + 10);
+    
+    currentY += 20;
   }
 
   // Add voting data table
   if (data.voting_data && data.voting_data.length > 0) {
     // Add a new page if we're running out of space
-    if (yPos > 200) {
+    if (currentY > 200) {
       doc.addPage();
-      yPos = 20;
+      currentY = 20;
     }
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Voter Activity Details', 14, yPos);
-    yPos += 10;
+    doc.text('Voter Activity Details', 14, currentY);
+    currentY += 10;
 
     // Create table data
     const tableData = data.voting_data.map(voter => ({
@@ -1179,30 +1194,22 @@ const generateVotingTimeReport = (data) => {
       device_browser_info: voter.device_browser_info
     }));
 
-    yPos = createSummaryTable(doc, tableData, [
+    createSummaryTable(doc, tableData, [
       { header: 'Voter ID', key: 'voter_id' },
       { header: 'Login Time', key: 'login_time' },
       { header: 'Vote Submitted Time', key: 'vote_submitted_time' },
       { header: 'Session Duration', key: 'session_duration' },
       { header: 'Status', key: 'status' },
       { header: 'IP Address Device / Browser', key: 'device_browser_info' }
-    ], yPos);
+    ], currentY);
   } else {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text('No voting data available.', 14, yPos);
-    yPos += 10;
+    doc.text('No voting data available.', 14, currentY);
   }
 
-  // Add report generation timestamp
-  if (data.generated_at) {
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Report generated on: ${data.generated_at}`, 14, yPos);
-  }
-
-  // Add footer to all pages
-  addFooter(doc, data.title || 'Voting Time Report');
+  // Add footer to the first page
+  addFooter(doc, 'Voting Time Report');
 
   return doc;
 };
@@ -1306,6 +1313,8 @@ const getReportTitle = (reportId) => {
       return 'Admin Activity Report';
     case 11:
       return 'Election Detail Report';
+    case 12:
+      return 'Voting Time Report';
     case 13:
       return 'Election Result Report';
     case 14:
