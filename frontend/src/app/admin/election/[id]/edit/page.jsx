@@ -547,15 +547,15 @@ export default function EditElectionPage() {
         }
       );
       
-      // Get current eligibility criteria to see if it's changed
-      const currentCriteriaResponse = await axios.get(
-        `/api/elections/${electionId}/criteria`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
+        // Get current eligibility criteria to see if it's changed
+        const currentCriteriaResponse = await axios.get(
+          `${API_BASE}/elections/${electionId}/criteria`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
           }
-        }
-      );
+        );
       
       const currentCriteria = currentCriteriaResponse.data.criteria || {};
       
@@ -884,146 +884,155 @@ export default function EditElectionPage() {
                   )}
                 </div>
                 
-                {[
-                  { category: 'gender', label: 'Gender', items: maintenanceData.genders },
-                  { category: 'precinct', label: 'Precinct', items: maintenanceData.precincts },
-                ].map(({ category, label, items }) => (
-                  <div key={category} className="border-b pb-4 last:border-b-0">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-medium text-black">{label}</h3>
-                      <button
-                        type="button"
-                        onClick={() => toggleAll(category, items)}
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        {electionData.eligibleVoters[category].length === items.length ? 'Deselect all' : 'Select all'}
-                      </button>
-                    </div>
-                    {criteriaErrors[category] && (
-                      <p className="text-red-500 text-sm mb-2">{criteriaErrors[category]}</p>
-                    )}
-                    <div className="flex flex-wrap gap-3">
-                      {items.map(item => (
-                        <label 
-                          key={item} 
-                          className={`inline-flex items-center px-3 py-1 rounded-full ${
-                            electionData.eligibleVoters[category].includes(item) 
-                              ? 'bg-blue-100 border border-blue-300' 
-                              : 'border border-gray-200'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={electionData.eligibleVoters[category].includes(item)}
-                            onChange={() => handleCheckboxChange(category, item)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                          />
-                          <span className="text-black">{item}</span>
-                        </label>
-                      ))}
-                    </div>
-                    {electionData.eligibleVoters[category].length > 0 && (
-                      <p className="text-sm text-gray-500 mt-2">
-                        Selected: {electionData.eligibleVoters[category].join(", ")}
-                      </p>
-                    )}
+                {/* Gender */}
+                <div className="border-b pb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium text-black">Gender</h3>
+                    <button
+                      type="button"
+                      onClick={() => toggleAll('gender', maintenanceData.genders)}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      {electionData.eligibleVoters.gender.length === maintenanceData.genders.length ? 'Deselect all' : 'Select all'}
+                    </button>
                   </div>
-                ))}
-
-                {/* Precinct Course Assignment */}
-                {electionData.eligibleVoters.precinct.length > 0 && electionData.eligibleVoters.programs.length > 0 && (
-                  <div className="border-b pb-4 last:border-b-0">
-                    <h3 className="font-medium text-black mb-4">Precinct Course Assignment</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Assign specific programs to each selected precinct. Programs can be assigned to multiple precincts.
+                  {criteriaErrors.gender && (
+                    <p className="text-red-500 text-sm mb-2">{criteriaErrors.gender}</p>
+                  )}
+                  <div className="flex flex-wrap gap-3">
+                    {maintenanceData.genders.map(item => (
+                      <label 
+                        key={item} 
+                        className={`inline-flex items-center px-3 py-1 rounded-full ${
+                          electionData.eligibleVoters.gender.includes(item) 
+                            ? 'bg-blue-100 border border-blue-300' 
+                            : 'border border-gray-200'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={electionData.eligibleVoters.gender.includes(item)}
+                          onChange={() => handleCheckboxChange('gender', item)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                        />
+                        <span className="text-black">{item}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {electionData.eligibleVoters.gender.length > 0 && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Selected: {electionData.eligibleVoters.gender.join(", ")}
                     </p>
-                    
-                    <div className="space-y-4">
-                      {electionData.eligibleVoters.precinct.map(precinct => (
-                        <div key={precinct} className="flex items-start space-x-4">
-                          <div className="flex-shrink-0">
-                            <label 
-                              className={`inline-flex items-center px-3 py-2 rounded-lg ${
-                                electionData.eligibleVoters.precinct.includes(precinct)
-                                  ? 'bg-blue-100 border border-blue-300' 
-                                  : 'border border-gray-200'
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={electionData.eligibleVoters.precinct.includes(precinct)}
-                                onChange={() => handleCheckboxChange('precinct', precinct)}
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                              />
-                              <span className="text-gray-700 font-medium">{precinct}</span>
-                            </label>
-                          </div>
+                  )}
+                </div>
 
-                          {electionData.eligibleVoters.precinct.includes(precinct) && (
-                            <div className="flex-grow">
-                              <div className="flex justify-between items-center mb-2">
-                                <button
-                                  type="button"
-                                  onClick={() => toggleProgramSelection(precinct)}
-                                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-                                >
-                                  {visibleProgramSelections[precinct] ? (
-                                    <>
-                                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                      </svg>
-                                      Hide Programs
-                                    </>
-                                  ) : (
-                                    <>
-                                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                      </svg>
-                                      Show Programs
-                                    </>
-                                  )}
-                                </button>
-                                {electionData.eligibleVoters.precinctPrograms[precinct]?.length > 0 && (
-                                  <span className="text-sm text-gray-500">
-                                    {electionData.eligibleVoters.precinctPrograms[precinct]?.length} program(s) selected
-                                  </span>
+                {/* Precinct with Course Assignment */}
+                <div className="border-b pb-4 last:border-b-0">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium text-black">Precinct</h3>
+                    <button
+                      type="button"
+                      onClick={() => toggleAll('precinct', maintenanceData.precincts)}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      {electionData.eligibleVoters.precinct.length === maintenanceData.precincts.length ? 'Deselect all' : 'Select all'}
+                    </button>
+                  </div>
+                  {criteriaErrors.precinct && (
+                    <p className="text-red-500 text-sm mb-2">{criteriaErrors.precinct}</p>
+                  )}
+                  
+                  <div className="space-y-4">
+                    {maintenanceData.precincts.sort(sortPrecincts).map(precinct => (
+                      <div key={precinct} className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <label 
+                            className={`inline-flex items-center px-3 py-2 rounded-lg ${
+                              electionData.eligibleVoters.precinct.includes(precinct)
+                                ? 'bg-blue-100 border border-blue-300' 
+                                : 'border border-gray-200'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={electionData.eligibleVoters.precinct.includes(precinct)}
+                              onChange={() => handleCheckboxChange('precinct', precinct)}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                            />
+                            <span className="text-gray-700 font-medium">{precinct}</span>
+                          </label>
+                        </div>
+
+                        {electionData.eligibleVoters.precinct.includes(precinct) && (
+                          <div className="flex-grow">
+                            <div className="flex justify-between items-center mb-2">
+                              <button
+                                type="button"
+                                onClick={() => toggleProgramSelection(precinct)}
+                                className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                              >
+                                {visibleProgramSelections[precinct] ? (
+                                  <>
+                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                    Hide Programs
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                    Show Programs
+                                  </>
                                 )}
-                              </div>
-
-                              {visibleProgramSelections[precinct] && (
-                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                  <p className="text-sm font-medium text-gray-600 mb-2">Select programs for {precinct}:</p>
-                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                    {electionData.eligibleVoters.programs.sort(sortPrograms).map(program => {
-                                      const isChecked = electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) || false;
-                                      
-                                      return (
-                                        <label 
-                                          key={program} 
-                                          className="inline-flex items-center bg-white px-2 py-1 rounded"
-                                        >
-                                          <input
-                                            type="checkbox"
-                                            checked={isChecked}
-                                            onChange={() => handlePrecinctProgramChange(precinct, program)}
-                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                                          />
-                                          <span className="text-sm text-gray-600">
-                                            {program}
-                                          </span>
-                                        </label>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
+                              </button>
+                              {electionData.eligibleVoters.precinctPrograms[precinct]?.length > 0 && (
+                                <span className="text-sm text-gray-500">
+                                  {electionData.eligibleVoters.precinctPrograms[precinct]?.length} program(s) selected
+                                </span>
                               )}
                             </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+
+                            {visibleProgramSelections[precinct] && electionData.eligibleVoters.programs.length > 0 && (
+                              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <p className="text-sm font-medium text-gray-600 mb-2">Select programs for {precinct}:</p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                  {electionData.eligibleVoters.programs.sort(sortPrograms).map(program => {
+                                    const isChecked = electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) || false;
+                                    
+                                    return (
+                                      <label 
+                                        key={program} 
+                                        className="inline-flex items-center bg-white px-2 py-1 rounded"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isChecked}
+                                          onChange={() => handlePrecinctProgramChange(precinct, program)}
+                                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                                        />
+                                        <span className="text-sm text-gray-600">
+                                          {program}
+                                        </span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                )}
+                  
+                  {electionData.eligibleVoters.precinct.length > 0 && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Selected: {electionData.eligibleVoters.precinct.sort(sortPrecincts).join(", ")}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
