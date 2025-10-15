@@ -156,26 +156,18 @@ export default function ReportsPage() {
       let endpoint;
       let transformedData;
 
-      // Set timeout for API calls
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
-      );
+      // Remove timeout restrictions for better loading experience
 
       const apiCall = async () => {
         switch(reportId) {
           case 1: 
-            // Election Summary Report - Optimized for superadmin
+            // Election Summary Report - Fixed to work with backend
             endpoint = '/reports/summary';
             const electionResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 6000, // Reduced timeout
-              params: {
-                summary_only: true,
-                limit: 25 // Limit recent elections
-              }
+              headers: { Authorization: `Bearer ${token}` }
             });
 
-            const electionData = electionResponse.data.data;
+            const electionData = electionResponse.data.data || electionResponse.data;
             transformedData = {
               summary: {
                 total_elections: electionData.summary?.total_elections || 0,
@@ -186,7 +178,7 @@ export default function ReportsPage() {
                 total_votes_cast: electionData.summary?.total_votes_cast || 0,
                 voter_turnout_percentage: electionData.summary?.voter_turnout_percentage || 0
               },
-              recent_elections: (electionData.recent_elections || []).slice(0, 15).map(election => ({
+              recent_elections: (electionData.recent_elections || []).map(election => ({
                 id: election.id,
                 title: election.title,
                 status: election.status,
@@ -196,16 +188,14 @@ export default function ReportsPage() {
                 voter_count: formatNumber(election.voter_count || 0),
                 votes_cast: formatNumber(election.total_votes || 0),
                 turnout_percentage: election.voter_turnout_percentage
-              })),
-              last_updated: new Date().toISOString()
+              }))
             };
             break;
 
           case 2: 
             endpoint = '/reports/role-based/summary';
             const userResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
 
             const userData = userResponse.data.data;
@@ -238,8 +228,7 @@ export default function ReportsPage() {
           case 3: // Failed Login Report
             endpoint = '/reports/failed-logins';
             const loginResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
 
             transformedData = {
@@ -254,7 +243,6 @@ export default function ReportsPage() {
             endpoint = '/audit-logs';
             const auditResponse = await axios.get(`${API_BASE}${endpoint}`, {
               headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000,
               params: {
                 limit: 50, // Reduced limit for faster loading
                 sort_by: 'created_at',
@@ -264,8 +252,7 @@ export default function ReportsPage() {
 
             // Get summary data
             const auditSummaryResponse = await axios.get(`${API_BASE}/audit-logs/summary`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
 
             transformedData = {
@@ -286,8 +273,7 @@ export default function ReportsPage() {
           case 5: // Upcoming Elections Report
             endpoint = '/reports/upcoming-elections';
             const upcomingResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
 
             transformedData = {
@@ -314,8 +300,7 @@ export default function ReportsPage() {
           case 6: // Live Vote Count Report
             endpoint = '/reports/live-vote-count';
             const liveResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
 
             transformedData = {
@@ -338,7 +323,6 @@ export default function ReportsPage() {
             endpoint = '/reports/system-load';
             const loadResponse = await axios.get(`${API_BASE}${endpoint}`, {
               headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000,
               params: {
                 timeframe: '24h'
               }
@@ -357,16 +341,10 @@ export default function ReportsPage() {
             };
             break;
 
-          case 8: // Voter Participation Report - Optimized
+          case 8: // Voter Participation Report - Fixed to work with backend
             endpoint = '/reports/voter-participation';
             const participationResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 6000, // Reduced timeout
-              params: {
-                limit: 50, // Limit elections
-                include_voter_details: false, // Exclude heavy voter details initially
-                summary_only: true
-              }
+              headers: { Authorization: `Bearer ${token}` }
             });
 
             if (!participationResponse.data.success) {
@@ -375,34 +353,28 @@ export default function ReportsPage() {
 
             const participationData = participationResponse.data.data;
             transformedData = {
-              summary: participationData.summary || {},
-              elections: (participationData.elections || []).slice(0, 20).map(election => ({
+              elections: participationData.elections.map(election => ({
                 id: election.id,
                 title: election.title,
                 total_eligible_voters: election.total_eligible_voters,
                 total_votes_cast: election.total_votes_cast,
-                turnout_percentage: election.turnout_percentage || 
-                  ((election.total_votes_cast / election.total_eligible_voters) * 100).toFixed(1),
-                department_stats: election.department_stats || [],
-                // Exclude heavy voter details for initial load
-                voters_count: election.voters?.length || 0,
-                voters_sample: (election.voters || []).slice(0, 10).map(voter => ({
+                turnout_percentage: ((election.total_votes_cast / election.total_eligible_voters) * 100).toFixed(1),
+                department_stats: election.department_stats,
+                voters: election.voters.map(voter => ({
                   student_id: voter.student_id,
                   name: `${voter.first_name} ${voter.last_name}`,
                   department: voter.department,
                   has_voted: voter.has_voted,
                   vote_date: voter.vote_date
                 }))
-              })),
-              last_updated: new Date().toISOString()
+              }))
             };
             break;
 
           case 9: // Candidate List Report
             endpoint = '/reports/candidate-list';
             const candidateResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
 
             if (!candidateResponse.data.success) {
@@ -419,7 +391,6 @@ export default function ReportsPage() {
             const [activitiesResponse, adminSummaryResponse] = await Promise.all([
               axios.get(`${API_BASE}${endpoint}`, {
                 headers: { Authorization: `Bearer ${token}` },
-                timeout: 8000,
                 params: {
                   timeframe: filters.timeframe || 'all',
                   action: filters.action || 'all',
@@ -431,7 +402,6 @@ export default function ReportsPage() {
               }),
               axios.get(`${API_BASE}/reports/admin-activity/summary`, {
                 headers: { Authorization: `Bearer ${token}` },
-                timeout: 8000,
                 params: {
                   timeframe: filters.timeframe || 'all'
                 }
@@ -468,8 +438,8 @@ export default function ReportsPage() {
         }
       };
 
-      // Race between API call and timeout
-      await Promise.race([apiCall(), timeoutPromise]);
+      // Execute API call without timeout restrictions
+      await apiCall();
 
       // Cache the result
       setCachedData(reportId, transformedData);
@@ -478,9 +448,7 @@ export default function ReportsPage() {
 
     } catch (error) {
       console.error("Error fetching report data:", error);
-      const errorMessage = error.message === 'Request timeout' 
-        ? 'Request timed out. Please try again.' 
-        : error.message || "Failed to fetch report data";
+      const errorMessage = error.message || "Failed to fetch report data";
       setError(errorMessage);
       return null;
     } finally {

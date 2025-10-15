@@ -151,110 +151,83 @@ export default function AdminReportsPage() {
       let endpoint;
       let transformedData;
 
-      // Set timeout for API calls
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
-      );
+      // Remove timeout restrictions for better loading experience
 
       const apiCall = async () => {
         switch(reportId) {
           case 1: 
             endpoint = '/reports/department-voter';
             const departmentResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
             transformedData = departmentResponse.data;
             break;
 
           case 2: 
-            // Election Results Report - Optimized with reduced data
+            // Election Results Report - Fixed to work with backend
             endpoint = '/reports/admin/summary';
             const resultResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 6000, // Reduced timeout for faster failure
-              params: {
-                limit: 50, // Limit data size
-                include_details: false // Exclude heavy details
-              }
+              headers: { Authorization: `Bearer ${token}` }
             });
             
-            // Optimize data structure for faster rendering
+            // Use original data structure
             const resultData = resultResponse.data;
             transformedData = {
-              summary: resultData.summary || {},
-              elections: (resultData.elections || []).slice(0, 20), // Limit to 20 elections
-              last_updated: new Date().toISOString()
+              ...resultData,
+              // Ensure we have the data structure the component expects
+              summary: resultData.summary || resultData.data?.summary || {},
+              elections: resultData.elections || resultData.data?.elections || [],
+              recent_elections: resultData.recent_elections || resultData.data?.recent_elections || []
             };
             break;
 
           case 3: 
             endpoint = '/reports/voting-time';
             const timeResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
             transformedData = timeResponse.data;
             break;
 
           case 4: 
-            // Election Summary Report - Optimized with streaming data
+            // Election Summary Report - Fixed to work with backend
             endpoint = '/reports/admin/summary';
             const summaryResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 6000, // Reduced timeout
-              params: {
-                summary_only: true, // Only fetch summary data initially
-                limit: 30
-              }
+              headers: { Authorization: `Bearer ${token}` }
             });
             
-            // Process data in chunks to avoid blocking
+            // Use original data structure but optimize for display
             const summaryData = summaryResponse.data;
             transformedData = {
-              summary: summaryData.summary || {},
-              recent_elections: (summaryData.recent_elections || []).slice(0, 15),
-              statistics: summaryData.statistics || {},
-              last_updated: new Date().toISOString()
+              ...summaryData,
+              // Ensure we have the data structure the component expects
+              summary: summaryData.summary || summaryData.data?.summary || {},
+              recent_elections: summaryData.recent_elections || summaryData.data?.recent_elections || [],
+              statistics: summaryData.statistics || summaryData.data?.statistics || {}
             };
             break;
 
           case 5: 
-            // Voter Participation Report - Optimized with pagination and filtering
+            // Voter Participation Report - Fixed to work with backend
             endpoint = '/reports/admin/voter-participation';
             const participationResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 6000, // Reduced timeout
-              params: {
-                limit: 100, // Limit voter data
-                include_voter_details: false, // Exclude heavy voter details initially
-                summary_only: true
-              }
+              headers: { Authorization: `Bearer ${token}` }
             });
             
-            // Optimize voter participation data
+            // Use original data structure
             const participationData = participationResponse.data;
             transformedData = {
-              summary: participationData.summary || {},
-              elections: (participationData.elections || []).map(election => ({
-                id: election.id,
-                title: election.title,
-                total_eligible_voters: election.total_eligible_voters,
-                total_votes_cast: election.total_votes_cast,
-                turnout_percentage: election.turnout_percentage,
-                department_stats: election.department_stats || [],
-                // Exclude heavy voter details for initial load
-                voters_count: election.voters?.length || 0
-              })),
-              last_updated: new Date().toISOString()
+              ...participationData,
+              // Ensure we have the data structure the component expects
+              summary: participationData.summary || participationData.data?.summary || {},
+              elections: participationData.elections || participationData.data?.elections || []
             };
             break;
 
           case 6: 
             endpoint = '/reports/candidate-list/admin/candidate-list';
             const candidateResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
             transformedData = candidateResponse.data;
             break;
@@ -262,8 +235,7 @@ export default function AdminReportsPage() {
           case 7: 
             endpoint = '/reports/admin-activity/summary';
             const activityResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
             transformedData = activityResponse.data;
             break;
@@ -271,8 +243,7 @@ export default function AdminReportsPage() {
           case 8: 
             endpoint = '/reports/system-load?timeframe=24h';
             const systemLoadResponse = await axios.get(`${API_BASE}${endpoint}`, {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 8000
+              headers: { Authorization: `Bearer ${token}` }
             });
             transformedData = systemLoadResponse.data;
             break;
@@ -282,8 +253,8 @@ export default function AdminReportsPage() {
         }
       };
 
-      // Race between API call and timeout
-      await Promise.race([apiCall(), timeoutPromise]);
+      // Execute API call without timeout restrictions
+      await apiCall();
 
       // Cache the result
       setCachedData(reportId, transformedData);
@@ -292,9 +263,7 @@ export default function AdminReportsPage() {
 
     } catch (error) {
       console.error("Error fetching report data:", error);
-      const errorMessage = error.message === 'Request timeout' 
-        ? 'Request timed out. Please try again.' 
-        : error.message || "Failed to fetch report data";
+      const errorMessage = error.message || "Failed to fetch report data";
       setError(errorMessage);
       return null;
     } finally {
