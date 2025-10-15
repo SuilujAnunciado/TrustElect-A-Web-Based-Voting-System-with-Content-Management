@@ -5,6 +5,7 @@ import { ArrowLeft, Save, AlertCircle, CheckCircle, InfoIcon } from 'lucide-reac
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import axios from "axios";
+import usePermissions from '@/hooks/usePermissions';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -13,13 +14,29 @@ export default function EditElectionPage() {
   const params = useParams();
   const electionId = params.id;
 
+  // Permission management
+  const { hasPermission, permissionsLoading } = usePermissions();
+
   const [loading, setLoading] = useState({
     initial: true,
     saving: false,
     eligibility: false
   });
+  const [showBackConfirm, setShowBackConfirm] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+
+  // Check if user has permission to edit elections
+  const canEditElection = () => {
+    if (permissionsLoading) return false;
+    
+    // Super Admin always has permission
+    const userRole = Cookies.get('role');
+    if (userRole === 'Super Admin') return true;
+    
+    // Check specific election edit permission
+    return hasPermission('elections', 'edit');
+  };
   const [electionData, setElectionData] = useState({
     title: "",
     description: "",
@@ -117,6 +134,13 @@ export default function EditElectionPage() {
     const fetchData = async () => {
       try {
         setLoading(prev => ({ ...prev, initial: true }));
+        
+        // Check permissions first
+        if (!canEditElection()) {
+          setError("You do not have permission to edit elections");
+          setLoading(prev => ({ ...prev, initial: false }));
+          return;
+        }
         
         // Fetch election details
         const token = Cookies.get("token");
@@ -223,10 +247,10 @@ export default function EditElectionPage() {
       }
     };
 
-    if (electionId) {
+    if (electionId && !permissionsLoading) {
       fetchData();
     }
-  }, [electionId]);
+  }, [electionId, permissionsLoading, canEditElection]);
 
   // Update eligible voter count whenever selection changes
   useEffect(() => {
@@ -512,12 +536,34 @@ export default function EditElectionPage() {
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg max-w-6xl mx-auto">
       <button 
-        onClick={() => router.back()} 
+        onClick={() => setShowBackConfirm(true)} 
         className="flex items-center text-blue-900 hover:text-blue-700 mb-4"
       >
         <ArrowLeft className="w-6 h-6 mr-2" />
         <span className="font-semibold">Back</span>
       </button>
+
+      {showBackConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <p className="text-black mb-6">Are you sure you want to go back? Any unsaved changes will be lost.</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowBackConfirm(false)}
+                className="px-4 py-2 text-black hover:text-gray-800 bg-gray-200 font-medium cursor-pointer"
+              >
+                No
+              </button>
+              <button
+                onClick={() => router.back()}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium cursor-pointer"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <h1 className="text-2xl font-bold mb-6 text-black">Edit Election</h1>
       

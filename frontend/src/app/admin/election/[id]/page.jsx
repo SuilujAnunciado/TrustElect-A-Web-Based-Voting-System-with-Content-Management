@@ -15,6 +15,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import toast from 'react-hot-toast';
 import { BASE_URL } from '@/config';
 import { generatePdfReport } from '../../../../utils/pdfGenerator';
+import usePermissions from '@/hooks/usePermissions';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -151,7 +152,21 @@ export default function ElectionDetailsPage() {
   const [bulletinCandidateVotes, setBulletinCandidateVotes] = useState([]);
   const [bulletinCarouselIndex, setBulletinCarouselIndex] = useState(0);
   const [bulletinCarouselInterval, setBulletinCarouselInterval] = useState(null);
+  
+  // Permission management
+  const { hasPermission, permissionsLoading } = usePermissions();
 
+  // Check if user has permission to edit elections
+  const canEditElection = () => {
+    if (permissionsLoading) return false;
+    
+    // Super Admin always has permission
+    const userRole = Cookies.get('role');
+    if (userRole === 'Super Admin') return true;
+    
+    // Check specific election edit permission
+    return hasPermission('elections', 'edit');
+  };
 
   const toggleFullScreen = async () => {
     if (!document.fullscreenElement) {
@@ -1107,8 +1122,8 @@ export default function ElectionDetailsPage() {
             Generate Report
           </button>
           
-          {/* Edit buttons for upcoming or pending approval elections - only shown if user is creator */}
-          {((election.needs_approval && !isSuperAdminCreator) || election.status === 'upcoming') && isCurrentUserCreator && (
+          {/* Edit buttons for upcoming or pending approval elections - shown if user has edit permission (creator or not) */}
+          {((election.needs_approval && !isSuperAdminCreator) || election.status === 'upcoming') && canEditElection() && (
             <>
               <Link
                 href={`/admin/election/${election.id}/edit`}
@@ -1136,8 +1151,8 @@ export default function ElectionDetailsPage() {
                 </Link>
               )}
               
-              {/* Cancel button for pending approval elections, only if not superadmin creator */}
-              {(election.needs_approval && !isSuperAdminCreator) && (
+              {/* Cancel button for pending approval elections, only if not superadmin creator and has edit permission */}
+              {(election.needs_approval && !isSuperAdminCreator) && canEditElection() && (
                 <button
                   onClick={handleCancelElection}
                   disabled={isCancelling}
@@ -1196,13 +1211,15 @@ export default function ElectionDetailsPage() {
             <p className="text-xs text-black">
               Only System Admin can approve or reject elections.
             </p>
-            <button
-              onClick={handleCancelElection}
-              disabled={isCancelling}
-              className="text-sm flex items-center text-red-600 hover:text-red-800"
-            >
-              {isCancelling ? 'Cancelling...' : 'Cancel this election request'}
-            </button>
+            {canEditElection() && (
+              <button
+                onClick={handleCancelElection}
+                disabled={isCancelling}
+                className="text-sm flex items-center text-red-600 hover:text-red-800"
+              >
+                {isCancelling ? 'Cancelling...' : 'Cancel this election request'}
+              </button>
+            )}
           </div>
         </div>
       )}
