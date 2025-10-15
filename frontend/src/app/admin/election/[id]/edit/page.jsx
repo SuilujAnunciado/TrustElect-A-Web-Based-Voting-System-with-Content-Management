@@ -51,7 +51,8 @@ export default function EditElectionPage() {
       yearLevels: [],
       semester: [],
       gender: [],
-      precinct: []
+      precinct: [],
+      precinctPrograms: {}
     }
   });
   const [maintenanceData, setMaintenanceData] = useState({
@@ -65,6 +66,7 @@ export default function EditElectionPage() {
   const [formErrors, setFormErrors] = useState({});
   const [criteriaErrors, setCriteriaErrors] = useState({});
   const [eligibleCount, setEligibleCount] = useState(0);
+  const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
 
   // Add helper function to check if all items are selected
   const areAllSelected = (selectedItems, allItems) => {
@@ -72,6 +74,59 @@ export default function EditElectionPage() {
     if (selectedItems.length !== allItems.length) return false;
     return selectedItems.length === allItems.length && 
            selectedItems.every(item => allItems.includes(item));
+  };
+
+  // Add function to check if a program is already assigned to another precinct
+  const isProgramAssignedToOtherPrecinct = (program, currentPrecinct) => {
+    return Object.entries(electionData.eligibleVoters.precinctPrograms)
+      .some(([precinct, programs]) => 
+        precinct !== currentPrecinct && programs.includes(program)
+      );
+  };
+
+  // Add function to toggle program selection visibility
+  const toggleProgramSelection = (precinct) => {
+    setVisibleProgramSelections(prev => ({
+      ...prev,
+      [precinct]: !prev[precinct]
+    }));
+  };
+
+  // Add function to handle precinct program changes
+  const handlePrecinctProgramChange = (precinct, program) => {
+    // Check if program is already assigned to another precinct
+    if (!electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) &&
+        isProgramAssignedToOtherPrecinct(program, precinct)) {
+      toast.error(`${program} is already assigned to another precinct`);
+      return;
+    }
+
+    setElectionData(prev => {
+      const precinctPrograms = { ...prev.eligibleVoters.precinctPrograms };
+      
+      if (!precinctPrograms[precinct]) {
+        precinctPrograms[precinct] = [];
+      }
+      
+      if (precinctPrograms[precinct].includes(program)) {
+        precinctPrograms[precinct] = precinctPrograms[precinct].filter(p => p !== program);
+      } else {
+        precinctPrograms[precinct] = [...precinctPrograms[precinct], program];
+      }
+      
+      // Remove empty precinct entries
+      if (precinctPrograms[precinct].length === 0) {
+        delete precinctPrograms[precinct];
+      }
+      
+      return {
+        ...prev,
+        eligibleVoters: {
+          ...prev.eligibleVoters,
+          precinctPrograms
+        }
+      };
+    });
   };
 
   // Format date to YYYY-MM-DD for date input
@@ -188,7 +243,8 @@ export default function EditElectionPage() {
           yearLevels: criteria.year_levels || criteria.yearLevels || [],
           gender: criteria.genders || criteria.gender || [],
           semester: criteria.semesters || criteria.semester || [],
-          precinct: criteria.precincts || criteria.precinct || []
+          precinct: criteria.precincts || criteria.precinct || [],
+          precinctPrograms: criteria.precinctPrograms || {}
         };
 
         // Format dates and times for the form
@@ -327,6 +383,14 @@ export default function EditElectionPage() {
     if (eligibleVoters.yearLevels.length === 0) newCriteriaErrors.yearLevels = "Select at least one year level";
     if (eligibleVoters.gender.length === 0) newCriteriaErrors.gender = "Select at least one gender";
     if (eligibleVoters.semester.length === 0) newCriteriaErrors.semester = "Select a semester";
+    if (eligibleVoters.precinct.length === 0) newCriteriaErrors.precinct = "Select at least one precinct";
+    
+    // Validate that each selected precinct has at least one program assigned
+    eligibleVoters.precinct.forEach(precinct => {
+      if (!eligibleVoters.precinctPrograms[precinct]?.length) {
+        newCriteriaErrors.precinct = `Assign at least one program to ${precinct}`;
+      }
+    });
     
     setCriteriaErrors(newCriteriaErrors);
     return Object.keys(newCriteriaErrors).length === 0;
@@ -469,13 +533,15 @@ export default function EditElectionPage() {
         yearLevels: electionData.eligibleVoters.yearLevels,
         gender: electionData.eligibleVoters.gender,
         semester: electionData.eligibleVoters.semester,
-        precinct: electionData.eligibleVoters.precinct
+        precinct: electionData.eligibleVoters.precinct,
+        precinctPrograms: electionData.eligibleVoters.precinctPrograms
       }) !== JSON.stringify({
         programs: currentCriteria.programs || currentCriteria.courses || [],
         yearLevels: currentCriteria.year_levels || currentCriteria.yearLevels || [],
         gender: currentCriteria.genders || currentCriteria.gender || [],
         semester: currentCriteria.semesters || currentCriteria.semester || [],
-        precinct: currentCriteria.precincts || currentCriteria.precinct || []
+        precinct: currentCriteria.precincts || currentCriteria.precinct || [],
+        precinctPrograms: currentCriteria.precinctPrograms || {}
       });
       
       // Only update eligibility criteria if it's changed
@@ -491,7 +557,8 @@ export default function EditElectionPage() {
           yearLevels: allYearLevelsSelected ? [] : electionData.eligibleVoters.yearLevels,
           gender: allGendersSelected ? [] : electionData.eligibleVoters.gender,
           semester: electionData.eligibleVoters.semester,
-          precinct: electionData.eligibleVoters.precinct
+          precinct: electionData.eligibleVoters.precinct,
+          precinctPrograms: electionData.eligibleVoters.precinctPrograms
         };
         
         const eligibilityResponse = await axios.put(
@@ -830,6 +897,85 @@ export default function EditElectionPage() {
                     )}
                   </div>
                 ))}
+
+                {/* Precinct Course Assignment */}
+                {electionData.eligibleVoters.precinct.length > 0 && electionData.eligibleVoters.programs.length > 0 && (
+                  <div className="border-b pb-4 last:border-b-0">
+                    <h3 className="font-medium text-black mb-4">Precinct Course Assignment</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Assign specific programs to each selected precinct. Each program can only be assigned to one precinct.
+                    </p>
+                    
+                    <div className="space-y-4">
+                      {electionData.eligibleVoters.precinct.map(precinct => (
+                        <div key={precinct} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="font-medium text-black">{precinct}</h4>
+                            <button
+                              type="button"
+                              onClick={() => toggleProgramSelection(precinct)}
+                              className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                            >
+                              {visibleProgramSelections[precinct] ? (
+                                <>
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                  Hide Programs
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                  Show Programs
+                                </>
+                              )}
+                            </button>
+                            {electionData.eligibleVoters.precinctPrograms[precinct]?.length > 0 && (
+                              <span className="text-sm text-gray-500">
+                                {electionData.eligibleVoters.precinctPrograms[precinct]?.length} program(s) selected
+                              </span>
+                            )}
+                          </div>
+
+                          {visibleProgramSelections[precinct] && (
+                            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                              <p className="text-sm font-medium text-gray-600 mb-2">Select programs for {precinct}:</p>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {electionData.eligibleVoters.programs.map(program => {
+                                  const isAssignedToOther = isProgramAssignedToOtherPrecinct(program, precinct);
+                                  const isChecked = electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) || false;
+                                  
+                                  return (
+                                    <label 
+                                      key={program} 
+                                      className={`inline-flex items-center bg-white px-2 py-1 rounded ${
+                                        isChecked ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+                                      } ${isAssignedToOther && !isChecked ? 'opacity-50' : ''}`}
+                                      title={isAssignedToOther && !isChecked ? 'This program is already assigned to another precinct' : ''}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={() => handlePrecinctProgramChange(precinct, program)}
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                                        disabled={isAssignedToOther && !isChecked}
+                                      />
+                                      <span className={`text-sm ${isAssignedToOther && !isChecked ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        {program}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
