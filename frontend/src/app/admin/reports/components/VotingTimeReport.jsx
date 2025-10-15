@@ -128,69 +128,32 @@ export default function VotingTimeReport() {
 
       const reportData = {
         title: "Voting Time Report",
-        description: `Detailed voter activity tracking for ${currentElectionTitle} including login times, session duration, and device information`,
-        election_info: {
-          election_title: currentElectionTitle,
+        description: "Detailed voter activity tracking including login times, session duration, and device information",
+        election_details: {
+          title: currentElectionTitle,
           report_generated: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
           total_records: votingData.length
         },
         summary: {
           total_voters: votingData.length,
           voted_count: votingData.filter(v => v.status === 'Voted').length,
-          not_voted_count: votingData.filter(v => v.status === 'Not Voted').length,
-          voted_percentage: votingData.length > 0 
-            ? ((votingData.filter(v => v.status === 'Voted').length / votingData.length) * 100).toFixed(1)
-            : 0
+          not_voted_count: votingData.filter(v => v.status === 'Not Voted').length
         },
-        voting_data: votingData.map((voter, index) => ({
-          row_number: index + 1,
+        voting_data: votingData.map(voter => ({
           voter_id: voter.voter_id || 'N/A',
           election_title: voter.election_title || 'N/A',
-          login_time: voter.login_time ? format(new Date(voter.login_time), 'MMM dd, yyyy HH:mm:ss') : 'Not Available',
-          vote_submitted_time: voter.vote_submitted_time ? format(new Date(voter.vote_submitted_time), 'MMM dd, yyyy HH:mm:ss') : 'Not Voted',
+          login_time: voter.login_time ? format(new Date(voter.login_time), 'yyyy-MM-dd HH:mm:ss') : 'Not Available',
+          vote_submitted_time: voter.vote_submitted_time ? format(new Date(voter.vote_submitted_time), 'yyyy-MM-dd HH:mm:ss') : 'Not Voted',
           session_duration: voter.session_duration || 'N/A',
           status: voter.status || 'Unknown',
-          device_browser_info: voter.device_browser_info || 'Not Available',
-          // Add calculated fields for better PDF formatting
-          time_to_vote: voter.login_time && voter.vote_submitted_time 
-            ? calculateTimeDifference(voter.login_time, voter.vote_submitted_time)
-            : 'N/A'
-        })),
-        // Add metadata for PDF generation
-        metadata: {
-          generated_at: new Date().toISOString(),
-          total_pages: Math.ceil(votingData.length / 25), // Assuming 25 records per page
-          records_per_page: 25
-        }
+          device_browser_info: voter.device_browser_info || 'Not Available'
+        }))
       };
 
-      console.log('Generating PDF with structured data:', reportData);
+      console.log('Generating PDF with data:', reportData);
       await generatePdfReport(12, reportData); // 12 is the report ID for Voting Time Report
     } catch (error) {
       console.error('Error downloading report:', error);
-    }
-  };
-
-  // Helper function to calculate time difference
-  const calculateTimeDifference = (startTime, endTime) => {
-    try {
-      const start = new Date(startTime);
-      const end = new Date(endTime);
-      const diffMs = end - start;
-      
-      if (diffMs < 0) return 'Invalid';
-      
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMinutes / 60);
-      const remainingMinutes = diffMinutes % 60;
-      
-      if (diffHours > 0) {
-        return `${diffHours}h ${remainingMinutes}m`;
-      } else {
-        return `${diffMinutes}m`;
-      }
-    } catch (error) {
-      return 'N/A';
     }
   };
 
