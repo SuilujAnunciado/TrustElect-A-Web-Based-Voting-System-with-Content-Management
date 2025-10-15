@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import { RotateCcw, Trash2, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
 export default function ArchivedDepartmentsPage() {
   const router = useRouter();
@@ -14,6 +15,9 @@ export default function ArchivedDepartmentsPage() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All");
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
 
   const fetchArchivedDepartments = async () => {
     setLoading(true);
@@ -113,8 +117,11 @@ export default function ArchivedDepartmentsPage() {
   });
 
   const handleRestore = async (id) => {
-    if (!confirm("Are you sure you want to restore this department?")) return;
-    
+    setSelectedDepartmentId(id);
+    setShowRestoreModal(true);
+  };
+
+  const confirmRestoreDepartment = async () => {
     try {
       const token = Cookies.get("token");
       
@@ -124,7 +131,7 @@ export default function ArchivedDepartmentsPage() {
       
       try {
         // First try superadmin endpoint
-        response = await axios.patch(`/api/superadmin/departments/${id}/restore`, {}, {
+        response = await axios.patch(`/api/superadmin/departments/${selectedDepartmentId}/restore`, {}, {
           headers: { Authorization: `Bearer ${token}` },
         });
         success = true;
@@ -133,7 +140,7 @@ export default function ArchivedDepartmentsPage() {
         
         try {
           // Try admin endpoint as fallback
-          response = await axios.patch(`/api/admin/departments/${id}/restore`, {}, {
+          response = await axios.patch(`/api/admin/departments/${selectedDepartmentId}/restore`, {}, {
             headers: { Authorization: `Bearer ${token}` },
           });
           success = true;
@@ -142,7 +149,7 @@ export default function ArchivedDepartmentsPage() {
           
           // Try generic endpoint as last resort
           try {
-            response = await axios.patch(`/api/departments/${id}/restore`, {}, {
+            response = await axios.patch(`/api/departments/${selectedDepartmentId}/restore`, {}, {
               headers: { Authorization: `Bearer ${token}` },
             });
             success = true;
@@ -154,6 +161,7 @@ export default function ArchivedDepartmentsPage() {
       }
       
       toast.success(response.data.message || "Department restored successfully");
+      setShowRestoreModal(false);
       fetchArchivedDepartments();
     } catch (error) {
       console.error("Error restoring department:", error);
@@ -162,8 +170,11 @@ export default function ArchivedDepartmentsPage() {
   };
 
   const handlePermanentDelete = async (id) => {
-    if (!confirm("Are you sure you want to permanently delete this department? This action cannot be undone.")) return;
-    
+    setSelectedDepartmentId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmPermanentDeleteDepartment = async () => {
     try {
       const token = Cookies.get("token");
       
@@ -173,7 +184,7 @@ export default function ArchivedDepartmentsPage() {
       
       try {
         // First try superadmin endpoint
-        response = await axios.delete(`/api/superadmin/departments/${id}/permanent`, {
+        response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}/permanent`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         success = true;
@@ -182,7 +193,7 @@ export default function ArchivedDepartmentsPage() {
         
         try {
           // Try admin endpoint as fallback
-          response = await axios.delete(`/api/admin/departments/${id}/permanent`, {
+          response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}/permanent`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           success = true;
@@ -191,7 +202,7 @@ export default function ArchivedDepartmentsPage() {
           
           // Try generic endpoint as last resort
           try {
-            response = await axios.delete(`/api/departments/${id}/permanent`, {
+            response = await axios.delete(`/api/departments/${selectedDepartmentId}/permanent`, {
               headers: { Authorization: `Bearer ${token}` },
             });
             success = true;
@@ -203,6 +214,7 @@ export default function ArchivedDepartmentsPage() {
       }
       
       toast.success(response.data.message || "Department permanently deleted");
+      setShowDeleteModal(false);
       fetchArchivedDepartments();
     } catch (error) {
       console.error("Error permanently deleting department:", error);
@@ -324,6 +336,30 @@ export default function ArchivedDepartmentsPage() {
           <p>No archived departments found.</p>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={showRestoreModal}
+        onClose={() => setShowRestoreModal(false)}
+        onConfirm={confirmRestoreDepartment}
+        title="Confirm Restore"
+        message="Are you sure you want to restore this department? The department will be moved back to the active departments list."
+        confirmText="Restore"
+        cancelText="Cancel"
+        type="info"
+        isLoading={false}
+      />
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmPermanentDeleteDepartment}
+        title="Confirm Permanent Delete"
+        message="Are you sure you want to permanently delete this department? This action cannot be undone and will permanently remove the department from the system."
+        confirmText="Delete Permanently"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={false}
+      />
     </div>
   );
 }

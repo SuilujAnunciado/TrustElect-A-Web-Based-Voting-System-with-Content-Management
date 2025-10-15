@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
+import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 import PartylistForm from "./components/PartylistForm";
 import PartylistCard from "./components/PartylistCard";
 import PartylistDetails from "./components/PartylistDetails";
@@ -39,6 +40,10 @@ const MaintenancePage = () => {
   const [electionTypesList, setElectionTypesList] = useState([]);
   const [departmentType, setDepartmentType] = useState("Academic");
   const [precinctsData, setPrecinctsData] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showPermanentDeleteModal, setShowPermanentDeleteModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const tabs = [
     { id: "programs", label: "Programs" },
@@ -231,26 +236,30 @@ const MaintenancePage = () => {
   };
 
   const handleDeleteItem = async (item) => {
-    if (!confirm(`Are you sure you want to delete "${item.name}"?`)) return;
+    setSelectedItem(item);
+    setShowDeleteModal(true);
+  };
 
+  const confirmDeleteItem = async () => {
     setIsLoading(true);
     try {
       const token = Cookies.get("token");
       
       if (activeTab === "departments") {
         await axios.delete(
-          `/api/superadmin/departments/${item.id}`,
+          `/api/superadmin/departments/${selectedItem.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         const endpoint = API_ENDPOINTS[activeTab];
         await axios.delete(
-          `/api/maintenance/${endpoint}/${item.id}`,
+          `/api/maintenance/${endpoint}/${selectedItem.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
       
       toast.success("Item deleted successfully");
+      setShowDeleteModal(false);
       fetchItems();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete item");
@@ -357,17 +366,21 @@ const MaintenancePage = () => {
   };
 
   const handleArchivePartylist = async (id) => {
-    if (!confirm("Are you sure you want to archive this partylist?")) return;
+    setSelectedItem({ id });
+    setShowArchiveModal(true);
+  };
 
+  const confirmArchivePartylist = async () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `/api/partylists/${id}`,
+        `/api/partylists/${selectedItem.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
         toast.success("Partylist archived successfully");
+        setShowArchiveModal(false);
         fetchPartylists();
         fetchArchivedPartylists();
       }
@@ -398,17 +411,21 @@ const MaintenancePage = () => {
   };
 
   const handlePermanentDeletePartylist = async (id) => {
-    if (!confirm("Are you sure you want to PERMANENTLY delete this partylist? This action cannot be undone!")) return;
+    setSelectedItem({ id });
+    setShowPermanentDeleteModal(true);
+  };
 
+  const confirmPermanentDeletePartylist = async () => {
     try {
       const token = Cookies.get("token");
       const response = await axios.delete(
-        `/api/partylists/${id}/permanent`,
+        `/api/partylists/${selectedItem.id}/permanent`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
         toast.success("Partylist permanently deleted");
+        setShowPermanentDeleteModal(false);
         fetchArchivedPartylists();
       }
     } catch (error) {
@@ -693,6 +710,42 @@ const MaintenancePage = () => {
           )
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDeleteItem}
+        title="Confirm Delete"
+        message={`Are you sure you want to delete "${selectedItem?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={isLoading}
+      />
+
+      <ConfirmationModal
+        isOpen={showArchiveModal}
+        onClose={() => setShowArchiveModal(false)}
+        onConfirm={confirmArchivePartylist}
+        title="Confirm Archive"
+        message="Are you sure you want to archive this partylist? The partylist will be moved to the archived folder."
+        confirmText="Archive"
+        cancelText="Cancel"
+        type="warning"
+        isLoading={false}
+      />
+
+      <ConfirmationModal
+        isOpen={showPermanentDeleteModal}
+        onClose={() => setShowPermanentDeleteModal(false)}
+        onConfirm={confirmPermanentDeletePartylist}
+        title="Confirm Permanent Delete"
+        message="Are you sure you want to PERMANENTLY delete this partylist? This action cannot be undone and will permanently remove the partylist from the system."
+        confirmText="Delete Permanently"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={false}
+      />
     </div>
   );
 };

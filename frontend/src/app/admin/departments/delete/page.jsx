@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { Trash } from "lucide-react";
 import { toast } from "react-hot-toast";
+import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
 export default function DeletedDepartmentsPage() {
   const router = useRouter();
@@ -14,6 +15,8 @@ export default function DeletedDepartmentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showAutoDeleteModal, setShowAutoDeleteModal] = useState(false);
+  const [showDisableAutoDeleteModal, setShowDisableAutoDeleteModal] = useState(false);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
   const [autoDeleteEnabled, setAutoDeleteEnabled] = useState(false);
   const [autoDeleteDays, setAutoDeleteDays] = useState(7);
@@ -68,8 +71,10 @@ export default function DeletedDepartmentsPage() {
 
 
   const enableAutoDelete = () => {
-    if (!confirm(`Are you sure you want to enable auto-deletion? All deleted departments will be permanently deleted after ${autoDeleteDays} days.`)) return;
-    
+    setShowAutoDeleteModal(true);
+  };
+
+  const confirmEnableAutoDelete = () => {
     setAutoDeleteEnabled(true);
     toast.success(`Auto-deletion enabled for ${autoDeleteDays} days`);
     
@@ -80,11 +85,14 @@ export default function DeletedDepartmentsPage() {
     
     // Store timer ID for potential cancellation
     localStorage.setItem('autoDeleteTimer', timer.toString());
+    setShowAutoDeleteModal(false);
   };
 
   const disableAutoDelete = () => {
-    if (!confirm("Are you sure you want to disable auto-deletion?")) return;
-    
+    setShowDisableAutoDeleteModal(true);
+  };
+
+  const confirmDisableAutoDelete = () => {
     setAutoDeleteEnabled(false);
     const timerId = localStorage.getItem('autoDeleteTimer');
     if (timerId) {
@@ -92,6 +100,7 @@ export default function DeletedDepartmentsPage() {
       localStorage.removeItem('autoDeleteTimer');
     }
     toast.success("Auto-deletion disabled");
+    setShowDisableAutoDeleteModal(false);
   };
 
   const performAutoDelete = async () => {
@@ -330,25 +339,41 @@ export default function DeletedDepartmentsPage() {
           </div>
         )}
 
-        {showConfirmModal && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-              <h2 className="font-bold text-lg mb-4 text-center text-black">Confirm Permanent Deletion</h2>
-              <p className="text-red-600 mb-4 text-center">
-                Are you sure you want to permanently delete this department? This action CANNOT be undone!
-              </p>
-              
-              <div className="flex justify-center gap-4 mt-4">
-                <button onClick={permanentlyDeleteDepartment} className="bg-red-700 text-white px-4 py-2 rounded">
-                  Delete Permanently
-                </button>
-                <button onClick={() => setShowConfirmModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmationModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={permanentlyDeleteDepartment}
+          title="Confirm Permanent Deletion"
+          message="Are you sure you want to permanently delete this department? This action CANNOT be undone!"
+          confirmText="Delete Permanently"
+          cancelText="Cancel"
+          type="danger"
+          isLoading={false}
+        />
+
+        <ConfirmationModal
+          isOpen={showAutoDeleteModal}
+          onClose={() => setShowAutoDeleteModal(false)}
+          onConfirm={confirmEnableAutoDelete}
+          title="Enable Auto-Delete"
+          message={`Are you sure you want to enable auto-deletion? All deleted departments will be permanently deleted after ${autoDeleteDays} days.`}
+          confirmText="Enable Auto-Delete"
+          cancelText="Cancel"
+          type="warning"
+          isLoading={false}
+        />
+
+        <ConfirmationModal
+          isOpen={showDisableAutoDeleteModal}
+          onClose={() => setShowDisableAutoDeleteModal(false)}
+          onConfirm={confirmDisableAutoDelete}
+          title="Disable Auto-Delete"
+          message="Are you sure you want to disable auto-deletion? The auto-deletion timer will be cancelled."
+          confirmText="Disable"
+          cancelText="Cancel"
+          type="info"
+          isLoading={false}
+        />
       </div>
     </div>
   );
