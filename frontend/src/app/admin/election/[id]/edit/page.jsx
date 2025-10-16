@@ -135,9 +135,10 @@ export default function EditElectionPage() {
 
         const election = electionResponse.data.election;
         
-        // Check if election is upcoming - only upcoming elections or those needing approval can be edited
-        if (election.status !== 'upcoming' && !election.needs_approval) {
-          setError("Only upcoming elections can be edited");
+        // Allow editing for upcoming, ongoing, completed elections, and those needing approval
+        // This matches the logic in the main election details page
+        if (!['upcoming', 'ongoing', 'completed'].includes(election.status) && !election.needs_approval) {
+          setError("This election cannot be edited");
           setLoading(prev => ({ ...prev, initial: false }));
           return;
         }
@@ -541,7 +542,7 @@ export default function EditElectionPage() {
         </div>
       )}
 
-      {(electionData.status === 'upcoming' || electionData.needs_approval) && !error && (
+      {(['upcoming', 'ongoing', 'completed'].includes(electionData.status) || electionData.needs_approval) && !error && (
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
             <div className="flex">
