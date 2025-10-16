@@ -721,9 +721,18 @@ const getArchivedElections = async (userId = null) => {
       params.push(userId);
     }
     
+    console.log('User ID for filtering:', userId);
+    console.log('Will filter by created_by:', userId ? 'YES' : 'NO (SuperAdmin - show all)');
+    
     query += ` ORDER BY e.archived_at DESC`;
     
+    console.log('Executing archived elections query:', query);
+    console.log('Query parameters:', params);
+    
     const result = await pool.query(query, params);
+    console.log('Archived elections found:', result.rows.length);
+    console.log('Archived elections data:', result.rows);
+    
     return result.rows;
   } catch (error) {
     console.error('Error in getArchivedElections:', error);

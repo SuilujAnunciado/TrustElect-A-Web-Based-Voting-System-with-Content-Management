@@ -626,9 +626,18 @@ exports.permanentDeleteElection = async (req, res) => {
 // Get archived elections
 exports.getArchivedElections = async (req, res) => {
   try {
-    const userId = req.user.role_id === 1 ? null : req.user.id; // SuperAdmin can see all, others see only their own
+    // For now, let's show all archived elections regardless of who created them
+    // This will help us debug the issue
+    const userId = null; // Always show all archived elections for debugging
+    
+    console.log('Fetching archived elections for user:', userId);
+    console.log('User role_id:', req.user.role_id);
+    console.log('User ID from token:', req.user.id);
     
     const elections = await getArchivedElections(userId);
+    
+    console.log('Controller received elections:', elections.length);
+    
     res.status(200).json({
       success: true,
       data: elections
