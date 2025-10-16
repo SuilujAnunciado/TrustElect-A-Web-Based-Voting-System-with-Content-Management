@@ -520,17 +520,35 @@ const deleteElection = async (id) => {
 
 // Archive election (soft archive)
 const archiveElection = async (id, userId) => {
+  // First check if election exists
+  const checkResult = await pool.query(
+    `SELECT id, is_archived, is_deleted FROM elections WHERE id = $1`,
+    [id]
+  );
+  
+  if (checkResult.rows.length === 0) {
+    throw new Error("Election not found");
+  }
+  
+  const election = checkResult.rows[0];
+  
+  // Check if already archived
+  if (election.is_archived === true) {
+    throw new Error("Election is already archived");
+  }
+  
+  // Check if already deleted
+  if (election.is_deleted === true) {
+    throw new Error("Election is already deleted");
+  }
+  
   const result = await pool.query(
     `UPDATE elections 
      SET is_archived = TRUE, archived_at = NOW(), archived_by = $2
-     WHERE id = $1 AND (is_archived IS NULL OR is_archived = FALSE) AND (is_deleted IS NULL OR is_deleted = FALSE)
+     WHERE id = $1
      RETURNING *`,
     [id, userId]
   );
-  
-  if (result.rows.length === 0) {
-    throw new Error("Election not found or already archived/deleted");
-  }
   
   return { message: "Election archived successfully", election: result.rows[0] };
 };
@@ -554,6 +572,28 @@ const restoreArchivedElection = async (id, userId) => {
 
 // Soft delete election
 const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
+  // First check if election exists
+  const checkResult = await pool.query(
+    `SELECT id, is_archived, is_deleted FROM elections WHERE id = $1`,
+    [id]
+  );
+  
+  if (checkResult.rows.length === 0) {
+    throw new Error("Election not found");
+  }
+  
+  const election = checkResult.rows[0];
+  
+  // Check if already deleted
+  if (election.is_deleted === true) {
+    throw new Error("Election is already deleted");
+  }
+  
+  // Check if already archived
+  if (election.is_archived === true) {
+    throw new Error("Election is already archived");
+  }
+  
   let autoDeleteAt = null;
   if (autoDeleteDays && autoDeleteDays > 0) {
     const autoDeleteDate = new Date();
@@ -564,14 +604,10 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   const result = await pool.query(
     `UPDATE elections 
      SET is_deleted = TRUE, deleted_at = NOW(), deleted_by = $2, auto_delete_at = $3
-     WHERE id = $1 AND (is_archived IS NULL OR is_archived = FALSE) AND (is_deleted IS NULL OR is_deleted = FALSE)
+     WHERE id = $1
      RETURNING *`,
     [id, userId, autoDeleteAt]
   );
-  
-  if (result.rows.length === 0) {
-    throw new Error("Election not found or already archived/deleted");
-  }
   
   return { message: "Election deleted successfully", election: result.rows[0] };
 };
