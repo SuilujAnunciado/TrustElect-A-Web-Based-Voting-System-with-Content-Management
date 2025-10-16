@@ -391,16 +391,24 @@ export default function ElectionDetailsPage() {
           let precinctPrograms = {};
           let precincts = [];
           
-          // Try to get from eligibility criteria response first
-          if (eligibilityCriteriaResponse.criteria) {
-            precinctPrograms = eligibilityCriteriaResponse.criteria.precinctPrograms || eligibilityCriteriaResponse.criteria.precinct_programs || {};
-            precincts = eligibilityCriteriaResponse.criteria.precincts || eligibilityCriteriaResponse.criteria.precinct || [];
+          // Try to get from complete election data first (this is where the updated data should be)
+          if (completeElectionData.eligible_voters) {
+            precinctPrograms = completeElectionData.eligible_voters.precinctPrograms || completeElectionData.eligible_voters.precinct_programs || {};
+            precincts = completeElectionData.eligible_voters.precinct || [];
+            console.log("Found precinct data in completeElectionData.eligible_voters:", {
+              precincts,
+              precinctPrograms
+            });
           }
           
-          // If not found, try from complete election data
-          if (Object.keys(precinctPrograms).length === 0) {
-            precinctPrograms = completeElectionData.eligible_voters?.precinctPrograms || completeElectionData.eligible_voters?.precinct_programs || {};
-            precincts = completeElectionData.eligible_voters?.precinct || [];
+          // If not found, try from eligibility criteria response
+          if (Object.keys(precinctPrograms).length === 0 && eligibilityCriteriaResponse.criteria) {
+            precinctPrograms = eligibilityCriteriaResponse.criteria.precinctPrograms || eligibilityCriteriaResponse.criteria.precinct_programs || {};
+            precincts = eligibilityCriteriaResponse.criteria.precincts || eligibilityCriteriaResponse.criteria.precinct || [];
+            console.log("Found precinct data in eligibilityCriteriaResponse.criteria:", {
+              precincts,
+              precinctPrograms
+            });
           }
           
           // If still not found, try from laboratoryPrecincts
@@ -408,11 +416,13 @@ export default function ElectionDetailsPage() {
             console.log("Processing laboratoryPrecincts:", completeElectionData.laboratoryPrecincts);
             completeElectionData.laboratoryPrecincts.forEach(lp => {
               if (lp.laboratoryPrecinctId && lp.assignedCourses) {
-                // Find precinct name by ID - we need to get this from maintenance data
-                // For now, use the precinct name directly if available
                 const precinctName = lp.precinctName || `Lab ${lp.laboratoryPrecinctId}`;
                 precinctPrograms[precinctName] = lp.assignedCourses;
               }
+            });
+            console.log("Processed from laboratoryPrecincts:", {
+              precincts: Object.keys(precinctPrograms),
+              precinctPrograms
             });
           }
           
