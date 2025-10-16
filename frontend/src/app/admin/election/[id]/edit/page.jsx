@@ -5,7 +5,6 @@ import { ArrowLeft, Save, AlertCircle, CheckCircle, InfoIcon } from 'lucide-reac
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import axios from "axios";
-import usePermissions from '@/hooks/usePermissions';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -14,29 +13,13 @@ export default function EditElectionPage() {
   const params = useParams();
   const electionId = params.id;
 
-  // Permission management
-  const { hasPermission, permissionsLoading } = usePermissions();
-
   const [loading, setLoading] = useState({
     initial: true,
     saving: false,
     eligibility: false
   });
-  const [showBackConfirm, setShowBackConfirm] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
-
-  // Check if user has permission to edit elections
-  const canEditElection = () => {
-    if (permissionsLoading) return false;
-    
-    // Super Admin always has permission
-    const userRole = Cookies.get('role');
-    if (userRole === 'Super Admin') return true;
-    
-    // Check specific election edit permission
-    return hasPermission('elections', 'edit');
-  };
   const [electionData, setElectionData] = useState({
     title: "",
     description: "",
@@ -51,8 +34,7 @@ export default function EditElectionPage() {
       yearLevels: [],
       semester: [],
       gender: [],
-      precinct: [],
-      precinctPrograms: {}
+      precinct: []
     }
   });
   const [maintenanceData, setMaintenanceData] = useState({
@@ -66,46 +48,6 @@ export default function EditElectionPage() {
   const [formErrors, setFormErrors] = useState({});
   const [criteriaErrors, setCriteriaErrors] = useState({});
   const [eligibleCount, setEligibleCount] = useState(0);
-  const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
-
-  // Sorting functions to match create election page
-  const sortPrecincts = (a, b) => {
-    const extractNumber = (str) => parseInt(str.match(/\d+/)?.[0] || '0');
-    const aNum = extractNumber(a);
-    const bNum = extractNumber(b);
-    if (aNum !== 0 && bNum !== 0) {
-      return aNum - bNum;
-    }
-    return a.localeCompare(b);
-  };
-
-  const sortPrograms = (a, b) => {
-    const collegePrograms = [
-      'BSA', 'BSBAOM', 'BSCPE', 'BSCS', 'BSHM', 'BSIT', 'BMMA', 'BSTM'
-    ];
-    const seniorHighPrograms = [
-      'ABM', 'CUART', 'DIGAR', 'HUMMS', 'MAWD', 'STEM', 'TOPER'
-    ];
-
-    const aType = seniorHighPrograms.includes(a) ? 'seniorHigh' : 'college';
-    const bType = seniorHighPrograms.includes(b) ? 'seniorHigh' : 'college';
-
-    if (aType !== bType) {
-      return aType === 'college' ? -1 : 1;
-    }
-
-    if (aType === 'college') {
-      if (collegePrograms.includes(a) && collegePrograms.includes(b)) {
-        return collegePrograms.indexOf(a) - collegePrograms.indexOf(b);
-      }
-      return a.localeCompare(b);
-    }
-
-    if (seniorHighPrograms.includes(a) && seniorHighPrograms.includes(b)) {
-      return seniorHighPrograms.indexOf(a) - seniorHighPrograms.indexOf(b);
-    }
-    return a.localeCompare(b);
-  };
 
   // Add helper function to check if all items are selected
   const areAllSelected = (selectedItems, allItems) => {
@@ -113,52 +55,6 @@ export default function EditElectionPage() {
     if (selectedItems.length !== allItems.length) return false;
     return selectedItems.length === allItems.length && 
            selectedItems.every(item => allItems.includes(item));
-  };
-
-  // Remove the restriction - allow same program to be assigned to multiple precincts
-  // const isProgramAssignedToOtherPrecinct = (program, currentPrecinct) => {
-  //   return Object.entries(electionData.eligibleVoters.precinctPrograms)
-  //     .some(([precinct, programs]) => 
-  //       precinct !== currentPrecinct && programs.includes(program)
-  //     );
-  // };
-
-  // Add function to toggle program selection visibility
-  const toggleProgramSelection = (precinct) => {
-    setVisibleProgramSelections(prev => ({
-      ...prev,
-      [precinct]: !prev[precinct]
-    }));
-  };
-
-  // Add function to handle precinct program changes
-  const handlePrecinctProgramChange = (precinct, program) => {
-    setElectionData(prev => {
-      const precinctPrograms = { ...prev.eligibleVoters.precinctPrograms };
-      
-      if (!precinctPrograms[precinct]) {
-        precinctPrograms[precinct] = [];
-      }
-      
-      if (precinctPrograms[precinct].includes(program)) {
-        precinctPrograms[precinct] = precinctPrograms[precinct].filter(p => p !== program);
-      } else {
-        precinctPrograms[precinct] = [...precinctPrograms[precinct], program];
-      }
-      
-      // Remove empty precinct entries
-      if (precinctPrograms[precinct].length === 0) {
-        delete precinctPrograms[precinct];
-      }
-      
-      return {
-        ...prev,
-        eligibleVoters: {
-          ...prev.eligibleVoters,
-          precinctPrograms
-        }
-      };
-    });
   };
 
   // Format date to YYYY-MM-DD for date input
@@ -222,66 +118,16 @@ export default function EditElectionPage() {
       try {
         setLoading(prev => ({ ...prev, initial: true }));
         
-        // Check permissions first
-        if (!canEditElection()) {
-          setError("You do not have permission to edit elections");
-          setLoading(prev => ({ ...prev, initial: false }));
-          return;
-        }
-
-        // Try to fetch election data with simple retry
+        // Fetch election details
         const token = Cookies.get("token");
-        let electionResponse;
-        
-        try {
-          console.log("Attempting to fetch election details...");
-          
-          electionResponse = await axios.get(
-            `${API_BASE}/elections/${electionId}/details`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Cache-Control': 'no-cache'
-              },
-              timeout: 20000 // 20 second timeout
+        const electionResponse = await axios.get(
+          `${API_BASE}/elections/${electionId}/details`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
             }
-          );
-          
-          console.log("Election details loaded successfully");
-        } catch (err) {
-          console.log("First attempt failed, trying with retry...");
-          
-          // If first attempt fails, try once more with a delay
-          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
-          
-          try {
-            electionResponse = await axios.get(
-              `${API_BASE}/elections/${electionId}/details`,
-              {
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Cache-Control': 'no-cache'
-                },
-                timeout: 20000
-              }
-            );
-            console.log("Election details loaded on retry");
-          } catch (retryErr) {
-            console.log("Retry also failed, throwing error");
-            throw retryErr; // Throw the retry error
           }
-        }
-        
-        // Check if response is successful
-        if (electionResponse.status !== 200 || !electionResponse.data.success) {
-          if (electionResponse.status === 403) {
-            throw new Error("You do not have permission to edit this election");
-          } else if (electionResponse.status === 404) {
-            throw new Error("Election not found");
-          } else {
-            throw new Error(`Request failed with status ${electionResponse.status}`);
-          }
-        }
+        );
 
         if (!electionResponse.data.success) {
           throw new Error(electionResponse.data.message || "Failed to load election");
@@ -289,10 +135,9 @@ export default function EditElectionPage() {
 
         const election = electionResponse.data.election;
         
-        // Allow editing for upcoming, ongoing, completed elections, and those needing approval
-        // This matches the logic in the main election details page
-        if (!['upcoming', 'ongoing', 'completed'].includes(election.status) && !election.needs_approval) {
-          setError("This election cannot be edited");
+        // Check if election is upcoming - only upcoming elections or those needing approval can be edited
+        if (election.status !== 'upcoming' && !election.needs_approval) {
+          setError("Only upcoming elections can be edited");
           setLoading(prev => ({ ...prev, initial: false }));
           return;
         }
@@ -301,7 +146,7 @@ export default function EditElectionPage() {
         let eligibilityResponse;
         try {
           eligibilityResponse = await axios.get(
-            `${API_BASE}/elections/${electionId}/criteria`,
+            `/api/elections/${electionId}/criteria`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -319,14 +164,8 @@ export default function EditElectionPage() {
           yearLevels: criteria.year_levels || criteria.yearLevels || [],
           gender: criteria.genders || criteria.gender || [],
           semester: criteria.semesters || criteria.semester || [],
-          precinct: criteria.precincts || criteria.precinct || [],
-          precinctPrograms: criteria.precinctPrograms || {}
+          precinct: criteria.precincts || criteria.precinct || []
         };
-
-        // Debug: Log the loaded data
-        console.log("Raw criteria response:", criteria);
-        console.log("Loaded precinct programs:", criteria.precinctPrograms);
-        console.log("Mapped eligibleVoters.precinctPrograms:", eligibleVoters.precinctPrograms);
 
         // Format dates and times for the form
         const formattedDateFrom = formatDateForInput(election.date_from);
@@ -345,14 +184,10 @@ export default function EditElectionPage() {
           status: election.status,
           eligibleVoters
         });
-        
-        // Debug: Log precinct programs to see what's being loaded
-        console.log("Raw criteria response:", criteria);
-        console.log("Loaded precinct programs:", criteria.precinctPrograms);
-        console.log("Mapped eligibleVoters.precinctPrograms:", eligibleVoters.precinctPrograms);
-        console.log("Eligibility response data:", eligibilityResponse?.data);
 
-        // Fetch maintenance data (options for dropdowns) with error handling
+        // Fetch maintenance data (options for dropdowns)
+        // Fix: The /api/maintenance/all endpoint doesn't exist
+        // Fetch each maintenance type separately
         const endpoints = [
           { key: 'programs', url: 'programs' },
           { key: 'electionTypes', url: 'election-types' },
@@ -364,18 +199,14 @@ export default function EditElectionPage() {
 
         const requests = endpoints.map(endpoint => 
           axios.get(`${API_BASE}/maintenance/${endpoint.url}`, {
-            headers: { Authorization: `Bearer ${token}` },
-            timeout: 15000 // 15 second timeout for maintenance data
-          }).catch(err => {
-            console.error(`Error fetching ${endpoint.key}:`, err);
-            return { data: { data: [] } }; // Return empty array on error
+            headers: { Authorization: `Bearer ${token}` }
           })
         );
 
         const responses = await Promise.all(requests);
         
         const maintenanceData = endpoints.reduce((acc, endpoint, index) => {
-          acc[endpoint.key] = responses[index].data.data?.map(item => item.name) || [];
+          acc[endpoint.key] = responses[index].data.data.map(item => item.name);
           return acc;
         }, {});
         
@@ -386,28 +217,16 @@ export default function EditElectionPage() {
         
       } catch (err) {
         console.error("Error loading election data:", err);
-        
-        // Simple error handling without circuit breaker
-        if (err.message?.includes('ERR_INSUFFICIENT_RESOURCES') || 
-            err.message?.includes('Network Error') ||
-            err.code === 'ERR_NETWORK') {
-          setError("Server is experiencing high load. Please refresh the page and try again.");
-        } else if (err.response?.status === 403) {
-          setError("You do not have permission to edit this election");
-        } else if (err.response?.status === 404) {
-          setError("Election not found");
-        } else {
-          setError(err.response?.data?.message || err.message || "Failed to load election details");
-        }
+        setError(err.message || "Failed to load election details");
       } finally {
         setLoading(prev => ({ ...prev, initial: false }));
       }
     };
 
-    if (electionId && !permissionsLoading) {
+    if (electionId) {
       fetchData();
     }
-  }, [electionId, permissionsLoading, canEditElection]);
+  }, [electionId]);
 
   // Update eligible voter count whenever selection changes
   useEffect(() => {
@@ -484,14 +303,6 @@ export default function EditElectionPage() {
     if (eligibleVoters.yearLevels.length === 0) newCriteriaErrors.yearLevels = "Select at least one year level";
     if (eligibleVoters.gender.length === 0) newCriteriaErrors.gender = "Select at least one gender";
     if (eligibleVoters.semester.length === 0) newCriteriaErrors.semester = "Select a semester";
-    if (eligibleVoters.precinct.length === 0) newCriteriaErrors.precinct = "Select at least one precinct";
-    
-    // Validate that each selected precinct has at least one program assigned
-    eligibleVoters.precinct.forEach(precinct => {
-      if (!eligibleVoters.precinctPrograms[precinct]?.length) {
-        newCriteriaErrors.precinct = `Assign at least one program to ${precinct}`;
-      }
-    });
     
     setCriteriaErrors(newCriteriaErrors);
     return Object.keys(newCriteriaErrors).length === 0;
@@ -604,7 +415,7 @@ export default function EditElectionPage() {
         end_time: electionData.end_time
       };
       
-      // Update election basic details first
+      // Update election basic details
       const updateResponse = await axios.put(
         `${API_BASE}/elections/${electionId}`,
         updatePayload,
@@ -616,34 +427,62 @@ export default function EditElectionPage() {
         }
       );
       
-      // Always update eligibility criteria
-      // Determine if all options for each category are selected
-      const allProgramsSelected = areAllSelected(electionData.eligibleVoters.programs, maintenanceData.programs);
-      const allYearLevelsSelected = areAllSelected(electionData.eligibleVoters.yearLevels, maintenanceData.yearLevels);
-      const allGendersSelected = areAllSelected(electionData.eligibleVoters.gender, maintenanceData.genders);
-      
-      // Create the optimized payload
-      const optimizedEligibleVoters = {
-        programs: allProgramsSelected ? [] : electionData.eligibleVoters.programs,
-        yearLevels: allYearLevelsSelected ? [] : electionData.eligibleVoters.yearLevels,
-        gender: allGendersSelected ? [] : electionData.eligibleVoters.gender,
-        semester: electionData.eligibleVoters.semester,
-        precinct: electionData.eligibleVoters.precinct,
-        precinctPrograms: electionData.eligibleVoters.precinctPrograms
-      };
-      
-      const eligibilityResponse = await axios.put(
-        `${API_BASE}/elections/${electionId}/criteria`,   
-        {
-          eligibility: optimizedEligibleVoters
-        },
+      // Get current eligibility criteria to see if it's changed
+      const currentCriteriaResponse = await axios.get(
+        `/api/elections/${electionId}/criteria`,
         {
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           }
         }
       );
+      
+      const currentCriteria = currentCriteriaResponse.data.criteria || {};
+      
+      // Check if eligibility criteria has changed
+      const hasEligibilityChanged = JSON.stringify({
+        programs: electionData.eligibleVoters.programs,
+        yearLevels: electionData.eligibleVoters.yearLevels,
+        gender: electionData.eligibleVoters.gender,
+        semester: electionData.eligibleVoters.semester,
+        precinct: electionData.eligibleVoters.precinct
+      }) !== JSON.stringify({
+        programs: currentCriteria.programs || currentCriteria.courses || [],
+        yearLevels: currentCriteria.year_levels || currentCriteria.yearLevels || [],
+        gender: currentCriteria.genders || currentCriteria.gender || [],
+        semester: currentCriteria.semesters || currentCriteria.semester || [],
+        precinct: currentCriteria.precincts || currentCriteria.precinct || []
+      });
+      
+      // Only update eligibility criteria if it's changed
+      if (hasEligibilityChanged) {
+        // Determine if all options for each category are selected
+        const allProgramsSelected = areAllSelected(electionData.eligibleVoters.programs, maintenanceData.programs);
+        const allYearLevelsSelected = areAllSelected(electionData.eligibleVoters.yearLevels, maintenanceData.yearLevels);
+        const allGendersSelected = areAllSelected(electionData.eligibleVoters.gender, maintenanceData.genders);
+        
+        // Create the optimized payload
+        const optimizedEligibleVoters = {
+          programs: allProgramsSelected ? [] : electionData.eligibleVoters.programs,
+          yearLevels: allYearLevelsSelected ? [] : electionData.eligibleVoters.yearLevels,
+          gender: allGendersSelected ? [] : electionData.eligibleVoters.gender,
+          semester: electionData.eligibleVoters.semester,
+          precinct: electionData.eligibleVoters.precinct
+        };
+        
+        const eligibilityResponse = await axios.put(
+          `${API_BASE}/elections/${electionId}/criteria`,   
+          {
+            eligibility: optimizedEligibleVoters
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+      }
       
       setSuccess(true);
       toast.success('Election updated successfully!');
@@ -673,53 +512,21 @@ export default function EditElectionPage() {
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg max-w-6xl mx-auto">
       <button 
-        onClick={() => setShowBackConfirm(true)} 
+        onClick={() => router.back()} 
         className="flex items-center text-blue-900 hover:text-blue-700 mb-4"
       >
         <ArrowLeft className="w-6 h-6 mr-2" />
         <span className="font-semibold">Back</span>
       </button>
 
-      {showBackConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <p className="text-black mb-6">Are you sure you want to go back? Any unsaved changes will be lost.</p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setShowBackConfirm(false)}
-                className="px-4 py-2 text-black hover:text-gray-800 bg-gray-200 font-medium cursor-pointer"
-              >
-                No
-              </button>
-              <button
-                onClick={() => router.back()}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium cursor-pointer"
-              >
-                Yes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <h1 className="text-2xl font-bold mb-6 text-black">Edit Election</h1>
       
       {error && (
         <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 flex items-start">
           <AlertCircle className="w-5 h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
+          <div>
             <p className="font-medium text-red-800">Cannot Edit Election</p>
             <p className="text-red-700">{error}</p>
-            {error.includes('high load') && (
-              <button
-                onClick={() => {
-                  window.location.reload();
-                }}
-                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-              >
-                Refresh Page
-              </button>
-            )}
           </div>
         </div>
       )}
@@ -734,7 +541,7 @@ export default function EditElectionPage() {
         </div>
       )}
 
-      {(['upcoming', 'ongoing', 'completed'].includes(electionData.status) || electionData.needs_approval) && !error && (
+      {(electionData.status === 'upcoming' || electionData.needs_approval) && !error && (
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
             <div className="flex">
@@ -932,155 +739,51 @@ export default function EditElectionPage() {
                   )}
                 </div>
                 
-                {/* Gender */}
-                <div className="border-b pb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-medium text-black">Gender</h3>
-                    <button
-                      type="button"
-                      onClick={() => toggleAll('gender', maintenanceData.genders)}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      {electionData.eligibleVoters.gender.length === maintenanceData.genders.length ? 'Deselect all' : 'Select all'}
-                    </button>
-                  </div>
-                  {criteriaErrors.gender && (
-                    <p className="text-red-500 text-sm mb-2">{criteriaErrors.gender}</p>
-                  )}
-                  <div className="flex flex-wrap gap-3">
-                    {maintenanceData.genders.map(item => (
-                      <label 
-                        key={item} 
-                        className={`inline-flex items-center px-3 py-1 rounded-full ${
-                          electionData.eligibleVoters.gender.includes(item) 
-                            ? 'bg-blue-100 border border-blue-300' 
-                            : 'border border-gray-200'
-                        }`}
+                {[
+                  { category: 'gender', label: 'Gender', items: maintenanceData.genders },
+                  { category: 'precinct', label: 'Precinct', items: maintenanceData.precincts },
+                ].map(({ category, label, items }) => (
+                  <div key={category} className="border-b pb-4 last:border-b-0">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-medium text-black">{label}</h3>
+                      <button
+                        type="button"
+                        onClick={() => toggleAll(category, items)}
+                        className="text-sm text-blue-600 hover:text-blue-800"
                       >
-                        <input
-                          type="checkbox"
-                          checked={electionData.eligibleVoters.gender.includes(item)}
-                          onChange={() => handleCheckboxChange('gender', item)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                        />
-                        <span className="text-black">{item}</span>
-                      </label>
-                    ))}
+                        {electionData.eligibleVoters[category].length === items.length ? 'Deselect all' : 'Select all'}
+                      </button>
+                    </div>
+                    {criteriaErrors[category] && (
+                      <p className="text-red-500 text-sm mb-2">{criteriaErrors[category]}</p>
+                    )}
+                    <div className="flex flex-wrap gap-3">
+                      {items.map(item => (
+                        <label 
+                          key={item} 
+                          className={`inline-flex items-center px-3 py-1 rounded-full ${
+                            electionData.eligibleVoters[category].includes(item) 
+                              ? 'bg-blue-100 border border-blue-300' 
+                              : 'border border-gray-200'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={electionData.eligibleVoters[category].includes(item)}
+                            onChange={() => handleCheckboxChange(category, item)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                          />
+                          <span className="text-black">{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {electionData.eligibleVoters[category].length > 0 && (
+                      <p className="text-sm text-gray-500 mt-2">
+                        Selected: {electionData.eligibleVoters[category].join(", ")}
+                      </p>
+                    )}
                   </div>
-                  {electionData.eligibleVoters.gender.length > 0 && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      Selected: {electionData.eligibleVoters.gender.join(", ")}
-                    </p>
-                  )}
-                </div>
-
-                {/* Precinct with Course Assignment */}
-                <div className="border-b pb-4 last:border-b-0">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-medium text-black">Precinct</h3>
-                    <button
-                      type="button"
-                      onClick={() => toggleAll('precinct', maintenanceData.precincts)}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      {electionData.eligibleVoters.precinct.length === maintenanceData.precincts.length ? 'Deselect all' : 'Select all'}
-                    </button>
-                  </div>
-                  {criteriaErrors.precinct && (
-                    <p className="text-red-500 text-sm mb-2">{criteriaErrors.precinct}</p>
-                  )}
-                  
-                  <div className="space-y-4">
-                    {maintenanceData.precincts.sort(sortPrecincts).map(precinct => (
-                      <div key={precinct} className="flex items-start space-x-4">
-                        <div className="flex-shrink-0">
-                          <label 
-                            className={`inline-flex items-center px-3 py-2 rounded-lg ${
-                              electionData.eligibleVoters.precinct.includes(precinct)
-                                ? 'bg-blue-100 border border-blue-300' 
-                                : 'border border-gray-200'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={electionData.eligibleVoters.precinct.includes(precinct)}
-                              onChange={() => handleCheckboxChange('precinct', precinct)}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                            />
-                            <span className="text-gray-700 font-medium">{precinct}</span>
-                          </label>
-                        </div>
-
-                        {electionData.eligibleVoters.precinct.includes(precinct) && (
-                          <div className="flex-grow">
-                            <div className="flex justify-between items-center mb-2">
-                              <button
-                                type="button"
-                                onClick={() => toggleProgramSelection(precinct)}
-                                className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-                              >
-                                {visibleProgramSelections[precinct] ? (
-                                  <>
-                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                    Hide Programs
-                                  </>
-                                ) : (
-                                  <>
-                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                    Show Programs
-                                  </>
-                                )}
-                              </button>
-                              {electionData.eligibleVoters.precinctPrograms[precinct]?.length > 0 && (
-                                <span className="text-sm text-gray-500">
-                                  {electionData.eligibleVoters.precinctPrograms[precinct]?.length} program(s) selected
-                                </span>
-                              )}
-                            </div>
-
-                            {visibleProgramSelections[precinct] && electionData.eligibleVoters.programs.length > 0 && (
-                              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                <p className="text-sm font-medium text-gray-600 mb-2">Select programs for {precinct}:</p>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                  {electionData.eligibleVoters.programs.sort(sortPrograms).map(program => {
-                                    const isChecked = electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) || false;
-                                    
-                                    return (
-                                      <label 
-                                        key={program} 
-                                        className="inline-flex items-center bg-white px-2 py-1 rounded"
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={isChecked}
-                                          onChange={() => handlePrecinctProgramChange(precinct, program)}
-                                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                                        />
-                                        <span className="text-sm text-gray-600">
-                                          {program}
-                                        </span>
-                                      </label>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {electionData.eligibleVoters.precinct.length > 0 && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      Selected: {electionData.eligibleVoters.precinct.sort(sortPrecincts).join(", ")}
-                    </p>
-                  )}
-                </div>
+                ))}
               </div>
             </div>
           </div>
