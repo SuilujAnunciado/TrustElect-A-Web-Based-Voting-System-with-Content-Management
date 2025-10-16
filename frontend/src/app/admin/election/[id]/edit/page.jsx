@@ -226,7 +226,7 @@ export default function EditElectionPage() {
         let eligibilityResponse;
         try {
           eligibilityResponse = await axios.get(
-            `/api/elections/${electionId}/criteria`,
+            `${API_BASE}/elections/${electionId}/criteria`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -239,6 +239,9 @@ export default function EditElectionPage() {
 
         // Map API response fields to our expected structure
         const criteria = eligibilityResponse?.data?.criteria || {};
+        console.log("Raw criteria response:", criteria);
+        console.log("Precinct programs from API:", criteria.precinctPrograms);
+        
         const eligibleVoters = {
           programs: criteria.courses || criteria.programs || [],
           yearLevels: criteria.year_levels || criteria.yearLevels || [],
@@ -247,6 +250,8 @@ export default function EditElectionPage() {
           precinct: criteria.precincts || criteria.precinct || [],
           precinctPrograms: criteria.precinctPrograms || {}
         };
+        
+        console.log("Mapped eligibleVoters:", eligibleVoters);
 
         // Format dates and times for the form
         const formattedDateFrom = formatDateForInput(election.date_from);
@@ -417,6 +422,35 @@ export default function EditElectionPage() {
         };
       }
       
+      // Special handling for precinct - initialize precinctPrograms when precinct is selected
+      if (category === 'precinct') {
+        const currentValues = prev.eligibleVoters[category];
+        const newValues = currentValues.includes(value)
+          ? currentValues.filter(item => item !== value)
+          : [...currentValues, value];
+        
+        const precinctPrograms = { ...prev.eligibleVoters.precinctPrograms };
+        
+        // If adding a precinct, initialize its programs array if it doesn't exist
+        if (!currentValues.includes(value)) {
+          if (!precinctPrograms[value]) {
+            precinctPrograms[value] = [];
+          }
+        } else {
+          // If removing a precinct, remove its programs too
+          delete precinctPrograms[value];
+        }
+        
+        return {
+          ...prev,
+          eligibleVoters: {
+            ...prev.eligibleVoters,
+            [category]: newValues,
+            precinctPrograms
+          }
+        };
+      }
+      
       // Normal checkbox behavior for other categories
       const currentValues = prev.eligibleVoters[category];
       const newValues = currentValues.includes(value)
@@ -448,6 +482,34 @@ export default function EditElectionPage() {
     
     setElectionData(prev => {
       const isAllSelected = areAllSelected(prev.eligibleVoters[category], items);
+      
+      // Special handling for precinct - manage precinctPrograms
+      if (category === 'precinct') {
+        const precinctPrograms = { ...prev.eligibleVoters.precinctPrograms };
+        
+        if (isAllSelected) {
+          // If deselecting all, clear all precinct programs
+          Object.keys(precinctPrograms).forEach(precinct => {
+            delete precinctPrograms[precinct];
+          });
+        } else {
+          // If selecting all, initialize empty programs array for each precinct
+          items.forEach(precinct => {
+            if (!precinctPrograms[precinct]) {
+              precinctPrograms[precinct] = [];
+            }
+          });
+        }
+        
+        return {
+          ...prev,
+          eligibleVoters: {
+            ...prev.eligibleVoters,
+            [category]: isAllSelected ? [] : [...items],
+            precinctPrograms
+          }
+        };
+      }
       
       return {
         ...prev,
@@ -518,7 +580,7 @@ export default function EditElectionPage() {
       
       // Get current eligibility criteria to see if it's changed
       const currentCriteriaResponse = await axios.get(
-        `/api/elections/${electionId}/criteria`,
+        `${API_BASE}/elections/${electionId}/criteria`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -561,6 +623,9 @@ export default function EditElectionPage() {
           precinct: electionData.eligibleVoters.precinct,
           precinctPrograms: electionData.eligibleVoters.precinctPrograms
         };
+        
+        console.log("Sending eligibility criteria:", optimizedEligibleVoters);
+        console.log("Precinct programs being sent:", optimizedEligibleVoters.precinctPrograms);
         
         const eligibilityResponse = await axios.put(
           `${API_BASE}/elections/${electionId}/criteria`,   
