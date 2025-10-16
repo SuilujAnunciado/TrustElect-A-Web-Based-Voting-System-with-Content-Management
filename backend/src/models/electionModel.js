@@ -347,18 +347,48 @@ const createElection = async (electionData, userId, needsApproval = false) => {
 };
 
 const getAllElections = async () => {
-  const result = await pool.query(`
-      SELECT 
-          e.*, 
-          COUNT(ev.id) AS voter_count
-      FROM elections e
-      LEFT JOIN eligible_voters ev ON e.id = ev.election_id
-      WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) 
-        AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
-      GROUP BY e.id
-      ORDER BY e.created_at DESC;
-  `);
-  return result.rows;
+  try {
+    // Check if archive columns exist
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'elections' 
+      AND column_name IN ('is_archived', 'is_deleted')
+    `);
+    
+    const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
+    
+    let whereClause = '';
+    if (hasArchiveColumns && hasDeleteColumns) {
+      whereClause = 'WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
+    }
+    
+    const result = await pool.query(`
+        SELECT 
+            e.*, 
+            COUNT(ev.id) AS voter_count
+        FROM elections e
+        LEFT JOIN eligible_voters ev ON e.id = ev.election_id
+        ${whereClause}
+        GROUP BY e.id
+        ORDER BY e.created_at DESC;
+    `);
+    return result.rows;
+  } catch (error) {
+    console.error('Error in getAllElections:', error);
+    // Fallback to basic query without archive filtering
+    const result = await pool.query(`
+        SELECT 
+            e.*, 
+            COUNT(ev.id) AS voter_count
+        FROM elections e
+        LEFT JOIN eligible_voters ev ON e.id = ev.election_id
+        GROUP BY e.id
+        ORDER BY e.created_at DESC;
+    `);
+    return result.rows;
+  }
 };
 
 const getElectionById = async (id) => {
@@ -649,68 +679,112 @@ const permanentDeleteElection = async (id) => {
 
 // Get archived elections
 const getArchivedElections = async (userId = null) => {
-  let query = `
-    SELECT 
-      e.*,
-      u.first_name || ' ' || u.last_name as creator_name,
-      CASE u.role_id
-        WHEN 1 THEN 'SuperAdmin'
-        WHEN 2 THEN 'Admin'
-        WHEN 3 THEN 'Student'
-        ELSE 'Unknown'
-      END as creator_role,
-      archived_user.first_name || ' ' || archived_user.last_name as archived_by_name,
-      (SELECT COUNT(*) FROM eligible_voters ev WHERE ev.election_id = e.id) AS voter_count,
-      (SELECT COALESCE(COUNT(DISTINCT student_id), 0) FROM votes WHERE election_id = e.id) AS vote_count
-    FROM elections e
-    LEFT JOIN users u ON e.created_by = u.id
-    LEFT JOIN users archived_user ON e.archived_by = archived_user.id
-    WHERE e.is_archived = TRUE AND e.is_deleted = FALSE
-  `;
-  
-  const params = [];
-  if (userId) {
-    query += ` AND e.created_by = $1`;
-    params.push(userId);
+  try {
+    // First check if the archive columns exist
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'elections' 
+      AND column_name IN ('is_archived', 'is_deleted')
+    `);
+    
+    const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
+    
+    if (!hasArchiveColumns || !hasDeleteColumns) {
+      console.log('Archive/delete columns not found, returning empty array');
+      return [];
+    }
+    
+    let query = `
+      SELECT 
+        e.*,
+        u.first_name || ' ' || u.last_name as creator_name,
+        CASE u.role_id
+          WHEN 1 THEN 'SuperAdmin'
+          WHEN 2 THEN 'Admin'
+          WHEN 3 THEN 'Student'
+          ELSE 'Unknown'
+        END as creator_role,
+        archived_user.first_name || ' ' || archived_user.last_name as archived_by_name,
+        (SELECT COUNT(*) FROM eligible_voters ev WHERE ev.election_id = e.id) AS voter_count,
+        (SELECT COALESCE(COUNT(DISTINCT student_id), 0) FROM votes WHERE election_id = e.id) AS vote_count
+      FROM elections e
+      LEFT JOIN users u ON e.created_by = u.id
+      LEFT JOIN users archived_user ON e.archived_by = archived_user.id
+      WHERE e.is_archived = TRUE AND e.is_deleted = FALSE
+    `;
+    
+    const params = [];
+    if (userId) {
+      query += ` AND e.created_by = $1`;
+      params.push(userId);
+    }
+    
+    query += ` ORDER BY e.archived_at DESC`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  } catch (error) {
+    console.error('Error in getArchivedElections:', error);
+    // If there's an error (likely due to missing columns), return empty array
+    return [];
   }
-  
-  query += ` ORDER BY e.archived_at DESC`;
-  
-  const result = await pool.query(query, params);
-  return result.rows;
 };
 
 // Get soft deleted elections
 const getDeletedElections = async (userId = null) => {
-  let query = `
-    SELECT 
-      e.*,
-      u.first_name || ' ' || u.last_name as creator_name,
-      CASE u.role_id
-        WHEN 1 THEN 'SuperAdmin'
-        WHEN 2 THEN 'Admin'
-        WHEN 3 THEN 'Student'
-        ELSE 'Unknown'
-      END as creator_role,
-      deleted_user.first_name || ' ' || deleted_user.last_name as deleted_by_name,
-      (SELECT COUNT(*) FROM eligible_voters ev WHERE ev.election_id = e.id) AS voter_count,
-      (SELECT COALESCE(COUNT(DISTINCT student_id), 0) FROM votes WHERE election_id = e.id) AS vote_count
-    FROM elections e
-    LEFT JOIN users u ON e.created_by = u.id
-    LEFT JOIN users deleted_user ON e.deleted_by = deleted_user.id
-    WHERE e.is_deleted = TRUE AND e.is_archived = FALSE
-  `;
-  
-  const params = [];
-  if (userId) {
-    query += ` AND e.created_by = $1`;
-    params.push(userId);
+  try {
+    // First check if the archive columns exist
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'elections' 
+      AND column_name IN ('is_archived', 'is_deleted')
+    `);
+    
+    const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
+    
+    if (!hasArchiveColumns || !hasDeleteColumns) {
+      console.log('Archive/delete columns not found, returning empty array');
+      return [];
+    }
+    
+    let query = `
+      SELECT 
+        e.*,
+        u.first_name || ' ' || u.last_name as creator_name,
+        CASE u.role_id
+          WHEN 1 THEN 'SuperAdmin'
+          WHEN 2 THEN 'Admin'
+          WHEN 3 THEN 'Student'
+          ELSE 'Unknown'
+        END as creator_role,
+        deleted_user.first_name || ' ' || deleted_user.last_name as deleted_by_name,
+        (SELECT COUNT(*) FROM eligible_voters ev WHERE ev.election_id = e.id) AS voter_count,
+        (SELECT COALESCE(COUNT(DISTINCT student_id), 0) FROM votes WHERE election_id = e.id) AS vote_count
+      FROM elections e
+      LEFT JOIN users u ON e.created_by = u.id
+      LEFT JOIN users deleted_user ON e.deleted_by = deleted_user.id
+      WHERE e.is_deleted = TRUE AND e.is_archived = FALSE
+    `;
+    
+    const params = [];
+    if (userId) {
+      query += ` AND e.created_by = $1`;
+      params.push(userId);
+    }
+    
+    query += ` ORDER BY e.deleted_at DESC`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  } catch (error) {
+    console.error('Error in getDeletedElections:', error);
+    // If there's an error (likely due to missing columns), return empty array
+    return [];
   }
-  
-  query += ` ORDER BY e.deleted_at DESC`;
-  
-  const result = await pool.query(query, params);
-  return result.rows;
 };
 
 // Get elections ready for auto-delete
@@ -954,6 +1028,22 @@ const getPendingApprovalElections = async (adminId = null) => {
 
 const getAllElectionsWithCreator = async () => {
   try {
+    // Check if archive columns exist
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'elections' 
+      AND column_name IN ('is_archived', 'is_deleted')
+    `);
+    
+    const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
+    
+    let whereClause = '';
+    if (hasArchiveColumns && hasDeleteColumns) {
+      whereClause = 'WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
+    }
+    
     const query = `
       SELECT e.*, 
              a.name as admin_name, 
@@ -961,8 +1051,7 @@ const getAllElectionsWithCreator = async () => {
              a.id as admin_id
       FROM elections e
       LEFT JOIN admins a ON e.created_by = a.id
-      WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) 
-        AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
+      ${whereClause}
       ORDER BY e.date_from DESC
     `;
     const result = await pool.query(query);
