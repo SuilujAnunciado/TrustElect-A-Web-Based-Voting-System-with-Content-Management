@@ -34,7 +34,8 @@ export default function EditElectionPage() {
       yearLevels: [],
       semester: [],
       gender: [],
-      precinct: []
+      precinct: [],
+      precinctPrograms: {}
     }
   });
   const [maintenanceData, setMaintenanceData] = useState({
@@ -48,6 +49,46 @@ export default function EditElectionPage() {
   const [formErrors, setFormErrors] = useState({});
   const [criteriaErrors, setCriteriaErrors] = useState({});
   const [eligibleCount, setEligibleCount] = useState(0);
+  const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
+
+  // Sorting functions to match create election page
+  const sortPrecincts = (a, b) => {
+    const extractNumber = (str) => parseInt(str.match(/\d+/)?.[0] || '0');
+    const aNum = extractNumber(a);
+    const bNum = extractNumber(b);
+    if (aNum !== 0 && bNum !== 0) {
+      return aNum - bNum;
+    }
+    return a.localeCompare(b);
+  };
+
+  const sortPrograms = (a, b) => {
+    const collegePrograms = [
+      'BSA', 'BSBAOM', 'BSCPE', 'BSCS', 'BSHM', 'BSIT', 'BMMA', 'BSTM'
+    ];
+    const seniorHighPrograms = [
+      'ABM', 'CUART', 'DIGAR', 'HUMMS', 'MAWD', 'STEM', 'TOPER'
+    ];
+
+    const aType = seniorHighPrograms.includes(a) ? 'seniorHigh' : 'college';
+    const bType = seniorHighPrograms.includes(b) ? 'seniorHigh' : 'college';
+
+    if (aType !== bType) {
+      return aType === 'college' ? -1 : 1;
+    }
+
+    if (aType === 'college') {
+      if (collegePrograms.includes(a) && collegePrograms.includes(b)) {
+        return collegePrograms.indexOf(a) - collegePrograms.indexOf(b);
+      }
+      return a.localeCompare(b);
+    }
+
+    if (seniorHighPrograms.includes(a) && seniorHighPrograms.includes(b)) {
+      return seniorHighPrograms.indexOf(a) - seniorHighPrograms.indexOf(b);
+    }
+    return a.localeCompare(b);
+  };
 
   // Add helper function to check if all items are selected
   const areAllSelected = (selectedItems, allItems) => {
@@ -55,6 +96,44 @@ export default function EditElectionPage() {
     if (selectedItems.length !== allItems.length) return false;
     return selectedItems.length === allItems.length && 
            selectedItems.every(item => allItems.includes(item));
+  };
+
+  // Add function to toggle program selection visibility
+  const toggleProgramSelection = (precinct) => {
+    setVisibleProgramSelections(prev => ({
+      ...prev,
+      [precinct]: !prev[precinct]
+    }));
+  };
+
+  // Add function to handle precinct program changes
+  const handlePrecinctProgramChange = (precinct, program) => {
+    setElectionData(prev => {
+      const precinctPrograms = { ...prev.eligibleVoters.precinctPrograms };
+      
+      if (!precinctPrograms[precinct]) {
+        precinctPrograms[precinct] = [];
+      }
+      
+      if (precinctPrograms[precinct].includes(program)) {
+        precinctPrograms[precinct] = precinctPrograms[precinct].filter(p => p !== program);
+      } else {
+        precinctPrograms[precinct] = [...precinctPrograms[precinct], program];
+      }
+      
+      // Remove empty precinct entries
+      if (precinctPrograms[precinct].length === 0) {
+        delete precinctPrograms[precinct];
+      }
+      
+      return {
+        ...prev,
+        eligibleVoters: {
+          ...prev.eligibleVoters,
+          precinctPrograms
+        }
+      };
+    });
   };
 
   // Format date to YYYY-MM-DD for date input
@@ -165,7 +244,8 @@ export default function EditElectionPage() {
           yearLevels: criteria.year_levels || criteria.yearLevels || [],
           gender: criteria.genders || criteria.gender || [],
           semester: criteria.semesters || criteria.semester || [],
-          precinct: criteria.precincts || criteria.precinct || []
+          precinct: criteria.precincts || criteria.precinct || [],
+          precinctPrograms: criteria.precinctPrograms || {}
         };
 
         // Format dates and times for the form
@@ -304,6 +384,14 @@ export default function EditElectionPage() {
     if (eligibleVoters.yearLevels.length === 0) newCriteriaErrors.yearLevels = "Select at least one year level";
     if (eligibleVoters.gender.length === 0) newCriteriaErrors.gender = "Select at least one gender";
     if (eligibleVoters.semester.length === 0) newCriteriaErrors.semester = "Select a semester";
+    if (eligibleVoters.precinct.length === 0) newCriteriaErrors.precinct = "Select at least one precinct";
+    
+    // Validate that each selected precinct has at least one program assigned
+    eligibleVoters.precinct.forEach(precinct => {
+      if (!eligibleVoters.precinctPrograms[precinct]?.length) {
+        newCriteriaErrors.precinct = `Assign at least one program to ${precinct}`;
+      }
+    });
     
     setCriteriaErrors(newCriteriaErrors);
     return Object.keys(newCriteriaErrors).length === 0;
@@ -446,13 +534,15 @@ export default function EditElectionPage() {
         yearLevels: electionData.eligibleVoters.yearLevels,
         gender: electionData.eligibleVoters.gender,
         semester: electionData.eligibleVoters.semester,
-        precinct: electionData.eligibleVoters.precinct
+        precinct: electionData.eligibleVoters.precinct,
+        precinctPrograms: electionData.eligibleVoters.precinctPrograms
       }) !== JSON.stringify({
         programs: currentCriteria.programs || currentCriteria.courses || [],
         yearLevels: currentCriteria.year_levels || currentCriteria.yearLevels || [],
         gender: currentCriteria.genders || currentCriteria.gender || [],
         semester: currentCriteria.semesters || currentCriteria.semester || [],
-        precinct: currentCriteria.precincts || currentCriteria.precinct || []
+        precinct: currentCriteria.precincts || currentCriteria.precinct || [],
+        precinctPrograms: currentCriteria.precinctPrograms || {}
       });
       
       // Only update eligibility criteria if it's changed
@@ -468,7 +558,8 @@ export default function EditElectionPage() {
           yearLevels: allYearLevelsSelected ? [] : electionData.eligibleVoters.yearLevels,
           gender: allGendersSelected ? [] : electionData.eligibleVoters.gender,
           semester: electionData.eligibleVoters.semester,
-          precinct: electionData.eligibleVoters.precinct
+          precinct: electionData.eligibleVoters.precinct,
+          precinctPrograms: electionData.eligibleVoters.precinctPrograms
         };
         
         const eligibilityResponse = await axios.put(
@@ -740,51 +831,155 @@ export default function EditElectionPage() {
                   )}
                 </div>
                 
-                {[
-                  { category: 'gender', label: 'Gender', items: maintenanceData.genders },
-                  { category: 'precinct', label: 'Precinct', items: maintenanceData.precincts },
-                ].map(({ category, label, items }) => (
-                  <div key={category} className="border-b pb-4 last:border-b-0">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-medium text-black">{label}</h3>
-                      <button
-                        type="button"
-                        onClick={() => toggleAll(category, items)}
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        {electionData.eligibleVoters[category].length === items.length ? 'Deselect all' : 'Select all'}
-                      </button>
-                    </div>
-                    {criteriaErrors[category] && (
-                      <p className="text-red-500 text-sm mb-2">{criteriaErrors[category]}</p>
-                    )}
-                    <div className="flex flex-wrap gap-3">
-                      {items.map(item => (
-                        <label 
-                          key={item} 
-                          className={`inline-flex items-center px-3 py-1 rounded-full ${
-                            electionData.eligibleVoters[category].includes(item) 
-                              ? 'bg-blue-100 border border-blue-300' 
-                              : 'border border-gray-200'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={electionData.eligibleVoters[category].includes(item)}
-                            onChange={() => handleCheckboxChange(category, item)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                          />
-                          <span className="text-black">{item}</span>
-                        </label>
-                      ))}
-                    </div>
-                    {electionData.eligibleVoters[category].length > 0 && (
-                      <p className="text-sm text-gray-500 mt-2">
-                        Selected: {electionData.eligibleVoters[category].join(", ")}
-                      </p>
-                    )}
+                {/* Gender */}
+                <div className="border-b pb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium text-black">Gender</h3>
+                    <button
+                      type="button"
+                      onClick={() => toggleAll('gender', maintenanceData.genders)}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      {electionData.eligibleVoters.gender.length === maintenanceData.genders.length ? 'Deselect all' : 'Select all'}
+                    </button>
                   </div>
-                ))}
+                  {criteriaErrors.gender && (
+                    <p className="text-red-500 text-sm mb-2">{criteriaErrors.gender}</p>
+                  )}
+                  <div className="flex flex-wrap gap-3">
+                    {maintenanceData.genders.map(item => (
+                      <label 
+                        key={item} 
+                        className={`inline-flex items-center px-3 py-1 rounded-full ${
+                          electionData.eligibleVoters.gender.includes(item) 
+                            ? 'bg-blue-100 border border-blue-300' 
+                            : 'border border-gray-200'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={electionData.eligibleVoters.gender.includes(item)}
+                          onChange={() => handleCheckboxChange('gender', item)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                        />
+                        <span className="text-black">{item}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {electionData.eligibleVoters.gender.length > 0 && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Selected: {electionData.eligibleVoters.gender.join(", ")}
+                    </p>
+                  )}
+                </div>
+
+                {/* Precinct with Course Assignment */}
+                <div className="border-b pb-4 last:border-b-0">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium text-black">Precinct</h3>
+                    <button
+                      type="button"
+                      onClick={() => toggleAll('precinct', maintenanceData.precincts)}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      {electionData.eligibleVoters.precinct.length === maintenanceData.precincts.length ? 'Deselect all' : 'Select all'}
+                    </button>
+                  </div>
+                  {criteriaErrors.precinct && (
+                    <p className="text-red-500 text-sm mb-2">{criteriaErrors.precinct}</p>
+                  )}
+                  
+                  <div className="space-y-4">
+                    {maintenanceData.precincts.sort(sortPrecincts).map(precinct => (
+                      <div key={precinct} className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <label 
+                            className={`inline-flex items-center px-3 py-2 rounded-lg ${
+                              electionData.eligibleVoters.precinct.includes(precinct)
+                                ? 'bg-blue-100 border border-blue-300' 
+                                : 'border border-gray-200'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={electionData.eligibleVoters.precinct.includes(precinct)}
+                              onChange={() => handleCheckboxChange('precinct', precinct)}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                            />
+                            <span className="text-gray-700 font-medium">{precinct}</span>
+                          </label>
+                        </div>
+
+                        {electionData.eligibleVoters.precinct.includes(precinct) && (
+                          <div className="flex-grow">
+                            <div className="flex justify-between items-center mb-2">
+                              <button
+                                type="button"
+                                onClick={() => toggleProgramSelection(precinct)}
+                                className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                              >
+                                {visibleProgramSelections[precinct] ? (
+                                  <>
+                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                    Hide Programs
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                    Show Programs
+                                  </>
+                                )}
+                              </button>
+                              {electionData.eligibleVoters.precinctPrograms[precinct]?.length > 0 && (
+                                <span className="text-sm text-gray-500">
+                                  {electionData.eligibleVoters.precinctPrograms[precinct]?.length} program(s) selected
+                                </span>
+                              )}
+                            </div>
+
+                            {visibleProgramSelections[precinct] && electionData.eligibleVoters.programs.length > 0 && (
+                              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <p className="text-sm font-medium text-gray-600 mb-2">Select programs for {precinct}:</p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                  {electionData.eligibleVoters.programs.sort(sortPrograms).map(program => {
+                                    const isChecked = electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) || false;
+                                    
+                                    return (
+                                      <label 
+                                        key={program} 
+                                        className="inline-flex items-center bg-white px-2 py-1 rounded"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isChecked}
+                                          onChange={() => handlePrecinctProgramChange(precinct, program)}
+                                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                                        />
+                                        <span className="text-sm text-gray-600">
+                                          {program}
+                                        </span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {electionData.eligibleVoters.precinct.length > 0 && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Selected: {electionData.eligibleVoters.precinct.sort(sortPrecincts).join(", ")}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
