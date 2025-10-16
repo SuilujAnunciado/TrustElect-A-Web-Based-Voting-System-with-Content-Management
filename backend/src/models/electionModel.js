@@ -523,7 +523,7 @@ const archiveElection = async (id, userId) => {
   const result = await pool.query(
     `UPDATE elections 
      SET is_archived = TRUE, archived_at = NOW(), archived_by = $2
-     WHERE id = $1 AND is_archived = FALSE AND is_deleted = FALSE
+     WHERE id = $1 AND (is_archived IS NULL OR is_archived = FALSE) AND (is_deleted IS NULL OR is_deleted = FALSE)
      RETURNING *`,
     [id, userId]
   );
@@ -564,7 +564,7 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   const result = await pool.query(
     `UPDATE elections 
      SET is_deleted = TRUE, deleted_at = NOW(), deleted_by = $2, auto_delete_at = $3
-     WHERE id = $1 AND is_archived = FALSE AND is_deleted = FALSE
+     WHERE id = $1 AND (is_archived IS NULL OR is_archived = FALSE) AND (is_deleted IS NULL OR is_deleted = FALSE)
      RETURNING *`,
     [id, userId, autoDeleteAt]
   );

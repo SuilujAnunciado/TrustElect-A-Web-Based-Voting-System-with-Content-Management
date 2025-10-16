@@ -7,7 +7,8 @@ import {
   AlertTriangle as ExclamationTriangle,
   Lock, Award, ArrowDown, ArrowUp, PieChart,
   AlertCircle, XCircle, Check, X, Maximize2, Minimize2,
-  ChevronRight, Play, Pause, Timer, FileText, Trophy, Download
+  ChevronRight, Play, Pause, Timer, FileText, Trophy, Download,
+  FolderOpen, RotateCcw
 } from 'lucide-react';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
@@ -152,6 +153,12 @@ export default function ElectionDetailsPage() {
   const [bulletinCandidateVotes, setBulletinCandidateVotes] = useState([]);
   const [bulletinCarouselIndex, setBulletinCarouselIndex] = useState(0);
   const [bulletinCarouselInterval, setBulletinCarouselInterval] = useState(null);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [electionToArchive, setElectionToArchive] = useState(null);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [softDeleteModalOpen, setSoftDeleteModalOpen] = useState(false);
+  const [electionToSoftDelete, setElectionToSoftDelete] = useState(null);
+  const [isSoftDeleting, setIsSoftDeleting] = useState(false);
 
   const toggleFullScreen = async () => {
     if (!document.fullscreenElement) {
@@ -1030,6 +1037,85 @@ export default function ElectionDetailsPage() {
     }
   };
 
+  const handleArchiveClick = (election) => {
+    setElectionToArchive(election);
+    setArchiveModalOpen(true);
+  };
+
+  const handleArchiveConfirm = async () => {
+    if (!electionToArchive) return;
+
+    try {
+      setIsArchiving(true);
+      const token = Cookies.get('token');
+      
+      const response = await fetch(`${API_BASE}/elections/${electionToArchive.id}/archive`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to archive election');
+      }
+
+      toast.success('Election archived successfully');
+      setArchiveModalOpen(false);
+      setElectionToArchive(null);
+      
+      // Refresh the page to show updated status
+      window.location.reload();
+    } catch (error) {
+      console.error('Error archiving election:', error);
+      toast.error(error.message || 'Failed to archive election');
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const handleSoftDeleteClick = (election) => {
+    setElectionToSoftDelete(election);
+    setSoftDeleteModalOpen(true);
+  };
+
+  const handleSoftDeleteConfirm = async () => {
+    if (!electionToSoftDelete) return;
+
+    try {
+      setIsSoftDeleting(true);
+      const token = Cookies.get('token');
+      
+      const response = await fetch(`${API_BASE}/elections/${electionToSoftDelete.id}/soft-delete`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ autoDeleteDays: null }) // No auto-delete from main page
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete election');
+      }
+
+      toast.success('Election moved to deleted folder');
+      setSoftDeleteModalOpen(false);
+      setElectionToSoftDelete(null);
+      
+      // Redirect to elections list
+      router.push('/superadmin/election');
+    } catch (error) {
+      console.error('Error deleting election:', error);
+      toast.error(error.message || 'Failed to delete election');
+    } finally {
+      setIsSoftDeleting(false);
+    }
+  };
+
   return (
     <>
       <style jsx global>{`
@@ -1090,6 +1176,23 @@ export default function ElectionDetailsPage() {
                     Edit Ballot
                   </Link>
                 )}
+
+                {/* Archive and Delete buttons for all elections */}
+                <button
+                  onClick={() => handleArchiveClick(election)}
+                  className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                >
+                  <FolderOpen className="w-4 h-4 mr-2" />
+                  Archive
+                </button>
+
+                <button
+                  onClick={() => handleSoftDeleteClick(election)}
+                  className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Delete
+                </button>
               </>
             ) : (
               <div className="flex items-center px-4 py-2 bg-gray-200 text-gray-600 rounded cursor-not-allowed">
@@ -2965,6 +3068,82 @@ export default function ElectionDetailsPage() {
         </div>
       ) : null}
       </div>
+
+      {/* Archive Confirmation Modal */}
+      {archiveModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <FolderOpen className="w-6 h-6 text-yellow-600 mr-3" />
+              <h3 className="text-lg font-semibold text-gray-900">Archive Election</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to archive this election? It will be moved to the archived folder and can be restored later.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setArchiveModalOpen(false)}
+                className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300"
+                disabled={isArchiving}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleArchiveConfirm}
+                disabled={isArchiving}
+                className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50"
+              >
+                {isArchiving ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin h-4 w-4 mr-2 border-2 border-white rounded-full border-t-transparent"></div>
+                    Archiving...
+                  </div>
+                ) : (
+                  'Archive Election'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Soft Delete Confirmation Modal */}
+      {softDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <X className="w-6 h-6 text-red-600 mr-3" />
+              <h3 className="text-lg font-semibold text-gray-900">Delete Election</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this election? It will be moved to the deleted folder and can be restored later.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setSoftDeleteModalOpen(false)}
+                className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300"
+                disabled={isSoftDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSoftDeleteConfirm}
+                disabled={isSoftDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+              >
+                {isSoftDeleting ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin h-4 w-4 mr-2 border-2 border-white rounded-full border-t-transparent"></div>
+                    Deleting...
+                  </div>
+                ) : (
+                  'Delete Election'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
