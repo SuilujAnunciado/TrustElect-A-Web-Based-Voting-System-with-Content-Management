@@ -292,7 +292,7 @@ export default function ElectionDetailsPage() {
     }
   };
 
-  const fetchElectionData = async (isRetry = false) => {
+  const fetchElectionData = async (isRetry = false, isMinimal = false) => {
     try {
       // Cancel any existing request
       if (abortControllerRef.current) {
@@ -302,9 +302,10 @@ export default function ElectionDetailsPage() {
       // Create new abort controller
       abortControllerRef.current = new AbortController();
       
+      // For minimal load, only fetch basic election data
       const data = await fetchWithAuth(`/elections/${params.id}/details`, {
         signal: abortControllerRef.current.signal,
-        retries: isRetry ? 1 : 3
+        retries: isRetry ? 1 : 2
       });
       
       let electionData = data.election;
@@ -333,7 +334,7 @@ export default function ElectionDetailsPage() {
             max_choices: pos.max_choices,
             candidates: pos.candidates || []
           }));
-        } else if (!electionData.positions && electionData.ballot?.id) {
+        } else if (!electionData.positions && electionData.ballot?.id && !isMinimal) {
           try {
             const ballotResponse = await fetchWithAuth(`/elections/${params.id}/ballot`, {
               signal: abortControllerRef.current.signal,
@@ -358,7 +359,7 @@ export default function ElectionDetailsPage() {
       }
       
       const imageCache = {};
-      if (electionData?.positions) {
+      if (electionData?.positions && !isMinimal) {
         electionData.positions.forEach(position => {
           position.candidates?.forEach(candidate => {
             if (candidate.image_url) {
@@ -369,8 +370,8 @@ export default function ElectionDetailsPage() {
         });
       }
       
-      // Only fetch additional data if not retrying (to reduce load)
-      if (!isRetry) {
+      // Only fetch additional data if not retrying and not minimal load
+      if (!isRetry && !isMinimal) {
         try {
           const [completeElectionData, eligibilityCriteriaResponse] = await Promise.all([
             fetchWithAuth(`/elections/${params.id}`, {
@@ -396,13 +397,7 @@ export default function ElectionDetailsPage() {
       
       setCandidateImages(imageCache);
       setElection(electionData);
-      setRetryCount(0); // Reset retry count on success
-      
-      console.log('Election data updated:', {
-        voter_count: electionData.voter_count,
-        vote_count: electionData.vote_count,
-        positions: electionData.positions?.length
-      });
+      setRetryCount(0);
       
       return electionData;
     } catch (err) {
@@ -413,14 +408,14 @@ export default function ElectionDetailsPage() {
           err.message.includes('Network Error') ||
           err.name === 'AbortError') {
         
-        if (retryCount < 3 && !isRetry) {
+        if (retryCount < 2 && !isRetry) {
           setRetryCount(prev => prev + 1);
           setIsRetrying(true);
           
           // Wait before retrying with exponential backoff
-          const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+          const delay = Math.min(2000 * Math.pow(2, retryCount), 8000);
           setTimeout(() => {
-            fetchElectionData(true);
+            fetchElectionData(true, true); // Use minimal load for retries
             setIsRetrying(false);
           }, delay);
           
@@ -436,7 +431,16 @@ export default function ElectionDetailsPage() {
     const loadElectionDetails = async () => {
       try {
         setIsLoading(true);
-        await fetchElectionData();
+        // Start with minimal load to get basic election data quickly
+        await fetchElectionData(false, true);
+        
+        // Then load full data in background
+        setTimeout(() => {
+          fetchElectionData(false, false).catch(err => {
+            console.error('Error loading full election data:', err);
+            // Don't show error for background loading
+          });
+        }, 1000);
       } catch (err) {
         console.error('Error loading election details:', err);
         setError(err.message);
@@ -460,13 +464,13 @@ export default function ElectionDetailsPage() {
         try {
           // Only refresh if not already retrying
           if (!isRetrying) {
-            await fetchElectionData(true); // Use retry mode for auto-refresh
+            await fetchElectionData(true, true); // Use retry mode and minimal load for auto-refresh
           }
         } catch (error) {
           console.error('Error during auto-refresh:', error);
           // Don't show error toast for auto-refresh failures
         }
-      }, 5000); // Refresh every 5 seconds instead of 1 second
+      }, 10000); // Refresh every 10 seconds to reduce server load
       
       return () => {
         if (intervalRef.current) {
@@ -788,8 +792,9 @@ export default function ElectionDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex flex-col justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="mt-4 text-gray-600">Loading election data...</p>
       </div>
     );
   }
@@ -813,7 +818,7 @@ export default function ElectionDetailsPage() {
                 onClick={() => {
                   setError(null);
                   setRetryCount(0);
-                  fetchElectionData();
+                  fetchElectionData(false, true); // Use minimal load for retry
                 }}
                 disabled={isRetrying}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
