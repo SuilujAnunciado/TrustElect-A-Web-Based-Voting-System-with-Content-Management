@@ -1122,8 +1122,8 @@ export default function ElectionDetailsPage() {
             Generate Report
           </button>
           
-          {/* Edit buttons for upcoming or pending approval elections - shown if user has edit permission (creator or not) */}
-          {((election.needs_approval && !isSuperAdminCreator) || election.status === 'upcoming') && canEditElection() && (
+          {/* Edit buttons for upcoming, pending approval, ongoing, or completed elections - shown if user has edit permission (creator or not) */}
+          {((election.needs_approval && !isSuperAdminCreator) || election.status === 'upcoming' || election.status === 'ongoing' || election.status === 'completed') && canEditElection() && (
             <>
               <Link
                 href={`/admin/election/${election.id}/edit`}
