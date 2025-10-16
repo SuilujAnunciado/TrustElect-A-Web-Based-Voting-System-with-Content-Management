@@ -59,46 +59,69 @@ function formatNameSimple(lastName, firstName, fallback) {
   return cap(lastName || firstName || fallback || 'No Name');
 }
 
-async function fetchWithAuth(url) {
+async function fetchWithAuth(url, options = {}) {
   const token = Cookies.get('token');
-  try {
-    const response = await fetch(`${API_BASE}${url}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    if (!response.ok) {
-      if (response.status === 403) {
-        // Handle forbidden error specifically to show a better error message
-        throw new Error('Access denied: You do not have permission to view this election');
+  const { retries = 3, delay = 1000, signal } = options;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const requestSignal = signal || controller.signal;
+      
+      // Set timeout for the request
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      const response = await fetch(`${API_BASE}${url}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        signal: requestSignal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Access denied: You do not have permission to view this election');
+        }
+
+        // Check if the response is JSON before trying to parse it
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const error = await response.json();
+          throw new Error(error.message || `Request failed with status ${response.status}`);
+        } else {
+          const errorText = await response.text();
+          throw new Error(errorText || `Request failed with status ${response.status}`);
+        }
       }
 
-      // Check if the response is JSON before trying to parse it
+      // Check if response is JSON before parsing
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
-        const error = await response.json();
-        throw new Error(error.message || `Request failed with status ${response.status}`);
+        return response.json();
       } else {
-        // For non-JSON responses, get the text
-        const errorText = await response.text();
-        throw new Error(errorText || `Request failed with status ${response.status}`);
+        const text = await response.text();
+        console.warn('Expected JSON response but got text:', text);
+        return { success: true, message: text };
+      }
+    } catch (error) {
+      console.error(`API request error (attempt ${attempt + 1}/${retries + 1}):`, error);
+      
+      // If it's the last attempt or a non-retryable error, throw the error
+      if (attempt === retries || 
+          error.name === 'AbortError' || 
+          error.message.includes('Access denied') ||
+          error.message.includes('403')) {
+        throw error;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < retries) {
+        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt)));
       }
     }
-
-    // Check if response is JSON before parsing
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return response.json();
-    } else {
-      // If not JSON (which should be rare for successful responses), return text
-      const text = await response.text();
-      console.warn('Expected JSON response but got text:', text);
-      return { success: true, message: text };
-    }
-  } catch (error) {
-    console.error('API request error:', error);
-    throw error;
   }
 }
 
@@ -152,6 +175,9 @@ export default function ElectionDetailsPage() {
   const [bulletinCandidateVotes, setBulletinCandidateVotes] = useState([]);
   const [bulletinCarouselIndex, setBulletinCarouselIndex] = useState(0);
   const [bulletinCarouselInterval, setBulletinCarouselInterval] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const abortControllerRef = useRef(null);
 
   // Permission management
   const { hasPermission, permissionsLoading } = usePermissions();
@@ -266,9 +292,20 @@ export default function ElectionDetailsPage() {
     }
   };
 
-  const fetchElectionData = async () => {
+  const fetchElectionData = async (isRetry = false) => {
     try {
-      const data = await fetchWithAuth(`/elections/${params.id}/details`);
+      // Cancel any existing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Create new abort controller
+      abortControllerRef.current = new AbortController();
+      
+      const data = await fetchWithAuth(`/elections/${params.id}/details`, {
+        signal: abortControllerRef.current.signal,
+        retries: isRetry ? 1 : 3
+      });
       
       let electionData = data.election;
      
@@ -298,7 +335,10 @@ export default function ElectionDetailsPage() {
           }));
         } else if (!electionData.positions && electionData.ballot?.id) {
           try {
-            const ballotResponse = await fetchWithAuth(`/elections/${params.id}/ballot`);
+            const ballotResponse = await fetchWithAuth(`/elections/${params.id}/ballot`, {
+              signal: abortControllerRef.current.signal,
+              retries: 1
+            });
             if (ballotResponse && ballotResponse.positions) {
               electionData.positions = ballotResponse.positions.map(pos => ({
                 id: pos.position_id || pos.id,
@@ -329,22 +369,34 @@ export default function ElectionDetailsPage() {
         });
       }
       
-      try {
-        const completeElectionData = await fetchWithAuth(`/elections/${params.id}`);
-        const eligibilityCriteriaResponse = await fetchWithAuth(`/elections/${params.id}/criteria`);
-        
-        electionData.eligibility_criteria = {
-          ...(eligibilityCriteriaResponse.criteria || {}),
-          precinctPrograms: completeElectionData.eligible_voters?.precinctPrograms || {},
-          precinct: completeElectionData.eligible_voters?.precinct || []
-        };
-      } catch (criteriaErr) {
-        console.error('Error fetching eligibility criteria:', criteriaErr);
-        electionData.eligibility_criteria = {};
+      // Only fetch additional data if not retrying (to reduce load)
+      if (!isRetry) {
+        try {
+          const [completeElectionData, eligibilityCriteriaResponse] = await Promise.all([
+            fetchWithAuth(`/elections/${params.id}`, {
+              signal: abortControllerRef.current.signal,
+              retries: 1
+            }),
+            fetchWithAuth(`/elections/${params.id}/criteria`, {
+              signal: abortControllerRef.current.signal,
+              retries: 1
+            })
+          ]);
+          
+          electionData.eligibility_criteria = {
+            ...(eligibilityCriteriaResponse.criteria || {}),
+            precinctPrograms: completeElectionData.eligible_voters?.precinctPrograms || {},
+            precinct: completeElectionData.eligible_voters?.precinct || []
+          };
+        } catch (criteriaErr) {
+          console.error('Error fetching eligibility criteria:', criteriaErr);
+          electionData.eligibility_criteria = {};
+        }
       }
       
       setCandidateImages(imageCache);
       setElection(electionData);
+      setRetryCount(0); // Reset retry count on success
       
       console.log('Election data updated:', {
         voter_count: electionData.voter_count,
@@ -355,6 +407,27 @@ export default function ElectionDetailsPage() {
       return electionData;
     } catch (err) {
       console.error('Error fetching election data:', err);
+      
+      // Handle specific network errors
+      if (err.message.includes('ERR_INSUFFICIENT_RESOURCES') || 
+          err.message.includes('Network Error') ||
+          err.name === 'AbortError') {
+        
+        if (retryCount < 3 && !isRetry) {
+          setRetryCount(prev => prev + 1);
+          setIsRetrying(true);
+          
+          // Wait before retrying with exponential backoff
+          const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+          setTimeout(() => {
+            fetchElectionData(true);
+            setIsRetrying(false);
+          }, delay);
+          
+          return;
+        }
+      }
+      
       throw err;
     }
   };
@@ -385,11 +458,15 @@ export default function ElectionDetailsPage() {
       
       intervalRef.current = setInterval(async () => {
         try {
-          await fetchElectionData();
+          // Only refresh if not already retrying
+          if (!isRetrying) {
+            await fetchElectionData(true); // Use retry mode for auto-refresh
+          }
         } catch (error) {
           console.error('Error during auto-refresh:', error);
+          // Don't show error toast for auto-refresh failures
         }
-      }, 1000); // Refresh every 1 second
+      }, 5000); // Refresh every 5 seconds instead of 1 second
       
       return () => {
         if (intervalRef.current) {
@@ -405,7 +482,7 @@ export default function ElectionDetailsPage() {
         intervalRef.current = null;
       }
     }
-  }, [isFullScreen, tab, election?.status, params.id]);
+  }, [isFullScreen, tab, election?.status, params.id, isRetrying]);
 
   // Position carousel effect for fullscreen
   useEffect(() => {
@@ -490,6 +567,9 @@ export default function ElectionDetailsPage() {
       }
       if (bulletinCarouselInterval) {
         clearInterval(bulletinCarouselInterval);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
@@ -718,14 +798,37 @@ export default function ElectionDetailsPage() {
     return (
       <div className="max-w-4xl mx-auto p-4">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold">Error Loading Election</h3>
+              <p className="mt-1">{error}</p>
+              {error.includes('ERR_INSUFFICIENT_RESOURCES') && (
+                <p className="mt-2 text-sm">
+                  The server is experiencing high load. Please try again in a moment.
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                  setError(null);
+                  setRetryCount(0);
+                  fetchElectionData();
+                }}
+                disabled={isRetrying}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isRetrying ? 'Retrying...' : 'Retry'}
+              </button>
+              <button 
+                onClick={() => router.back()}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-black"
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
         </div>
-        <button 
-          onClick={() => router.back()}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-black"
-        >
-          Go Back
-        </button>
       </div>
     );
   }
