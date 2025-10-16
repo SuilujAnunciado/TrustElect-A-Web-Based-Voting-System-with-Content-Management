@@ -67,6 +67,8 @@ export default function EditElectionPage() {
   const [criteriaErrors, setCriteriaErrors] = useState({});
   const [eligibleCount, setEligibleCount] = useState(0);
   const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
+  const [circuitBreakerOpen, setCircuitBreakerOpen] = useState(false);
+  const [lastFailureTime, setLastFailureTime] = useState(0);
 
   // Sorting functions to match create election page
   const sortPrecincts = (a, b) => {
@@ -228,32 +230,74 @@ export default function EditElectionPage() {
           setLoading(prev => ({ ...prev, initial: false }));
           return;
         }
-        
-        // Fetch election details with retry logic
+
+        // Check circuit breaker
+        const now = Date.now();
+        if (circuitBreakerOpen && (now - lastFailureTime) < 30000) { // 30 second cooldown
+          setError("Server is temporarily unavailable. Please try again in a moment.");
+          setLoading(prev => ({ ...prev, initial: false }));
+          return;
+        }
+
+        // Reset circuit breaker if enough time has passed
+        if (circuitBreakerOpen && (now - lastFailureTime) >= 30000) {
+          setCircuitBreakerOpen(false);
+        }
+
+        // Fetch election details with aggressive retry logic
         const token = Cookies.get("token");
         let electionResponse;
         let retryCount = 0;
-        const maxRetries = 3;
+        const maxRetries = 3; // Reduced retries to prevent overload
         
         while (retryCount < maxRetries) {
           try {
+            // Add random delay to prevent request collision
+            if (retryCount > 0) {
+              const randomDelay = Math.random() * 2000 + 1000; // 1-3 seconds
+              await new Promise(resolve => setTimeout(resolve, randomDelay));
+            }
+            
             electionResponse = await axios.get(
               `${API_BASE}/elections/${electionId}/details`,
               {
                 headers: {
-                  'Authorization': `Bearer ${token}`
+                  'Authorization': `Bearer ${token}`,
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache'
                 },
-                timeout: 30000 // 30 second timeout
+                timeout: 60000, // Increased timeout to 60 seconds
+                validateStatus: function (status) {
+                  return status < 500; // Don't throw for 4xx errors
+                }
               }
             );
-            break; // Success, exit retry loop
+            
+            // Check if response is successful
+            if (electionResponse.status === 200 && electionResponse.data.success) {
+              break; // Success, exit retry loop
+            } else if (electionResponse.status === 403) {
+              throw new Error("You do not have permission to edit this election");
+            } else if (electionResponse.status === 404) {
+              throw new Error("Election not found");
+            } else {
+              throw new Error(`Request failed with status ${electionResponse.status}`);
+            }
           } catch (err) {
             retryCount++;
-            if (retryCount >= maxRetries || err.response?.status === 403) {
-              throw err; // Don't retry for auth errors
+            console.log(`Retry attempt ${retryCount}/${maxRetries} for election details`);
+            
+            if (retryCount >= maxRetries) {
+              throw err; // Final attempt failed
             }
-            // Wait before retrying (exponential backoff)
-            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount - 1)));
+            
+            // Exponential backoff with jitter
+            const baseDelay = 2000 * Math.pow(2, retryCount - 1);
+            const jitter = Math.random() * 1000;
+            const delay = Math.min(baseDelay + jitter, 15000); // Max 15 seconds
+            
+            console.log(`Waiting ${Math.round(delay)}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
 
@@ -361,9 +405,12 @@ export default function EditElectionPage() {
       } catch (err) {
         console.error("Error loading election data:", err);
         
-        // Handle specific error types
+        // Trigger circuit breaker for resource errors
         if (err.message?.includes('ERR_INSUFFICIENT_RESOURCES') || 
-            err.message?.includes('Network Error')) {
+            err.message?.includes('Network Error') ||
+            err.code === 'ERR_NETWORK') {
+          setCircuitBreakerOpen(true);
+          setLastFailureTime(Date.now());
           setError("Server is experiencing high load. Please try again in a moment.");
         } else if (err.response?.status === 403) {
           setError("You do not have permission to edit this election");
@@ -687,6 +734,8 @@ export default function EditElectionPage() {
               <button
                 onClick={() => {
                   setError(null);
+                  setCircuitBreakerOpen(false);
+                  setLastFailureTime(0);
                   window.location.reload();
                 }}
                 className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
