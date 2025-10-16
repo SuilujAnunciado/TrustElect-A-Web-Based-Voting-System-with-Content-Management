@@ -298,10 +298,43 @@ export default function ElectionDetailsPage() {
         const completeElectionData = await fetchWithAuth(`/elections/${params.id}`);
         const eligibilityCriteriaResponse = await fetchWithAuth(`/elections/${params.id}/criteria`);
         
+        console.log("Complete election data:", completeElectionData);
+        console.log("Eligibility criteria response:", eligibilityCriteriaResponse);
+        
+        // Process precinct programs from different possible sources
+        let precinctPrograms = {};
+        let precincts = [];
+        
+        // Try to get from eligibility criteria response first
+        if (eligibilityCriteriaResponse.criteria) {
+          precinctPrograms = eligibilityCriteriaResponse.criteria.precinctPrograms || eligibilityCriteriaResponse.criteria.precinct_programs || {};
+          precincts = eligibilityCriteriaResponse.criteria.precincts || eligibilityCriteriaResponse.criteria.precinct || [];
+        }
+        
+        // If not found, try from complete election data
+        if (Object.keys(precinctPrograms).length === 0) {
+          precinctPrograms = completeElectionData.eligible_voters?.precinctPrograms || completeElectionData.eligible_voters?.precinct_programs || {};
+          precincts = completeElectionData.eligible_voters?.precinct || [];
+        }
+        
+        // If still not found, try from laboratoryPrecincts
+        if (Object.keys(precinctPrograms).length === 0 && completeElectionData.laboratoryPrecincts) {
+          console.log("Processing laboratoryPrecincts:", completeElectionData.laboratoryPrecincts);
+          completeElectionData.laboratoryPrecincts.forEach(lp => {
+            if (lp.laboratoryPrecinctId && lp.assignedCourses) {
+              const precinctName = lp.precinctName || `Lab ${lp.laboratoryPrecinctId}`;
+              precinctPrograms[precinctName] = lp.assignedCourses;
+            }
+          });
+        }
+        
+        console.log("Final precinct programs:", precinctPrograms);
+        console.log("Final precincts:", precincts);
+        
         electionData.eligibility_criteria = {
           ...(eligibilityCriteriaResponse.criteria || {}),
-          precinctPrograms: completeElectionData.eligible_voters?.precinctPrograms || {},
-          precinct: completeElectionData.eligible_voters?.precinct || []
+          precinctPrograms: precinctPrograms,
+          precinct: precincts
         };
       } catch (criteriaErr) {
         console.error('Error fetching eligibility criteria:', criteriaErr);
