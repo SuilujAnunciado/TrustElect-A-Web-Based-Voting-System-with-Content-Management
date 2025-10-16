@@ -518,6 +518,191 @@ const deleteElection = async (id) => {
   return { message: "Election deleted successfully" };
 };
 
+// Archive election (soft archive)
+const archiveElection = async (id, userId) => {
+  const result = await pool.query(
+    `UPDATE elections 
+     SET is_archived = TRUE, archived_at = NOW(), archived_by = $2
+     WHERE id = $1 AND is_archived = FALSE AND is_deleted = FALSE
+     RETURNING *`,
+    [id, userId]
+  );
+  
+  if (result.rows.length === 0) {
+    throw new Error("Election not found or already archived/deleted");
+  }
+  
+  return { message: "Election archived successfully", election: result.rows[0] };
+};
+
+// Restore archived election
+const restoreArchivedElection = async (id, userId) => {
+  const result = await pool.query(
+    `UPDATE elections 
+     SET is_archived = FALSE, archived_at = NULL, archived_by = NULL
+     WHERE id = $1 AND is_archived = TRUE AND is_deleted = FALSE
+     RETURNING *`,
+    [id]
+  );
+  
+  if (result.rows.length === 0) {
+    throw new Error("Archived election not found or already restored");
+  }
+  
+  return { message: "Election restored successfully", election: result.rows[0] };
+};
+
+// Soft delete election
+const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
+  let autoDeleteAt = null;
+  if (autoDeleteDays && autoDeleteDays > 0) {
+    const autoDeleteDate = new Date();
+    autoDeleteDate.setDate(autoDeleteDate.getDate() + autoDeleteDays);
+    autoDeleteAt = autoDeleteDate.toISOString();
+  }
+  
+  const result = await pool.query(
+    `UPDATE elections 
+     SET is_deleted = TRUE, deleted_at = NOW(), deleted_by = $2, auto_delete_at = $3
+     WHERE id = $1 AND is_archived = FALSE AND is_deleted = FALSE
+     RETURNING *`,
+    [id, userId, autoDeleteAt]
+  );
+  
+  if (result.rows.length === 0) {
+    throw new Error("Election not found or already archived/deleted");
+  }
+  
+  return { message: "Election deleted successfully", election: result.rows[0] };
+};
+
+// Restore soft deleted election
+const restoreDeletedElection = async (id, userId) => {
+  const result = await pool.query(
+    `UPDATE elections 
+     SET is_deleted = FALSE, deleted_at = NULL, deleted_by = NULL, auto_delete_at = NULL
+     WHERE id = $1 AND is_deleted = TRUE AND is_archived = FALSE
+     RETURNING *`,
+    [id]
+  );
+  
+  if (result.rows.length === 0) {
+    throw new Error("Deleted election not found or already restored");
+  }
+  
+  return { message: "Election restored successfully", election: result.rows[0] };
+};
+
+// Permanent delete election (hard delete)
+const permanentDeleteElection = async (id) => {
+  const result = await pool.query(
+    `DELETE FROM elections 
+     WHERE id = $1 AND (is_archived = TRUE OR is_deleted = TRUE)
+     RETURNING *`,
+    [id]
+  );
+  
+  if (result.rows.length === 0) {
+    throw new Error("Election not found or not in archived/deleted state");
+  }
+  
+  return { message: "Election permanently deleted successfully" };
+};
+
+// Get archived elections
+const getArchivedElections = async (userId = null) => {
+  let query = `
+    SELECT 
+      e.*,
+      u.first_name || ' ' || u.last_name as creator_name,
+      CASE u.role_id
+        WHEN 1 THEN 'SuperAdmin'
+        WHEN 2 THEN 'Admin'
+        WHEN 3 THEN 'Student'
+        ELSE 'Unknown'
+      END as creator_role,
+      archived_user.first_name || ' ' || archived_user.last_name as archived_by_name,
+      (SELECT COUNT(*) FROM eligible_voters ev WHERE ev.election_id = e.id) AS voter_count,
+      (SELECT COALESCE(COUNT(DISTINCT student_id), 0) FROM votes WHERE election_id = e.id) AS vote_count
+    FROM elections e
+    LEFT JOIN users u ON e.created_by = u.id
+    LEFT JOIN users archived_user ON e.archived_by = archived_user.id
+    WHERE e.is_archived = TRUE AND e.is_deleted = FALSE
+  `;
+  
+  const params = [];
+  if (userId) {
+    query += ` AND e.created_by = $1`;
+    params.push(userId);
+  }
+  
+  query += ` ORDER BY e.archived_at DESC`;
+  
+  const result = await pool.query(query, params);
+  return result.rows;
+};
+
+// Get soft deleted elections
+const getDeletedElections = async (userId = null) => {
+  let query = `
+    SELECT 
+      e.*,
+      u.first_name || ' ' || u.last_name as creator_name,
+      CASE u.role_id
+        WHEN 1 THEN 'SuperAdmin'
+        WHEN 2 THEN 'Admin'
+        WHEN 3 THEN 'Student'
+        ELSE 'Unknown'
+      END as creator_role,
+      deleted_user.first_name || ' ' || deleted_user.last_name as deleted_by_name,
+      (SELECT COUNT(*) FROM eligible_voters ev WHERE ev.election_id = e.id) AS voter_count,
+      (SELECT COALESCE(COUNT(DISTINCT student_id), 0) FROM votes WHERE election_id = e.id) AS vote_count
+    FROM elections e
+    LEFT JOIN users u ON e.created_by = u.id
+    LEFT JOIN users deleted_user ON e.deleted_by = deleted_user.id
+    WHERE e.is_deleted = TRUE AND e.is_archived = FALSE
+  `;
+  
+  const params = [];
+  if (userId) {
+    query += ` AND e.created_by = $1`;
+    params.push(userId);
+  }
+  
+  query += ` ORDER BY e.deleted_at DESC`;
+  
+  const result = await pool.query(query, params);
+  return result.rows;
+};
+
+// Get elections ready for auto-delete
+const getElectionsForAutoDelete = async () => {
+  const result = await pool.query(
+    `SELECT * FROM elections 
+     WHERE auto_delete_at IS NOT NULL 
+     AND auto_delete_at <= NOW() 
+     AND is_deleted = TRUE 
+     AND is_archived = FALSE`
+  );
+  return result.rows;
+};
+
+// Clean up auto-delete elections
+const cleanupAutoDeleteElections = async () => {
+  const electionsToDelete = await getElectionsForAutoDelete();
+  
+  for (const election of electionsToDelete) {
+    try {
+      await permanentDeleteElection(election.id);
+      console.log(`Auto-deleted election ${election.id}: ${election.title}`);
+    } catch (error) {
+      console.error(`Failed to auto-delete election ${election.id}:`, error);
+    }
+  }
+  
+  return { deleted: electionsToDelete.length };
+};
+
 const getElectionWithBallot = async (electionId) => {
   try {
 
@@ -979,5 +1164,15 @@ module.exports = {
   getEligibleStudentsForCriteria,
   updateEligibleVoters,
   createElectionLaboratoryPrecincts,
+  // Archive and Delete functionality
+  archiveElection,
+  restoreArchivedElection,
+  softDeleteElection,
+  restoreDeletedElection,
+  permanentDeleteElection,
+  getArchivedElections,
+  getDeletedElections,
+  getElectionsForAutoDelete,
+  cleanupAutoDeleteElections,
   assignStudentsToLaboratoryPrecincts
 };

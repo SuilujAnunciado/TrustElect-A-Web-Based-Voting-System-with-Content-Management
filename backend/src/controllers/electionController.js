@@ -16,7 +16,17 @@ const {
   getPendingApprovalElections,
   getAllElectionsWithCreator,
   createElectionLaboratoryPrecincts,
-  assignStudentsToLaboratoryPrecincts
+  assignStudentsToLaboratoryPrecincts,
+  // Archive and Delete functionality
+  archiveElection,
+  restoreArchivedElection,
+  softDeleteElection,
+  restoreDeletedElection,
+  permanentDeleteElection,
+  getArchivedElections,
+  getDeletedElections,
+  getElectionsForAutoDelete,
+  cleanupAutoDeleteElections
 } = require("../models/electionModel");
 const pool = require("../config/db");
 const crypto = require('crypto');
@@ -506,6 +516,166 @@ exports.deleteElection = async (req, res) => {
   } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Archive election
+exports.archiveElection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    
+    const result = await archiveElection(id, userId);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      election: result.election
+    });
+  } catch (error) {
+    console.error('Error archiving election:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Restore archived election
+exports.restoreArchivedElection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    
+    const result = await restoreArchivedElection(id, userId);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      election: result.election
+    });
+  } catch (error) {
+    console.error('Error restoring archived election:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Soft delete election
+exports.softDeleteElection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { autoDeleteDays } = req.body;
+    
+    const result = await softDeleteElection(id, userId, autoDeleteDays);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      election: result.election
+    });
+  } catch (error) {
+    console.error('Error soft deleting election:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Restore soft deleted election
+exports.restoreDeletedElection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    
+    const result = await restoreDeletedElection(id, userId);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      election: result.election
+    });
+  } catch (error) {
+    console.error('Error restoring deleted election:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Permanent delete election
+exports.permanentDeleteElection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await permanentDeleteElection(id);
+    res.status(200).json({
+      success: true,
+      message: result.message
+    });
+  } catch (error) {
+    console.error('Error permanently deleting election:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Get archived elections
+exports.getArchivedElections = async (req, res) => {
+  try {
+    const userId = req.user.role_id === 1 ? null : req.user.id; // SuperAdmin can see all, others see only their own
+    
+    const elections = await getArchivedElections(userId);
+    res.status(200).json({
+      success: true,
+      data: elections
+    });
+  } catch (error) {
+    console.error('Error fetching archived elections:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch archived elections'
+    });
+  }
+};
+
+// Get deleted elections
+exports.getDeletedElections = async (req, res) => {
+  try {
+    const userId = req.user.role_id === 1 ? null : req.user.id; // SuperAdmin can see all, others see only their own
+    
+    const elections = await getDeletedElections(userId);
+    res.status(200).json({
+      success: true,
+      data: elections
+    });
+  } catch (error) {
+    console.error('Error fetching deleted elections:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch deleted elections'
+    });
+  }
+};
+
+// Cleanup auto-delete elections (for cron job)
+exports.cleanupAutoDeleteElections = async (req, res) => {
+  try {
+    const result = await cleanupAutoDeleteElections();
+    res.status(200).json({
+      success: true,
+      message: `Cleaned up ${result.deleted} elections`,
+      deleted: result.deleted
+    });
+  } catch (error) {
+    console.error('Error cleaning up auto-delete elections:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to cleanup auto-delete elections'
+    });
   }
 };
 

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Plus, ArrowLeft, Trash2, Archive } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Plus, ArrowLeft, Trash2, Archive, FolderOpen, RotateCcw } from 'lucide-react';
 import Cookies from 'js-cookie';
 import Link from 'next/link';
 
@@ -32,6 +32,105 @@ const DeleteConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isDele
             disabled={isDeleting}
           >
             {isDeleting ? (
+              <>
+                <span className="mr-2">Deleting...</span>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+              </>
+            ) : (
+              'Delete'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ArchiveConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isArchiving }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
+        <h3 className="text-xl font-bold mb-4 text-black">Confirm Archive</h3>
+        <p className="mb-6 text-black">
+          Are you sure you want to archive the election <span className="font-semibold">{election?.title}</span>? 
+          This will move it to the archived folder where it can be restored later.
+        </p>  
+             
+        <div className="flex justify-end space-x-3">
+          <button
+            className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            onClick={onCancel}
+            disabled={isArchiving}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center disabled:opacity-50"
+            onClick={onConfirm}
+            disabled={isArchiving}
+          >
+            {isArchiving ? (
+              <>
+                <span className="mr-2">Archiving...</span>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+              </>
+            ) : (
+              'Archive'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SoftDeleteConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isSoftDeleting, autoDeleteDays, setAutoDeleteDays }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
+        <h3 className="text-xl font-bold mb-4 text-black">Confirm Delete</h3>
+        <p className="mb-6 text-black">
+          Are you sure you want to delete the election <span className="font-semibold">{election?.title}</span>? 
+          This will move it to the deleted folder where it can be restored later.
+        </p>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Auto-delete after (days):
+          </label>
+          <select
+            value={autoDeleteDays}
+            onChange={(e) => setAutoDeleteDays(parseInt(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isSoftDeleting}
+          >
+            <option value={0}>Never (keep forever)</option>
+            <option value={7}>7 days</option>
+            <option value={30}>30 days</option>
+            <option value={90}>90 days</option>
+            <option value={180}>180 days</option>
+            <option value={365}>1 year</option>
+          </select>
+        </div>
+             
+        <div className="flex justify-end space-x-3">
+          <button
+            className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            onClick={onCancel}
+            disabled={isSoftDeleting}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center disabled:opacity-50"
+            onClick={onConfirm}
+            disabled={isSoftDeleting}
+          >
+            {isSoftDeleting ? (
               <>
                 <span className="mr-2">Deleting...</span>
                 <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
@@ -86,6 +185,13 @@ export default function ElectionPage() {
   const [electionToDelete, setElectionToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [electionToArchive, setElectionToArchive] = useState(null);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [softDeleteModalOpen, setSoftDeleteModalOpen] = useState(false);
+  const [electionToSoftDelete, setElectionToSoftDelete] = useState(null);
+  const [isSoftDeleting, setIsSoftDeleting] = useState(false);
+  const [autoDeleteDays, setAutoDeleteDays] = useState(30);
   const [tabs, setTabs] = useState([
     { id: 'all', label: 'All Elections' },
     { id: 'ongoing', label: 'Ongoing' },
@@ -186,8 +292,14 @@ export default function ElectionPage() {
 
   const handleDeleteClick = (election, e) => {
     e.stopPropagation(); // Prevent row click
-    setElectionToDelete(election);
-    setDeleteModalOpen(true);
+    setElectionToSoftDelete(election);
+    setSoftDeleteModalOpen(true);
+  };
+
+  const handleArchiveClick = (election, e) => {
+    e.stopPropagation(); // Prevent row click
+    setElectionToArchive(election);
+    setArchiveModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
@@ -227,6 +339,100 @@ export default function ElectionPage() {
       setIsDeleting(false);
       setDeleteModalOpen(false);
       setElectionToDelete(null);
+      
+      setTimeout(() => {
+        setActionMessage(null);
+      }, 5000);
+    }
+  };
+
+  const handleArchiveConfirm = async () => {
+    if (!electionToArchive) return;
+    
+    try {
+      setIsArchiving(true);
+      
+      if (electionToArchive.status !== 'completed') {
+        setActionMessage({
+          type: 'error',
+          text: 'Only completed elections can be archived'
+        });
+        setArchiveModalOpen(false);
+        return;
+      }
+      
+      await fetchWithAuth(`/elections/${electionToArchive.id}/archive`, {
+        method: 'POST'
+      });
+      
+      // Update the elections state to remove the archived election
+      setElections(prev => prev.filter(e => e.id !== electionToArchive.id));
+      setFilteredElections(prev => prev.filter(e => e.id !== electionToArchive.id));
+      
+      setActionMessage({
+        type: 'success',
+        text: `Election "${electionToArchive.title}" was successfully archived.`
+      });
+      
+    } catch (error) {
+      setActionMessage({
+        type: 'error',
+        text: `Failed to archive election: ${error.message}`
+      });
+    } finally {
+      setIsArchiving(false);
+      setArchiveModalOpen(false);
+      setElectionToArchive(null);
+      
+      setTimeout(() => {
+        setActionMessage(null);
+      }, 5000);
+    }
+  };
+
+  const handleSoftDeleteConfirm = async () => {
+    if (!electionToSoftDelete) return;
+    
+    try {
+      setIsSoftDeleting(true);
+      
+      if (electionToSoftDelete.status !== 'completed') {
+        setActionMessage({
+          type: 'error',
+          text: 'Only completed elections can be deleted'
+        });
+        setSoftDeleteModalOpen(false);
+        return;
+      }
+      
+      await fetchWithAuth(`/elections/${electionToSoftDelete.id}/soft-delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          autoDeleteDays: autoDeleteDays
+        })
+      });
+      
+      // Update the elections state to remove the soft deleted election
+      setElections(prev => prev.filter(e => e.id !== electionToSoftDelete.id));
+      setFilteredElections(prev => prev.filter(e => e.id !== electionToSoftDelete.id));
+      
+      setActionMessage({
+        type: 'success',
+        text: `Election "${electionToSoftDelete.title}" was successfully deleted.`
+      });
+      
+    } catch (error) {
+      setActionMessage({
+        type: 'error',
+        text: `Failed to delete election: ${error.message}`
+      });
+    } finally {
+      setIsSoftDeleting(false);
+      setSoftDeleteModalOpen(false);
+      setElectionToSoftDelete(null);
       
       setTimeout(() => {
         setActionMessage(null);
@@ -284,7 +490,21 @@ export default function ElectionPage() {
         
       </div>
 
-      <div className="mb-6 flex justify-end">
+      <div className="mb-6 flex justify-end space-x-3">
+        <button 
+          onClick={() => router.push('/superadmin/election/archived')} 
+          className="bg-gray-600 text-white px-4 py-2.5 rounded-lg hover:bg-gray-700 transition-colors flex items-center shadow-sm"
+        >
+          <Archive className="w-5 h-5 mr-2" />
+          Archived
+        </button>
+        <button 
+          onClick={() => router.push('/superadmin/election/deleted')} 
+          className="bg-red-600 text-white px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors flex items-center shadow-sm"
+        >
+          <Trash2 className="w-5 h-5 mr-2" />
+          Deleted
+        </button>
         <button 
           onClick={handleCreateElection} 
           className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors flex items-center shadow-sm"
@@ -413,13 +633,22 @@ export default function ElectionPage() {
                       )}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                         {election.status === 'completed' && (
-                          <button
-                            onClick={(e) => handleDeleteClick(election, e)}
-                            className="text-red-600 hover:text-red-800 p-1 rounded-md hover:bg-red-50 transition-colors"
-                            title="Delete Election"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={(e) => handleArchiveClick(election, e)}
+                              className="text-gray-600 hover:text-gray-800 p-1 rounded-md hover:bg-gray-50 transition-colors"
+                              title="Archive Election"
+                            >
+                              <Archive className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteClick(election, e)}
+                              className="text-red-600 hover:text-red-800 p-1 rounded-md hover:bg-red-50 transition-colors"
+                              title="Delete Election"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -455,6 +684,26 @@ export default function ElectionPage() {
         onCancel={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
         isDeleting={isDeleting}
+      />
+
+      {/* Archive Confirmation Modal */}
+      <ArchiveConfirmationModal 
+        isOpen={archiveModalOpen}
+        election={electionToArchive}
+        onCancel={() => setArchiveModalOpen(false)}
+        onConfirm={handleArchiveConfirm}
+        isArchiving={isArchiving}
+      />
+
+      {/* Soft Delete Confirmation Modal */}
+      <SoftDeleteConfirmationModal 
+        isOpen={softDeleteModalOpen}
+        election={electionToSoftDelete}
+        onCancel={() => setSoftDeleteModalOpen(false)}
+        onConfirm={handleSoftDeleteConfirm}
+        isSoftDeleting={isSoftDeleting}
+        autoDeleteDays={autoDeleteDays}
+        setAutoDeleteDays={setAutoDeleteDays}
       />
     </div>
   );

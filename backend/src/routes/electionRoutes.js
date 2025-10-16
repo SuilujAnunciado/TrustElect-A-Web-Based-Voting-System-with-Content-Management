@@ -26,7 +26,16 @@ const {
     updateElectionCriteria,
     getCompletedElectionResults,
     getVoterVerificationCodes,
-    getVotesPerCandidate
+    getVotesPerCandidate,
+    // Archive and Delete functionality
+    archiveElection,
+    restoreArchivedElection,
+    softDeleteElection,
+    restoreDeletedElection,
+    permanentDeleteElection,
+    getArchivedElections,
+    getDeletedElections,
+    cleanupAutoDeleteElections
 } = require("../controllers/electionController");
 const {
     getBallotByElection
@@ -210,6 +219,20 @@ router.get("/:id/vote-token", verifyToken, isStudent, getVoteToken);
 
 router.get("/:id/voter-codes", verifyToken, getVoterVerificationCodes);
 router.get("/:id/votes-per-candidate", verifyToken, getVotesPerCandidate);
+
+// Archive and Delete functionality routes
+router.post("/:id/archive", verifyToken, archiveElection);
+router.post("/:id/restore-archive", verifyToken, restoreArchivedElection);
+router.post("/:id/soft-delete", verifyToken, softDeleteElection);
+router.post("/:id/restore-delete", verifyToken, restoreDeletedElection);
+router.delete("/:id/permanent", verifyToken, permanentDeleteElection);
+
+// Get archived and deleted elections
+router.get("/archived", verifyToken, getArchivedElections);
+router.get("/deleted", verifyToken, getDeletedElections);
+
+// Cleanup auto-delete elections (for cron job and manual cleanup)
+router.post("/cleanup-auto-delete", verifyToken, isSuperAdmin, cleanupAutoDeleteElections);
 
 // Ballot routes
 router.get("/ballot/:id/student", verifyToken, isStudent, getBallotForStudent);
