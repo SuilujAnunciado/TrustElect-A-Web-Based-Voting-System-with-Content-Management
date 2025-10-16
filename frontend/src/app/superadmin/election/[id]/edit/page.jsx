@@ -243,9 +243,10 @@ export default function EditElectionPage() {
         }
 
         // Map API response fields to our expected structure
-        const criteria = eligibilityResponse?.data?.criteria || {};
+        const criteria = eligibilityResponse?.data?.criteria || eligibilityResponse?.data || {};
         console.log("Raw criteria response:", criteria);
         console.log("Precinct programs from API:", criteria.precinctPrograms);
+        console.log("All criteria keys:", Object.keys(criteria));
         
         const eligibleVoters = {
           programs: criteria.courses || criteria.programs || [],
@@ -253,10 +254,10 @@ export default function EditElectionPage() {
           gender: criteria.genders || criteria.gender || [],
           semester: criteria.semesters || criteria.semester || [],
           precinct: criteria.precincts || criteria.precinct || [],
-          precinctPrograms: criteria.precinctPrograms || {}
+          precinctPrograms: criteria.precinctPrograms || criteria.precinct_programs || {}
         };
         
-        console.log("Mapped eligibleVoters:", eligibleVoters);
+        console.log("Initial eligibleVoters:", eligibleVoters);
 
         // Format dates and times for the form
         const formattedDateFrom = formatDateForInput(election.date_from);
@@ -331,11 +332,43 @@ export default function EditElectionPage() {
         const responses = await Promise.all(requests);
         
         const data = endpoints.reduce((acc, endpoint, index) => {
-          acc[endpoint.key] = responses[index].data.data.map(item => item.name);
+          if (endpoint.key === 'precincts') {
+            // For precincts, keep the full objects with id and name
+            acc[endpoint.key] = responses[index].data.data;
+          } else {
+            acc[endpoint.key] = responses[index].data.data.map(item => item.name);
+          }
           return acc;
         }, {});
 
         setMaintenanceData(data);
+
+        // Process laboratoryPrecincts if they exist and we have maintenance data
+        if (criteria.laboratoryPrecincts && data.precincts.length > 0) {
+          console.log("Processing laboratoryPrecincts:", criteria.laboratoryPrecincts);
+          const processedPrecinctPrograms = {};
+          
+          criteria.laboratoryPrecincts.forEach(lp => {
+            if (lp.laboratoryPrecinctId && lp.assignedCourses) {
+              // Find precinct name by ID
+              const precinctName = data.precincts.find(p => p.id === lp.laboratoryPrecinctId)?.name;
+              if (precinctName) {
+                processedPrecinctPrograms[precinctName] = lp.assignedCourses;
+              }
+            }
+          });
+          
+          console.log("Processed precinct programs:", processedPrecinctPrograms);
+          
+          // Update the eligibleVoters with processed precinct programs
+          setElectionData(prev => ({
+            ...prev,
+            eligibleVoters: {
+              ...prev.eligibleVoters,
+              precinctPrograms: processedPrecinctPrograms
+            }
+          }));
+        }
 
         // Fetch eligible voter count
         fetchEligibleCount(eligibleVoters);
@@ -1056,35 +1089,39 @@ export default function EditElectionPage() {
                   )}
                   
                   <div className="space-y-4">
-                    {maintenanceData.precincts.sort(sortPrecincts).map(precinct => (
-                      <div key={precinct} className="flex items-start space-x-4">
-                        <div className="flex-shrink-0">
-                          <label 
-                            className={`inline-flex items-center px-3 py-2 rounded-lg ${
-                              electionData.eligibleVoters.precinct.includes(precinct)
-                                ? 'bg-blue-100 border border-blue-300' 
-                                : 'border border-gray-200'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={electionData.eligibleVoters.precinct.includes(precinct)}
-                              onChange={() => handleCheckboxChange('precinct', precinct)}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                            />
-                            <span className="text-gray-700 font-medium">{precinct}</span>
+                    {maintenanceData.precincts.sort((a, b) => sortPrecincts(a.name || a, b.name || b)).map(precinct => {
+                      const precinctName = precinct.name || precinct;
+                      const precinctId = precinct.id;
+                      
+                      return (
+                        <div key={precinctName} className="flex items-start space-x-4">
+                          <div className="flex-shrink-0">
+                            <label 
+                              className={`inline-flex items-center px-3 py-2 rounded-lg ${
+                                electionData.eligibleVoters.precinct.includes(precinctName)
+                                  ? 'bg-blue-100 border border-blue-300' 
+                                  : 'border border-gray-200'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={electionData.eligibleVoters.precinct.includes(precinctName)}
+                                onChange={() => handleCheckboxChange('precinct', precinctName)}
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                              />
+                              <span className="text-gray-700 font-medium">{precinctName}</span>
                           </label>
                         </div>
 
-                        {electionData.eligibleVoters.precinct.includes(precinct) && (
+                        {electionData.eligibleVoters.precinct.includes(precinctName) && (
                           <div className="flex-grow">
                             <div className="flex justify-between items-center mb-2">
                               <button
                                 type="button"
-                                onClick={() => toggleProgramSelection(precinct)}
+                                onClick={() => toggleProgramSelection(precinctName)}
                                 className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
                               >
-                                {visibleProgramSelections[precinct] ? (
+                                {visibleProgramSelections[precinctName] ? (
                                   <>
                                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -1100,19 +1137,19 @@ export default function EditElectionPage() {
                                   </>
                                 )}
                               </button>
-                              {electionData.eligibleVoters.precinctPrograms[precinct]?.length > 0 && (
+                              {electionData.eligibleVoters.precinctPrograms[precinctName]?.length > 0 && (
                                 <span className="text-sm text-gray-500">
-                                  {electionData.eligibleVoters.precinctPrograms[precinct]?.length} program(s) selected
+                                  {electionData.eligibleVoters.precinctPrograms[precinctName]?.length} program(s) selected
                                 </span>
                               )}
                             </div>
 
-                            {visibleProgramSelections[precinct] && electionData.eligibleVoters.programs.length > 0 && (
+                            {visibleProgramSelections[precinctName] && electionData.eligibleVoters.programs.length > 0 && (
                               <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                <p className="text-sm font-medium text-gray-600 mb-2">Select programs for {precinct}:</p>
+                                <p className="text-sm font-medium text-gray-600 mb-2">Select programs for {precinctName}:</p>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                   {electionData.eligibleVoters.programs.sort(sortPrograms).map(program => {
-                                    const isChecked = electionData.eligibleVoters.precinctPrograms[precinct]?.includes(program) || false;
+                                    const isChecked = electionData.eligibleVoters.precinctPrograms[precinctName]?.includes(program) || false;
                                     
                                     return (
                                       <label 
@@ -1122,7 +1159,7 @@ export default function EditElectionPage() {
                                         <input
                                           type="checkbox"
                                           checked={isChecked}
-                                          onChange={() => handlePrecinctProgramChange(precinct, program)}
+                                          onChange={() => handlePrecinctProgramChange(precinctName, program)}
                                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
                                         />
                                         <span className="text-sm text-gray-600">
@@ -1136,8 +1173,9 @@ export default function EditElectionPage() {
                             )}
                           </div>
                         )}
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                   
                   {electionData.eligibleVoters.precinct.length > 0 && (
