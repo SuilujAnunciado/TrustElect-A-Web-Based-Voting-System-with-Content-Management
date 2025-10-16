@@ -229,16 +229,33 @@ export default function EditElectionPage() {
           return;
         }
         
-        // Fetch election details
+        // Fetch election details with retry logic
         const token = Cookies.get("token");
-        const electionResponse = await axios.get(
-          `${API_BASE}/elections/${electionId}/details`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`
+        let electionResponse;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+          try {
+            electionResponse = await axios.get(
+              `${API_BASE}/elections/${electionId}/details`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                },
+                timeout: 30000 // 30 second timeout
+              }
+            );
+            break; // Success, exit retry loop
+          } catch (err) {
+            retryCount++;
+            if (retryCount >= maxRetries || err.response?.status === 403) {
+              throw err; // Don't retry for auth errors
             }
+            // Wait before retrying (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount - 1)));
           }
-        );
+        }
 
         if (!electionResponse.data.success) {
           throw new Error(electionResponse.data.message || "Failed to load election");
@@ -246,9 +263,10 @@ export default function EditElectionPage() {
 
         const election = electionResponse.data.election;
         
-        // Check if election is upcoming - only upcoming elections or those needing approval can be edited
-        if (election.status !== 'upcoming' && !election.needs_approval) {
-          setError("Only upcoming elections can be edited");
+        // Allow editing for upcoming, ongoing, completed elections, and those needing approval
+        // This matches the logic in the main election details page
+        if (!['upcoming', 'ongoing', 'completed'].includes(election.status) && !election.needs_approval) {
+          setError("This election cannot be edited");
           setLoading(prev => ({ ...prev, initial: false }));
           return;
         }
@@ -308,9 +326,7 @@ export default function EditElectionPage() {
         console.log("Mapped eligibleVoters.precinctPrograms:", eligibleVoters.precinctPrograms);
         console.log("Eligibility response data:", eligibilityResponse?.data);
 
-        // Fetch maintenance data (options for dropdowns)
-        // Fix: The /api/maintenance/all endpoint doesn't exist
-        // Fetch each maintenance type separately
+        // Fetch maintenance data (options for dropdowns) with error handling
         const endpoints = [
           { key: 'programs', url: 'programs' },
           { key: 'electionTypes', url: 'election-types' },
@@ -322,14 +338,18 @@ export default function EditElectionPage() {
 
         const requests = endpoints.map(endpoint => 
           axios.get(`${API_BASE}/maintenance/${endpoint.url}`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 15000 // 15 second timeout for maintenance data
+          }).catch(err => {
+            console.error(`Error fetching ${endpoint.key}:`, err);
+            return { data: { data: [] } }; // Return empty array on error
           })
         );
 
         const responses = await Promise.all(requests);
         
         const maintenanceData = endpoints.reduce((acc, endpoint, index) => {
-          acc[endpoint.key] = responses[index].data.data.map(item => item.name);
+          acc[endpoint.key] = responses[index].data.data?.map(item => item.name) || [];
           return acc;
         }, {});
         
@@ -340,7 +360,18 @@ export default function EditElectionPage() {
         
       } catch (err) {
         console.error("Error loading election data:", err);
-        setError(err.message || "Failed to load election details");
+        
+        // Handle specific error types
+        if (err.message?.includes('ERR_INSUFFICIENT_RESOURCES') || 
+            err.message?.includes('Network Error')) {
+          setError("Server is experiencing high load. Please try again in a moment.");
+        } else if (err.response?.status === 403) {
+          setError("You do not have permission to edit this election");
+        } else if (err.response?.status === 404) {
+          setError("Election not found");
+        } else {
+          setError(err.response?.data?.message || err.message || "Failed to load election details");
+        }
       } finally {
         setLoading(prev => ({ ...prev, initial: false }));
       }
@@ -649,9 +680,20 @@ export default function EditElectionPage() {
       {error && (
         <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 flex items-start">
           <AlertCircle className="w-5 h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-          <div>
+          <div className="flex-1">
             <p className="font-medium text-red-800">Cannot Edit Election</p>
             <p className="text-red-700">{error}</p>
+            {error.includes('high load') && (
+              <button
+                onClick={() => {
+                  setError(null);
+                  window.location.reload();
+                }}
+                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+              >
+                Retry
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -666,7 +708,7 @@ export default function EditElectionPage() {
         </div>
       )}
 
-      {(electionData.status === 'upcoming' || electionData.needs_approval) && !error && (
+      {(['upcoming', 'ongoing', 'completed'].includes(electionData.status) || electionData.needs_approval) && !error && (
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
             <div className="flex">
