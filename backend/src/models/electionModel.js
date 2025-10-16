@@ -353,6 +353,8 @@ const getAllElections = async () => {
           COUNT(ev.id) AS voter_count
       FROM elections e
       LEFT JOIN eligible_voters ev ON e.id = ev.election_id
+      WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) 
+        AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
       GROUP BY e.id
       ORDER BY e.created_at DESC;
   `);
@@ -959,6 +961,8 @@ const getAllElectionsWithCreator = async () => {
              a.id as admin_id
       FROM elections e
       LEFT JOIN admins a ON e.created_by = a.id
+      WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) 
+        AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
       ORDER BY e.date_from DESC
     `;
     const result = await pool.query(query);
