@@ -680,31 +680,22 @@ const permanentDeleteElection = async (id) => {
 // Get archived elections
 const getArchivedElections = async (userId = null) => {
   try {
-    console.log('🔍 Getting archived elections for user:', userId);
-    
-    // First check if the archive columns exist
-    const columnCheck = await pool.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'elections' 
-      AND column_name IN ('is_archived', 'is_deleted')
-    `);
-    
-    const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
-    const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
-    
-    console.log('Archive columns check:', { hasArchiveColumns, hasDeleteColumns });
-    
-    if (!hasArchiveColumns || !hasDeleteColumns) {
-      console.log('❌ Archive/delete columns not found!');
-      console.log('Available columns:', columnCheck.rows.map(row => row.column_name));
-      console.log('Please run the migration script: node fix_archive_elections.js');
-      return [];
-    }
-    
     let query = `
       SELECT 
-        e.*,
+        e.id,
+        e.title,
+        e.description,
+        e.election_type,
+        e.start_date,
+        e.end_date,
+        e.start_time,
+        e.end_time,
+        e.status,
+        e.created_at,
+        e.updated_at,
+        e.is_archived,
+        e.archived_at,
+        e.archived_by,
         u.first_name || ' ' || u.last_name as creator_name,
         CASE u.role_id
           WHEN 1 THEN 'SuperAdmin'
@@ -712,13 +703,11 @@ const getArchivedElections = async (userId = null) => {
           WHEN 3 THEN 'Student'
           ELSE 'Unknown'
         END as creator_role,
-        archived_user.first_name || ' ' || archived_user.last_name as archived_by_name,
         (SELECT COUNT(*) FROM eligible_voters ev WHERE ev.election_id = e.id) AS voter_count,
         (SELECT COALESCE(COUNT(DISTINCT student_id), 0) FROM votes WHERE election_id = e.id) AS vote_count
       FROM elections e
       LEFT JOIN users u ON e.created_by = u.id
-      LEFT JOIN users archived_user ON e.archived_by = archived_user.id
-      WHERE e.is_archived = TRUE AND e.is_deleted = FALSE
+      WHERE e.is_archived = TRUE
     `;
     
     const params = [];
@@ -727,34 +716,11 @@ const getArchivedElections = async (userId = null) => {
       params.push(userId);
     }
     
-    console.log('User ID for filtering:', userId);
-    console.log('Will filter by created_by:', userId ? 'YES' : 'NO (SuperAdmin - show all)');
-    
-    query += ` ORDER BY e.archived_at DESC`;
-    
-    console.log('Executing archived elections query:', query);
-    console.log('Query parameters:', params);
+    query += ` ORDER BY e.archived_at DESC NULLS LAST, e.created_at DESC`;
     
     const result = await pool.query(query, params);
-    console.log('Archived elections found:', result.rows.length);
-    console.log('Archived elections data:', result.rows);
-    
     return result.rows;
   } catch (error) {
-    console.error('Error in getArchivedElections:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      detail: error.detail,
-      hint: error.hint
-    });
-    
-    // If there's an error (likely due to missing columns), return empty array
-    // but also log the specific error for debugging
-    if (error.code === '42703') { // Column does not exist
-      console.log('Archive columns do not exist in database. Migration may not have been applied.');
-    }
-    
     return [];
   }
 };
