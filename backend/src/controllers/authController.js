@@ -1144,6 +1144,127 @@ exports.debugOtpSms = async (req, res) => {
   }
 };
 
+// Test iProgSMS API directly with curl command
+exports.testIprogSmsDirect = async (req, res) => {
+  try {
+    console.log('=== TEST IPROGSMS API DIRECTLY ===');
+    
+    const { phoneNumber } = req.body;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+    
+    const config = {
+      apiKey: process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing',
+      apiUrl: process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1'
+    };
+    
+    if (!process.env.IPROGSMS_API_KEY) {
+      return res.status(400).json({
+        success: false,
+        message: 'iProgSMS configuration incomplete'
+      });
+    }
+    
+    const formattedNumber = phoneNumber.startsWith('09') ? phoneNumber : '0' + phoneNumber.replace(/^\+?63/, '');
+    const testOtp = '123456';
+    
+    // Test both endpoints with exact documentation format
+    const testData1 = {
+      api_token: process.env.IPROGSMS_API_KEY,
+      phone_number: formattedNumber,
+      otp: testOtp,
+      message: `Your TrustElect verification code is: ${testOtp}. Valid for 5 minutes.`
+    };
+    
+    const testData2 = {
+      api_token: process.env.IPROGSMS_API_KEY,
+      phone_number: formattedNumber,
+      message: `Your TrustElect verification code is: ${testOtp}. Valid for 5 minutes.`
+    };
+    
+    const results = [];
+    
+    // Test /otp endpoint
+    try {
+      console.log('Testing /otp endpoint...');
+      const response1 = await axios.post(
+        `${config.apiUrl}/otp`,
+        testData1,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+      results.push({
+        endpoint: '/otp',
+        status: response1.status,
+        data: response1.data,
+        success: true
+      });
+    } catch (error) {
+      results.push({
+        endpoint: '/otp',
+        error: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        success: false
+      });
+    }
+    
+    // Test /otp/send_otp endpoint
+    try {
+      console.log('Testing /otp/send_otp endpoint...');
+      const response2 = await axios.post(
+        `${config.apiUrl}/otp/send_otp`,
+        testData2,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+      results.push({
+        endpoint: '/otp/send_otp',
+        status: response2.status,
+        data: response2.data,
+        success: true
+      });
+    } catch (error) {
+      results.push({
+        endpoint: '/otp/send_otp',
+        error: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        success: false
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Direct API test completed',
+      config: config,
+      phoneNumber: formattedNumber,
+      results: results
+    });
+    
+  } catch (error) {
+    console.error('Direct API test error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Direct API test failed',
+      error: error.message
+    });
+  }
+};
+
 exports.resendSmsOtp = async (req, res) => {
   try {
     const { userId } = req.body;

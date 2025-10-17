@@ -17,7 +17,8 @@ const {
   verifySmsOtp,
   resendSmsOtp,
   testSms,
-  debugOtpSms
+  debugOtpSms,
+  testIprogSmsDirect
 } = require("../controllers/authController");
 const { verifyToken } = require("../middlewares/authMiddleware");
 const router = express.Router();
@@ -68,5 +69,6 @@ router.post('/verify-sms-otp', verifySmsOtp);
 router.post('/resend-sms-otp', resendSmsOtp);
 router.get('/test-sms', testSms);
 router.post('/debug-otp-sms', debugOtpSms);
+router.post('/test-iprogsms-direct', testIprogSmsDirect);
 
 module.exports = router;

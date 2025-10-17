@@ -145,33 +145,45 @@ const sendOTPSMS = async (phoneNumber, otp) => {
     console.log('Sending OTP SMS to:', formattedNumber);
     console.log('Using iProgSMS OTP service');
     
-    // Prepare iProgSMS OTP API request
+    // Prepare iProgSMS OTP API request based on documentation
+    // The documentation shows we need to include the actual OTP in the request
     const otpData = {
       api_token: IPROGSMS_API_KEY,
       phone_number: formattedNumber,
-      message: "" // Empty message uses default: "Your OTP code is :otp. It is valid for 5 minutes. Do not share this code with anyone."
+      otp: otp, // Include the actual OTP code as shown in documentation
+      message: `Your TrustElect verification code is: ${otp}. Valid for 5 minutes. Do not share this code with anyone.`
     };
     
-    // Try alternative endpoints if OTP endpoint doesn't work
-    const endpoints = [
-      `${IPROGSMS_API_URL}/otp/send_otp`,
-      `${IPROGSMS_API_URL}/otp/send`,
-      `${IPROGSMS_API_URL}/otp`,
-      `${IPROGSMS_API_URL}/send`,
-      `${IPROGSMS_API_URL}/send_otp`
-    ];
+    console.log('Making API request to:', `${IPROGSMS_API_URL}/otp`);
+    console.log('Request data:', JSON.stringify(otpData, null, 2));
     
+    // Try both endpoints from documentation
     let response = null;
     let lastError = null;
     
+    const endpoints = [
+      {
+        url: `${IPROGSMS_API_URL}/otp`,
+        data: otpData
+      },
+      {
+        url: `${IPROGSMS_API_URL}/otp/send_otp`,
+        data: {
+          api_token: IPROGSMS_API_KEY,
+          phone_number: formattedNumber,
+          message: `Your TrustElect verification code is: ${otp}. Valid for 5 minutes. Do not share this code with anyone.`
+        }
+      }
+    ];
+    
     for (const endpoint of endpoints) {
       try {
-        console.log('Trying endpoint:', endpoint);
-        console.log('Request data:', JSON.stringify(otpData, null, 2));
+        console.log('Trying endpoint:', endpoint.url);
+        console.log('Request data:', JSON.stringify(endpoint.data, null, 2));
         
         response = await axios.post(
-          endpoint,
-          otpData,
+          endpoint.url,
+          endpoint.data,
           {
             headers: {
               'Content-Type': 'application/json',
@@ -180,10 +192,11 @@ const sendOTPSMS = async (phoneNumber, otp) => {
           }
         );
         
-        console.log('Success with endpoint:', endpoint);
+        console.log('Success with endpoint:', endpoint.url);
         break;
       } catch (error) {
-        console.log('Failed with endpoint:', endpoint, error.response?.status);
+        console.log('Failed with endpoint:', endpoint.url, error.response?.status);
+        console.log('Error response:', error.response?.data);
         lastError = error;
         continue;
       }
