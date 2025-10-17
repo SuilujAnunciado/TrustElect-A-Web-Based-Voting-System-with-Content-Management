@@ -152,32 +152,88 @@ const sendOTPSMS = async (phoneNumber, otp) => {
       message: "" // Empty message uses default: "Your OTP code is :otp. It is valid for 5 minutes. Do not share this code with anyone."
     };
     
-    // Make API request to iProgSMS OTP endpoint
-    const response = await axios.post(
+    // Try alternative endpoints if OTP endpoint doesn't work
+    const endpoints = [
       `${IPROGSMS_API_URL}/otp/send_otp`,
-      otpData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+      `${IPROGSMS_API_URL}/otp/send`,
+      `${IPROGSMS_API_URL}/otp`,
+      `${IPROGSMS_API_URL}/send`,
+      `${IPROGSMS_API_URL}/send_otp`
+    ];
+    
+    let response = null;
+    let lastError = null;
+    
+    for (const endpoint of endpoints) {
+      try {
+        console.log('Trying endpoint:', endpoint);
+        console.log('Request data:', JSON.stringify(otpData, null, 2));
+        
+        response = await axios.post(
+          endpoint,
+          otpData,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          }
+        );
+        
+        console.log('Success with endpoint:', endpoint);
+        break;
+      } catch (error) {
+        console.log('Failed with endpoint:', endpoint, error.response?.status);
+        lastError = error;
+        continue;
       }
-    );
+    }
     
-    console.log('OTP SMS sent successfully via iProgSMS:', response.data);
+    if (!response) {
+      throw lastError || new Error('All endpoints failed');
+    }
     
-    // Extract message ID from response
-    const messageId = response.data?.message_id || response.data?.id || 'unknown';
+    console.log('iProgSMS API Response Status:', response.status);
+    console.log('iProgSMS API Response Headers:', response.headers);
+    console.log('iProgSMS API Response Data:', JSON.stringify(response.data, null, 2));
     
-    return { 
-      success: true, 
-      messageId: messageId,
-      to: formattedNumber,
-      status: 'sent',
-      provider: 'iProgSMS',
-      cost: 'Using iProgSMS credits',
-      note: 'iProgSMS generated OTP automatically'
-    };
+    // Check if the response indicates success
+    if (response.status === 200) {
+      // Extract message ID from response
+      const messageId = response.data?.message_id || response.data?.id || response.data?.data?.id || 'unknown';
+      
+      // Check if there's an error in the response data
+      if (response.data?.error || response.data?.status === 'error') {
+        console.error('iProgSMS API returned error in response:', response.data);
+        return {
+          success: false,
+          error: response.data?.message || response.data?.error || 'Unknown error from iProgSMS',
+          code: response.data?.error_code || 'API_ERROR',
+          provider: 'iProgSMS',
+          response: response.data
+        };
+      }
+      
+      return { 
+        success: true, 
+        messageId: messageId,
+        to: formattedNumber,
+        status: 'sent',
+        provider: 'iProgSMS',
+        cost: 'Using iProgSMS credits',
+        note: 'iProgSMS generated OTP automatically',
+        response: response.data
+      };
+    } else {
+      console.error('Unexpected response status:', response.status);
+      return {
+        success: false,
+        error: `Unexpected response status: ${response.status}`,
+        code: 'UNEXPECTED_STATUS',
+        provider: 'iProgSMS',
+        response: response.data
+      };
+    }
   } catch (error) {
     console.error('OTP SMS sending error:', error);
     console.error('Error details:', {

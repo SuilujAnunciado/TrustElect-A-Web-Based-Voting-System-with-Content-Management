@@ -1023,7 +1023,8 @@ exports.testSms = async (req, res) => {
     // Check iProgSMS configuration
     const config = {
       apiKey: process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing',
-      senderName: process.env.IPROGSMS_SENDER_NAME || 'TrustElect'
+      senderName: process.env.IPROGSMS_SENDER_NAME || 'TrustElect',
+      apiUrl: process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1'
     };
     
     console.log('iProgSMS config:', config);
@@ -1053,7 +1054,7 @@ exports.testSms = async (req, res) => {
     
     const smsResult = await smsService.sendSMS(testPhone, testMessage);
     
-      // Handle iProgSMS errors
+    // Handle iProgSMS errors
     if (!smsResult.success) {
       return res.status(400).json({
         success: false,
@@ -1065,9 +1066,10 @@ exports.testSms = async (req, res) => {
         troubleshooting: {
           step1: 'Check your iProgSMS API key',
           step2: 'Verify you have sufficient credits',
-          step3: 'Check phone number format (+639123456789)',
+          step3: 'Check phone number format (09123456789)',
           step4: 'Review iProgSMS account status'
-        }
+        },
+        response: smsResult.response
       });
     }
     
@@ -1083,6 +1085,60 @@ exports.testSms = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'SMS test failed',
+      error: error.message
+    });
+  }
+};
+
+// Debug OTP SMS with detailed logging
+exports.debugOtpSms = async (req, res) => {
+  try {
+    console.log('=== DEBUG OTP SMS ===');
+    
+    const { phoneNumber } = req.body;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+    
+    // Check iProgSMS configuration
+    const config = {
+      apiKey: process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing',
+      senderName: process.env.IPROGSMS_SENDER_NAME || 'TrustElect',
+      apiUrl: process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1'
+    };
+    
+    console.log('iProgSMS config:', config);
+    
+    if (!process.env.IPROGSMS_API_KEY) {
+      return res.status(400).json({
+        success: false,
+        message: 'iProgSMS configuration incomplete. Please set IPROGSMS_API_KEY in your .env file',
+        config: config
+      });
+    }
+    
+    console.log('Original phone number:', phoneNumber);
+    
+    // Test OTP SMS
+    const otpResult = await smsService.sendOTPSMS(phoneNumber, '123456');
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Debug OTP SMS completed',
+      config: config,
+      originalPhone: phoneNumber,
+      otpResult: otpResult
+    });
+    
+  } catch (error) {
+    console.error('Debug OTP SMS error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Debug OTP SMS failed',
       error: error.message
     });
   }
