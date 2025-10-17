@@ -784,7 +784,12 @@ export default function LoginForm({ onClose }) {
       if (err.response && err.response.status === 400) {
         setError(err.response.data.message || "Invalid SMS verification code. Please check and try again.");
       } else if (err.response && err.response.status === 401) {
-        setError("SMS verification code has expired or already been used. Please request a new one.");
+        // Handle OTP expiration specifically
+        if (err.response.data.code === 'OTP_EXPIRED') {
+          setError("SMS verification code has expired. Please request a new one.");
+        } else {
+          setError("SMS verification code has expired or already been used. Please request a new one.");
+        }
       } else if (err.response && err.response.status === 429) {
         setError("Too many verification attempts. Please wait before trying again.");
       } else if (err.response && err.response.status === 500) {

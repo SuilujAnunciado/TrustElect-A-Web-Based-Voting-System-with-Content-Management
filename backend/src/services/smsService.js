@@ -296,19 +296,60 @@ const verifyOTP = async (phoneNumber, otp) => {
       otp: otp
     };
     
+    // Additional debugging for iProgSMS API
+    console.log('iProgSMS Verify Request Details:');
+    console.log('- API Key present:', !!IPROGSMS_API_KEY);
+    console.log('- API Key length:', IPROGSMS_API_KEY ? IPROGSMS_API_KEY.length : 0);
+    console.log('- Phone number:', formattedNumber);
+    console.log('- OTP:', otp);
+    console.log('- Request data:', JSON.stringify(verifyData, null, 2));
+    
     console.log('Making verify API request to:', `${IPROGSMS_API_URL}/otp/verify_otp`);
     console.log('Request data:', JSON.stringify(verifyData, null, 2));
     
-    const response = await axios.post(
-      `${IPROGSMS_API_URL}/otp/verify_otp`,
-      verifyData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+    // Try the verify_otp endpoint first
+    let response;
+    try {
+      response = await axios.post(
+        `${IPROGSMS_API_URL}/otp/verify_otp`,
+        verifyData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
         }
+      );
+    } catch (verifyError) {
+      console.log('verify_otp endpoint failed, trying alternative approach...');
+      console.log('Verify error:', verifyError.response?.data);
+      
+      // If verify_otp fails, try using the send_otp endpoint with verification
+      // Some SMS providers use the same endpoint for both sending and verifying
+      try {
+        const alternativeData = {
+          api_token: IPROGSMS_API_KEY,
+          phone_number: formattedNumber,
+          otp: otp,
+          action: 'verify' // Some APIs use an action parameter
+        };
+        
+        response = await axios.post(
+          `${IPROGSMS_API_URL}/otp/send_otp`,
+          alternativeData,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          }
+        );
+        console.log('Alternative endpoint succeeded');
+      } catch (altError) {
+        console.log('Alternative endpoint also failed');
+        throw verifyError; // Throw the original error
       }
-    );
+    }
     
     console.log('iProgSMS Verify API Response Status:', response.status);
     console.log('iProgSMS Verify API Response Data:', JSON.stringify(response.data, null, 2));
@@ -352,20 +393,48 @@ const verifyOTP = async (phoneNumber, otp) => {
     
     // Handle specific iProgSMS errors
     let errorMessage = error.message;
+    let errorCode = error.response?.status || 'UNKNOWN_ERROR';
+    
+    // Check the response data for specific error messages
+    const responseData = error.response?.data;
+    if (responseData) {
+      if (responseData.message && responseData.message.includes('expired')) {
+        errorMessage = 'OTP has expired. Please request a new one.';
+        errorCode = 'OTP_EXPIRED';
+      } else if (responseData.message && responseData.message.includes('invalid')) {
+        errorMessage = 'Invalid OTP code. Please check and try again.';
+        errorCode = 'INVALID_OTP';
+      } else if (responseData.message) {
+        errorMessage = responseData.message;
+        errorCode = responseData.error_code || errorCode;
+      }
+    }
+    
+    // Handle HTTP status codes
     if (error.response?.status === 401) {
-      errorMessage = 'iProgSMS authentication failed. Please check your API key.';
+      // Check if it's actually an OTP expiration vs authentication failure
+      if (responseData?.message && responseData.message.includes('expired')) {
+        errorMessage = 'OTP has expired. Please request a new one.';
+        errorCode = 'OTP_EXPIRED';
+      } else {
+        errorMessage = 'iProgSMS authentication failed. Please check your API key.';
+        errorCode = 'AUTH_FAILED';
+      }
     } else if (error.response?.status === 400) {
       errorMessage = 'Invalid OTP or phone number format.';
+      errorCode = 'INVALID_REQUEST';
     } else if (error.response?.status === 404) {
       errorMessage = 'OTP not found or expired.';
+      errorCode = 'OTP_NOT_FOUND';
     } else if (error.response?.status === 403) {
       errorMessage = 'Access denied. Please check your API permissions.';
+      errorCode = 'ACCESS_DENIED';
     }
     
     return { 
       success: false, 
       error: errorMessage,
-      code: error.response?.data?.error_code || error.response?.status || 'UNKNOWN_ERROR',
+      code: errorCode,
       originalError: error.message,
       provider: 'iProgSMS'
     };

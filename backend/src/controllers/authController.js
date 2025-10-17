@@ -810,7 +810,18 @@ exports.verifySmsOtp = async (req, res) => {
     
     if (!verifyResult.success) {
       console.error('iProgSMS verification failed:', verifyResult);
-      return res.status(400).json({
+      
+      // Handle specific error codes with appropriate HTTP status codes
+      let statusCode = 400;
+      if (verifyResult.code === 'OTP_EXPIRED') {
+        statusCode = 401; // Unauthorized for expired OTP
+      } else if (verifyResult.code === 'AUTH_FAILED') {
+        statusCode = 500; // Server error for API authentication issues
+      } else if (verifyResult.code === 'INVALID_OTP') {
+        statusCode = 400; // Bad request for invalid OTP
+      }
+      
+      return res.status(statusCode).json({
         success: false,
         message: verifyResult.error || 'Invalid or expired verification code',
         code: verifyResult.code
