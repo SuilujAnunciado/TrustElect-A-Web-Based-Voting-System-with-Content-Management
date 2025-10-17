@@ -136,20 +136,15 @@ const sendOTPSMS = async (phoneNumber, otp) => {
     }
     
     const formattedNumber = formatPhoneNumber(phoneNumber);
-    console.log('Sending OTP SMS to:', formattedNumber);
-    console.log('Using iProgSMS OTP service');
+   
  
     const otpData = {
       api_token: IPROGSMS_API_KEY,
       phone_number: formattedNumber,
-      otp: otp, // Include the actual OTP code as shown in documentation
+      otp: otp, 
       message: `Your TrustElect verification code is: ${otp}. Valid for 5 minutes. Do not share this code with anyone.`
     };
-  
-    console.log('Making API request to:', `${IPROGSMS_API_URL}/otp`);
-    console.log('Request data:', JSON.stringify(otpData, null, 2));
-    
-    // Try both endpoints from documentation
+
     let response = null;
     let lastError = null;
     
@@ -169,10 +164,7 @@ const sendOTPSMS = async (phoneNumber, otp) => {
     ];
     
     for (const endpoint of endpoints) {
-      try {
-        console.log('Trying endpoint:', endpoint.url);
-        console.log('Request data:', JSON.stringify(endpoint.data, null, 2));
-        
+      try {       
         response = await axios.post(
           endpoint.url,
           endpoint.data,
@@ -183,12 +175,10 @@ const sendOTPSMS = async (phoneNumber, otp) => {
             }
           }
         );
-        
-        console.log('Success with endpoint:', endpoint.url);
+
         break;
       } catch (error) {
-        console.log('Failed with endpoint:', endpoint.url, error.response?.status);
-        console.log('Error response:', error.response?.data);
+
         lastError = error;
         continue;
       }
@@ -198,9 +188,7 @@ const sendOTPSMS = async (phoneNumber, otp) => {
       throw lastError || new Error('All endpoints failed');
     }
     
-    console.log('iProgSMS API Response Status:', response.status);
-    console.log('iProgSMS API Response Headers:', response.headers);
-    console.log('iProgSMS API Response Data:', JSON.stringify(response.data, null, 2));
+
     
     if (response.status === 200) {
       const messageId = response.data?.message_id || response.data?.id || response.data?.data?.id || 'unknown';

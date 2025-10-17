@@ -626,17 +626,51 @@ exports.permanentDeleteElection = async (req, res) => {
 // Get archived elections
 exports.getArchivedElections = async (req, res) => {
   try {
+    console.log('=== ARCHIVED ELECTIONS REQUEST ===');
+    console.log('User role_id:', req.user?.role_id);
+    console.log('User ID from token:', req.user?.id);
+    console.log('Request headers:', req.headers);
+    
     // For now, let's show all archived elections regardless of who created them
     // This will help us debug the issue
     const userId = null; // Always show all archived elections for debugging
     
     console.log('Fetching archived elections for user:', userId);
-    console.log('User role_id:', req.user.role_id);
-    console.log('User ID from token:', req.user.id);
     
     const elections = await getArchivedElections(userId);
     
     console.log('Controller received elections:', elections.length);
+    console.log('Elections data:', elections);
+    
+    // If no elections returned and we're in development, check if migration is needed
+    if (elections.length === 0 && process.env.NODE_ENV === 'development') {
+      console.log('No archived elections found. Checking if migration is needed...');
+      
+      // Check if archive columns exist
+      try {
+        const columnCheck = await pool.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'elections' 
+          AND column_name IN ('is_archived', 'is_deleted')
+        `);
+        
+        const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+        const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
+        
+        if (!hasArchiveColumns || !hasDeleteColumns) {
+          console.log('Archive columns missing. Migration needed.');
+          return res.status(400).json({
+            success: false,
+            message: 'Archive functionality not available. Database migration required.',
+            migrationNeeded: true,
+            details: 'Please run the archive migration script to enable archived elections functionality.'
+          });
+        }
+      } catch (migrationCheckError) {
+        console.error('Error checking migration status:', migrationCheckError);
+      }
+    }
     
     res.status(200).json({
       success: true,
@@ -644,9 +678,14 @@ exports.getArchivedElections = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching archived elections:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Return more specific error information
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch archived elections'
+      message: 'Failed to fetch archived elections',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };

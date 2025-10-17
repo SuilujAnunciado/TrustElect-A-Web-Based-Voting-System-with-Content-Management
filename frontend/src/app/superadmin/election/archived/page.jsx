@@ -135,11 +135,23 @@ export default function ArchivedElectionsPage() {
   const fetchArchivedElections = useCallback(async () => {
     try {
       setLoading(true);
+      setError("");
       const data = await fetchWithAuth('/elections/archived');
+      
+      if (data.migrationNeeded) {
+        setError("Archive functionality requires database migration. Please contact your administrator.");
+        return;
+      }
+      
       setElections(data.data || []);
     } catch (err) {
       console.error("Failed to load archived elections:", err);
-      setError("Failed to load archived elections. Please try again later.");
+      
+      if (err.message.includes('Request failed')) {
+        setError("Failed to load archived elections. Please check your connection and try again.");
+      } else {
+        setError("Failed to load archived elections. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }

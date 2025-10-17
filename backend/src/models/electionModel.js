@@ -736,7 +736,19 @@ const getArchivedElections = async (userId = null) => {
     return result.rows;
   } catch (error) {
     console.error('Error in getArchivedElections:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint
+    });
+    
     // If there's an error (likely due to missing columns), return empty array
+    // but also log the specific error for debugging
+    if (error.code === '42703') { // Column does not exist
+      console.log('Archive columns do not exist in database. Migration may not have been applied.');
+    }
+    
     return [];
   }
 };
