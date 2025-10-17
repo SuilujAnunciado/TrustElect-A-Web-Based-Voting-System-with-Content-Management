@@ -731,7 +731,14 @@ export default function LoginForm({ onClose }) {
       return;
     }
     
+    // Validate OTP format (only digits)
+    if (!/^\d{6}$/.test(smsOtp)) {
+      setError("SMS OTP must contain only numbers.");
+      return;
+    }
+    
     setLoading(true);
+    setError("");
     try {
       const userId = Cookies.get("userId");
       
@@ -772,10 +779,16 @@ export default function LoginForm({ onClose }) {
         throw new Error("SMS verification failed. Please try again.");
       }
     } catch (err) {
+      console.error("SMS OTP verification error:", err);
+      
       if (err.response && err.response.status === 400) {
-        setError("Invalid SMS verification code. Please check and try again.");
+        setError(err.response.data.message || "Invalid SMS verification code. Please check and try again.");
       } else if (err.response && err.response.status === 401) {
         setError("SMS verification code has expired or already been used. Please request a new one.");
+      } else if (err.response && err.response.status === 429) {
+        setError("Too many verification attempts. Please wait before trying again.");
+      } else if (err.response && err.response.status === 500) {
+        setError("Server error. Please try again later.");
       } else {
         setError(err.response?.data?.message || "Invalid SMS verification code. Please try again.");
       }
@@ -793,9 +806,10 @@ export default function LoginForm({ onClose }) {
     setSmsResendLoading(true);
     setSmsResendMessage("");
     setSmsDevOtp("");
+    setError("");
+    
     try {
       const userId = Cookies.get("userId");
-      const userEmail = Cookies.get("email");
       
       const response = await axios.post(
         `/api/auth/resend-sms-otp`,
@@ -803,17 +817,31 @@ export default function LoginForm({ onClose }) {
         { withCredentials: true }
       );
 
-      if (response.data.devMode && response.data.otp) {
-        setSmsDevOtp(response.data.otp);
+      if (response.data.success) {
+        if (response.data.devMode && response.data.otp) {
+          setSmsDevOtp(response.data.otp);
+        }
+        
+        setSmsResendMessage(response.data.message || "SMS verification code resent. Check your phone.");
+        
+        setSmsCooldownActive(true);
+        setSmsCooldownTime(COOLDOWN_SECONDS);
+      } else {
+        setSmsResendMessage("Failed to resend SMS code. Please try again.");
       }
-      
-      setSmsResendMessage("SMS verification code resent. Check your phone.");
-      
-      setSmsCooldownActive(true);
-      setSmsCooldownTime(COOLDOWN_SECONDS);
     } catch (err) {
       console.error("Resend SMS OTP error:", err);
-      setSmsResendMessage("Failed to resend SMS code. Try again later.");
+      
+      if (err.response && err.response.status === 429) {
+        const cooldownRemaining = err.response.data.cooldownRemaining || 120;
+        setSmsResendMessage(`Please wait ${cooldownRemaining} seconds before requesting another code.`);
+        setSmsCooldownActive(true);
+        setSmsCooldownTime(cooldownRemaining);
+      } else if (err.response && err.response.status === 400) {
+        setSmsResendMessage(err.response.data.message || "Failed to resend SMS code. Please try again.");
+      } else {
+        setSmsResendMessage("Failed to resend SMS code. Please try again later.");
+      }
     } finally {
       setSmsResendLoading(false);
     }
@@ -1081,8 +1109,14 @@ export default function LoginForm({ onClose }) {
                 type="text"
                 placeholder="Enter 6-digit SMS OTP"
                 value={smsOtp}
-                onChange={(e) => setSmsOtp(e.target.value)}
+                onChange={(e) => {
+                  // Only allow numeric input and limit to 6 digits
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setSmsOtp(value);
+                }}
                 onKeyDown={handleSmsOtpKeyDown}
+                maxLength={6}
+                pattern="[0-9]{6}"
                 required
               />
 

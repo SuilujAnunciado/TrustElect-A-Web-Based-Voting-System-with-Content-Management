@@ -268,6 +268,111 @@ const sendOTPSMS = async (phoneNumber, otp) => {
 };
 
 /**
+ * Verify OTP using iProgSMS verify_otp endpoint
+ * @param {string} phoneNumber - Phone number to verify OTP for
+ * @param {string} otp - 6-digit OTP code to verify
+ * @returns {Promise<Object>} - Verification result
+ */
+const verifyOTP = async (phoneNumber, otp) => {
+  try {
+    if (!IPROGSMS_API_KEY) {
+      console.error('iProgSMS configuration missing:', {
+        apiKey: !!IPROGSMS_API_KEY
+      });
+      return { 
+        success: false, 
+        error: 'iProgSMS configuration is incomplete. Please check your IPROGSMS_API_KEY environment variable.',
+        code: 'CONFIG_ERROR'
+      };
+    }
+    
+    const formattedNumber = formatPhoneNumber(phoneNumber);
+    console.log('Verifying OTP for:', formattedNumber);
+    console.log('OTP to verify:', otp);
+    
+    const verifyData = {
+      api_token: IPROGSMS_API_KEY,
+      phone_number: formattedNumber,
+      otp: otp
+    };
+    
+    console.log('Making verify API request to:', `${IPROGSMS_API_URL}/otp/verify_otp`);
+    console.log('Request data:', JSON.stringify(verifyData, null, 2));
+    
+    const response = await axios.post(
+      `${IPROGSMS_API_URL}/otp/verify_otp`,
+      verifyData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      }
+    );
+    
+    console.log('iProgSMS Verify API Response Status:', response.status);
+    console.log('iProgSMS Verify API Response Data:', JSON.stringify(response.data, null, 2));
+    
+    if (response.status === 200) {
+      // Check if verification was successful
+      if (response.data?.success || response.data?.verified || response.data?.status === 'success') {
+        return {
+          success: true,
+          message: 'OTP verified successfully',
+          phoneNumber: formattedNumber,
+          provider: 'iProgSMS',
+          response: response.data
+        };
+      } else {
+        return {
+          success: false,
+          error: response.data?.message || 'OTP verification failed',
+          code: response.data?.error_code || 'VERIFICATION_FAILED',
+          provider: 'iProgSMS',
+          response: response.data
+        };
+      }
+    } else {
+      console.error('Unexpected verify response status:', response.status);
+      return {
+        success: false,
+        error: `Unexpected response status: ${response.status}`,
+        code: 'UNEXPECTED_STATUS',
+        provider: 'iProgSMS',
+        response: response.data
+      };
+    }
+  } catch (error) {
+    console.error('OTP verification error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    
+    // Handle specific iProgSMS errors
+    let errorMessage = error.message;
+    if (error.response?.status === 401) {
+      errorMessage = 'iProgSMS authentication failed. Please check your API key.';
+    } else if (error.response?.status === 400) {
+      errorMessage = 'Invalid OTP or phone number format.';
+    } else if (error.response?.status === 404) {
+      errorMessage = 'OTP not found or expired.';
+    } else if (error.response?.status === 403) {
+      errorMessage = 'Access denied. Please check your API permissions.';
+    }
+    
+    return { 
+      success: false, 
+      error: errorMessage,
+      code: error.response?.data?.error_code || error.response?.status || 'UNKNOWN_ERROR',
+      originalError: error.message,
+      provider: 'iProgSMS'
+    };
+  }
+};
+
+/**
  * Send election notification SMS
  * @param {string} phoneNumber - Phone number to send notification to
  * @param {string} electionTitle - Title of the election
@@ -282,6 +387,7 @@ const sendElectionNotificationSMS = async (phoneNumber, electionTitle, message) 
 module.exports = {
   sendSMS,
   sendOTPSMS,
+  verifyOTP,
   sendElectionNotificationSMS,
   formatPhoneNumber
 };

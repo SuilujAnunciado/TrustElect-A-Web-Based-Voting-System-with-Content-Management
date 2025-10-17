@@ -767,6 +767,14 @@ exports.verifySmsOtp = async (req, res) => {
       });
     }
     
+    // Validate OTP format
+    if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP must be exactly 6 digits'
+      });
+    }
+    
     // Get user's phone number
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
     const phoneNumber = phoneResult.rows[0]?.phone_number;
@@ -778,9 +786,9 @@ exports.verifySmsOtp = async (req, res) => {
       });
     }
     
-    // For test mode, check if OTP is a valid 6-digit number
-    if (otp.length === 6 && /^\d{6}$/.test(otp)) {
-      console.log('Test mode OTP verification:', otp);
+    // For development/test mode, allow any 6-digit OTP
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode OTP verification:', otp);
       
       // Mark phone as verified in users table
       await pool.query(
@@ -790,65 +798,46 @@ exports.verifySmsOtp = async (req, res) => {
       
       return res.status(200).json({
         success: true,
-        message: 'Phone number verified successfully (test mode)',
+        message: 'Phone number verified successfully (development mode)',
         phoneNumber: phoneNumber,
         testMode: true
       });
     }
     
-    // Verify SMS OTP using direct comparison from database
-    const verifyQuery = `
-      SELECT id, otp, attempts FROM otps 
-      WHERE user_id = $1 
-      AND otp_type = 'sms'
-      AND expires_at > NOW() 
-      AND verified = false
-      ORDER BY created_at DESC 
-      LIMIT 1
-    `;
+    // Use iProgSMS verify_otp endpoint for production
+    console.log('Verifying OTP with iProgSMS for phone:', phoneNumber);
+    const verifyResult = await smsService.verifyOTP(phoneNumber, otp);
     
-    const verifyResult = await pool.query(verifyQuery, [userId]);
-    
-    if (verifyResult.rows.length === 0) {
+    if (!verifyResult.success) {
+      console.error('iProgSMS verification failed:', verifyResult);
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired verification code'
+        message: verifyResult.error || 'Invalid or expired verification code',
+        code: verifyResult.code
       });
     }
     
-    const otpRecord = verifyResult.rows[0];
+    // Mark phone as verified in users table
+    await pool.query(
+      'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
+      [userId]
+    );
     
-    // Check if OTP matches
-    if (otpRecord.otp === otp) {
-      // Mark OTP as verified
-      await pool.query(
-        'UPDATE otps SET verified = TRUE, attempts = attempts + 1 WHERE id = $1',
-        [otpRecord.id]
-      );
-      
-      // Mark phone as verified in users table
-      await pool.query(
-        'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
-        [userId]
-      );
-      
-      return res.status(200).json({
-        success: true,
-        message: 'Phone number verified successfully',
-        phoneNumber: phoneNumber
-      });
-    } else {
-      // Increment attempts
-      await pool.query(
-        'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
-        [otpRecord.id]
-      );
-      
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid verification code'
-      });
-    }
+    // Log successful verification
+    await logAction(
+      { id: userId, email: 'SMS_VERIFIED', role: 'SMS_VERIFICATION' },
+      'SMS_VERIFIED',
+      'auth',
+      userId,
+      { phoneNumber: phoneNumber, provider: 'iProgSMS' }
+    );
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Phone number verified successfully',
+      phoneNumber: phoneNumber,
+      provider: 'iProgSMS'
+    });
     
   } catch (error) {
     console.error('SMS OTP verification error:', error);
@@ -1283,33 +1272,64 @@ exports.resendSmsOtp = async (req, res) => {
       });
     }
     
+    // Check for recent OTP attempts to prevent abuse
+    const recentOtpQuery = `
+      SELECT created_at, attempts FROM otps 
+      WHERE user_id = $1 
+      AND phone_number = $2 
+      AND otp_type = 'sms'
+      AND created_at > NOW() - INTERVAL '2 minutes'
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `;
+    
+    const recentOtpResult = await pool.query(recentOtpQuery, [userId, phoneNumber]);
+    
+    if (recentOtpResult.rows.length > 0) {
+      const recentOtp = recentOtpResult.rows[0];
+      const timeSinceLastOtp = Math.floor((Date.now() - new Date(recentOtp.created_at).getTime()) / 1000);
+      const remainingCooldown = 120 - timeSinceLastOtp; // 2 minutes cooldown
+      
+      if (remainingCooldown > 0) {
+        return res.status(429).json({
+          success: false,
+          message: `Please wait ${remainingCooldown} seconds before requesting another code`,
+          cooldownRemaining: remainingCooldown
+        });
+      }
+    }
+    
+    // Check for too many attempts in the last hour
+    const attemptsQuery = `
+      SELECT COUNT(*) as attempt_count FROM otps 
+      WHERE user_id = $1 
+      AND phone_number = $2 
+      AND otp_type = 'sms'
+      AND created_at > NOW() - INTERVAL '1 hour'
+    `;
+    
+    const attemptsResult = await pool.query(attemptsQuery, [userId, phoneNumber]);
+    const attemptCount = parseInt(attemptsResult.rows[0].attempt_count);
+    
+    if (attemptCount >= 5) {
+      return res.status(429).json({
+        success: false,
+        message: 'Too many OTP requests. Please try again in an hour.',
+        retryAfter: 3600
+      });
+    }
+    
     // Generate new 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     console.log('Resending SMS OTP:', otp);
     
-    // Update OTP in database
-    const updateQuery = `
-      UPDATE otps 
-      SET otp = $1, 
-          expires_at = NOW() + INTERVAL '5 minutes',
-          verified = FALSE,
-          attempts = 0
-      WHERE user_id = $2 
-      AND phone_number = $3 
-      AND otp_type = 'sms'
-      AND expires_at > NOW() - INTERVAL '1 minute'
+    // Store new OTP in database
+    const insertQuery = `
+      INSERT INTO otps (user_id, phone_number, otp, expires_at, otp_type, verified, attempts, purpose)
+      VALUES ($1, $2, $3, NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
     `;
     
-    const updateResult = await pool.query(updateQuery, [otp, userId, phoneNumber]);
-    
-    if (updateResult.rowCount === 0) {
-      // No recent OTP found, create new one
-      const insertQuery = `
-        INSERT INTO otps (user_id, phone_number, otp, expires_at, otp_type, verified, attempts, purpose)
-        VALUES ($1, $2, $3, NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
-      `;
-      await pool.query(insertQuery, [userId, phoneNumber, otp]);
-    }
+    await pool.query(insertQuery, [userId, phoneNumber, otp]);
     
     // Send SMS
     console.log('Attempting to resend SMS to:', phoneNumber);
@@ -1337,6 +1357,15 @@ exports.resendSmsOtp = async (req, res) => {
         code: smsResult.code
       });
     }
+    
+    // Log the resend action
+    await logAction(
+      { id: userId, email: 'SMS_RESEND', role: 'SMS_RESEND' },
+      'SMS_RESEND',
+      'auth',
+      userId,
+      { phoneNumber: phoneNumber, provider: 'iProgSMS' }
+    );
     
     // In development mode, return OTP for testing
     if (process.env.NODE_ENV === 'development') {
