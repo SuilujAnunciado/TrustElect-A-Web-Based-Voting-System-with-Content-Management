@@ -1,6 +1,5 @@
 const axios = require('axios');
 
-// iProgSMS Configuration
 const IPROGSMS_API_KEY = process.env.IPROGSMS_API_KEY
 const IPROGSMS_SENDER_NAME = process.env.IPROGSMS_SENDER_NAME || 'TrustElect';
 const IPROGSMS_API_URL = process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1';
@@ -54,8 +53,7 @@ const sendSMS = async (phoneNumber, message) => {
     }
     
     const formattedNumber = formatPhoneNumber(phoneNumber);
-    console.log('Sending SMS to:', formattedNumber);
-    console.log('Using iProgSMS service');
+
     
     // Prepare iProgSMS API request
     const smsData = {
@@ -204,9 +202,7 @@ const sendOTPSMS = async (phoneNumber, otp) => {
     console.log('iProgSMS API Response Headers:', response.headers);
     console.log('iProgSMS API Response Data:', JSON.stringify(response.data, null, 2));
     
-    // Check if the response indicates success
     if (response.status === 200) {
-      // Extract message ID from response
       const messageId = response.data?.message_id || response.data?.id || response.data?.data?.id || 'unknown';
       
       // Check if there's an error in the response data

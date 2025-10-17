@@ -372,7 +372,7 @@ exports.requestOTP = async (req, res) => {
 exports.verifyOTP = async (req, res) => {
   try {
     const { userId, otp } = req.body;
-
+    
     if (!userId || !otp) {
       return res.status(400).json({
         success: false,
@@ -724,7 +724,6 @@ exports.registerPhone = async (req, res) => {
         });
       }
       
-      // Only update user's phone number if not already registered
       await pool.query(
         'UPDATE users SET phone_number = $1 WHERE id = $2',
         [formattedPhone, userId]
@@ -903,9 +902,7 @@ exports.checkPhoneRegistration = async (req, res) => {
 };
 
 exports.sendSmsOtp = async (req, res) => {
-  try {
-    console.log('Send SMS OTP request:', req.body);
-    
+  try {    
     const { userId } = req.body;
     
     if (!userId) {
@@ -920,7 +917,6 @@ exports.sendSmsOtp = async (req, res) => {
     console.log('IPROGSMS_API_KEY:', process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing');
     console.log('IPROGSMS_SENDER_NAME:', process.env.IPROGSMS_SENDER_NAME ? process.env.IPROGSMS_SENDER_NAME : 'TrustElect');
     
-    // Get user's phone number
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
     const phoneNumber = phoneResult.rows[0]?.phone_number;
     
