@@ -157,7 +157,7 @@ export default function ArchivedElectionsPage() {
       console.error("Failed to load archived elections:", err);
       
       if (err.message.includes('Request failed')) {
-        setError("Failed to load archived elections. The archive functionality may not be properly configured. Please contact your administrator.");
+        setError("Failed to load archived elections.");
       } else if (err.message.includes('400')) {
         setError("Archive functionality is not available. Database migration may be required. Please contact your administrator.");
       } else {

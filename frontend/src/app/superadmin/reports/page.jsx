@@ -17,7 +17,7 @@ import VoterParticipationDetail from './components/VoterParticipationDetail';
 import CandidateListDetail from './components/CandidateListDetail';
 import AdminActivityDetail from './components/AdminActivityDetail';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -102,6 +102,10 @@ export default function ReportsPage() {
       setLoading(true);
       setError(""); 
       const token = Cookies.get("token");
+      
+      if (!token) {
+        throw new Error("No authentication token found. Please log in again.");
+      }
       
       let endpoint;
       let transformedData;
@@ -426,7 +430,24 @@ export default function ReportsPage() {
       return transformedData;
     } catch (error) {
       console.error("Error fetching report data:", error);
-      setError(error.message || "Failed to fetch report data");
+      
+      let errorMessage = "Failed to fetch report data";
+      
+      if (error.message.includes("Network Error") || error.message.includes("ERR_NAME_NOT_RESOLVED")) {
+        errorMessage = "Unable to connect to the server. Please check your internet connection and try again.";
+      } else if (error.response?.status === 401) {
+        errorMessage = "Session expired. Please log in again.";
+      } else if (error.response?.status === 403) {
+        errorMessage = "You don't have permission to access this report.";
+      } else if (error.response?.status === 404) {
+        errorMessage = "Report not found. Please try a different report.";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again later.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
       return null;
     } finally {
       setLoading(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, X, Clock, Users, Activity, BarChart2, RefreshCw, AlertTriangle } from "lucide-react";
 import { generatePdfReport } from '@/utils/pdfGenerator';
 import toast from 'react-hot-toast';
@@ -45,7 +45,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
     setIsLoading(true);
     try {
       const token = document.cookie.split('token=')[1]?.split(';')[0];
-      const response = await fetch(`/api/reports/system-load?timeframe=${timeframe}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/reports/system-load?timeframe=${timeframe}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -824,7 +824,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
   const handleResetData = async () => {
     setIsResetting(true);
     try {
-      const response = await fetch('/api/reports/system-load/reset', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/reports/system-load/reset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
