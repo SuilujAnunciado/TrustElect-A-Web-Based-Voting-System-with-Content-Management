@@ -1,10 +1,10 @@
 const axios = require('axios');
 
 // iProgSMS Configuration
-const IPROGSMS_API_KEY = process.env.IPROGSMS_API_KEY;
+const IPROGSMS_API_KEY = process.env.IPROGSMS_API_KEY
 const IPROGSMS_SENDER_NAME = process.env.IPROGSMS_SENDER_NAME || 'TrustElect';
 const IPROGSMS_API_URL = process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1';
-
+x
 /**
  * Format phone number for iProgSMS (uses 09 format)
  * @param {string} phoneNumber - Phone number in various formats
@@ -19,7 +19,7 @@ const formatPhoneNumber = (phoneNumber) => {
     cleaned = '0' + cleaned.substring(3);
   }
   
-  // If starts with 63, convert to 09
+  
   if (cleaned.startsWith('63') && !cleaned.startsWith('09')) {
     cleaned = '0' + cleaned.substring(2);
   }
@@ -78,8 +78,6 @@ const sendSMS = async (phoneNumber, message) => {
     
     console.log('SMS sent successfully via iProgSMS:', response.data);
     
-    // Extract message ID from response
-    // Note: Update based on actual iProgSMS response structure
     const messageId = response.data?.message_id || response.data?.id || 'unknown';
     
     return { 
@@ -98,8 +96,6 @@ const sendSMS = async (phoneNumber, message) => {
       data: error.response?.data
     });
     
-    // Handle specific iProgSMS errors
-    // Note: Update error handling based on actual iProgSMS error codes
     let errorMessage = error.message;
     if (error.response?.status === 401) {
       errorMessage = 'iProgSMS authentication failed. Please check your API key.';
@@ -129,7 +125,7 @@ const sendSMS = async (phoneNumber, message) => {
  */
 const sendOTPSMS = async (phoneNumber, otp) => {
   try {
-    // Check if iProgSMS is properly configured
+  
     if (!IPROGSMS_API_KEY) {
       console.error('iProgSMS configuration missing:', {
         apiKey: !!IPROGSMS_API_KEY
@@ -144,16 +140,14 @@ const sendOTPSMS = async (phoneNumber, otp) => {
     const formattedNumber = formatPhoneNumber(phoneNumber);
     console.log('Sending OTP SMS to:', formattedNumber);
     console.log('Using iProgSMS OTP service');
-    
-    // Prepare iProgSMS OTP API request based on documentation
-    // The documentation shows we need to include the actual OTP in the request
+ 
     const otpData = {
       api_token: IPROGSMS_API_KEY,
       phone_number: formattedNumber,
       otp: otp, // Include the actual OTP code as shown in documentation
       message: `Your TrustElect verification code is: ${otp}. Valid for 5 minutes. Do not share this code with anyone.`
     };
-    
+  
     console.log('Making API request to:', `${IPROGSMS_API_URL}/otp`);
     console.log('Request data:', JSON.stringify(otpData, null, 2));
     
