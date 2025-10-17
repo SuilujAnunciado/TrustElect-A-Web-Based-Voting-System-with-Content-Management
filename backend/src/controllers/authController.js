@@ -786,31 +786,123 @@ exports.verifySmsOtp = async (req, res) => {
       });
     }
     
-    // For development/test mode, allow any 6-digit OTP
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Development mode OTP verification:', otp);
-      
-      // Mark phone as verified in users table
-      await pool.query(
-        'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
-        [userId]
-      );
-      
-      return res.status(200).json({
-        success: true,
-        message: 'Phone number verified successfully (development mode)',
-        phoneNumber: phoneNumber,
-        testMode: true
+    // Security check: Ensure OTP was recently sent to this user
+    const recentOtpQuery = `
+      SELECT id, created_at FROM otps 
+      WHERE user_id = $1 
+      AND phone_number = $2
+      AND otp_type = 'sms'
+      AND created_at > NOW() - INTERVAL '10 minutes'
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `;
+    
+    const recentOtpResult = await pool.query(recentOtpQuery, [userId, phoneNumber]);
+    
+    if (recentOtpResult.rows.length === 0) {
+      console.log('No recent OTP found for user:', userId, 'phone:', phoneNumber);
+      return res.status(400).json({
+        success: false,
+        message: 'No recent OTP found. Please request a new verification code.'
       });
     }
     
-    // Use iProgSMS verify_otp endpoint for production
+    // For development mode, still verify OTP but allow specific test OTPs
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode OTP verification:', otp);
+      
+      // Only allow specific test OTPs in development mode for security
+      const allowedTestOTPs = ['123456', '000000', '111111'];
+      
+      if (allowedTestOTPs.includes(otp)) {
+        console.log('Test OTP accepted in development mode');
+        
+        // Mark phone as verified in users table
+        await pool.query(
+          'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
+          [userId]
+        );
+        
+        return res.status(200).json({
+          success: true,
+          message: 'Phone number verified successfully (development mode)',
+          phoneNumber: phoneNumber,
+          testMode: true
+        });
+      } else {
+        // In development, still try to verify with iProgSMS for other OTPs
+        console.log('Non-test OTP in development mode, verifying with iProgSMS...');
+      }
+    }
+    
+    // Use iProgSMS verify_otp endpoint for production and non-test OTPs in development
     console.log('Verifying OTP with iProgSMS for phone:', phoneNumber);
     const verifyResult = await smsService.verifyOTP(phoneNumber, otp);
     
     if (!verifyResult.success) {
       console.error('iProgSMS verification failed:', verifyResult);
       
+      // Additional security: Check if OTP exists in our database as a fallback
+      console.log('iProgSMS verification failed, checking database as fallback...');
+      
+      const dbOtpQuery = `
+        SELECT id, otp, expires_at, attempts FROM otps 
+        WHERE user_id = $1 
+        AND phone_number = $2
+        AND otp_type = 'sms'
+        AND expires_at > NOW() 
+        AND verified = false
+        AND attempts < 5
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `;
+      
+      const dbOtpResult = await pool.query(dbOtpQuery, [userId, phoneNumber]);
+      
+      if (dbOtpResult.rows.length > 0) {
+        const dbOtpRecord = dbOtpResult.rows[0];
+        
+        // Check if OTP matches database record
+        if (dbOtpRecord.otp === otp) {
+          console.log('OTP verified against database record');
+          
+          // Mark OTP as verified in database
+          await pool.query(
+            'UPDATE otps SET verified = TRUE, attempts = attempts + 1 WHERE id = $1',
+            [dbOtpRecord.id]
+          );
+          
+          // Mark phone as verified in users table
+          await pool.query(
+            'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
+            [userId]
+          );
+          
+          // Log successful verification
+          await logAction(
+            { id: userId, email: 'SMS_VERIFIED', role: 'SMS_VERIFICATION' },
+            'SMS_VERIFIED',
+            'auth',
+            userId,
+            { phoneNumber: phoneNumber, provider: 'Database_Fallback' }
+          );
+          
+          return res.status(200).json({
+            success: true,
+            message: 'Phone number verified successfully',
+            phoneNumber: phoneNumber,
+            provider: 'Database_Fallback'
+          });
+        } else {
+          // Increment attempts for wrong OTP
+          await pool.query(
+            'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
+            [dbOtpRecord.id]
+          );
+        }
+      }
+      
+      // If we reach here, OTP verification failed completely
       // Handle specific error codes with appropriate HTTP status codes
       let statusCode = 400;
       if (verifyResult.code === 'OTP_EXPIRED') {
