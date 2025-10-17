@@ -915,10 +915,10 @@ exports.sendSmsOtp = async (req, res) => {
       });
     }
     
-    // Check EasySendSMS configuration
-    console.log('EasySendSMS config check:');
-    console.log('EASYSENDSMS_API_KEY:', process.env.EASYSENDSMS_API_KEY ? 'Set' : 'Missing');
-    console.log('EASYSENDSMS_SENDER_NAME:', process.env.EASYSENDSMS_SENDER_NAME ? process.env.EASYSENDSMS_SENDER_NAME : 'TrustElect');
+    // Check iProgSMS configuration
+    console.log('iProgSMS config check:');
+    console.log('IPROGSMS_API_KEY:', process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing');
+    console.log('IPROGSMS_SENDER_NAME:', process.env.IPROGSMS_SENDER_NAME ? process.env.IPROGSMS_SENDER_NAME : 'TrustElect');
     
     // Get user's phone number
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
@@ -972,8 +972,8 @@ exports.sendSmsOtp = async (req, res) => {
       console.error('SMS sending failed:', smsResult);
       
       // If it's a configuration issue, return the OTP for testing
-      if (smsResult.code === 'CONFIG_ERROR' || smsResult.code === 401 || smsResult.code === 4013) {
-        console.log('EasySendSMS configuration issue detected, returning OTP for testing');
+      if (smsResult.code === 'CONFIG_ERROR' || smsResult.code === 401 || smsResult.code === 402) {
+        console.log('iProgSMS configuration issue detected, returning OTP for testing');
         return res.status(200).json({
           success: true,
           message: `SMS verification code sent to ${phoneNumber}`,
@@ -1015,45 +1015,45 @@ exports.sendSmsOtp = async (req, res) => {
   }
 };
 
-// Test SMS with EasySendSMS
+// Test SMS with iProgSMS
 exports.testSms = async (req, res) => {
   try {
-    console.log('Testing SMS with EasySendSMS...');
+    console.log('Testing SMS with iProgSMS...');
     
-    // Check EasySendSMS configuration
+    // Check iProgSMS configuration
     const config = {
-      apiKey: process.env.EASYSENDSMS_API_KEY ? 'Set' : 'Missing',
-      senderName: process.env.EASYSENDSMS_SENDER_NAME || 'TrustElect'
+      apiKey: process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing',
+      senderName: process.env.IPROGSMS_SENDER_NAME || 'TrustElect'
     };
     
-    console.log('EasySendSMS config:', config);
+    console.log('iProgSMS config:', config);
     
-    if (!process.env.EASYSENDSMS_API_KEY) {
+    if (!process.env.IPROGSMS_API_KEY) {
       return res.status(400).json({
         success: false,
-        message: 'EasySendSMS configuration incomplete. Please set EASYSENDSMS_API_KEY in your .env file',
+        message: 'iProgSMS configuration incomplete. Please set IPROGSMS_API_KEY in your .env file',
         config: config
       });
     }
     
     // Test sending SMS
-    const testPhone = '+639120083491'; // Your test number
-    const testMessage = 'Test from TrustElect - EasySendSMS is working! 🎉';
+    const testPhone = '09120083491'; // Your test number (09 format for iProgSMS)
+    const testMessage = 'Test from TrustElect - iProgSMS is working! 🎉';
     
-    console.log('EasySendSMS advantages:');
-    console.log('- 15 free SMS credits included');
-    console.log('- No trial restrictions');
-    console.log('- Works with any Philippines number');
-    console.log('- Immediate activation');
+    console.log('iProgSMS advantages:');
+    console.log('- Reliable SMS delivery');
+    console.log('- Philippines network coverage');
+    console.log('- Competitive pricing');
+    console.log('- Easy integration');
     
-    console.log('Sending SMS from:', process.env.EASYSENDSMS_SENDER_NAME || 'TrustElect');
+    console.log('Sending SMS from:', process.env.IPROGSMS_SENDER_NAME || 'TrustElect');
     console.log('Sending SMS to:', testPhone);
     console.log('Phone number length:', testPhone.length);
-    console.log('Phone number format check:', /^\+63[0-9]{10}$/.test(testPhone));
+    console.log('Phone number format check:', /^09[0-9]{9}$/.test(testPhone));
     
     const smsResult = await smsService.sendSMS(testPhone, testMessage);
     
-    // Handle EasySendSMS errors
+      // Handle iProgSMS errors
     if (!smsResult.success) {
       return res.status(400).json({
         success: false,
@@ -1061,12 +1061,12 @@ exports.testSms = async (req, res) => {
         config: config,
         error: smsResult.error,
         code: smsResult.code,
-        provider: 'EasySendSMS',
+        provider: 'iProgSMS',
         troubleshooting: {
-          step1: 'Check your EasySendSMS API key',
-          step2: 'Verify you have sufficient credits (15 free trial)',
+          step1: 'Check your iProgSMS API key',
+          step2: 'Verify you have sufficient credits',
           step3: 'Check phone number format (+639123456789)',
-          step4: 'Review EasySendSMS account status'
+          step4: 'Review iProgSMS account status'
         }
       });
     }
@@ -1147,8 +1147,8 @@ exports.resendSmsOtp = async (req, res) => {
       console.error('Resend SMS sending failed:', smsResult);
       
       // If it's a configuration issue, return the OTP for testing
-      if (smsResult.code === 'CONFIG_ERROR' || smsResult.code === 401 || smsResult.code === 4013) {
-        console.log('EasySendSMS configuration issue detected, returning OTP for testing');
+      if (smsResult.code === 'CONFIG_ERROR' || smsResult.code === 401 || smsResult.code === 402) {
+        console.log('iProgSMS configuration issue detected, returning OTP for testing');
         return res.status(200).json({
           success: true,
           message: `SMS verification code resent to ${phoneNumber}`,
