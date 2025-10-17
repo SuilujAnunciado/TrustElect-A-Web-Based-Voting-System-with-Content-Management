@@ -680,6 +680,8 @@ const permanentDeleteElection = async (id) => {
 // Get archived elections
 const getArchivedElections = async (userId = null) => {
   try {
+    console.log('🔍 Getting archived elections for user:', userId);
+    
     // First check if the archive columns exist
     const columnCheck = await pool.query(`
       SELECT column_name 
@@ -691,27 +693,13 @@ const getArchivedElections = async (userId = null) => {
     const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
+    console.log('Archive columns check:', { hasArchiveColumns, hasDeleteColumns });
+    
     if (!hasArchiveColumns || !hasDeleteColumns) {
-      console.log('Archive/delete columns not found, applying migration automatically...');
-      
-      // Try to apply the migration automatically
-      try {
-        await pool.query(`
-          ALTER TABLE elections 
-          ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT FALSE,
-          ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE,
-          ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP NULL,
-          ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL,
-          ADD COLUMN IF NOT EXISTS archived_by INTEGER NULL,
-          ADD COLUMN IF NOT EXISTS deleted_by INTEGER NULL
-        `);
-        
-        console.log('Migration applied successfully!');
-      } catch (migrationError) {
-        console.error('Failed to apply migration automatically:', migrationError.message);
-        console.log('Returning empty array - migration needs to be applied manually');
-        return [];
-      }
+      console.log('❌ Archive/delete columns not found!');
+      console.log('Available columns:', columnCheck.rows.map(row => row.column_name));
+      console.log('Please run the migration script: node fix_archive_elections.js');
+      return [];
     }
     
     let query = `

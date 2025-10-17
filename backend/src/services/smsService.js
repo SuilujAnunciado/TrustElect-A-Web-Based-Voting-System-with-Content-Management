@@ -72,10 +72,7 @@ const sendSMS = async (phoneNumber, message) => {
           'Accept': 'application/json'
         }
       }
-    );
-    
-    console.log('SMS sent successfully via iProgSMS:', response.data);
-    
+    );    
     const messageId = response.data?.message_id || response.data?.id || 'unknown';
     
     return { 

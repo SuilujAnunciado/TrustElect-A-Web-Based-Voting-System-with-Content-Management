@@ -629,29 +629,45 @@ exports.getArchivedElections = async (req, res) => {
     console.log('=== ARCHIVED ELECTIONS REQUEST ===');
     console.log('User role_id:', req.user?.role_id);
     console.log('User ID from token:', req.user?.id);
-    console.log('Request headers:', req.headers);
     
-    // For now, let's show all archived elections regardless of who created them
-    // This will help us debug the issue
-    const userId = null; // Always show all archived elections for debugging
+    // Determine user filtering based on role
+    const userId = req.user.role_id === 1 ? null : req.user.id; // SuperAdmin can see all, others see only their own
     
     console.log('Fetching archived elections for user:', userId);
+    console.log('User role:', req.user.role_id === 1 ? 'SuperAdmin (all elections)' : 'Admin (own elections only)');
     
     const elections = await getArchivedElections(userId);
     
     console.log('Controller received elections:', elections.length);
-    console.log('Elections data:', elections);
     
-    // If no elections returned, that's normal - there might just be no archived elections
-    console.log('No archived elections found - this is normal if no elections have been archived yet');
+    if (elections.length === 0) {
+      console.log('No archived elections found');
+    }
     
     res.status(200).json({
       success: true,
-      data: elections
+      data: elections,
+      count: elections.length,
+      message: elections.length === 0 ? 'No archived elections found' : `${elections.length} archived elections found`
     });
   } catch (error) {
     console.error('Error fetching archived elections:', error);
-    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint
+    });
+    
+    // Check if it's a column missing error
+    if (error.code === '42703') {
+      return res.status(400).json({
+        success: false,
+        message: 'Archive functionality not available. Database migration required.',
+        error: 'Missing database columns',
+        details: 'Please run the migration script to add archive columns to the elections table.'
+      });
+    }
     
     // Return more specific error information
     res.status(500).json({

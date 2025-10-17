@@ -150,7 +150,11 @@ export default function ArchivedElectionsPage() {
       }
       
       if (data.success === false) {
-        setError(data.message || "Failed to load archived elections. Please try again later.");
+        if (data.error === 'Missing database columns') {
+          setError("Archive functionality requires database migration. Please contact your administrator.");
+        } else {
+          setError(data.message || "Failed to load archived elections. Please try again later.");
+        }
         return;
       }
       
