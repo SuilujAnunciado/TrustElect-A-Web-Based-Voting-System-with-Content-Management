@@ -138,10 +138,19 @@ export default function ArchivedElectionsPage() {
     try {
       setLoading(true);
       setError("");
+      
+      console.log('Fetching archived elections...');
       const data = await fetchWithAuth('/elections/archived');
+      
+      console.log('Received data:', data);
       
       if (data.migrationNeeded) {
         setError("Archive functionality requires database migration. Please contact your administrator.");
+        return;
+      }
+      
+      if (data.success === false) {
+        setError(data.message || "Failed to load archived elections. Please try again later.");
         return;
       }
       
@@ -150,7 +159,9 @@ export default function ArchivedElectionsPage() {
       console.error("Failed to load archived elections:", err);
       
       if (err.message.includes('Request failed')) {
-        setError("Failed to load archived elections. Please check your connection and try again.");
+        setError("Failed to load archived elections. The archive functionality may not be properly configured. Please contact your administrator.");
+      } else if (err.message.includes('400')) {
+        setError("Archive functionality is not available. Database migration may be required. Please contact your administrator.");
       } else {
         setError("Failed to load archived elections. Please try again later.");
       }

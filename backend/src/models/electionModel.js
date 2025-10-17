@@ -692,8 +692,26 @@ const getArchivedElections = async (userId = null) => {
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     if (!hasArchiveColumns || !hasDeleteColumns) {
-      console.log('Archive/delete columns not found, returning empty array');
-      return [];
+      console.log('Archive/delete columns not found, applying migration automatically...');
+      
+      // Try to apply the migration automatically
+      try {
+        await pool.query(`
+          ALTER TABLE elections 
+          ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT FALSE,
+          ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE,
+          ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP NULL,
+          ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL,
+          ADD COLUMN IF NOT EXISTS archived_by INTEGER NULL,
+          ADD COLUMN IF NOT EXISTS deleted_by INTEGER NULL
+        `);
+        
+        console.log('Migration applied successfully!');
+      } catch (migrationError) {
+        console.error('Failed to apply migration automatically:', migrationError.message);
+        console.log('Returning empty array - migration needs to be applied manually');
+        return [];
+      }
     }
     
     let query = `

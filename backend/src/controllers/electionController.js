@@ -642,35 +642,8 @@ exports.getArchivedElections = async (req, res) => {
     console.log('Controller received elections:', elections.length);
     console.log('Elections data:', elections);
     
-    // If no elections returned and we're in development, check if migration is needed
-    if (elections.length === 0 && process.env.NODE_ENV === 'development') {
-      console.log('No archived elections found. Checking if migration is needed...');
-      
-      // Check if archive columns exist
-      try {
-        const columnCheck = await pool.query(`
-          SELECT column_name 
-          FROM information_schema.columns 
-          WHERE table_name = 'elections' 
-          AND column_name IN ('is_archived', 'is_deleted')
-        `);
-        
-        const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
-        const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
-        
-        if (!hasArchiveColumns || !hasDeleteColumns) {
-          console.log('Archive columns missing. Migration needed.');
-          return res.status(400).json({
-            success: false,
-            message: 'Archive functionality not available. Database migration required.',
-            migrationNeeded: true,
-            details: 'Please run the archive migration script to enable archived elections functionality.'
-          });
-        }
-      } catch (migrationCheckError) {
-        console.error('Error checking migration status:', migrationCheckError);
-      }
-    }
+    // If no elections returned, that's normal - there might just be no archived elections
+    console.log('No archived elections found - this is normal if no elections have been archived yet');
     
     res.status(200).json({
       success: true,
