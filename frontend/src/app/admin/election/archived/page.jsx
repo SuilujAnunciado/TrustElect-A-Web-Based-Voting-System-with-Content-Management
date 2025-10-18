@@ -138,14 +138,21 @@ export default function ArchivedElectionsPage() {
     try {
       setLoading(true);
       setError("");
-      const data = await fetchWithAuth('/elections/archived');
+      
+      // Fetch all elections and filter for archived ones (like admin system)
+      const data = await fetchWithAuth('/elections');
       
       if (data.success === false) {
-        setError(data.message || "Failed to load archived elections. Please try again later.");
+        setError(data.message || "Failed to load elections. Please try again later.");
         return;
       }
       
-      setElections(data.data || []);
+      // Filter for archived elections (is_active = false, is_deleted = false)
+      const archivedElections = (data.data || []).filter(election => 
+        election.is_active === false && election.is_deleted === false
+      );
+      
+      setElections(archivedElections);
     } catch (err) {
       console.error("Failed to load archived elections:", err);
       
