@@ -147,9 +147,27 @@ export default function ArchivedElectionsPage() {
       }
       
       // Filter for archived elections (is_active = false, is_deleted = false)
-      const archivedElections = (data.data || []).filter(election => 
+      const allElections = data.data || [];
+      console.log('🔍 All elections received:', allElections.length);
+      console.log('📊 Election data sample:', allElections.slice(0, 2).map(e => ({
+        id: e.id,
+        title: e.title,
+        is_active: e.is_active,
+        is_deleted: e.is_deleted,
+        archived_at: e.archived_at
+      })));
+      
+      const archivedElections = allElections.filter(election => 
         election.is_active === false && election.is_deleted === false
       );
+      
+      console.log('🗂️ Filtered archived elections:', archivedElections.length);
+      console.log('📋 Archived elections data:', archivedElections.map(e => ({
+        id: e.id,
+        title: e.title,
+        is_active: e.is_active,
+        is_deleted: e.is_deleted
+      })));
       
       setElections(archivedElections);
     } catch (err) {

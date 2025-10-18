@@ -532,14 +532,25 @@ exports.archiveElection = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
     
+    console.log(`🔍 Attempting to archive election ${id} by user ${userId}`);
+    
     const result = await archiveElection(id, userId);
+    
+    console.log(`✅ Election ${id} archived successfully:`, {
+      id: result.election.id,
+      title: result.election.title,
+      is_active: result.election.is_active,
+      is_deleted: result.election.is_deleted,
+      archived_at: result.election.archived_at
+    });
+    
     res.status(200).json({
       success: true,
       message: result.message,
       election: result.election
     });
   } catch (error) {
-    console.error('Error archiving election:', error);
+    console.error('❌ Error archiving election:', error);
     res.status(400).json({
       success: false,
       message: error.message
