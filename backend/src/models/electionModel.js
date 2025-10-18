@@ -680,14 +680,29 @@ const permanentDeleteElection = async (id) => {
 // Get archived elections
 const getArchivedElections = async (userId = null) => {
   try {
+    // First check if archive columns exist
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'elections' 
+      AND column_name IN ('is_archived', 'archived_at', 'archived_by')
+    `);
+    
+    const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    
+    if (!hasArchiveColumns) {
+      console.log('Archive columns not found, returning empty array');
+      return [];
+    }
+    
     let query = `
       SELECT 
         e.id,
         e.title,
         e.description,
         e.election_type,
-        e.start_date,
-        e.end_date,
+        e.date_from,
+        e.date_to,
         e.start_time,
         e.end_time,
         e.status,
@@ -703,10 +718,12 @@ const getArchivedElections = async (userId = null) => {
           WHEN 3 THEN 'Student'
           ELSE 'Unknown'
         END as creator_role,
+        archived_user.first_name || ' ' || archived_user.last_name as archived_by_name,
         (SELECT COUNT(*) FROM eligible_voters ev WHERE ev.election_id = e.id) AS voter_count,
         (SELECT COALESCE(COUNT(DISTINCT student_id), 0) FROM votes WHERE election_id = e.id) AS vote_count
       FROM elections e
       LEFT JOIN users u ON e.created_by = u.id
+      LEFT JOIN users archived_user ON e.archived_by = archived_user.id
       WHERE e.is_archived = TRUE
     `;
     
@@ -721,6 +738,7 @@ const getArchivedElections = async (userId = null) => {
     const result = await pool.query(query, params);
     return result.rows;
   } catch (error) {
+    console.error('Error in getArchivedElections:', error);
     return [];
   }
 };
@@ -733,7 +751,7 @@ const getDeletedElections = async (userId = null) => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_archived', 'is_deleted')
+      AND column_name IN ('is_archived', 'is_deleted', 'deleted_at', 'deleted_by')
     `);
     
     const hasArchiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
@@ -746,7 +764,21 @@ const getDeletedElections = async (userId = null) => {
     
     let query = `
       SELECT 
-        e.*,
+        e.id,
+        e.title,
+        e.description,
+        e.election_type,
+        e.date_from,
+        e.date_to,
+        e.start_time,
+        e.end_time,
+        e.status,
+        e.created_at,
+        e.updated_at,
+        e.is_deleted,
+        e.deleted_at,
+        e.deleted_by,
+        e.auto_delete_at,
         u.first_name || ' ' || u.last_name as creator_name,
         CASE u.role_id
           WHEN 1 THEN 'SuperAdmin'

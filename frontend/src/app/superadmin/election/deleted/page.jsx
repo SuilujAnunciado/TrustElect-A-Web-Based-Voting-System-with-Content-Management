@@ -135,11 +135,23 @@ export default function DeletedElectionsPage() {
   const fetchDeletedElections = useCallback(async () => {
     try {
       setLoading(true);
+      setError("");
       const data = await fetchWithAuth('/elections/deleted');
+      
+      if (data.success === false) {
+        setError(data.message || "Failed to load deleted elections.");
+        return;
+      }
+      
       setElections(data.data || []);
     } catch (err) {
       console.error("Failed to load deleted elections:", err);
-      setError("Failed to load deleted elections. Please try again later.");
+      
+      if (err.message.includes('Request failed')) {
+        setError("Failed to load deleted elections.");
+      } else {
+        setError("Failed to load deleted elections. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }

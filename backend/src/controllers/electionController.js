@@ -634,8 +634,10 @@ exports.getArchivedElections = async (req, res) => {
       data: elections
     });
   } catch (error) {
-    res.status(200).json({
-      success: true,
+    console.error('Error fetching archived elections:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch archived elections',
       data: []
     });
   }
