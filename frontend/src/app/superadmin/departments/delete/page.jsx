@@ -154,7 +154,6 @@ export default function DeletedDepartmentsPage() {
   const permanentlyDeleteDepartment = async () => {
     try {
       const token = Cookies.get("token");
-      console.log("Attempting to permanently delete department ID:", selectedDepartmentId);
       
       // Try multiple endpoints for permanent delete
       let success = false;
@@ -182,8 +181,6 @@ export default function DeletedDepartmentsPage() {
           throw new Error("Failed to permanently delete department");
         }
       }
-      
-      console.log("Delete response:", response.data);
       setShowConfirmModal(false);
       toast.success("Department permanently deleted");
       fetchDeletedDepartments(); 

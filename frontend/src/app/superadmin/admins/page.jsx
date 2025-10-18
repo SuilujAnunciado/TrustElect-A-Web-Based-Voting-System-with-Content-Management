@@ -429,10 +429,8 @@ export default function AdminsPage() {
               // Create a global timestamp update as well
               if (typeof window !== 'undefined' && window.GLOBAL_PERMISSIONS_TIMESTAMP) {
                 window.GLOBAL_PERMISSIONS_TIMESTAMP = Date.now();
-                console.log('Updated global permissions timestamp:', window.GLOBAL_PERMISSIONS_TIMESTAMP);
               }
               
-              console.log(`Permission update confirmed for admin #${selectedAdmin.id}`);
               toast.success(`Permissions updated for ${selectedAdmin.first_name} ${selectedAdmin.last_name}`);
             } catch (e) {
               console.warn('Could not store permission update timestamp:', e);

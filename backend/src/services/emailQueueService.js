@@ -43,7 +43,6 @@ class EmailQueue {
               emailData.email, 
               emailData.electionData
             );
-            console.log(`Email sent to ${emailData.email}`);
             successCount++;
             emailSent = true;
             
@@ -51,19 +50,15 @@ class EmailQueue {
             retryCount++;
             console.error(`Failed to send email to ${emailData.email} (attempt ${retryCount}/${this.maxRetries}):`, error.message);
             
-            // If it's a date formatting error, don't retry - it will keep failing
             if (error.message.includes('split is not a function') || error.message.includes('Date formatting error')) {
               console.error(`Date formatting error for ${emailData.email}, skipping retry. Election data:`, emailData.electionData);
               errorCount++;
               break; 
             }
             
-            // If rate limited, wait longer before retry
             if (error.message.includes('too many connections') || error.message.includes('421')) {
-              console.log('⏳ Rate limit detected, waiting 10 seconds before retry...');
               await new Promise(resolve => setTimeout(resolve, 10000));
             } else if (retryCount < this.maxRetries) {
-              // Wait a bit before retrying other errors
               await new Promise(resolve => setTimeout(resolve, 2000));
             }
           }
@@ -71,10 +66,9 @@ class EmailQueue {
         
         if (!emailSent) {
           errorCount++;
-          console.error(`❌ Failed to send email to ${emailData.email} after ${this.maxRetries} attempts`);
+          console.error(` Failed to send email to ${emailData.email} after ${this.maxRetries} attempts`);
         }
         
-        // Delay between individual emails (only if not the last email in batch)
         if (this.queue.length > 0 || batch.indexOf(emailData) < batch.length - 1) {
           await new Promise(resolve => setTimeout(resolve, this.delayBetweenEmails));
         }

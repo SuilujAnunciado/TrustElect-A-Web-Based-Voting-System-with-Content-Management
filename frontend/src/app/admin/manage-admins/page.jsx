@@ -81,7 +81,6 @@ export default function ManageAdminsPage() {
       // Get department from token or fetch from API
       if (tokenData.department) {
         setCurrentUserDepartment(tokenData.department);
-        console.log("🔍 Debug - Department from token:", tokenData.department);
       } else {
         // Fetch current user data to get department
         try {
@@ -91,38 +90,31 @@ export default function ManageAdminsPage() {
           });
           if (userRes.data.department) {
             setCurrentUserDepartment(userRes.data.department);
-            console.log("🔍 Debug - Department from API:", userRes.data.department);
           }
         } catch (error) {
           console.error("Error fetching user department:", error);
         }
       }
       
-      console.log("🔍 Debug - Token data:", tokenData);
 
       const updatedAdmins = res.data.admins.map(admin => ({
         ...admin,
         department: admin.department === "Administration" ? "Administrator" : admin.department
       }));
 
-      console.log("🔍 Debug - All admins from API:", updatedAdmins);
-      console.log("🔍 Debug - Current user data:", tokenData);
 
       // Filter out system admins/root admins and only show active admins
       let filteredAdmins = updatedAdmins.filter((admin) => 
         admin.is_active && !isSuperAdmin(admin)
       );
 
-      console.log("🔍 Debug - After basic filtering:", filteredAdmins);
 
       // Apply department-based visibility filtering
       filteredAdmins = applyDepartmentVisibilityFilter(filteredAdmins, tokenData);
 
-      console.log("🔍 Debug - After department filtering:", filteredAdmins);
 
       // If no admins are shown after filtering, show all active admins as fallback
       if (filteredAdmins.length === 0) {
-        console.log("🔍 Debug - No admins after filtering, showing all active admins as fallback");
         const fallbackAdmins = updatedAdmins.filter((admin) => admin.is_active && !isSuperAdmin(admin));
         setAdmins(fallbackAdmins);
         setFilteredAdmins(fallbackAdmins);
@@ -283,12 +275,6 @@ export default function ManageAdminsPage() {
 
   const isSuperAdmin = (admin) => {
     const isSuper = admin.role_id === 1 || (admin.department === "Administrator" && !admin.employee_number);
-    console.log(`🔍 Debug - isSuperAdmin check for ${admin.first_name} ${admin.last_name}:`, {
-      role_id: admin.role_id,
-      department: admin.department,
-      employee_number: admin.employee_number,
-      isSuper
-    });
     return isSuper;
   };
 
@@ -302,23 +288,14 @@ export default function ManageAdminsPage() {
     const currentUserId = currentUser.id;
     const currentUserRole = currentUser.role_id;
 
-    console.log("🔍 Debug - Filtering with:", { currentUserDept, currentUserId, currentUserRole });
-    console.log("🔍 Debug - Admins to filter:", admins.map(a => ({ 
-      id: a.id, 
-      name: `${a.first_name} ${a.last_name}`, 
-      dept: a.department, 
-      created_by: a.created_by 
-    })));
 
     // If current user is Administrator/Administration/System (role_id 1 or department check), they can see all admins
     if (currentUserRole === 1 || currentUserDept === "Administrator" || currentUserDept === "Administration" || currentUserDept === "System") {
-      console.log("🔍 Debug - User is Administrator/System, showing all admins");
       return admins;
     }
 
     // If current user department is undefined or null, show all admins as fallback
     if (!currentUserDept) {
-      console.log("🔍 Debug - User department is undefined, showing all admins as fallback");
       return admins;
     }
 
@@ -326,22 +303,17 @@ export default function ManageAdminsPage() {
     const filtered = admins.filter(admin => {
       // Only show admins from the same department
       if (admin.department === currentUserDept) {
-        console.log(`🔍 Debug - Showing admin ${admin.first_name} ${admin.last_name} - same department (${admin.department})`);
         return true;
       }
 
       // Hide Administrator/Administration/System department admins
       if (admin.department === "Administrator" || admin.department === "Administration" || admin.department === "System") {
-        console.log(`🔍 Debug - Hiding admin ${admin.first_name} ${admin.last_name} - Administrator/System department`);
         return false;
       }
 
-      // Hide admins from other departments
-      console.log(`🔍 Debug - Hiding admin ${admin.first_name} ${admin.last_name} - different department (${admin.department} vs ${currentUserDept})`);
       return false;
     });
 
-    console.log("🔍 Debug - Final filtered admins:", filtered.length);
     return filtered;
   };
 
@@ -351,7 +323,6 @@ export default function ManageAdminsPage() {
       return;
     }
 
-    // Check if user is trying to edit their own permissions
     if (currentUserId && parseInt(currentUserId) === parseInt(admin.id)) {
       toast.error("You cannot edit your own permissions.");
       return;

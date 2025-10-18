@@ -59,7 +59,6 @@ router.post('/fix-landing-design',
   verifyToken,
   allowRoles('Admin', 'Super Admin'),
   async (req, res) => {
-    console.log('Running fix script for landing design...');
     
     try {
 
@@ -80,7 +79,6 @@ router.post('/fix-landing-design',
       `);
 
       if (parseInt(constraintExists.rows[0].count) === 0) {
-        console.log('Adding constraint to enforce landing design...');
 
         await pool.query(`
           UPDATE student_ui
@@ -99,7 +97,6 @@ router.post('/fix-landing-design',
       const result = await pool.query('SELECT * FROM student_ui LIMIT 1');
       
       if (result.rows.length === 0) {
-        console.log('No config found. Creating default...');
         
         await pool.query(`
           INSERT INTO student_ui 
@@ -133,8 +130,6 @@ router.post('/force-landing',
   verifyToken,
   allowRoles('Admin', 'Super Admin'),
   (req, res, next) => {
-    console.log('Processing force-landing request...');
-    console.log('User role:', req.user.role);
     next();
   },
   StudentUIController.forceLandingDesign

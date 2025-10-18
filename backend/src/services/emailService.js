@@ -195,7 +195,6 @@ const sendOTPEmail = async (userId, email, otp, purpose = 'login') => {
     }
 
     const info = await gmailTransporter.sendMail(mailOptions);
-    console.log(`OTP ${otp} successfully sent to ${email}`);
 
     await logEmailStatus(
       userId, 
@@ -267,13 +266,11 @@ const testSystemAccount = async (email) => {
   
   if (isSuperAdmin) {
     const forwardingEmail = await getAdminForwardingEmail(email);
-    console.log(`Email "${email}" is a superadmin account. OTPs will be sent to ${forwardingEmail}`);
     return { 
       isSystemAccount: true,
       recipientEmail: forwardingEmail
     };
   } else {
-    console.log(`Email "${email}" is a regular account. OTPs will be sent directly to ${email}`);
     return { 
       isSystemAccount: false,
       recipientEmail: email

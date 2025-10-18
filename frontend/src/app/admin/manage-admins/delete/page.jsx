@@ -114,14 +114,12 @@ export default function DeletedAdminsPage() {
   const permanentlyDeleteAdmin = async () => {
     try {
       const token = Cookies.get("token");
-      console.log("Attempting to permanently delete admin ID:", selectedAdminId);
       
       const response = await axios.delete(`/api/admin/manage-admins/${selectedAdminId}/permanent`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
       
-      console.log("Delete response:", response.data);
       setShowConfirmModal(false);
       alert("Admin permanently deleted.");
       fetchDeletedAdmins(); 

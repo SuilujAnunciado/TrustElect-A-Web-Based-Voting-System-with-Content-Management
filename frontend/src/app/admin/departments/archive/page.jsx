@@ -45,7 +45,6 @@ export default function ArchivedDepartmentsPage() {
           withCredentials: true
         });
         
-        console.log("Admin archived departments API response:", res.data);
         departmentsArray = res.data.departments || res.data || [];
         success = true;
       } catch (firstError) {
@@ -61,7 +60,6 @@ export default function ArchivedDepartmentsPage() {
             withCredentials: true
           });
           
-          console.log("SuperAdmin archived departments API response:", res.data);
           departmentsArray = res.data.departments || res.data || [];
           success = true;
         } catch (secondError) {
@@ -77,7 +75,6 @@ export default function ArchivedDepartmentsPage() {
               withCredentials: true
             });
             
-            console.log("Generic archived departments API response:", res.data);
             departmentsArray = res.data.departments || res.data || [];
             success = true;
           } catch (thirdError) {
@@ -90,7 +87,6 @@ export default function ArchivedDepartmentsPage() {
       }
       
       if (success) {
-        console.log(`Successfully loaded ${departmentsArray.length} archived departments:`, departmentsArray);
         setArchivedDepartments(departmentsArray);
       }
     } catch (error) {

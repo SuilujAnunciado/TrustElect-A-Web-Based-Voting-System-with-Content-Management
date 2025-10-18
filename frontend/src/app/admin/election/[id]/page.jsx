@@ -390,9 +390,7 @@ export default function ElectionDetailsPage() {
               retries: 1
             })
           ]);
-          
-          console.log("Complete election data:", completeElectionData);
-          console.log("Eligibility criteria response:", eligibilityCriteriaResponse);
+
           
           // Process precinct programs from different possible sources
           let precinctPrograms = {};
@@ -402,39 +400,27 @@ export default function ElectionDetailsPage() {
           if (completeElectionData.eligible_voters) {
             precinctPrograms = completeElectionData.eligible_voters.precinctPrograms || completeElectionData.eligible_voters.precinct_programs || {};
             precincts = completeElectionData.eligible_voters.precinct || [];
-            console.log("Found precinct data in completeElectionData.eligible_voters:", {
-              precincts,
-              precinctPrograms
-            });
+
           }
           
           // If not found, try from eligibility criteria response
           if (Object.keys(precinctPrograms).length === 0 && eligibilityCriteriaResponse.criteria) {
             precinctPrograms = eligibilityCriteriaResponse.criteria.precinctPrograms || eligibilityCriteriaResponse.criteria.precinct_programs || {};
             precincts = eligibilityCriteriaResponse.criteria.precincts || eligibilityCriteriaResponse.criteria.precinct || [];
-            console.log("Found precinct data in eligibilityCriteriaResponse.criteria:", {
-              precincts,
-              precinctPrograms
-            });
+
           }
           
           // If still not found, try from laboratoryPrecincts
           if (Object.keys(precinctPrograms).length === 0 && completeElectionData.laboratoryPrecincts) {
-            console.log("Processing laboratoryPrecincts:", completeElectionData.laboratoryPrecincts);
             completeElectionData.laboratoryPrecincts.forEach(lp => {
               if (lp.laboratoryPrecinctId && lp.assignedCourses) {
                 const precinctName = lp.precinctName || `Lab ${lp.laboratoryPrecinctId}`;
                 precinctPrograms[precinctName] = lp.assignedCourses;
               }
             });
-            console.log("Processed from laboratoryPrecincts:", {
-              precincts: Object.keys(precinctPrograms),
-              precinctPrograms
-            });
+
           }
-          
-          console.log("Final precinct programs:", precinctPrograms);
-          console.log("Final precincts:", precincts);
+
           
           electionData.eligibility_criteria = {
             ...(eligibilityCriteriaResponse.criteria || {}),
@@ -510,7 +496,6 @@ export default function ElectionDetailsPage() {
   // Auto-refresh effect for partial counting in fullscreen
   useEffect(() => {
     if (isFullScreen && tab === 'partial' && election?.status === 'ongoing') {
-      console.log('Starting auto-refresh for partial counting...');
       
       intervalRef.current = setInterval(async () => {
         try {
@@ -526,14 +511,12 @@ export default function ElectionDetailsPage() {
       
       return () => {
         if (intervalRef.current) {
-          console.log('Clearing auto-refresh interval...');
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
       };
     } else {
       if (intervalRef.current) {
-        console.log('Clearing auto-refresh interval (conditions not met)...');
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
@@ -543,7 +526,6 @@ export default function ElectionDetailsPage() {
   // Position carousel effect for fullscreen
   useEffect(() => {
     if (isFullScreen && tab === 'partial' && election?.positions?.length > 1) {
-      console.log('Starting position carousel...');
       
       carouselIntervalRef.current = setInterval(() => {
         setCurrentPositionIndex(prev => 
@@ -553,7 +535,6 @@ export default function ElectionDetailsPage() {
       
       return () => {
         if (carouselIntervalRef.current) {
-          console.log('Clearing carousel interval...');
           clearInterval(carouselIntervalRef.current);
           carouselIntervalRef.current = null;
         }
@@ -581,7 +562,6 @@ export default function ElectionDetailsPage() {
   // Bulletin carousel effect
   useEffect(() => {
     if (tab === 'bulletin' && bulletinData.voterCodes.length > 0 && bulletinData.candidateVotes.length > 0) {
-      console.log('Starting bulletin carousel...');
       
       bulletinIntervalRef.current = setInterval(() => {
         setCurrentBulletinSlide(prev => prev === 0 ? 1 : 0);
@@ -589,7 +569,6 @@ export default function ElectionDetailsPage() {
       
       return () => {
         if (bulletinIntervalRef.current) {
-          console.log('Clearing bulletin carousel interval...');
           clearInterval(bulletinIntervalRef.current);
           bulletinIntervalRef.current = null;
         }
@@ -638,9 +617,7 @@ export default function ElectionDetailsPage() {
     try {
       setIsCancelling(true);
       const token = Cookies.get('token');
-      
-      // Log the request for debugging
-      console.log(`Attempting to delete election: ${election.id}`);
+
       
       // Using DELETE method with proper election endpoint
       const response = await fetch(`${API_BASE}/elections/${election.id}`, {
@@ -1094,11 +1071,6 @@ export default function ElectionDetailsPage() {
         percentage: election.voter_count ? ((candidate.vote_count || 0) / election.voter_count * 100).toFixed(2) : '0.00',
         color: CHART_COLORS[index % CHART_COLORS.length]
       }));
-      
-      // Debug logging for chart data
-      console.log(`Chart data for position ${position.name}:`, chartData.map(c => ({ name: c.name, votes: c.votes })));
-      console.log(`Y-axis domain for ${position.name}:`, calculateYAxisDomain(chartData));
-      console.log(`Max votes: ${Math.max(...chartData.map(d => d.votes))}, Min votes: ${Math.min(...chartData.map(d => d.votes))}`);
       
       return {
         ...position,

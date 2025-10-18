@@ -3,11 +3,9 @@ const pool = require("../config/db");
 // Test endpoint to debug issues
 exports.testVotingTimeEndpoint = async (req, res) => {
   try {
-    console.log('Testing voting time endpoint...');
     
     // Test database connection
     const testQuery = await pool.query('SELECT 1 as test');
-    console.log('Database connection test passed');
     
     // Test table existence
     const tableCheck = await pool.query(`
@@ -18,7 +16,6 @@ exports.testVotingTimeEndpoint = async (req, res) => {
       ORDER BY table_name
     `);
     
-    console.log('Available tables:', tableCheck.rows.map(r => r.table_name));
     
     // Test basic data counts
     const counts = {};

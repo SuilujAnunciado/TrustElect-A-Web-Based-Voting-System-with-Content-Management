@@ -272,27 +272,13 @@ const verifyOTP = async (phoneNumber, otp) => {
     }
     
     const formattedNumber = formatPhoneNumber(phoneNumber);
-    console.log('Verifying OTP for:', formattedNumber);
-    console.log('OTP to verify:', otp);
     
     const verifyData = {
       api_token: IPROGSMS_API_KEY,
       phone_number: formattedNumber,
       otp: otp
     };
-    
-    // Additional debugging for iProgSMS API
-    console.log('iProgSMS Verify Request Details:');
-    console.log('- API Key present:', !!IPROGSMS_API_KEY);
-    console.log('- API Key length:', IPROGSMS_API_KEY ? IPROGSMS_API_KEY.length : 0);
-    console.log('- Phone number:', formattedNumber);
-    console.log('- OTP:', otp);
-    console.log('- Request data:', JSON.stringify(verifyData, null, 2));
-    
-    console.log('Making verify API request to:', `${IPROGSMS_API_URL}/otp/verify_otp`);
-    console.log('Request data:', JSON.stringify(verifyData, null, 2));
-    
-    // Try the verify_otp endpoint first
+
     let response;
     try {
       response = await axios.post(
@@ -306,11 +292,7 @@ const verifyOTP = async (phoneNumber, otp) => {
         }
       );
     } catch (verifyError) {
-      console.log('verify_otp endpoint failed, trying alternative approach...');
-      console.log('Verify error:', verifyError.response?.data);
-      
-      // If verify_otp fails, try using the send_otp endpoint with verification
-      // Some SMS providers use the same endpoint for both sending and verifying
+
       try {
         const alternativeData = {
           api_token: IPROGSMS_API_KEY,
@@ -329,15 +311,11 @@ const verifyOTP = async (phoneNumber, otp) => {
             }
           }
         );
-        console.log('Alternative endpoint succeeded');
       } catch (altError) {
-        console.log('Alternative endpoint also failed');
         throw verifyError; // Throw the original error
       }
     }
-    
-    console.log('iProgSMS Verify API Response Status:', response.status);
-    console.log('iProgSMS Verify API Response Data:', JSON.stringify(response.data, null, 2));
+ 
     
     if (response.status === 200) {
       // Check if verification was successful

@@ -21,7 +21,6 @@ const fetchWithAuth = async (endpoint, options = {}) => {
     ? endpoint 
     : `/api${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   
-  console.log(`Making API request to: ${apiUrl}${normalizedEndpoint}`);
   
   const defaultOptions = {
     headers: {
@@ -87,7 +86,6 @@ const fetchWithAuth = async (endpoint, options = {}) => {
 
     try {
       const jsonData = await response.json();
-      console.log('API response:', jsonData);
       return jsonData;
     } catch (e) {
       const contentType = response.headers.get('content-type');
@@ -120,9 +118,7 @@ const fetchWithAuth = async (endpoint, options = {}) => {
 const fetchWithFormData = async (endpoint, formData, method = 'POST') => {
   const token = Cookies.get('token');
   const apiUrl = BASE_URL || '';
-  
-  console.log(`Making form data API request to: ${apiUrl}${endpoint}`);
-  
+    
   try {
     const response = await fetch(`${apiUrl}${endpoint}`, {
       method,
@@ -165,7 +161,6 @@ const fetchWithFormData = async (endpoint, formData, method = 'POST') => {
 
     try {
       const jsonData = await response.json();
-      console.log('FormData API response:', jsonData);
       return jsonData;
     } catch (jsonError) {
       const textResponse = await responseClone.text();
@@ -205,17 +200,14 @@ const getImageUrl = (imagePath) => {
 };
 
 const extractBallotData = (response) => {
-  console.log('Extracting ballot data from response:', response);
   
   if (!response) return null;
 
   if (response.positions && Array.isArray(response.positions)) {
-    console.log('Found direct ballot with positions');
     return response;
   }
 
   if (response.ballot && typeof response.ballot === 'object') {
-    console.log('Found ballot in response.ballot');
     return response.ballot;
   }
 
@@ -615,7 +607,6 @@ export default function BallotPage() {
             let candidates = [];
             if (Array.isArray(position.candidates)) {
               candidates = position.candidates;
-              console.log(`Found ${candidates.length} candidates in position`);
             } else if (position.position_id) {
             
               try {

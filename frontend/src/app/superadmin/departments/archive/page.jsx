@@ -43,7 +43,6 @@ export default function ArchivedDepartmentsPage() {
           withCredentials: true
         });
         
-        console.log("SuperAdmin departments API response:", res.data);
         const allDepartments = res.data.departments || res.data || [];
         // Filter for archived departments
         departmentsArray = allDepartments.filter(dept => dept.is_archived === true);
@@ -61,7 +60,6 @@ export default function ArchivedDepartmentsPage() {
             withCredentials: true
           });
           
-          console.log("Admin departments API response:", res.data);
           const allDepartments = res.data.departments || res.data || [];
           // Filter for archived departments
           departmentsArray = allDepartments.filter(dept => dept.is_archived === true);
@@ -79,14 +77,12 @@ export default function ArchivedDepartmentsPage() {
               withCredentials: true
             });
             
-            console.log("Generic departments API response:", res.data);
             const allDepartments = res.data.departments || res.data || [];
             // Filter for archived departments
             departmentsArray = allDepartments.filter(dept => dept.is_archived === true);
             success = true;
           } catch (thirdError) {
             console.error("Error on generic endpoint:", thirdError.message);
-            // If all endpoints fail, return empty array instead of throwing error
             departmentsArray = [];
             success = true;
           }
@@ -94,7 +90,6 @@ export default function ArchivedDepartmentsPage() {
       }
       
       if (success) {
-        console.log(`Successfully loaded ${departmentsArray.length} archived departments:`, departmentsArray);
         setArchivedDepartments(departmentsArray);
       }
     } catch (error) {

@@ -223,8 +223,7 @@ export default function VotePage({ params }) {
 
       setEncryptionStatus('encrypted');
 
-      console.log('Submitting votes:', JSON.stringify(votes, null, 2));
-      console.log('Election ID:', electionId);
+
 
       const response = await axios.post(`${API_BASE}/elections/${electionId}/vote`, 
         { votes }, 
@@ -237,12 +236,10 @@ export default function VotePage({ params }) {
         }
       );
 
-      console.log('Vote submission response:', response.data);
 
       if (response.data.success) {
 
         if (response.data.voteToken) {
-          console.log('Saving vote token to localStorage:', response.data.voteToken);
           localStorage.setItem(`vote_token_${electionId}`, response.data.voteToken);
         }
 
@@ -266,7 +263,6 @@ export default function VotePage({ params }) {
           toast.info('You have already voted in this election. Redirecting to your receipt...');
 
           if (error.response.data && error.response.data.voteToken) {
-            console.log('Saving vote token from error response:', error.response.data.voteToken);
             localStorage.setItem(`vote_token_${electionId}`, error.response.data.voteToken);
           } else {
 
@@ -313,7 +309,6 @@ export default function VotePage({ params }) {
       });
       
       if (response.data && response.data.voteToken) {
-        console.log('Fetched existing vote token:', response.data.voteToken);
         localStorage.setItem(`vote_token_${electionId}`, response.data.voteToken);
       }
     } catch (error) {
@@ -322,7 +317,6 @@ export default function VotePage({ params }) {
   };
 
   const handleImageError = (candidateId, event) => {
-    console.log("Error loading candidate image:", event.target.src);
     
     // Try fallback URL if not already tried
     if (!imageErrors[candidateId]) {

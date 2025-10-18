@@ -152,9 +152,7 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
 
   const validateInputs = async () => {
     let newErrors = {};
-    
-    console.log("🔍 Debug - Validating inputs:", formData);
-    
+        
     // First Name validation
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First Name is required.";
@@ -211,7 +209,6 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     }
     // NO department restriction - multiple admins can be in the same department
     
-    console.log("🔍 Debug - Validation errors:", newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

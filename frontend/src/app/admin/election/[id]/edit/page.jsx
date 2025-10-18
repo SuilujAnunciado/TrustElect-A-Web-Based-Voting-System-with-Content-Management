@@ -239,9 +239,7 @@ export default function EditElectionPage() {
 
         // Map API response fields to our expected structure
         const criteria = eligibilityResponse?.data?.criteria || eligibilityResponse?.data || {};
-        console.log("Raw criteria response:", criteria);
-        console.log("Precinct programs from API:", criteria.precinctPrograms);
-        console.log("All criteria keys:", Object.keys(criteria));
+
         
         const eligibleVoters = {
           programs: criteria.courses || criteria.programs || [],
@@ -252,7 +250,6 @@ export default function EditElectionPage() {
           precinctPrograms: criteria.precinctPrograms || criteria.precinct_programs || {}
         };
         
-        console.log("Initial eligibleVoters:", eligibleVoters);
 
         // Format dates and times for the form
         const formattedDateFrom = formatDateForInput(election.date_from);
@@ -306,7 +303,6 @@ export default function EditElectionPage() {
 
         // Process laboratoryPrecincts if they exist and we have maintenance data
         if (criteria.laboratoryPrecincts && maintenanceData.precincts.length > 0) {
-          console.log("Processing laboratoryPrecincts:", criteria.laboratoryPrecincts);
           const processedPrecinctPrograms = {};
           
           criteria.laboratoryPrecincts.forEach(lp => {
@@ -656,10 +652,7 @@ export default function EditElectionPage() {
           precinct: electionData.eligibleVoters.precinct,
           precinctPrograms: electionData.eligibleVoters.precinctPrograms
         };
-        
-        console.log("Sending eligibility criteria:", optimizedEligibleVoters);
-        console.log("Precinct programs being sent:", optimizedEligibleVoters.precinctPrograms);
-        
+ 
         const eligibilityResponse = await axios.put(
           `${API_BASE}/elections/${electionId}/criteria`,   
           {

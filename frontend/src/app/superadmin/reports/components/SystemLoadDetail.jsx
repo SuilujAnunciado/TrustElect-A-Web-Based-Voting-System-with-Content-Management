@@ -31,11 +31,9 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
   useEffect(() => {
     // If report data is already available, use it
     if (report.data && Object.keys(report.data).length > 0) {
-      console.log('SystemLoadDetail - Using provided report data:', report.data);
       setCurrentData(report.data);
     } else {
       // Otherwise fetch data for the default timeframe
-      console.log('SystemLoadDetail - Fetching initial data for timeframe:', selectedTimeframe);
       fetchDataForTimeframe(selectedTimeframe);
     }
   }, []);
@@ -53,10 +51,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('SystemLoadDetail - Raw response:', data);
-        console.log('SystemLoadDetail - Extracted data:', data.data);
-        console.log('SystemLoadDetail - Login activity:', data.data?.login_activity);
-        console.log('SystemLoadDetail - Voting activity:', data.data?.voting_activity);
         setCurrentData(data.data);
       } else {
         console.error('Failed to fetch data for timeframe:', timeframe);
@@ -311,44 +305,34 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
   const processDataWithDates = (data, timeframe) => {
     if (!Array.isArray(data)) return [];
     
-    console.log('SystemLoadDetail - Processing data with dates:', { data, timeframe });
     
     const now = new Date();
     let processedData = [];
-    
-    // The backend returns data with hour and count fields
-    // For 24h: hour represents actual hour (0-23)
-    // For 7d: hour represents hour (0-23) but we want to show daily data
-    // For 30d: hour represents day of month (1-31) but we want to show daily data
+
     
     if (timeframe === '24h') {
-      // For 24h, use the data as-is since backend already provides hourly data
       processedData = data.map(item => ({
         hour: item.hour || 0,
         count: Math.round(typeof item.count === 'number' && !isNaN(item.count) ? item.count : 0),
-        date: now.toISOString().split('T')[0], // Use current date for 24h
+        date: now.toISOString().split('T')[0], 
         timestamp: now.toISOString()
       }));
     } else if (timeframe === '7d') {
-      // For 7d, backend returns hourly data - show all hours with their actual times
-      // Map each data point to a specific time slot
       data.forEach((item, index) => {
         const hour = item.hour || 0;
         const count = Math.round(item.count || 0);
         
-        // Calculate which day this hour belongs to (distribute across 7 days)
         const dayOffset = index % 7;
         const date = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
         
         processedData.push({
-          hour: hour, // Keep the actual hour
+          hour: hour, 
           count: count,
           date: date.toISOString().split('T')[0],
           timestamp: date.toISOString()
         });
       });
-      
-      // Sort by date and hour for proper display
+
       processedData.sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
         if (dateCompare === 0) {
@@ -357,8 +341,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
         return dateCompare;
       });
     } else if (timeframe === '30d') {
-      // For 30d, backend returns daily data (hour represents day of month)
-      // Distribute each day's data across different times to show variety
+ 
       data.forEach((item, index) => {
         const dayOfMonth = item.hour || 0;
         const count = Math.round(item.count || 0);
@@ -399,7 +382,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
       });
     }
     
-    console.log('SystemLoadDetail - Processed data result:', processedData);
     return processedData;
   };
 
@@ -442,7 +424,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
   const processRawData = (rawData, timeframe) => {
     if (!Array.isArray(rawData) || rawData.length === 0) return [];
     
-    console.log('SystemLoadDetail - Processing raw data:', { rawData, timeframe });
     
     const now = new Date();
     let cutoffDate;
@@ -521,7 +502,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
     // For 30d: Generate daily slots for the past 30 days
     else if (timeframe === '30d') {
       // Debug log to verify this code is being executed
-      console.log('SystemLoadDetail - Generating 30d time series data');
       
       // Create a full 30-day time series with one data point per day
       for (let i = 0; i < 30; i++) {
@@ -553,9 +533,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
           month: slotDate.getMonth() + 1
         });
       }
-      
-      // Debug log to verify data was created
-      console.log('SystemLoadDetail - Generated 30d time series data points:', timeSeriesMap.size);
+
     }
     
     // Process and enhance the raw data
@@ -601,7 +579,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
           hour = 12;
           timestamp = new Date(`${date}T12:00:00`).toISOString();
           
-          console.log(`SystemLoadDetail - 30d: Item ${index} assigned to day ${dayOffset} (${date})`);
         }
         // Fallback for any other timeframe
         else {
@@ -662,7 +639,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
         key = `${dateStr}-12`;
         
         // Debug log for 30d data merging
-        console.log(`SystemLoadDetail - 30d: Processing data point for ${dateStr} with count ${item.count}`);
       }
       
       if (timeSeriesMap.has(key)) {
@@ -671,7 +647,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
         
         // Debug log for 30d data merging
         if (timeframe === '30d') {
-          console.log(`SystemLoadDetail - 30d: Merging data for ${dateStr}, existing: ${existing.count}, adding: ${item.count}, new total: ${newCount}`);
         }
         
         timeSeriesMap.set(key, {
@@ -680,7 +655,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
         });
       } else if (timeframe === '30d') {
         // If we don't find a matching key for 30d, this is unusual and should be logged
-        console.log(`SystemLoadDetail - 30d: WARNING - No matching time slot found for ${dateStr} with hour ${item.hour}`);
       }
     });
     
@@ -691,7 +665,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
     
     // Special handling for 30d data to ensure we have data points
     if (timeframe === '30d' && result.length === 0) {
-      console.log('SystemLoadDetail - No 30d data after filtering, generating sample data');
       
       // Generate sample data for the past 30 days if no data is available
       result = [];
@@ -730,10 +703,8 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
       // Sort by date (most recent first)
       result.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       
-      console.log('SystemLoadDetail - Generated sample 30d data:', result.slice(0, 5), '... (showing first 5 items)');
     }
     
-    console.log(`SystemLoadDetail - Enhanced and filtered data for ${timeframe}:`, result);
     return result;
   };
   
@@ -749,12 +720,10 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
   
   // Fallback to original data structure if new processing returns empty data
   if (processedLoginData.length === 0 && currentData.login_activity && currentData.login_activity.length > 0) {
-    console.log('SystemLoadDetail - Falling back to original login data structure');
     processedLoginData = validateData(currentData.login_activity);
   }
   
   if (processedVotingData.length === 0 && currentData.voting_activity && currentData.voting_activity.length > 0) {
-    console.log('SystemLoadDetail - Falling back to original voting data structure');
     processedVotingData = validateData(currentData.voting_activity);
   }
   

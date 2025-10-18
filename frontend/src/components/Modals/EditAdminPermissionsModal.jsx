@@ -58,7 +58,6 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      console.log("Successfully fetched permissions from:", endpoint);
       
       if (response.data.permissions) {
         const mergedPermissions = { ...defaultPermissions };

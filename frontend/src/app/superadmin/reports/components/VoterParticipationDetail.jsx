@@ -73,14 +73,11 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
       }))
     };
 
-    console.log('Processed Election Data:', processedElection); // Debug log
-    console.log('Sample voter data:', processedElection.voters.slice(0, 3)); // Show first 3 voters for debugging
     setCurrentElectionData(processedElection);
   };
 
   const handleElectionChange = (e) => {
     const newElectionId = e.target.value;
-    console.log('Changing to election:', newElectionId); // Debug log
     setSelectedElection(newElectionId);
   };
 
@@ -91,7 +88,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
         e => e.id.toString() === selectedElection.toString()
       );
       if (election) {
-        console.log('Selected Election:', election); // Debug log
         processAndSetElectionData(election);
       }
     }

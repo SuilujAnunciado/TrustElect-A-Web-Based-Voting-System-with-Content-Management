@@ -138,11 +138,8 @@ export default function ArchivedElectionsPage() {
     try {
       setLoading(true);
       setError("");
+            const data = await fetchWithAuth('/elections/archived');
       
-      console.log('Fetching archived elections...');
-      const data = await fetchWithAuth('/elections/archived');
-      
-      console.log('Received data:', data);
       
       if (data.migrationNeeded) {
         setError("Archive functionality requires database migration. Please contact your administrator.");
