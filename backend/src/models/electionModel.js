@@ -371,7 +371,7 @@ const getAllElections = async () => {
         FROM elections e
         LEFT JOIN eligible_voters ev ON e.id = ev.election_id
         ${whereClause}
-        GROUP BY e.id
+        GROUP BY e.id, e.is_active, e.is_deleted
         ORDER BY e.created_at DESC;
     `);
     return result.rows;

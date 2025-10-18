@@ -208,7 +208,15 @@ export default function ElectionPage() {
         setRefreshing(true);
       }
       
-      const data = await fetchWithAuth('/elections');
+      const response = await fetchWithAuth('/elections');
+      
+      if (response.success === false) {
+        setError(response.message || "Failed to load elections. Please try again later.");
+        setElections([]);
+        return;
+      }
+      
+      const data = response.data || [];
       const pendingCount = data.filter(election => {
         // Determine if the creator is a superadmin
         const isSuperAdminCreator =
@@ -237,6 +245,7 @@ export default function ElectionPage() {
     } catch (err) {
       console.error("Failed to load elections:", err);
       setError("Failed to load elections. Please try again later.");
+      setElections([]);
       setLoading(false);
       setRefreshing(false);
     }

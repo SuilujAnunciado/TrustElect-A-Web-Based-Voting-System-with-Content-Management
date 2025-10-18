@@ -238,12 +238,20 @@ export default function ElectionPage() {
   const fetchElections = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchWithAuth('/elections');
+      const response = await fetchWithAuth('/elections');
+      
+      if (response.success === false) {
+        setError(response.message || "Failed to load elections. Please try again later.");
+        setElections([]);
+        return;
+      }
+      
       // Do not filter out super admin elections globally; show all elections
-      setElections(data || []);
+      setElections(response.data || []);
     } catch (err) {
       console.error("Failed to load elections:", err);
       setError("Failed to load elections. Please try again later.");
+      setElections([]);
     } finally {
       setLoading(false);
     }

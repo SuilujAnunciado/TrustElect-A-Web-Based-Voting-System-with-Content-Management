@@ -138,7 +138,6 @@ export default function ArchivedElectionsPage() {
     try {
       setLoading(true);
       setError("");
-      
       // Fetch all elections and filter for archived ones (like admin system)
       const data = await fetchWithAuth('/elections');
       

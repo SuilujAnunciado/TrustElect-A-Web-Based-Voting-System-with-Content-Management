@@ -353,16 +353,23 @@ exports.previewEligibleVoters = async (req, res) => {
 exports.getElections = async (req, res) => {
   try {
     let elections;
-      if (req.user && req.user.role === 'superadmin') {
+    if (req.user && req.user.role === 'superadmin') {
       elections = await getAllElectionsWithCreator();
     } else {
       elections = await getAllElections();
     }
     
-    res.status(200).json(elections);
+    res.status(200).json({
+      success: true,
+      data: elections
+    });
   } catch (error) {
     console.error("Error fetching elections:", error);
-    res.status(500).json({ message: "Failed to retrieve elections" });
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to retrieve elections",
+      data: []
+    });
   }
 };
 
