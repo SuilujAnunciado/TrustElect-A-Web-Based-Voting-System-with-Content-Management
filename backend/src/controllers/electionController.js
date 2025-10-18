@@ -532,17 +532,7 @@ exports.archiveElection = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
     
-    console.log(`🔍 Attempting to archive election ${id} by user ${userId}`);
-    
     const result = await archiveElection(id, userId);
-    
-    console.log(`✅ Election ${id} archived successfully:`, {
-      id: result.election.id,
-      title: result.election.title,
-      is_active: result.election.is_active,
-      is_deleted: result.election.is_deleted,
-      archived_at: result.election.archived_at
-    });
     
     res.status(200).json({
       success: true,
@@ -550,7 +540,7 @@ exports.archiveElection = async (req, res) => {
       election: result.election
     });
   } catch (error) {
-    console.error('❌ Error archiving election:', error);
+    console.error('Error archiving election:', error);
     res.status(400).json({
       success: false,
       message: error.message
@@ -720,6 +710,8 @@ exports.getElectionsByStatus = async (req, res) => {
       SELECT COUNT(*) as total
       FROM elections e
       WHERE e.status = $1 
+      AND (e.is_active IS NULL OR e.is_active = TRUE) 
+      AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
       AND (
           e.needs_approval = FALSE 
           OR e.needs_approval IS NULL

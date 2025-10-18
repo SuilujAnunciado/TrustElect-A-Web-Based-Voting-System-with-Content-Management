@@ -30,6 +30,8 @@ const getElectionsByStatus = async (status, page = 1, limit = 10) => {
     SELECT e.id
     FROM elections e
     WHERE e.status = $1 
+    AND (e.is_active IS NULL OR e.is_active = TRUE) 
+    AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
     AND (
         e.needs_approval = FALSE 
         OR e.needs_approval IS NULL
@@ -552,8 +554,6 @@ const deleteElection = async (id) => {
 
 // Archive election (soft archive) - using admin system approach
 const archiveElection = async (id, userId) => {
-  console.log(`🔍 Archive function called for election ${id} by user ${userId}`);
-  
   // First check if election exists
   const checkResult = await pool.query(
     `SELECT id, title, is_active, is_deleted, status FROM elections WHERE id = $1`,
@@ -565,13 +565,6 @@ const archiveElection = async (id, userId) => {
   }
   
   const election = checkResult.rows[0];
-  console.log(`📊 Election ${id} current state:`, {
-    id: election.id,
-    title: election.title,
-    is_active: election.is_active,
-    is_deleted: election.is_deleted,
-    status: election.status
-  });
   
   // Check if already archived
   if (election.is_active === false && election.is_deleted === false) {
@@ -583,8 +576,6 @@ const archiveElection = async (id, userId) => {
     throw new Error("Election is already deleted");
   }
   
-  console.log(`🔄 Updating election ${id} to archived state...`);
-  
   const result = await pool.query(
     `UPDATE elections 
      SET is_active = FALSE, is_deleted = FALSE, archived_at = NOW(), archived_by = $2
@@ -592,14 +583,6 @@ const archiveElection = async (id, userId) => {
      RETURNING *`,
     [id, userId]
   );
-  
-  console.log(`✅ Election ${id} updated successfully:`, {
-    id: result.rows[0].id,
-    title: result.rows[0].title,
-    is_active: result.rows[0].is_active,
-    is_deleted: result.rows[0].is_deleted,
-    archived_at: result.rows[0].archived_at
-  });
   
   return { message: "Election archived successfully", election: result.rows[0] };
 };
