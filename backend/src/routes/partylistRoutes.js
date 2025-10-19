@@ -53,27 +53,62 @@ router.put('/:id',
 );
 
 router.delete('/:id',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to archive partylists
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   partylistController.archivePartylist
 );
 
 router.post('/:id/restore',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to restore partylists
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   partylistController.restorePartylist
 );
 
 router.delete('/:id/permanent',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to permanently delete partylists
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   partylistController.permanentDeletePartylist
 );
 
 router.post('/:partylistId/candidates',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to add partylist candidates
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   partylistController.addPartylistCandidate
 );
 
 router.delete('/:partylistId/candidates/:studentId',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to remove partylist candidates
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   partylistController.removePartylistCandidate
 );
 
