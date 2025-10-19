@@ -5,6 +5,7 @@ import axios from 'axios';
 import Cookies from "js-cookie";
 import { useDropzone } from 'react-dropzone';
 import { X, Upload, Image as ImageIcon } from "lucide-react";
+import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const BASE_URL = '';
@@ -67,6 +68,8 @@ const PartylistDetails = ({
   const [errors, setErrors] = useState({});
   const [pendingImages, setPendingImages] = useState({});
   const [savingImages, setSavingImages] = useState({});
+  const [showRemoveCandidateModal, setShowRemoveCandidateModal] = useState(false);
+  const [candidateToRemove, setCandidateToRemove] = useState(null);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -744,20 +747,26 @@ const PartylistDetails = ({
     }
   };
   
-  const handleRemoveCandidate = async (candidateId, candidateName) => {
-    if (!window.confirm(`Are you sure you want to remove this candidate?`)) return;
+  const handleRemoveCandidate = (candidateId, candidateName) => {
+    setCandidateToRemove({ id: candidateId, name: candidateName });
+    setShowRemoveCandidateModal(true);
+  };
+
+  const confirmRemoveCandidate = async () => {
+    if (!candidateToRemove) return;
     
     setIsLoading(true);
     try {
       const token = Cookies.get("token");
-      const response = await axios.delete(`/api/candidates/${candidateId}`, {
+      const response = await axios.delete(`/api/candidates/${candidateToRemove.id}`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true
       });
       
       if (response.data && response.data.success) {
         toast.success("Candidate removed successfully");
-
+        setShowRemoveCandidateModal(false);
+        setCandidateToRemove(null);
         fetchPartylistCandidates(partylist.id);
       } else {
         toast.error(response.data?.message || "Failed to remove candidate");
@@ -1621,6 +1630,21 @@ const PartylistDetails = ({
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={showRemoveCandidateModal}
+        onClose={() => {
+          setShowRemoveCandidateModal(false);
+          setCandidateToRemove(null);
+        }}
+        onConfirm={confirmRemoveCandidate}
+        title="Confirm Remove Candidate"
+        message={`Are you sure you want to remove "${candidateToRemove?.name}" from this partylist? This action cannot be undone.`}
+        confirmText="Remove"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={isLoading}
+      />
     </div>
   );
 };
