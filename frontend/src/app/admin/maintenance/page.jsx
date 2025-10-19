@@ -19,7 +19,8 @@ const API_ENDPOINTS = {
   genders: "genders",
   semesters: "semesters",
   precincts: "precincts",
-  departments: "departments"
+  departments: "departments",
+  partylists: "partylists"
 };
 
 const AdminMaintenancePage = () => {
@@ -83,6 +84,8 @@ const AdminMaintenancePage = () => {
       fetchElectionTypes();
     } else if (activeTab === "laboratoryPrecincts") {
       fetchItems(); // This will fetch precincts when laboratoryPrecincts tab is active
+    } else if (activeTab !== "partylists" && activeTab !== "positions" && activeTab !== "laboratoryPrecincts") {
+      fetchItems(); // Fetch items for other tabs
     }
   }, [activeTab]);
 

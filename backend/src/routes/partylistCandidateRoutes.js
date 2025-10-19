@@ -16,13 +16,34 @@ const router = express.Router();
 router.get("/:partylistId/candidates", getPartylistCandidates);
 
 // Add a candidate to a partylist
-router.post("/:partylistId/candidates", verifyToken, checkPermission("manage_partylists"), addPartylistCandidate);
+router.post("/:partylistId/candidates", verifyToken, (req, res, next) => {
+  // Allow both Super Admin and Admin to manage partylist candidates
+  if (req.user.role_id === 1 || req.user.role_id === 2) {
+    next();
+  } else {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+}, addPartylistCandidate);
 
 // Remove a candidate from a partylist
-router.delete("/candidates/:candidateId",  verifyToken, checkPermission("manage_partylists"), removePartylistCandidate);
+router.delete("/candidates/:candidateId", verifyToken, (req, res, next) => {
+  // Allow both Super Admin and Admin to manage partylist candidates
+  if (req.user.role_id === 1 || req.user.role_id === 2) {
+    next();
+  } else {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+}, removePartylistCandidate);
 
 // Update a candidate
-router.put("/candidates/:candidateId",  verifyToken, checkPermission("manage_partylists"), updatePartylistCandidate);
+router.put("/candidates/:candidateId", verifyToken, (req, res, next) => {
+  // Allow both Super Admin and Admin to manage partylist candidates
+  if (req.user.role_id === 1 || req.user.role_id === 2) {
+    next();
+  } else {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+}, updatePartylistCandidate);
 
 // Get student's partylist
 router.get("/student/:studentNumber", verifyToken, getStudentPartylist);
@@ -31,7 +52,14 @@ router.get("/student/:studentNumber", verifyToken, getStudentPartylist);
 router.post(
   "/upload-image",
   verifyToken,
-  checkPermission("manage_partylists"),
+  (req, res, next) => {
+    // Allow both Super Admin and Admin to upload candidate images
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   candidateUploadMiddleware.single("image"),
   uploadCandidateImage
 );

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { upload } = require('../middlewares/partylistUploadMiddleware');
 const partylistController = require('../controllers/partylistController');
-const { verifyToken, isSuperAdmin } = require('../middlewares/authMiddleware');
+const { verifyToken, isSuperAdmin, isAdmin } = require('../middlewares/authMiddleware');
 
 router.post('/',
   verifyToken, isSuperAdmin,
@@ -11,19 +11,38 @@ router.post('/',
 );
 
 router.get('/',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to access partylists
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   partylistController.getAllPartylists
 );
 
-
 router.get('/archived',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to access archived partylists
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   partylistController.getArchivedPartylists
 );
 
-
 router.get('/:id',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to access partylist details
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   partylistController.getPartylistById
 );
 
@@ -32,7 +51,6 @@ router.put('/:id',
   upload.single('logo'),
   partylistController.updatePartylist
 );
-
 
 router.delete('/:id',
   verifyToken, isSuperAdmin,
