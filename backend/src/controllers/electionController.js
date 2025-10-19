@@ -1742,6 +1742,23 @@ exports.getElectionEligibilityCriteria = async (req, res) => {
       semesters: [],
       precincts: []
     };
+
+    // Get precinct programs
+    const precinctProgramsQuery = `
+      SELECT precinct, programs
+      FROM election_precinct_programs
+      WHERE election_id = $1
+    `;
+    
+    const precinctProgramsResult = await pool.query(precinctProgramsQuery, [id]);
+    const precinctPrograms = {};
+    
+    precinctProgramsResult.rows.forEach(row => {
+      precinctPrograms[row.precinct] = row.programs;
+    });
+
+    // Add precinct programs to criteria
+    criteria.precinctPrograms = precinctPrograms;
     
     return res.status(200).json({
       success: true,

@@ -250,6 +250,8 @@ export default function EditElectionPage() {
           precinctPrograms: criteria.precinctPrograms || criteria.precinct_programs || {}
         };
         
+        console.log("Loaded eligible voters:", eligibleVoters);
+        
 
         // Format dates and times for the form
         const formattedDateFrom = formatDateForInput(election.date_from);
@@ -301,28 +303,16 @@ export default function EditElectionPage() {
         
         setMaintenanceData(maintenanceData);
 
-        // Process laboratoryPrecincts if they exist and we have maintenance data
-        if (criteria.laboratoryPrecincts && maintenanceData.precincts.length > 0) {
-          const processedPrecinctPrograms = {};
+        // Process precinct programs if they exist
+        if (criteria.precinctPrograms && Object.keys(criteria.precinctPrograms).length > 0) {
+          console.log("Found existing precinct programs:", criteria.precinctPrograms);
           
-          criteria.laboratoryPrecincts.forEach(lp => {
-            if (lp.laboratoryPrecinctId && lp.assignedCourses) {
-              // Find precinct name by ID
-              const precinctName = maintenanceData.precincts.find(p => p.id === lp.laboratoryPrecinctId)?.name;
-              if (precinctName) {
-                processedPrecinctPrograms[precinctName] = lp.assignedCourses;
-              }
-            }
-          });
-          
-          console.log("Processed precinct programs:", processedPrecinctPrograms);
-          
-          // Update the eligibleVoters with processed precinct programs
+          // Update the eligibleVoters with existing precinct programs
           setElectionData(prev => ({
             ...prev,
             eligibleVoters: {
               ...prev.eligibleVoters,
-              precinctPrograms: processedPrecinctPrograms
+              precinctPrograms: criteria.precinctPrograms
             }
           }));
         }

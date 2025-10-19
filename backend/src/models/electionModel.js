@@ -1130,6 +1130,7 @@ const getEligibleStudentsForCriteria = async (criteria) => {
     const studentParams = [];
     const conditions = [];
     
+    // Handle general program criteria
     if (criteria.programs?.length) {
       conditions.push(`course_name = ANY($${studentParams.length + 1})`);
       studentParams.push(criteria.programs);
@@ -1143,6 +1144,21 @@ const getEligibleStudentsForCriteria = async (criteria) => {
     if (criteria.gender?.length) {
       conditions.push(`gender = ANY($${studentParams.length + 1})`);
       studentParams.push(criteria.gender);
+    }
+    
+    // Handle precinct-specific program criteria
+    if (criteria.precinctPrograms && Object.keys(criteria.precinctPrograms).length > 0) {
+      const allPrecinctPrograms = [];
+      Object.values(criteria.precinctPrograms).forEach(programs => {
+        allPrecinctPrograms.push(...programs);
+      });
+      
+      if (allPrecinctPrograms.length > 0) {
+        // Remove duplicates
+        const uniquePrograms = [...new Set(allPrecinctPrograms)];
+        conditions.push(`course_name = ANY($${studentParams.length + 1})`);
+        studentParams.push(uniquePrograms);
+      }
     }
     
     if (conditions.length) {
@@ -1170,7 +1186,25 @@ const updateEligibleVoters = async (electionId, students, criteria) => {
   try {
     await client.query('BEGIN');
 
+    // Delete existing eligible voters
     await client.query('DELETE FROM eligible_voters WHERE election_id = $1', [electionId]);
+
+    // Delete existing precinct programs
+    await client.query('DELETE FROM election_precinct_programs WHERE election_id = $1', [electionId]);
+
+    // Save precinct programs if provided
+    if (criteria.precinctPrograms && Object.keys(criteria.precinctPrograms).length > 0) {
+      for (const [precinct, programs] of Object.entries(criteria.precinctPrograms)) {
+        if (programs && programs.length > 0) {
+          await client.query(
+            `INSERT INTO election_precinct_programs 
+             (election_id, precinct, programs) 
+             VALUES ($1, $2, $3)`,
+            [electionId, precinct, programs]
+          );
+        }
+      }
+    }
 
     if (students.length > 0) {
       const voterInsert = `
