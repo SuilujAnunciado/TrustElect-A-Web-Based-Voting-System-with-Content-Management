@@ -7,10 +7,12 @@ import NotificationBell from "../../components/NotificationBell";
 import Image from 'next/image';
 import stiLogo from "../../assets/sti_logo.png"
 import axios from "axios";
+import { useLogo } from "../../hooks/useLogo";
 
 export default function Header() {
   const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+  const { logoUrl, isLoading: logoLoading } = useLogo();
 
   const handleLogout = async () => {
     try {
@@ -50,15 +52,62 @@ export default function Header() {
     <header className="top-0 left-0 right-0 w-full bg-[#01579B] text-white shadow-md p-4 flex justify-between items-center h-20 z-50">
      
       <h2 className="text-2xl font-bold flex items-center">
-        <Image 
-         src={stiLogo}
-         alt="STI Logo"
-         width={60}
-         height={20}
-         className="mr-2"
-         priority
-         style={{ maxHeight: 'calc(51px - (0px * 2))' }}
-        />
+        {logoUrl ? (
+          <Image 
+            src={`${logoUrl}?timestamp=${new Date().getTime()}`}
+            alt="Site Logo" 
+            width={60}
+            height={20}
+            className="mr-2"
+            priority
+            unoptimized={true}
+            style={{ maxHeight: 'calc(51px - (0px * 2))' }}
+            onError={(e) => {
+              console.error("Error loading logo:", logoUrl);
+              // Try multiple fallback URLs for logo
+              const fallbackUrls = [
+                logoUrl.replace('/uploads/images/', '/api/uploads/images/'),
+                logoUrl.replace('/uploads/', '/api/uploads/'),
+                logoUrl.replace('/uploads/images/', '/uploads/'),
+                logoUrl
+              ];
+              
+              const img = e.currentTarget;
+              const tryNextFallback = (index) => {
+                if (index >= fallbackUrls.length) {
+                  console.error('All logo fallback URLs failed, hiding logo');
+                  img.style.display = 'none';
+                  return;
+                }
+                
+                const fallbackUrl = fallbackUrls[index];
+                img.src = `${fallbackUrl}?timestamp=${new Date().getTime()}`;
+                img.onload = () => {
+                  console.log('Logo loaded successfully with fallback URL:', fallbackUrl);
+                };
+                img.onerror = () => {
+                  console.error('Logo fallback URL failed:', fallbackUrl);
+                  tryNextFallback(index + 1);
+                };
+              };
+              
+              tryNextFallback(0);
+            }}
+            onLoad={() => {
+              console.log('Logo loaded successfully:', logoUrl);
+            }}
+          />
+        ) : (
+          <Image 
+            src={stiLogo}
+            alt="STI Logo"
+            width={60}
+            height={20}
+            className="mr-2"
+            priority
+            style={{ maxHeight: 'calc(51px - (0px * 2))' }}
+          />
+        )}
         <span className="text-white">TrustElect</span> 
       </h2>
 
