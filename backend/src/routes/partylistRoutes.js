@@ -5,7 +5,14 @@ const partylistController = require('../controllers/partylistController');
 const { verifyToken, isSuperAdmin, isAdmin } = require('../middlewares/authMiddleware');
 
 router.post('/',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to create partylists
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   upload.single('logo'),
   partylistController.createPartylist
 );
@@ -47,7 +54,14 @@ router.get('/:id',
 );
 
 router.put('/:id',
-  verifyToken, isSuperAdmin,
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to update partylists
+    if (req.user.role_id === 1 || req.user.role_id === 2) {
+      next();
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+  },
   upload.single('logo'),
   partylistController.updatePartylist
 );
