@@ -17,9 +17,13 @@ const PartylistCard = ({
           <div className="text-sm font-medium text-black mb-2">Logo</div>
           {partylist.logo_url ? (
             <img 
-              src={`${partylist.logo_url}`} 
+              src={`${process.env.NEXT_PUBLIC_API_URL || ''}${partylist.logo_url}`} 
               alt={`${partylist.name} logo`} 
               className={`h-28 w-28 object-contain border rounded-md bg-gray-50 p-1 ${isArchived ? 'opacity-60' : ''}`}
+              onError={(e) => {
+                console.error(`Error loading partylist image: ${partylist.logo_url}`);
+                e.target.style.display = 'none';
+              }}
             />
           ) : (
             <div className={`h-28 w-28 flex items-center justify-center bg-gray-100 border rounded-md ${isArchived ? 'opacity-60' : ''}`}>

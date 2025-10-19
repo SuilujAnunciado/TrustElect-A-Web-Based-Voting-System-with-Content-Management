@@ -54,8 +54,10 @@ const candidatesDir = path.join(uploadsDir, 'candidates');
 const adminsDir = path.join(uploadsDir, 'admins');
 const imagesDir = path.join(uploadsDir, 'images');
 const videosDir = path.join(uploadsDir, 'videos');
+const partylistsDir = path.join(uploadsDir, 'partylists');
+const profilesDir = path.join(uploadsDir, 'profiles');
 
-[uploadsDir, candidatesDir, adminsDir, imagesDir, videosDir].forEach(dir => {
+[uploadsDir, candidatesDir, adminsDir, imagesDir, videosDir, partylistsDir, profilesDir].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -493,6 +495,49 @@ app.get('/uploads/profiles/:filename', (req, res) => {
   } catch (error) {
     console.error('Error serving profile image:', error);
     res.status(500).json({ error: 'Error serving profile image' });
+  }
+});
+
+// Specific route to handle partylist image requests
+app.get('/uploads/partylists/:filename', (req, res) => {
+  try {
+    const filename = req.params.filename;
+    const imagePath = path.join(__dirname, '../uploads/partylists', filename);
+    
+    console.log('Requested partylist image:', filename);
+    console.log('Full path:', imagePath);
+    console.log('File exists:', fs.existsSync(imagePath));
+    
+    if (!fs.existsSync(imagePath)) {
+      console.log('Partylist image not found:', imagePath);
+      return res.status(404).json({ error: 'Partylist image not found' });
+    }
+    
+    // Set appropriate content type
+    const ext = path.extname(filename).toLowerCase();
+    let contentType = 'application/octet-stream';
+    
+    if (ext === '.jpg' || ext === '.jpeg') {
+      contentType = 'image/jpeg';
+    } else if (ext === '.png') {
+      contentType = 'image/png';
+    } else if (ext === '.gif') {
+      contentType = 'image/gif';
+    } else if (ext === '.webp') {
+      contentType = 'image/webp';
+    }
+    
+    res.set('Content-Type', contentType);
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Access-Control-Allow-Origin', '*');
+    
+    res.sendFile(imagePath);
+  } catch (error) {
+    console.error('Error serving partylist image:', error);
+    res.status(500).json({ error: 'Error serving partylist image' });
   }
 });
 
