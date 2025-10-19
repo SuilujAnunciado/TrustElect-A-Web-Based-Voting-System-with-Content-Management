@@ -634,14 +634,8 @@ exports.permanentDeleteElection = async (req, res) => {
 // Get archived elections
 exports.getArchivedElections = async (req, res) => {
   try {
-    console.log('getArchivedElections controller called');
-    console.log('User role_id:', req.user?.role_id);
-    
     const userId = req.user.role_id === 1 ? null : req.user.id;
-    console.log('Using userId for archived elections:', userId);
-    
     const elections = await getArchivedElections(userId);
-    console.log('Retrieved archived elections count:', elections.length);
     
     res.status(200).json({
       success: true,
@@ -649,18 +643,9 @@ exports.getArchivedElections = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching archived elections:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      detail: error.detail,
-      hint: error.hint
-    });
-    
-    // Return 400 for database schema issues, 500 for other errors
-    const statusCode = error.code === '42703' ? 400 : 500; // 42703 = undefined column
-    res.status(statusCode).json({
+    res.status(500).json({
       success: false,
-      message: error.message || 'Failed to fetch archived elections',
+      message: 'Failed to fetch archived elections',
       data: []
     });
   }
