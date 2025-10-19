@@ -681,7 +681,6 @@ const permanentDeleteElection = async (id) => {
 
 const getArchivedElections = async (userId = null) => {
   try {
-    
     // First check if archive columns exist
     const columnCheck = await pool.query(`
       SELECT column_name 
@@ -692,7 +691,6 @@ const getArchivedElections = async (userId = null) => {
         
     const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
-    
     
     if (!hasActiveColumns || !hasDeleteColumns) {
       console.log('Archive columns not found, returning empty array');

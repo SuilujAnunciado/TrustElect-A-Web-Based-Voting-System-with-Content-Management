@@ -634,6 +634,8 @@ exports.permanentDeleteElection = async (req, res) => {
 // Get archived elections
 exports.getArchivedElections = async (req, res) => {
   try {
+    // SuperAdmin (role_id = 1) can see all archived elections
+    // Admin (role_id = 2) can only see their own archived elections
     const userId = req.user.role_id === 1 ? null : req.user.id;
     const elections = await getArchivedElections(userId);
     
