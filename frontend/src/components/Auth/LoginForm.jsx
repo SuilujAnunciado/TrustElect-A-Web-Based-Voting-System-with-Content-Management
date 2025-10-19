@@ -32,9 +32,6 @@ export default function LoginForm({ onClose }) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
-  
-  // Phone number registration for first-time login (required)
-  const [phoneNumber, setPhoneNumber] = useState("");
 
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetOtp, setResetOtp] = useState("");
@@ -47,7 +44,9 @@ export default function LoginForm({ onClose }) {
   
   // SMS OTP states
   const [useSmsOtp, setUseSmsOtp] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [smsOtp, setSmsOtp] = useState("");
+  const [phoneRegistrationStep, setPhoneRegistrationStep] = useState(1); // 1: phone input, 2: SMS OTP verification
   const [smsDevOtp, setSmsDevOtp] = useState("");
   const [smsResendLoading, setSmsResendLoading] = useState(false);
   const [smsResendMessage, setSmsResendMessage] = useState("");
@@ -100,6 +99,12 @@ export default function LoginForm({ onClose }) {
     }
   };
 
+  const handlePhoneNumberKeyDown = (e) => {
+    if (e.key === 'Enter' && !loading) {
+      e.preventDefault();
+      handlePhoneRegistration();
+    }
+  };
 
   const handleSmsOtpKeyDown = (e) => {
     if (e.key === 'Enter' && !loading) {
@@ -119,10 +124,14 @@ export default function LoginForm({ onClose }) {
           handleLogin();
         } else if (step === 2) {
           if (useSmsOtp) {
-            if (smsOtp.length === 6) {
-              handleSmsOtpVerification();
-            } else {
-              handleSendSmsOtp();
+            if (phoneRegistrationStep === 1) {
+              handlePhoneRegistration();
+            } else if (phoneRegistrationStep === 2) {
+              if (smsOtp.length === 6) {
+                handleSmsOtpVerification();
+              } else {
+                handleSendSmsOtp();
+              }
             }
           } else {
             handleOtpVerification();
@@ -149,7 +158,8 @@ export default function LoginForm({ onClose }) {
       window.removeEventListener('keydown', handleGlobalKeyDown);
     };
   }, [step, resetStep, loading, email, password, otp, newPassword, confirmPassword, 
-      forgotEmail, resetOtp, resetPassword, confirmResetPassword, useSmsOtp, smsOtp]);
+      forgotEmail, resetOtp, resetPassword, confirmResetPassword, useSmsOtp, 
+      phoneRegistrationStep, phoneNumber, smsOtp]);
   
   // Cooldown timer effect
   useEffect(() => {
@@ -333,43 +343,15 @@ export default function LoginForm({ onClose }) {
       setError("Passwords do not match.");
       return;
     }
-
-    // Validate phone number (required)
-    if (!phoneNumber.trim()) {
-      setError("Phone number is required for enhanced security.");
-      return;
-    }
-
-    const phoneRegex = /^(\+63|63|0)?[9]\d{9}$/;
-    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
-      setError("Please enter a valid Philippines phone number (e.g., +639123456789 or 09123456789).");
-      return;
-    }
     
     setLoading(true);
     try {
       const token = Cookies.get("token");
       
-      // Prepare request data with required phone number
-      // Normalize phone number to +63 format
-      let normalizedPhone = phoneNumber.replace(/\s/g, '');
-      if (normalizedPhone.startsWith('09')) {
-        normalizedPhone = '+63' + normalizedPhone.substring(1);
-      } else if (normalizedPhone.startsWith('63')) {
-        normalizedPhone = '+' + normalizedPhone;
-      } else if (!normalizedPhone.startsWith('+63')) {
-        normalizedPhone = '+63' + normalizedPhone;
-      }
-      
-      const requestData = { 
-        newPassword,
-        phoneNumber: normalizedPhone
-      };
-      
       // Updated: same-origin path
       const response = await axios.post(
         `/api/auth/change-first-password`,
-        requestData,
+        { newPassword },
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -394,7 +376,6 @@ export default function LoginForm({ onClose }) {
         setOtp("");
         setNewPassword("");
         setConfirmPassword("");
-        setPhoneNumber("");
         setIsFirstLogin(false);
         setError("");
         setResendMessage("");
@@ -638,6 +619,7 @@ export default function LoginForm({ onClose }) {
     setError("");
     setSmsResendMessage("");
     setUseSmsOtp(true);
+    setPhoneNumber("");
     setSmsOtp("");
     setSmsDevOtp("");
     
@@ -651,22 +633,65 @@ export default function LoginForm({ onClose }) {
       );
       
       if (response.data.success && response.data.hasPhone) {
-        // User already has a phone number, proceed directly to SMS OTP
+        // User already has a phone number, skip registration step
+        setPhoneRegistrationStep(2);
         setSmsResendMessage(response.data.message);
         setPhoneNumber(response.data.phoneNumber);
       } else {
-        // User doesn't have a phone number registered
-        setError("No phone number registered. Please complete your first login to register a phone number for SMS OTP.");
-        setUseSmsOtp(false);
-        return;
+        // User needs to register phone number
+        setPhoneRegistrationStep(1);
       }
     } catch (err) {
       console.error("Check phone registration error:", err);
-      setError("Unable to verify phone number registration. Please complete your first login to register a phone number.");
-      setUseSmsOtp(false);
+      // If check fails, default to registration step
+      setPhoneRegistrationStep(1);
     }
   };
 
+  const handlePhoneRegistration = async () => {
+    if (!phoneNumber.trim()) {
+      setError("Please enter your phone number.");
+      return;
+    }
+
+    // Basic phone number validation for Philippines
+    const phoneRegex = /^(\+63|63|0)?[9]\d{9}$/;
+    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
+      setError("Please enter a valid Philippines phone number (e.g., +639123456789 or 09123456789).");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userId = Cookies.get("userId");
+      const userEmail = Cookies.get("email");
+      
+      // Normalize phone number to +63 format
+      let normalizedPhone = phoneNumber.replace(/\s/g, '');
+      if (normalizedPhone.startsWith('09')) {
+        normalizedPhone = '+63' + normalizedPhone.substring(1);
+      } else if (normalizedPhone.startsWith('63')) {
+        normalizedPhone = '+' + normalizedPhone;
+      } else if (!normalizedPhone.startsWith('+63')) {
+        normalizedPhone = '+63' + normalizedPhone;
+      }
+
+      const response = await axios.post(
+        `/api/auth/register-phone`,
+        { userId, email: userEmail, phoneNumber: normalizedPhone },
+        { withCredentials: true }
+      );
+
+      // Phone number registered successfully, now show "Send OTP" button
+      setPhoneRegistrationStep(2);
+      setSmsResendMessage(response.data.message);
+    } catch (err) {
+      console.error("Phone registration error:", err);
+      setError(err.response?.data?.message || "Failed to register phone number. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSendSmsOtp = async () => {
     // Check if cooldown is active
@@ -1018,15 +1043,53 @@ export default function LoginForm({ onClose }) {
           </form>
         )}
 
-        {step === 2 && useSmsOtp && (
-          <div>
-            <h2 className="text-[#01579B] font-semibold mb-2">SMS Verification</h2>
+        {step === 2 && useSmsOtp && phoneRegistrationStep === 1 && (
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handlePhoneRegistration();
+          }}>
+            <h2 className="text-[#01579B] font-semibold mb-2">Register Phone Number</h2>
             <p className="text-sm text-gray-700 mb-2">
-              {smsResendMessage || "A verification code will be sent to your registered phone number."}
+              Enter your phone number to register it for SMS verification.
+            </p>
+            <Input
+              type="tel"
+              placeholder="Enter your phone number"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              onKeyDown={handlePhoneNumberKeyDown}
+              required
+            />
+            
+            <Button
+              type="submit"
+              className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
+              disabled={loading}
+            >
+              {loading ? "Registering..." : "Register Phone Number"}
+            </Button>
+
+            <div className="mt-4 text-center">
+              <button 
+                type="button"
+                onClick={handleBackToEmailOtp}
+                className="text-sm text-[#01579B] hover:underline"
+              >
+                Back to Email OTP
+              </button>
+            </div>
+          </form>
+        )}
+
+        {step === 2 && useSmsOtp && phoneRegistrationStep === 2 && (
+          <div>
+            <h2 className="text-[#01579B] font-semibold mb-2">Phone Number Registered</h2>
+            <p className="text-sm text-gray-700 mb-2">
+              {smsResendMessage}
             </p>
             {phoneNumber && (
               <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                <p className="text-sm text-gray-600">Phone Number:</p>
+                <p className="text-sm text-gray-600">Registered Phone Number:</p>
                 <p className="text-sm font-semibold text-gray-800">{phoneNumber}</p>
               </div>
             )}
@@ -1094,6 +1157,16 @@ export default function LoginForm({ onClose }) {
               <div className="mt-2 text-center">
                 <button 
                   type="button"
+                  onClick={() => {
+                    setPhoneRegistrationStep(1);
+                    setPhoneNumber("");
+                  }}
+                  className="text-sm text-[#01579B] hover:underline mr-4"
+                >
+                  Change Phone Number
+                </button>
+                <button 
+                  type="button"
                   onClick={handleBackToEmailOtp}
                   className="text-sm text-[#01579B] hover:underline"
                 >
@@ -1158,32 +1231,6 @@ export default function LoginForm({ onClose }) {
               <li>Include uppercase and lowercase letters</li>
               <li>Include at least one number or special character</li>
             </ul>
-
-            {/* Phone Number Registration Section - Required */}
-            <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="mb-3">
-                <label className="text-sm text-[#01579B] font-bold">
-                  Phone Number Registration (Required)
-                </label>
-                <p className="text-xs text-gray-600 mt-1">
-                  Register your phone number to enable SMS OTP verification for future logins.
-                </p>
-              </div>
-              
-              <div>
-                <Input
-                  type="tel"
-                  placeholder="Enter your phone number (e.g., +639123456789 or 09123456789)"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="mb-2"
-                  required
-                />
-                <p className="text-xs text-gray-500">
-                  Format: +639123456789 or 09123456789 (Philippines numbers only)
-                </p>
-              </div>
-            </div>
             
             <Button
               type="submit"
