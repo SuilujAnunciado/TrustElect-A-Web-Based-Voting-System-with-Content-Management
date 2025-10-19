@@ -682,6 +682,8 @@ const permanentDeleteElection = async (id) => {
 // Get archived elections - using admin system approach
 const getArchivedElections = async (userId = null) => {
   try {
+    console.log('getArchivedElections model called with userId:', userId);
+    
     // First check if archive columns exist
     const columnCheck = await pool.query(`
       SELECT column_name 
@@ -690,8 +692,12 @@ const getArchivedElections = async (userId = null) => {
       AND column_name IN ('is_active', 'is_deleted', 'archived_at', 'archived_by')
     `);
     
+    console.log('Available columns:', columnCheck.rows.map(row => row.column_name));
+    
     const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
+    
+    console.log('Column check results:', { hasActiveColumns, hasDeleteColumns });
     
     if (!hasActiveColumns || !hasDeleteColumns) {
       console.log('Archive columns not found, returning empty array');
@@ -740,10 +746,17 @@ const getArchivedElections = async (userId = null) => {
     query += ` ORDER BY e.archived_at DESC NULLS LAST, e.created_at DESC`;
     
     const result = await pool.query(query, params);
+    console.log('Query executed successfully, returning', result.rows.length, 'rows');
     return result.rows;
   } catch (error) {
     console.error('Error in getArchivedElections:', error);
-    return [];
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint
+    });
+    throw error; // Re-throw to see the actual error in the controller
   }
 };
 
