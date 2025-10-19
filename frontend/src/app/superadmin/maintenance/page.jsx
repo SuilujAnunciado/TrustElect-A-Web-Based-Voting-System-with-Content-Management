@@ -366,7 +366,14 @@ const MaintenancePage = () => {
   };
 
   const handleArchivePartylist = async (id) => {
-    setSelectedItem({ id });
+    // Find the partylist to get its name for confirmation
+    const partylist = partylistList.find(p => p.id === id);
+    if (!partylist) {
+      toast.error("Partylist not found");
+      return;
+    }
+
+    setSelectedItem({ id, name: partylist.name });
     setShowArchiveModal(true);
   };
 
@@ -379,18 +386,31 @@ const MaintenancePage = () => {
       );
 
       if (response.data.success) {
-        toast.success("Partylist archived successfully");
+        toast.success(`"${selectedItem.name}" archived successfully`);
         setShowArchiveModal(false);
         fetchPartylists();
         fetchArchivedPartylists();
+      } else {
+        toast.error(response.data.message || "Failed to archive partylist");
       }
     } catch (error) {
       console.error("Error archiving partylist:", error);
-      toast.error("Failed to archive partylist");
+      toast.error(error.response?.data?.message || "Failed to archive partylist");
     }
   };
 
   const handleRestorePartylist = async (id) => {
+    // Find the partylist to get its name for confirmation
+    const partylist = archivedPartylistList.find(p => p.id === id);
+    if (!partylist) {
+      toast.error("Partylist not found");
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to restore "${partylist.name}"? This will make it active again.`)) {
+      return;
+    }
+
     try {
       const token = Cookies.get("token");
       const response = await axios.post(
@@ -400,18 +420,27 @@ const MaintenancePage = () => {
       );
 
       if (response.data.success) {
-        toast.success("Partylist restored successfully");
+        toast.success(`"${partylist.name}" restored successfully`);
         fetchPartylists();
         fetchArchivedPartylists();
+      } else {
+        toast.error(response.data.message || "Failed to restore partylist");
       }
     } catch (error) {
       console.error("Error restoring partylist:", error);
-      toast.error("Failed to restore partylist");
+      toast.error(error.response?.data?.message || "Failed to restore partylist");
     }
   };
 
   const handlePermanentDeletePartylist = async (id) => {
-    setSelectedItem({ id });
+    // Find the partylist to get its name for confirmation
+    const partylist = archivedPartylistList.find(p => p.id === id);
+    if (!partylist) {
+      toast.error("Partylist not found");
+      return;
+    }
+
+    setSelectedItem({ id, name: partylist.name });
     setShowPermanentDeleteModal(true);
   };
 
@@ -424,13 +453,15 @@ const MaintenancePage = () => {
       );
 
       if (response.data.success) {
-        toast.success("Partylist permanently deleted");
+        toast.success(`"${selectedItem.name}" permanently deleted`);
         setShowPermanentDeleteModal(false);
         fetchArchivedPartylists();
+      } else {
+        toast.error(response.data.message || "Failed to permanently delete partylist");
       }
     } catch (error) {
       console.error("Error permanently deleting partylist:", error);
-      toast.error("Failed to permanently delete partylist");
+      toast.error(error.response?.data?.message || "Failed to permanently delete partylist");
     }
   };
 
@@ -728,7 +759,7 @@ const MaintenancePage = () => {
         onClose={() => setShowArchiveModal(false)}
         onConfirm={confirmArchivePartylist}
         title="Confirm Archive"
-        message="Are you sure you want to archive this partylist? The partylist will be moved to the archived folder."
+        message={`Are you sure you want to archive "${selectedItem?.name}"? The partylist will be moved to the archived folder.`}
         confirmText="Archive"
         cancelText="Cancel"
         type="warning"
@@ -740,7 +771,7 @@ const MaintenancePage = () => {
         onClose={() => setShowPermanentDeleteModal(false)}
         onConfirm={confirmPermanentDeletePartylist}
         title="Confirm Permanent Delete"
-        message="Are you sure you want to PERMANENTLY delete this partylist? This action cannot be undone and will permanently remove the partylist from the system."
+        message={`Are you sure you want to PERMANENTLY delete "${selectedItem?.name}"? This action cannot be undone and will permanently remove the partylist from the system.`}
         confirmText="Delete Permanently"
         cancelText="Cancel"
         type="danger"

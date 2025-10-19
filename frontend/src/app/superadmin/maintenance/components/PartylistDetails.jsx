@@ -320,6 +320,32 @@ const PartylistDetails = ({
     return true;
   };
 
+  const updateCandidate = async (candidateId, updateData) => {
+    try {
+      const token = Cookies.get("token");
+      const response = await axios.put(
+        `/api/partylist-candidates/candidates/${candidateId}`,
+        updateData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        toast.success("Candidate updated successfully");
+      } else {
+        toast.error(response.data.message || "Failed to update candidate");
+      }
+    } catch (error) {
+      console.error("Error updating candidate:", error);
+      toast.error(error.response?.data?.message || "Failed to update candidate");
+      throw error;
+    }
+  };
+
   const handleCandidateChange = async (posId, candId, field, value) => {
     if (field === "party") {
       return;
