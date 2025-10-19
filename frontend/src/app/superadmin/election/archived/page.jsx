@@ -137,16 +137,21 @@ export default function ArchivedElectionsPage() {
       setLoading(true);
       setError("");
       
-      // Use the dedicated archived elections endpoint
-      const data = await fetchWithAuth('/elections/archived');
+      // Use the main elections endpoint (same pattern as admin management)
+      const data = await fetchWithAuth('/elections');
       
       if (data.success === false) {
-        setError(data.message || "Failed to load archived elections. Please try again later.");
+        setError(data.message || "Failed to load elections. Please try again later.");
         return;
       }
       
-      // The endpoint already returns only archived elections
-      const archivedElections = data.data || [];
+      // Filter for archived elections on the frontend (same as admin management)
+      const allElections = data.data || [];
+      const archivedElections = allElections.filter(election => 
+        election.is_active === false && 
+        (election.is_deleted === false || election.is_deleted === null)
+      );
+      
       setElections(archivedElections);
     } catch (err) {
       console.error("Failed to load archived elections:", err);
