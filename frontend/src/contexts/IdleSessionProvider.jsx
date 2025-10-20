@@ -37,9 +37,9 @@ export default function IdleSessionProvider({ children }) {
         credentials: 'include'
       }).catch(() => {});
     } catch (_) {}
-    // Redirect to login
+    // Redirect to landing page instead of login
     if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   }, []);
 
