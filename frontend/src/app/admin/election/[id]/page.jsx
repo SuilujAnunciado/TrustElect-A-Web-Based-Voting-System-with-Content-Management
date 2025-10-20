@@ -742,6 +742,72 @@ export default function ElectionDetailsPage() {
     }
   };
 
+  const handleApproveElection = async () => {
+    try {
+      setLoading(true);
+      const token = Cookies.get('token');
+      
+      const response = await fetch(`${API_BASE}/elections/${election.id}/approve`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to approve election');
+      }
+      
+      toast.success('Election approved successfully');
+      
+      // Refresh the page to show updated status
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (error) {
+      toast.error(error.message || 'Failed to approve election');
+      console.error('Error approving election:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectElection = async () => {
+    try {
+      setLoading(true);
+      const token = Cookies.get('token');
+      
+      const response = await fetch(`${API_BASE}/elections/${election.id}/reject`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to reject election');
+      }
+      
+      toast.success('Election rejected successfully');
+      
+      // Refresh the page to show updated status
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (error) {
+      toast.error(error.message || 'Failed to reject election');
+      console.error('Error rejecting election:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGenerateReport = async () => {
     try {
       // Fetch election details first
@@ -1093,6 +1159,28 @@ export default function ElectionDetailsPage() {
     (election.created_by && election.created_by.id === 1) ||
     election.created_by_role === 'SuperAdmin';
 
+  // Check if current user can approve elections (Super Admin, or Admin with Administrator role)
+  const canApproveElections = () => {
+    const userRole = Cookies.get('role');
+    if (userRole === 'Super Admin') return true;
+    
+    if (userRole === 'Admin') {
+      // Get department from token
+      const token = Cookies.get('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          const department = tokenData.department;
+          return department === 'Administrator';
+        } catch (error) {
+          console.error('Error parsing token:', error);
+        }
+      }
+    }
+    
+    return false;
+  };
+
   const getTop3AndOtherCandidates = (candidates) => {
     if (!candidates || candidates.length === 0) return { top3: [], others: [] };
     
@@ -1432,22 +1520,59 @@ export default function ElectionDetailsPage() {
             <h3 className="font-bold">Election pending approval</h3>
           </div>
           <p className="mb-2 text-sm text-black">
-            This election is waiting for approval from a System Admin before it can be published.
+            This election is waiting for approval before it can be published.
             {isCurrentUserCreator && " You can still edit all aspects of this election while waiting for approval."}
           </p>
           <div className="flex justify-between items-center">
             <p className="text-xs text-black">
-              Only System Admin can approve or reject elections.
+              {canApproveElections() 
+                ? "You can approve or reject this election." 
+                : "Only System Admin or Administrator role admins can approve or reject elections."
+              }
             </p>
-            {canEditElection() && (
-            <button
-              onClick={handleCancelElection}
-              disabled={isCancelling}
-              className="text-sm flex items-center text-red-600 hover:text-red-800"
-            >
-              {isCancelling ? 'Cancelling...' : 'Cancel this election request'}
-            </button>
-            )}
+            <div className="flex items-center gap-2">
+              {canEditElection() && (
+                <button
+                  onClick={handleCancelElection}
+                  disabled={isCancelling}
+                  className="text-sm flex items-center text-red-600 hover:text-red-800"
+                >
+                  {isCancelling ? 'Cancelling...' : 'Cancel this election request'}
+                </button>
+              )}
+              {canApproveElections() && (
+                <>
+                  <button
+                    onClick={handleApproveElection}
+                    disabled={loading}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center text-sm"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin h-4 w-4 mr-2 border-2 border-white rounded-full border-t-transparent"></div>
+                        Approving...
+                      </>
+                    ) : (
+                      'Approve Election'
+                    )}
+                  </button>
+                  <button
+                    onClick={handleRejectElection}
+                    disabled={loading}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center text-sm"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin h-4 w-4 mr-2 border-2 border-white rounded-full border-t-transparent"></div>
+                        Rejecting...
+                      </>
+                    ) : (
+                      'Reject Election'
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

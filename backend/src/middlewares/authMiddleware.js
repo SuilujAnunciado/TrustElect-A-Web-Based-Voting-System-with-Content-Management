@@ -153,11 +153,35 @@ const isSuperAdmin = allowRoles("Super Admin");
 const isAdmin = allowRoles("Admin");
 const isStudent = allowRoles("Student");
 
+// Middleware to allow Super Admin or Admin with Administrator role to approve elections
+const canApproveElections = (req, res, next) => {
+  const user = req.user;
+  
+  // Super Admin always has access
+  if (user.normalizedRole === 'Super Admin') {
+    return next();
+  }
+  
+  // Admin users with Administrator department can approve
+  if (user.normalizedRole === 'Admin') {
+    const department = user.department;
+    if (department === 'Administrator') {
+      return next();
+    }
+  }
+  
+  // For other roles, deny access
+  return res.status(403).json({ 
+    message: "Access denied. Only Super Admin or Administrator role admins can approve elections." 
+  });
+};
+
 module.exports = { 
   verifyToken, 
   isSuperAdmin, 
   isAdmin, 
   isStudent, 
   verifyStudentRecord,
-  allowRoles
+  allowRoles,
+  canApproveElections
 };

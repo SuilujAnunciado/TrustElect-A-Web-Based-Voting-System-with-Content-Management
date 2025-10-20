@@ -40,7 +40,7 @@ const {
 const {
     getBallotByElection
 } = require("../controllers/ballotController");
-const { verifyToken, isSuperAdmin, isAdmin, isStudent, verifyStudentRecord } = require("../middlewares/authMiddleware");
+const { verifyToken, isSuperAdmin, isAdmin, isStudent, verifyStudentRecord, canApproveElections } = require("../middlewares/authMiddleware");
 const electionStatusService = require('../services/electionStatusService');
 const router = express.Router();
 
@@ -198,8 +198,8 @@ router.get("/:id", verifyToken, getElectionById);
 router.put("/:id", verifyToken, updateElection);
 router.delete("/:id", verifyToken, deleteElection);
 
-router.post("/:id/approve", verifyToken, isSuperAdmin, approveElection);
-router.post("/:id/reject", verifyToken, isSuperAdmin, rejectElection);
+router.post("/:id/approve", verifyToken, canApproveElections, approveElection);
+router.post("/:id/reject", verifyToken, canApproveElections, rejectElection);
 router.post("/:id/send-result-notifications", verifyToken, (req, res, next) => {
     if (req.user.role === 'Admin' || req.user.role === 'SuperAdmin') {
         next();

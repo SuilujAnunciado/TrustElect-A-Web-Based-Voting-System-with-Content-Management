@@ -232,6 +232,28 @@ export default function AdminDashboard() {
   const [uiDesign, setUiDesign] = useState(null);
   const [landingContent, setLandingContent] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Check if current user can approve elections (Super Admin, or Admin with Administrator role)
+  const canApproveElections = () => {
+    const userRole = Cookies.get('role');
+    if (userRole === 'Super Admin') return true;
+    
+    if (userRole === 'Admin') {
+      // Get department from token
+      const token = Cookies.get('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          const department = tokenData.department;
+          return department === 'Administrator';
+        } catch (error) {
+          console.error('Error parsing token:', error);
+        }
+      }
+    }
+    
+    return false;
+  };
   const [totalUniqueVoters, setTotalUniqueVoters] = useState(0);
   const [liveVoteData, setLiveVoteData] = useState(null);
   const [showLiveVoteModal, setShowLiveVoteModal] = useState(false);
@@ -307,12 +329,23 @@ export default function AdminDashboard() {
         
         if (response.ok) {
           const data = await response.json();
+          // If user can approve elections, show all pending approvals
+          // Otherwise, filter to only include elections created by the current admin
+          const filteredData = canApproveElections() 
+            ? data 
+            : data.filter(election => {
+                // Exclude elections created by system admin
+                return !(election.created_by === 1 || 
+                        (election.created_by && election.created_by.id === 1) ||
+                        election.created_by_role === 'SuperAdmin');
+              });
+          
           return {
-            data: data || [],
+            data: filteredData || [],
             pagination: {
               page: 1,
-              limit: data.length,
-              total: data.length,
+              limit: filteredData.length,
+              total: filteredData.length,
               totalPages: 1,
               hasMore: false
             }
@@ -345,7 +378,7 @@ export default function AdminDashboard() {
       console.error(`Error fetching ${tabId} elections:`, err);
       return { data: [], pagination: { page, limit, total: 0, totalPages: 0, hasMore: false } };
     }
-  }, []);
+  }, [canApproveElections]);
 
   // Load all elections data - now uses pagination and loads tabs incrementally
   const loadAllElections = useCallback(async () => {
@@ -383,15 +416,26 @@ export default function AdminDashboard() {
       
       if (response.ok) {
         const data = await response.json();
+        // If user can approve elections, show all pending approvals
+        // Otherwise, filter to only include elections created by the current admin
+        const filteredData = canApproveElections() 
+          ? data 
+          : data.filter(election => {
+              // Exclude elections created by system admin
+              return !(election.created_by === 1 || 
+                      (election.created_by && election.created_by.id === 1) ||
+                      election.created_by_role === 'SuperAdmin');
+            });
+        
         setAllElections(prev => ({
           ...prev,
-          'to_approve': data || []
+          'to_approve': filteredData || []
         }));
       }
     } catch (err) {
       console.error('Error fetching pending approval elections:', err);
     }
-  }, []);
+  }, [canApproveElections]);
 
   // Load stats - memoized
   const loadStats = useCallback(async () => {
