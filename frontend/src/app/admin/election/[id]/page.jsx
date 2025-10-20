@@ -1165,7 +1165,6 @@ export default function ElectionDetailsPage() {
     
     // Super Admin always has access
     if (userRole === 'Super Admin') {
-      console.log('User is Super Admin - can approve elections');
       return true;
     }
     
@@ -1176,29 +1175,16 @@ export default function ElectionDetailsPage() {
         try {
           const tokenData = JSON.parse(atob(token.split('.')[1]));
           const canApprove = tokenData.canApproveElections;
-          const department = tokenData.department;
-          
-          console.log('Admin user department:', department, 'canApproveElections:', canApprove);
           
           // Use the canApproveElections flag set during login
-          if (canApprove === true) {
-            console.log('Admin has approval rights - can approve elections');
-            return true;
-          }
-          
-          console.log('Admin does not have approval rights - cannot approve elections');
-          return false;
+          return canApprove === true;
         } catch (error) {
-          console.error('Error parsing token for approval check:', error);
           return false;
         }
-      } else {
-        console.log('No token found for admin user');
-        return false;
       }
+      return false;
     }
     
-    console.log('User is not Super Admin or Admin - cannot approve elections');
     return false;
   };
 
