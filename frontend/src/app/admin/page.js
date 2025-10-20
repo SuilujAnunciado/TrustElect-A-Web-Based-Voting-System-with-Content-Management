@@ -233,8 +233,8 @@ export default function AdminDashboard() {
   const [landingContent, setLandingContent] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Check if current user can approve elections (Super Admin, or Admin with Administrator role)
-  const canApproveElections = () => {
+  // Memoize canApproveElections to prevent unnecessary re-renders
+  const canApproveElections = useCallback(() => {
     const userRole = Cookies.get('role');
     if (userRole === 'Super Admin') return true;
     
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
     }
     
     return false;
-  };
+  }, []); // Empty dependency array since we only depend on cookies
   const [totalUniqueVoters, setTotalUniqueVoters] = useState(0);
   const [liveVoteData, setLiveVoteData] = useState(null);
   const [showLiveVoteModal, setShowLiveVoteModal] = useState(false);
@@ -329,9 +329,12 @@ export default function AdminDashboard() {
         
         if (response.ok) {
           const data = await response.json();
+          // Cache the approval permission check to avoid repeated calls
+          const canApprove = canApproveElections();
+          
           // If user can approve elections, show all pending approvals
           // Otherwise, filter to only include elections created by the current admin
-          const filteredData = canApproveElections() 
+          const filteredData = canApprove 
             ? data 
             : data.filter(election => {
                 // Exclude elections created by system admin
@@ -416,9 +419,12 @@ export default function AdminDashboard() {
       
       if (response.ok) {
         const data = await response.json();
+        // Cache the approval permission check to avoid repeated calls
+        const canApprove = canApproveElections();
+        
         // If user can approve elections, show all pending approvals
         // Otherwise, filter to only include elections created by the current admin
-        const filteredData = canApproveElections() 
+        const filteredData = canApprove 
           ? data 
           : data.filter(election => {
               // Exclude elections created by system admin
@@ -728,15 +734,9 @@ export default function AdminDashboard() {
           }));
         }
         
-        // Phase 3: Load remaining data in background (low priority)
+        // Phase 3: Load other tabs data in background (low priority)
         setTimeout(async () => {
           if (isMounted) {
-            // Load UI design and total voters count
-            await Promise.allSettled([
-              loadUIDesign(),
-              loadTotalUniqueVoters()
-            ]);
-            
             // Load other tabs data
             const otherTabs = ['ongoing', 'upcoming', 'completed', 'to_approve'].filter(tab => tab !== activeTab);
             
@@ -754,12 +754,10 @@ export default function AdminDashboard() {
               }
             }
             
-            // Load optional visualization data
-            await Promise.allSettled([
-              loadSystemLoadData('7d'),
-              loadLiveVoteCount().catch(err => {
-              })
-            ]);
+            // Load live vote count
+            loadLiveVoteCount().catch(err => {
+              console.error('Error loading live vote count:', err);
+            });
             
             if (isMounted) {
               setDataLoaded(true);
@@ -819,12 +817,24 @@ export default function AdminDashboard() {
     dataLoaded, 
     activeTab,
     loadElectionsForTab,
-    loadStats, 
-    loadUIDesign, 
-    loadTotalUniqueVoters, 
-    loadLiveVoteCount, 
-    loadSystemLoadData
+    loadStats
   ]);
+
+  // Load background data after initial load is complete
+  useEffect(() => {
+    if (dataLoaded && !isLoading) {
+      // Load UI design and total voters count in background
+      Promise.allSettled([
+        loadUIDesign(),
+        loadTotalUniqueVoters()
+      ]).then(() => {
+        // Load system load data after UI design is loaded
+        loadSystemLoadData('7d').catch(err => {
+          console.error('Error loading system load data:', err);
+        });
+      });
+    }
+  }, [dataLoaded, isLoading, loadUIDesign, loadTotalUniqueVoters, loadSystemLoadData]);
 
   // Handle tab change - update elections when tab changes and load data if needed
   useEffect(() => {
