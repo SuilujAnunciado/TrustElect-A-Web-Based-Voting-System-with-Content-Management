@@ -236,22 +236,42 @@ export default function AdminDashboard() {
   // Memoize canApproveElections to prevent unnecessary re-renders
   const canApproveElections = useCallback(() => {
     const userRole = Cookies.get('role');
-    if (userRole === 'Super Admin') return true;
     
+    // Super Admin always has access
+    if (userRole === 'Super Admin') {
+      console.log('User is Super Admin - can approve elections');
+      return true;
+    }
+    
+    // Check Admin users
     if (userRole === 'Admin') {
-      // Get department from token
       const token = Cookies.get('token');
       if (token) {
         try {
           const tokenData = JSON.parse(atob(token.split('.')[1]));
           const department = tokenData.department;
-          return department === 'Administrator';
+          
+          console.log('Admin user department:', department);
+          
+          // Check for exact match with "Administrator" (case-sensitive)
+          if (department === 'Administrator') {
+            console.log('Admin has Administrator department - can approve elections');
+            return true;
+          }
+          
+          console.log('Admin does not have Administrator department - cannot approve elections');
+          return false;
         } catch (error) {
-          console.error('Error parsing token:', error);
+          console.error('Error parsing token for department check:', error);
+          return false;
         }
+      } else {
+        console.log('No token found for admin user');
+        return false;
       }
     }
     
+    console.log('User is not Super Admin or Admin - cannot approve elections');
     return false;
   }, []); // Empty dependency array since we only depend on cookies
   const [totalUniqueVoters, setTotalUniqueVoters] = useState(0);
