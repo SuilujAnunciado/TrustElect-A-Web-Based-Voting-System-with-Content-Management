@@ -744,7 +744,7 @@ export default function ElectionDetailsPage() {
 
   const handleApproveElection = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       const token = Cookies.get('token');
       
       const response = await fetch(`${API_BASE}/elections/${election.id}/approve`, {
@@ -771,13 +771,13 @@ export default function ElectionDetailsPage() {
       toast.error(error.message || 'Failed to approve election');
       console.error('Error approving election:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleRejectElection = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       const token = Cookies.get('token');
       
       const response = await fetch(`${API_BASE}/elections/${election.id}/reject`, {
@@ -804,7 +804,7 @@ export default function ElectionDetailsPage() {
       toast.error(error.message || 'Failed to reject election');
       console.error('Error rejecting election:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -1544,10 +1544,10 @@ export default function ElectionDetailsPage() {
                 <>
                   <button
                     onClick={handleApproveElection}
-                    disabled={loading}
+                    disabled={isLoading}
                     className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center text-sm"
                   >
-                    {loading ? (
+                    {isLoading ? (
                       <>
                         <div className="animate-spin h-4 w-4 mr-2 border-2 border-white rounded-full border-t-transparent"></div>
                         Approving...
@@ -1558,10 +1558,10 @@ export default function ElectionDetailsPage() {
                   </button>
                   <button
                     onClick={handleRejectElection}
-                    disabled={loading}
+                    disabled={isLoading}
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center text-sm"
                   >
-                    {loading ? (
+                    {isLoading ? (
                       <>
                         <div className="animate-spin h-4 w-4 mr-2 border-2 border-white rounded-full border-t-transparent"></div>
                         Rejecting...
