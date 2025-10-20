@@ -58,6 +58,7 @@ exports.loginUser = async (req, res) => {
       role = "Super Admin";
       // Set default department for Super Admin
       user.department = "Administrator";
+      user.canApproveElections = true; // Super Admin always can approve
     }
 
     if (!user) {
@@ -70,6 +71,12 @@ exports.loginUser = async (req, res) => {
         const adminResult = await pool.query(adminQuery, [user.id]);
         if (adminResult.rows.length > 0) {
           user.department = adminResult.rows[0].department;
+          
+          // Check if this admin should have approval rights
+          // Only admins with "Administrator" department can approve elections
+          user.canApproveElections = user.department === 'Administrator';
+        } else {
+          user.canApproveElections = false;
         }
       }
     }
@@ -152,9 +159,10 @@ exports.loginUser = async (req, res) => {
       role 
     };
     
-    // Include department for admin and super admin users
+    // Include department and approval rights for admin and super admin users
     if ((role === "Admin" || role === "Super Admin") && user.department) {
       tokenPayload.department = user.department;
+      tokenPayload.canApproveElections = user.canApproveElections || false;
     }
 
     if (role === "Student" && studentId) {

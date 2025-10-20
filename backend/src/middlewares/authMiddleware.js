@@ -160,30 +160,18 @@ const canApproveElections = (req, res, next) => {
   console.log('Checking approval permissions for user:', {
     id: user.id,
     role: user.normalizedRole,
-    department: user.department
+    department: user.department,
+    canApproveElections: user.canApproveElections
   });
   
-  // Super Admin always has access
-  if (user.normalizedRole === 'Super Admin') {
-    console.log('User is Super Admin - allowing election approval');
+  // Check if user has approval rights (set during login)
+  if (user.canApproveElections === true) {
+    console.log('User has approval rights - allowing election approval');
     return next();
   }
   
-  // Admin users with Administrator department can approve
-  if (user.normalizedRole === 'Admin') {
-    const department = user.department;
-    console.log('Admin user department:', department);
-    
-    if (department === 'Administrator') {
-      console.log('Admin has Administrator department - allowing election approval');
-      return next();
-    } else {
-      console.log('Admin does not have Administrator department - denying election approval');
-    }
-  }
-  
-  // For other roles, deny access
-  console.log('Access denied for election approval - user role:', user.normalizedRole, 'department:', user.department);
+  // For users without approval rights, deny access
+  console.log('Access denied for election approval - user role:', user.normalizedRole, 'department:', user.department, 'canApproveElections:', user.canApproveElections);
   return res.status(403).json({ 
     message: "Access denied. Only Super Admin or Administrator role admins can approve elections." 
   });

@@ -1169,26 +1169,27 @@ export default function ElectionDetailsPage() {
       return true;
     }
     
-    // Check Admin users
+    // Check Admin users using the canApproveElections flag from token
     if (userRole === 'Admin') {
       const token = Cookies.get('token');
       if (token) {
         try {
           const tokenData = JSON.parse(atob(token.split('.')[1]));
+          const canApprove = tokenData.canApproveElections;
           const department = tokenData.department;
           
-          console.log('Admin user department:', department);
+          console.log('Admin user department:', department, 'canApproveElections:', canApprove);
           
-          // Check for exact match with "Administrator" (case-sensitive)
-          if (department === 'Administrator') {
-            console.log('Admin has Administrator department - can approve elections');
+          // Use the canApproveElections flag set during login
+          if (canApprove === true) {
+            console.log('Admin has approval rights - can approve elections');
             return true;
           }
           
-          console.log('Admin does not have Administrator department - cannot approve elections');
+          console.log('Admin does not have approval rights - cannot approve elections');
           return false;
         } catch (error) {
-          console.error('Error parsing token for department check:', error);
+          console.error('Error parsing token for approval check:', error);
           return false;
         }
       } else {
