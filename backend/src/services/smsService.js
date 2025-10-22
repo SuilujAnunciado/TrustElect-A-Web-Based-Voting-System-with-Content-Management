@@ -251,8 +251,6 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
       const dbOtpQuery = `
         SELECT id, otp, expires_at, attempts, verified FROM otps 
         WHERE user_id = $1 
-        AND phone_number = $2
-        AND otp_type = 'sms'
         AND expires_at > NOW() 
         AND verified = false
         AND attempts < 5
@@ -260,7 +258,7 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
         LIMIT 1
       `;
       
-      const dbOtpResult = await pool.query(dbOtpQuery, [userId, formattedNumber]);
+      const dbOtpResult = await pool.query(dbOtpQuery, [userId]);
       
       if (dbOtpResult.rows.length === 0) {
         console.log('No valid OTP found in database for user:', userId);
@@ -275,6 +273,7 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
       
       // Verify OTP matches what was sent
       if (dbOtpRecord.otp !== otp) {
+        console.log('OTP mismatch - database OTP:', dbOtpRecord.otp, 'provided OTP:', otp);
         // Increment attempts for wrong OTP
         await pool.query(
           'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
@@ -320,8 +319,8 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
         if (userId) {
           const pool = require('../config/db');
           await pool.query(
-            'UPDATE otps SET verified = TRUE WHERE user_id = $1 AND phone_number = $2 AND otp_type = $3 AND otp = $4 AND verified = FALSE',
-            [userId, formattedNumber, 'sms', otp]
+            'UPDATE otps SET verified = TRUE WHERE user_id = $1 AND otp = $2 AND verified = FALSE',
+            [userId, otp]
           );
           console.log('OTP marked as verified in database');
         }

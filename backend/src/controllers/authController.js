@@ -798,17 +798,15 @@ exports.verifySmsOtp = async (req, res) => {
     const recentOtpQuery = `
       SELECT id, created_at FROM otps 
       WHERE user_id = $1 
-      AND phone_number = $2
-      AND otp_type = 'sms'
       AND created_at > NOW() - INTERVAL '10 minutes'
       ORDER BY created_at DESC 
       LIMIT 1
     `;
     
-    const recentOtpResult = await pool.query(recentOtpQuery, [userId, phoneNumber]);
+    const recentOtpResult = await pool.query(recentOtpQuery, [userId]);
     
     if (recentOtpResult.rows.length === 0) {
-      console.log('No recent OTP found for user:', userId, 'phone:', phoneNumber);
+      console.log('No recent OTP found for user:', userId);
       return res.status(400).json({
         success: false,
         message: 'No recent OTP found. Please request a new verification code.'
@@ -856,8 +854,8 @@ exports.verifySmsOtp = async (req, res) => {
       
       // Increment attempts for failed verification
       await pool.query(
-        'UPDATE otps SET attempts = attempts + 1 WHERE user_id = $1 AND phone_number = $2 AND otp_type = $3 AND verified = false',
-        [userId, phoneNumber, 'sms']
+        'UPDATE otps SET attempts = attempts + 1 WHERE user_id = $1 AND verified = false',
+        [userId]
       );
       
       // Handle specific error codes with appropriate HTTP status codes
@@ -985,15 +983,13 @@ exports.sendSmsOtp = async (req, res) => {
     try {
       // Store OTP in database
       const insertQuery = `
-        INSERT INTO otps (user_id, otp, phone_number, otp_type, expires_at, verified, attempts, purpose)
-        VALUES ($1, $2, $3, $4, NOW() + INTERVAL '5 minutes', $5, $6, $7)
+        INSERT INTO otps (user_id, otp, expires_at, verified, attempts, purpose)
+        VALUES ($1, $2, NOW() + INTERVAL '5 minutes', $3, $4, $5)
       `;
       
       await pool.query(insertQuery, [
         userId, 
         otp, 
-        phoneNumber, 
-        'sms', 
         false, 
         0, 
         'verification'
