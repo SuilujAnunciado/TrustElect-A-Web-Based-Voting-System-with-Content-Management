@@ -41,22 +41,21 @@ export default function LoginForm({ onClose }) {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showConfirmResetPassword, setShowConfirmResetPassword] = useState(false);
   const [resetStep, setResetStep] = useState(1); 
-  
-  // SMS OTP states
+
   const [useSmsOtp, setUseSmsOtp] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [smsOtp, setSmsOtp] = useState("");
-  const [phoneRegistrationStep, setPhoneRegistrationStep] = useState(1); // 1: phone input, 2: SMS OTP verification
   const [smsDevOtp, setSmsDevOtp] = useState("");
   const [smsResendLoading, setSmsResendLoading] = useState(false);
   const [smsResendMessage, setSmsResendMessage] = useState("");
   const [smsCooldownActive, setSmsCooldownActive] = useState(false);
   const [smsCooldownTime, setSmsCooldownTime] = useState(0);
   
+  // Phone registration for first-time login
+  const [registerPhoneNumber, setRegisterPhoneNumber] = useState("");
+  
   const router = useRouter();
 
-  // Add keyboard event handlers - Fixed to always trigger, let functions handle validation
-  // These key handlers will still work alongside the global handler for redundancy
   const handleLoginKeyDown = (e) => {
     if (e.key === 'Enter' && !loading) {
       e.preventDefault();
@@ -99,12 +98,6 @@ export default function LoginForm({ onClose }) {
     }
   };
 
-  const handlePhoneNumberKeyDown = (e) => {
-    if (e.key === 'Enter' && !loading) {
-      e.preventDefault();
-      handlePhoneRegistration();
-    }
-  };
 
   const handleSmsOtpKeyDown = (e) => {
     if (e.key === 'Enter' && !loading) {
@@ -124,14 +117,10 @@ export default function LoginForm({ onClose }) {
           handleLogin();
         } else if (step === 2) {
           if (useSmsOtp) {
-            if (phoneRegistrationStep === 1) {
-              handlePhoneRegistration();
-            } else if (phoneRegistrationStep === 2) {
-              if (smsOtp.length === 6) {
-                handleSmsOtpVerification();
-              } else {
-                handleSendSmsOtp();
-              }
+            if (smsOtp.length === 6) {
+              handleSmsOtpVerification();
+            } else {
+              handleSendSmsOtp();
             }
           } else {
             handleOtpVerification();
@@ -159,7 +148,7 @@ export default function LoginForm({ onClose }) {
     };
   }, [step, resetStep, loading, email, password, otp, newPassword, confirmPassword, 
       forgotEmail, resetOtp, resetPassword, confirmResetPassword, useSmsOtp, 
-      phoneRegistrationStep, phoneNumber, smsOtp]);
+      phoneNumber, smsOtp]);
   
   // Cooldown timer effect
   useEffect(() => {
@@ -343,12 +332,51 @@ export default function LoginForm({ onClose }) {
       setError("Passwords do not match.");
       return;
     }
+
+    // Check if phone number is provided
+    if (!registerPhoneNumber.trim()) {
+      setError("Phone number is required to complete your account setup.");
+      return;
+    }
     
     setLoading(true);
     try {
       const token = Cookies.get("token");
+      const userId = Cookies.get("userId");
+      const userEmail = Cookies.get("email");
       
-      // Updated: same-origin path
+      // First register the phone number
+      let normalizedPhone = registerPhoneNumber.replace(/\s/g, '');
+      if (normalizedPhone.startsWith('09')) {
+        normalizedPhone = '+63' + normalizedPhone.substring(1);
+      } else if (normalizedPhone.startsWith('63')) {
+        normalizedPhone = '+' + normalizedPhone;
+      } else if (!normalizedPhone.startsWith('+63')) {
+        normalizedPhone = '+63' + normalizedPhone;
+      }
+
+      // Validate phone number format
+      const phoneRegex = /^(\+63|63|0)?[9]\d{9}$/;
+      if (!phoneRegex.test(normalizedPhone.replace(/\s/g, ''))) {
+        setError("Please enter a valid Philippines phone number (e.g., +639123456789 or 09123456789).");
+        setLoading(false);
+        return;
+      }
+
+      // Register phone number
+      const phoneResponse = await axios.post(
+        `/api/auth/register-phone`,
+        { userId, email: userEmail, phoneNumber: normalizedPhone },
+        { withCredentials: true }
+      );
+
+      if (!phoneResponse.data.success) {
+        setError(phoneResponse.data.message || "Failed to register phone number. Please try again.");
+        setLoading(false);
+        return;
+      }
+      
+      // Then change the password
       const response = await axios.post(
         `/api/auth/change-first-password`,
         { newPassword },
@@ -376,6 +404,7 @@ export default function LoginForm({ onClose }) {
         setOtp("");
         setNewPassword("");
         setConfirmPassword("");
+        setRegisterPhoneNumber("");
         setIsFirstLogin(false);
         setError("");
         setResendMessage("");
@@ -619,7 +648,6 @@ export default function LoginForm({ onClose }) {
     setError("");
     setSmsResendMessage("");
     setUseSmsOtp(true);
-    setPhoneNumber("");
     setSmsOtp("");
     setSmsDevOtp("");
     
@@ -633,65 +661,22 @@ export default function LoginForm({ onClose }) {
       );
       
       if (response.data.success && response.data.hasPhone) {
-        // User already has a phone number, skip registration step
-        setPhoneRegistrationStep(2);
-        setSmsResendMessage(response.data.message);
+        // User already has a phone number, proceed with SMS OTP
         setPhoneNumber(response.data.phoneNumber);
+        setSmsResendMessage(response.data.message);
       } else {
-        // User needs to register phone number
-        setPhoneRegistrationStep(1);
+        // User doesn't have a phone number, show error
+        setError("You need to register a phone number first. Please complete your first-time login to register your phone number for SMS OTP.");
+        setUseSmsOtp(false);
+        return;
       }
     } catch (err) {
       console.error("Check phone registration error:", err);
-      // If check fails, default to registration step
-      setPhoneRegistrationStep(1);
+      setError("Unable to check phone registration. Please try again.");
+      setUseSmsOtp(false);
     }
   };
 
-  const handlePhoneRegistration = async () => {
-    if (!phoneNumber.trim()) {
-      setError("Please enter your phone number.");
-      return;
-    }
-
-    // Basic phone number validation for Philippines
-    const phoneRegex = /^(\+63|63|0)?[9]\d{9}$/;
-    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
-      setError("Please enter a valid Philippines phone number (e.g., +639123456789 or 09123456789).");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const userId = Cookies.get("userId");
-      const userEmail = Cookies.get("email");
-      
-      // Normalize phone number to +63 format
-      let normalizedPhone = phoneNumber.replace(/\s/g, '');
-      if (normalizedPhone.startsWith('09')) {
-        normalizedPhone = '+63' + normalizedPhone.substring(1);
-      } else if (normalizedPhone.startsWith('63')) {
-        normalizedPhone = '+' + normalizedPhone;
-      } else if (!normalizedPhone.startsWith('+63')) {
-        normalizedPhone = '+63' + normalizedPhone;
-      }
-
-      const response = await axios.post(
-        `/api/auth/register-phone`,
-        { userId, email: userEmail, phoneNumber: normalizedPhone },
-        { withCredentials: true }
-      );
-
-      // Phone number registered successfully, now show "Send OTP" button
-      setPhoneRegistrationStep(2);
-      setSmsResendMessage(response.data.message);
-    } catch (err) {
-      console.error("Phone registration error:", err);
-      setError(err.response?.data?.message || "Failed to register phone number. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSendSmsOtp = async () => {
     // Check if cooldown is active
@@ -854,13 +839,13 @@ export default function LoginForm({ onClose }) {
 
   const handleBackToEmailOtp = () => {
     setUseSmsOtp(false);
-    setPhoneRegistrationStep(1);
     setPhoneNumber("");
     setSmsOtp("");
     setSmsDevOtp("");
     setSmsResendMessage("");
     setError("");
   };
+
 
   return (
     <Card className="relative w-96 p-6 bg-white shadow-2xl rounded-lg">
@@ -1043,53 +1028,15 @@ export default function LoginForm({ onClose }) {
           </form>
         )}
 
-        {step === 2 && useSmsOtp && phoneRegistrationStep === 1 && (
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handlePhoneRegistration();
-          }}>
-            <h2 className="text-[#01579B] font-semibold mb-2">Register Phone Number</h2>
-            <p className="text-sm text-gray-700 mb-2">
-              Enter your phone number to register it for SMS verification.
-            </p>
-            <Input
-              type="tel"
-              placeholder="Enter your phone number"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              onKeyDown={handlePhoneNumberKeyDown}
-              required
-            />
-            
-            <Button
-              type="submit"
-              className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
-              disabled={loading}
-            >
-              {loading ? "Registering..." : "Register Phone Number"}
-            </Button>
-
-            <div className="mt-4 text-center">
-              <button 
-                type="button"
-                onClick={handleBackToEmailOtp}
-                className="text-sm text-[#01579B] hover:underline"
-              >
-                Back to Email OTP
-              </button>
-            </div>
-          </form>
-        )}
-
-        {step === 2 && useSmsOtp && phoneRegistrationStep === 2 && (
+        {step === 2 && useSmsOtp && (
           <div>
-            <h2 className="text-[#01579B] font-semibold mb-2">Phone Number Registered</h2>
+            <h2 className="text-[#01579B] font-semibold mb-2">SMS OTP Verification</h2>
             <p className="text-sm text-gray-700 mb-2">
-              {smsResendMessage}
+              {smsResendMessage || "Enter the 6-digit code sent to your registered phone number."}
             </p>
             {phoneNumber && (
               <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                <p className="text-sm text-gray-600">Registered Phone Number:</p>
+                <p className="text-sm text-gray-600">Phone Number:</p>
                 <p className="text-sm font-semibold text-gray-800">{phoneNumber}</p>
               </div>
             )}
@@ -1157,16 +1104,6 @@ export default function LoginForm({ onClose }) {
               <div className="mt-2 text-center">
                 <button 
                   type="button"
-                  onClick={() => {
-                    setPhoneRegistrationStep(1);
-                    setPhoneNumber("");
-                  }}
-                  className="text-sm text-[#01579B] hover:underline mr-4"
-                >
-                  Change Phone Number
-                </button>
-                <button 
-                  type="button"
                   onClick={handleBackToEmailOtp}
                   className="text-sm text-[#01579B] hover:underline"
                 >
@@ -1178,68 +1115,91 @@ export default function LoginForm({ onClose }) {
         )}
         
         {step === 3 && (
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handlePasswordChange();
-          }}>
+          <div>
             <p className="text-sm text-gray-700 mb-4">
-              This is your first login. Please change your password to continue.
+              This is your first login. Please change your password and register your phone number for SMS OTP.
             </p>
             
-            <p className="text-sm text-[#01579B] font-bold mt-3">New Password</p>
-            <div className="relative">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handlePasswordChange();
+            }}>
+              <p className="text-sm text-[#01579B] font-bold mt-3">New Password</p>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  onKeyDown={handlePasswordChangeKeyDown}
+                  required
+                  className="mb-2"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              
+              <p className="text-sm text-[#01579B] font-bold mt-3">Confirm Password</p>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onKeyDown={handlePasswordChangeKeyDown}
+                  required
+                  className="mb-4"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              
+              <ul className="text-xs text-gray-600 mb-4 pl-4 list-disc">
+                <li>Password must be at least 8 characters long</li>
+                <li>Include uppercase and lowercase letters</li>
+                <li>Include at least one number or special character</li>
+              </ul>
+              
+              <Button
+                type="submit"
+                className="cursor-pointer mt-2 w-full bg-[#003399] hover:bg-blue-800 text-white"
+                disabled={loading}
+              >
+                {loading ? "Updating..." : "Change Password"}
+              </Button>
+            </form>
+
+            {/* Phone Number Registration Section */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h3 className="text-sm text-[#01579B] font-bold mb-2">Register Phone Number (Required)</h3>
+              <p className="text-xs text-gray-600 mb-3">
+                You must register your phone number to complete your account setup. This will enable SMS OTP for future logins.
+              </p>
+              
               <Input
-                type={showNewPassword ? "text" : "password"}
-                placeholder="Enter new password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                onKeyDown={handlePasswordChangeKeyDown}
+                type="tel"
+                placeholder="Enter your phone number (e.g., 09123456789)"
+                value={registerPhoneNumber}
+                onChange={(e) => setRegisterPhoneNumber(e.target.value)}
                 required
                 className="mb-2"
               />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-              >
-                {showNewPassword ? "Hide" : "Show"}
-              </button>
+              
+              <p className="text-xs text-gray-500 mb-3">
+                Your phone number will be automatically registered when you change your password.
+              </p>
             </div>
-            
-            <p className="text-sm text-[#01579B] font-bold mt-3">Confirm Password</p>
-            <div className="relative">
-              <Input
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                onKeyDown={handlePasswordChangeKeyDown}
-                required
-                className="mb-4"
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-            
-            <ul className="text-xs text-gray-600 mb-4 pl-4 list-disc">
-              <li>Password must be at least 8 characters long</li>
-              <li>Include uppercase and lowercase letters</li>
-              <li>Include at least one number or special character</li>
-            </ul>
-            
-            <Button
-              type="submit"
-              className="cursor-pointer mt-2 w-full bg-[#003399] hover:bg-blue-800 text-white"
-              disabled={loading}
-            >
-              {loading ? "Updating..." : "Change Password"}
-            </Button>
-          </form>
+          </div>
         )}
 
         {step === 4 && (
