@@ -335,7 +335,7 @@ export default function LoginForm({ onClose }) {
 
     // Check if phone number is provided
     if (!registerPhoneNumber.trim()) {
-      setError("Phone number is required to complete your account setup.");
+      setError("Phone number is required. Please enter your phone number to continue.");
       return;
     }
     
@@ -666,7 +666,7 @@ export default function LoginForm({ onClose }) {
         setSmsResendMessage(response.data.message);
       } else {
         // User doesn't have a phone number, show error
-        setError("You need to register a phone number first. Please complete your first-time login to register your phone number for SMS OTP.");
+        setError("Please use email OTP first, then change your password and register your phone number for future SMS OTP use.");
         setUseSmsOtp(false);
         return;
       }
@@ -1031,86 +1031,106 @@ export default function LoginForm({ onClose }) {
         {step === 2 && useSmsOtp && (
           <div>
             <h2 className="text-[#01579B] font-semibold mb-2">SMS OTP Verification</h2>
-            <p className="text-sm text-gray-700 mb-2">
-              {smsResendMessage || "Enter the 6-digit code sent to your registered phone number."}
-            </p>
-            {phoneNumber && (
-              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                <p className="text-sm text-gray-600">Phone Number:</p>
-                <p className="text-sm font-semibold text-gray-800">{phoneNumber}</p>
-              </div>
-            )}
-            
-            <Button
-              onClick={handleSendSmsOtp}
-              className="cursor-pointer mb-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
-              disabled={loading}
-            >
-              {loading ? "Sending..." : smsCooldownActive ? `Send SMS OTP (${smsCooldownTime}s)` : "Send SMS OTP"}
-            </Button>
-
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              handleSmsOtpVerification();
-            }}>
-              <h3 className="text-[#01579B] font-semibold mb-2">Enter Verification Code</h3>
-              <p className="text-sm text-gray-700 mb-2">
-                Enter the 6-digit code sent to your phone.
-              </p>
-              <Input
-                type="text"
-                placeholder="Enter 6-digit SMS OTP"
-                value={smsOtp}
-                onChange={(e) => {
-                  // Only allow numeric input and limit to 6 digits
-                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                  setSmsOtp(value);
-                }}
-                onKeyDown={handleSmsOtpKeyDown}
-                maxLength={6}
-                pattern="[0-9]{6}"
-                required
-              />
-
-              {smsDevOtp && (
-                <div className="mt-2 p-2 bg-gray-100 rounded text-center">
-                  <p className="text-xs text-black">Testing OTP:</p>
-                  <p className="font-mono text-sm text-black">{smsDevOtp}</p>
+            {phoneNumber ? (
+              <>
+                <p className="text-sm text-gray-700 mb-2">
+                  {smsResendMessage || "Enter the 6-digit code sent to your registered phone number."}
+                </p>
+                <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+                  <p className="text-sm text-gray-600">Phone Number:</p>
+                  <p className="text-sm font-semibold text-gray-800">{phoneNumber}</p>
                 </div>
-              )}
-              
-              <Button
-                type="submit"
-                className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
-                disabled={loading || smsOtp.length !== 6}
-              >
-                {loading ? "Verifying..." : "Verify SMS OTP"}
-              </Button>
-              
-
-              <div className="mt-4 text-center">
-                <button 
-                  type="button"
-                  onClick={handleResendSmsOtp}
-                  disabled={smsResendLoading || smsCooldownActive}
-                  className={`text-sm ${smsCooldownActive ? 'text-gray-400 cursor-not-allowed' : 'text-[#01579B] hover:underline'}`}
-                >
-                  {smsResendLoading ? "Sending..." : 
-                   smsCooldownActive ? `Resend available in ${smsCooldownTime}s` : 
-                   "Resend verification code"}
-                </button>
-              </div>
-
-              <div className="mt-2 text-center">
+              </>
+            ) : (
+              <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+                <p className="text-sm text-yellow-800 font-semibold mb-2">Phone Number Not Registered</p>
+                <p className="text-xs text-yellow-700">
+                  Please use email OTP first, then change your password and register your phone number for future SMS OTP use.
+                </p>
                 <button 
                   type="button"
                   onClick={handleBackToEmailOtp}
-                  className="text-sm text-[#01579B] hover:underline"
+                  className="mt-2 text-xs text-[#01579B] hover:underline"
                 >
                   Back to Email OTP
                 </button>
               </div>
-            </form>
+            )}
+            
+            {phoneNumber && (
+              <>
+                <Button
+                  onClick={handleSendSmsOtp}
+                  className="cursor-pointer mb-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
+                  disabled={loading}
+                >
+                  {loading ? "Sending..." : smsCooldownActive ? `Send SMS OTP (${smsCooldownTime}s)` : "Send SMS OTP"}
+                </Button>
+
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSmsOtpVerification();
+                }}>
+                  <h3 className="text-[#01579B] font-semibold mb-2">Enter Verification Code</h3>
+                  <p className="text-sm text-gray-700 mb-2">
+                    Enter the 6-digit code sent to your phone.
+                  </p>
+                  <Input
+                    type="text"
+                    placeholder="Enter 6-digit SMS OTP"
+                    value={smsOtp}
+                    onChange={(e) => {
+                      // Only allow numeric input and limit to 6 digits
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setSmsOtp(value);
+                    }}
+                    onKeyDown={handleSmsOtpKeyDown}
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                    required
+                  />
+
+                  {smsDevOtp && (
+                    <div className="mt-2 p-2 bg-gray-100 rounded text-center">
+                      <p className="text-xs text-black">Testing OTP:</p>
+                      <p className="font-mono text-sm text-black">{smsDevOtp}</p>
+                    </div>
+                  )}
+                  
+                  <Button
+                    type="submit"
+                    className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
+                    disabled={loading || smsOtp.length !== 6}
+                  >
+                    {loading ? "Verifying..." : "Verify SMS OTP"}
+                  </Button>
+                  
+
+                  <div className="mt-4 text-center">
+                    <button 
+                      type="button"
+                      onClick={handleResendSmsOtp}
+                      disabled={smsResendLoading || smsCooldownActive}
+                      className={`text-sm ${smsCooldownActive ? 'text-gray-400 cursor-not-allowed' : 'text-[#01579B] hover:underline'}`}
+                    >
+                      {smsResendLoading ? "Sending..." : 
+                       smsCooldownActive ? `Resend available in ${smsCooldownTime}s` : 
+                       "Resend verification code"}
+                    </button>
+                  </div>
+
+                  <div className="mt-2 text-center">
+                    <button 
+                      type="button"
+                      onClick={handleBackToEmailOtp}
+                      className="text-sm text-[#01579B] hover:underline"
+                    >
+                      Back to Email OTP
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         )}
         
@@ -1170,35 +1190,24 @@ export default function LoginForm({ onClose }) {
                 <li>Include at least one number or special character</li>
               </ul>
               
-              <Button
-                type="submit"
-                className="cursor-pointer mt-2 w-full bg-[#003399] hover:bg-blue-800 text-white"
-                disabled={loading}
-              >
-                {loading ? "Updating..." : "Change Password"}
-              </Button>
-            </form>
-
-            {/* Phone Number Registration Section */}
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <h3 className="text-sm text-[#01579B] font-bold mb-2">Register Phone Number (Required)</h3>
-              <p className="text-xs text-gray-600 mb-3">
-                You must register your phone number to complete your account setup. This will enable SMS OTP for future logins.
-              </p>
-              
+              <p className="text-sm text-[#01579B] font-bold mt-3">Phone Number</p>
               <Input
                 type="tel"
                 placeholder="Enter your phone number (e.g., 09123456789)"
                 value={registerPhoneNumber}
                 onChange={(e) => setRegisterPhoneNumber(e.target.value)}
                 required
-                className="mb-2"
+                className="mb-4"
               />
               
-              <p className="text-xs text-gray-500 mb-3">
-                Your phone number will be automatically registered when you change your password.
-              </p>
-            </div>
+              <Button
+                type="submit"
+                className="cursor-pointer mt-2 w-full bg-[#003399] hover:bg-blue-800 text-white"
+                disabled={loading || !registerPhoneNumber.trim()}
+              >
+                {loading ? "Updating..." : "Change Password & Register Phone"}
+              </Button>
+            </form>
           </div>
         )}
 
