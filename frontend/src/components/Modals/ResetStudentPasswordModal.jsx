@@ -3,6 +3,7 @@
 import { useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { toast } from "react-hot-toast";
 
 export default function ResetStudentPasswordModal({ student, onClose }) {
   const [newPassword, setNewPassword] = useState("");
@@ -11,8 +12,6 @@ export default function ResetStudentPasswordModal({ student, onClose }) {
     e.preventDefault();
     try {
       const token = Cookies.get("token");
-  
-  
       
       const res = await axios.post(
         "/api/superadmin/students/reset-password", 
@@ -20,12 +19,12 @@ export default function ResetStudentPasswordModal({ student, onClose }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
-      alert(res.data.message);
+      toast.success(res.data.message || "Student password reset successfully");
       onClose();
       window.location.reload();
     } catch (error) {
       console.error("Error resetting student password:", error.response?.data || error);
-      alert("Failed to reset password. " + (error.response?.data?.message || "Please try again."));
+      toast.error("Failed to reset password. " + (error.response?.data?.message || "Please try again."));
     }
   };
   
