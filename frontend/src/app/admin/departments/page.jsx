@@ -477,11 +477,11 @@ export default function AdminDepartmentsPage() {
             <tbody className="divide-y divide-gray-200">
               {filteredDepartments.map((department) => {
                 const departmentAdmins = admins.filter(admin => {
-                  const departments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
-                  const isAssigned = departments.includes(department.department_name);
-                  if (isAssigned) {
-                  }
-                  return isAssigned;
+                  if (!admin.department) return false;
+                  const departments = admin.department.split(',').map(d => d.trim());
+                  return departments.some(dept => 
+                    dept.toLowerCase() === department.department_name.toLowerCase()
+                  );
                 });
                 
                 return (
@@ -855,9 +855,11 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
           
           // Set selected admins based on current department assignments
           const currentAdmins = filteredAdmins.filter(admin => {
-            // Check if admin's department includes the current department
-            const departments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
-            return departments.includes(department.department_name);
+            if (!admin.department) return false;
+            const departments = admin.department.split(',').map(d => d.trim());
+            return departments.some(dept => 
+              dept.toLowerCase() === department.department_name.toLowerCase()
+            );
           });
           setSelectedAdmins(currentAdmins.map(admin => admin.id));
         }
@@ -871,8 +873,11 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         setAvailableAdmins(available);
         
         const currentAdmins = available.filter(admin => {
-          const departments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
-          return departments.includes(department.department_name);
+          if (!admin.department) return false;
+          const departments = admin.department.split(',').map(d => d.trim());
+          return departments.some(dept => 
+            dept.toLowerCase() === department.department_name.toLowerCase()
+          );
         });
         setSelectedAdmins(currentAdmins.map(admin => admin.id));
       } finally {
@@ -911,7 +916,10 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         
         // Get current departments and add the new one if not already present
         const currentDepartments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
-        if (!currentDepartments.includes(department.department_name)) {
+        const isAlreadyAssigned = currentDepartments.some(dept => 
+          dept.toLowerCase() === department.department_name.toLowerCase()
+        );
+        if (!isAlreadyAssigned) {
           currentDepartments.push(department.department_name);
         }
         
@@ -935,15 +943,21 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
 
       // Process admins being removed from this department
       const adminsToRemove = availableAdmins.filter(admin => {
-        const departments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
-        return departments.includes(department.department_name) && !selectedAdmins.includes(admin.id);
+        if (!admin.department) return false;
+        const departments = admin.department.split(',').map(d => d.trim());
+        const isAssigned = departments.some(dept => 
+          dept.toLowerCase() === department.department_name.toLowerCase()
+        );
+        return isAssigned && !selectedAdmins.includes(admin.id);
       });
       
       const removePromises = adminsToRemove.map(admin => {
         setProcessingAdminIds(prev => [...prev, admin.id]);
 
         const departments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
-        const updatedDepartments = departments.filter(d => d !== department.department_name);
+        const updatedDepartments = departments.filter(d => 
+          d.toLowerCase() !== department.department_name.toLowerCase()
+        );
         
         // Use the superadmin endpoint which now allows both super admins and regular admins
         return axios.put(
@@ -1011,7 +1025,9 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
                     <div>
                       <span className="font-medium">{admin.first_name} {admin.last_name}</span>
                       <span className="text-gray-500 text-sm block">{admin.email}</span>
-                      {admin.department && !admin.department.split(',').map(d => d.trim()).includes(department.department_name) && (
+                      {admin.department && !admin.department.split(',').map(d => d.trim()).some(dept => 
+                        dept.toLowerCase() === department.department_name.toLowerCase()
+                      ) && (
                         <span className="text-amber-600 text-xs">
                           Currently assigned to: {admin.department}
                         </span>
