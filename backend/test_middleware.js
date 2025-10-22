@@ -18,9 +18,7 @@ async function testMiddleware() {
         AND table_name = 'election_precinct_programs'
       ) as table_exists
     `);
-    
-    console.log(`   Tables exist: ${tableCheck.rows[0].table_exists ? '✅' : '❌'}`);
-    
+        
     if (!tableCheck.rows[0].table_exists) {
       console.log('   ❌ IP validation tables not found!');
       return;

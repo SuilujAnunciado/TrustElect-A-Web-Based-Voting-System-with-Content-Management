@@ -30,7 +30,6 @@ export default function IdleSessionProvider({ children }) {
     Cookies.remove('token');
     Cookies.remove('role');
     try {
-      // Best-effort call to backend logout if exists
       fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/auth/logout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,11 +47,9 @@ export default function IdleSessionProvider({ children }) {
     setShowWarning(false);
     setCountdownMs(TIMEOUT_MS - WARNING_MS);
 
-    // Show warning after WARNING_MS
     warningTimerRef.current = setTimeout(() => {
       setShowWarning(true);
       const start = Date.now();
-      // Start countdown tick every 1s
       countdownIntervalRef.current = setInterval(() => {
         const elapsed = Date.now() - start;
         const remaining = Math.max(0, (TIMEOUT_MS - WARNING_MS) - elapsed);

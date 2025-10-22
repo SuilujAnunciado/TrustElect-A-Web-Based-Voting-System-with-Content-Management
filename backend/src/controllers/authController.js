@@ -845,72 +845,21 @@ exports.verifySmsOtp = async (req, res) => {
     
     // Use iProgSMS verify_otp endpoint for production and non-test OTPs in development
     console.log('Verifying OTP with iProgSMS for phone:', phoneNumber);
-    const verifyResult = await smsService.verifyOTP(phoneNumber, otp);
+    const verifyResult = await smsService.verifyOTP(phoneNumber, otp, userId);
     
     if (!verifyResult.success) {
       console.error('iProgSMS verification failed:', verifyResult);
       
-      // Additional security: Check if OTP exists in our database as a fallback
-      console.log('iProgSMS verification failed, checking database as fallback...');
+      // SECURITY: No database fallback - OTP must be verified through iProgSMS
+      // This prevents security bypass where invalid OTPs could be accepted
+      console.log('OTP verification failed - no fallback for security reasons');
       
-      const dbOtpQuery = `
-        SELECT id, otp, expires_at, attempts FROM otps 
-        WHERE user_id = $1 
-        AND phone_number = $2
-        AND otp_type = 'sms'
-        AND expires_at > NOW() 
-        AND verified = false
-        AND attempts < 5
-        ORDER BY created_at DESC 
-        LIMIT 1
-      `;
+      // Increment attempts for failed verification
+      await pool.query(
+        'UPDATE otps SET attempts = attempts + 1 WHERE user_id = $1 AND phone_number = $2 AND otp_type = $3 AND verified = false',
+        [userId, phoneNumber, 'sms']
+      );
       
-      const dbOtpResult = await pool.query(dbOtpQuery, [userId, phoneNumber]);
-      
-      if (dbOtpResult.rows.length > 0) {
-        const dbOtpRecord = dbOtpResult.rows[0];
-        
-        // Check if OTP matches database record
-        if (dbOtpRecord.otp === otp) {
-          console.log('OTP verified against database record');
-          
-          // Mark OTP as verified in database
-          await pool.query(
-            'UPDATE otps SET verified = TRUE, attempts = attempts + 1 WHERE id = $1',
-            [dbOtpRecord.id]
-          );
-          
-          // Mark phone as verified in users table
-          await pool.query(
-            'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
-            [userId]
-          );
-          
-          // Log successful verification
-          await logAction(
-            { id: userId, email: 'SMS_VERIFIED', role: 'SMS_VERIFICATION' },
-            'SMS_VERIFIED',
-            'auth',
-            userId,
-            { phoneNumber: phoneNumber, provider: 'Database_Fallback' }
-          );
-          
-          return res.status(200).json({
-            success: true,
-            message: 'Phone number verified successfully',
-            phoneNumber: phoneNumber,
-            provider: 'Database_Fallback'
-          });
-        } else {
-          // Increment attempts for wrong OTP
-          await pool.query(
-            'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
-            [dbOtpRecord.id]
-          );
-        }
-      }
-      
-      // If we reach here, OTP verification failed completely
       // Handle specific error codes with appropriate HTTP status codes
       let statusCode = 400;
       if (verifyResult.code === 'OTP_EXPIRED') {

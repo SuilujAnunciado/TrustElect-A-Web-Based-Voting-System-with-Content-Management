@@ -72,7 +72,10 @@ const sendSMS = async (phoneNumber, message) => {
           'Accept': 'application/json'
         }
       }
-    );    
+    );
+    
+    console.log('SMS sent successfully via iProgSMS:', response.data);
+    
     const messageId = response.data?.message_id || response.data?.id || 'unknown';
     
     return { 
@@ -114,13 +117,12 @@ const sendSMS = async (phoneNumber, message) => {
 
 /**
  * Send OTP SMS for phone verification using iProgSMS OTP endpoint
- * @param {string} phoneNumber - Phone number to send OTP to
- * @param {string} otp - 6-digit OTP code (not used, iProgSMS generates its own)
+ * @param {string} phoneNumber 
+ * @param {string} otp 
  * @returns {Promise<Object>} - SMS sending result
  */
 const sendOTPSMS = async (phoneNumber, otp) => {
   try {
-  
     if (!IPROGSMS_API_KEY) {
       console.error('iProgSMS configuration missing:', {
         apiKey: !!IPROGSMS_API_KEY
@@ -133,59 +135,27 @@ const sendOTPSMS = async (phoneNumber, otp) => {
     }
     
     const formattedNumber = formatPhoneNumber(phoneNumber);
-   
- 
-    const otpData = {
+    console.log('Sending OTP SMS to:', formattedNumber);
+    
+    // Use only the send_otp endpoint to avoid duplicate SMS
+    const smsData = {
       api_token: IPROGSMS_API_KEY,
       phone_number: formattedNumber,
-      otp: otp, 
       message: `Your TrustElect verification code is: ${otp}. Valid for 5 minutes. Do not share this code with anyone.`
     };
-
-    let response = null;
-    let lastError = null;
     
-    const endpoints = [
+    const response = await axios.post(
+      `${IPROGSMS_API_URL}/otp/send_otp`,
+      smsData,
       {
-        url: `${IPROGSMS_API_URL}/otp`,
-        data: otpData
-      },
-      {
-        url: `${IPROGSMS_API_URL}/otp/send_otp`,
-        data: {
-          api_token: IPROGSMS_API_KEY,
-          phone_number: formattedNumber,
-          message: `Your TrustElect verification code is: ${otp}. Valid for 5 minutes. Do not share this code with anyone.`
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       }
-    ];
+    );
     
-    for (const endpoint of endpoints) {
-      try {       
-        response = await axios.post(
-          endpoint.url,
-          endpoint.data,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            }
-          }
-        );
-
-        break;
-      } catch (error) {
-
-        lastError = error;
-        continue;
-      }
-    }
-    
-    if (!response) {
-      throw lastError || new Error('All endpoints failed');
-    }
-    
-
+    console.log('SMS sent successfully via iProgSMS:', response.data);
     
     if (response.status === 200) {
       const messageId = response.data?.message_id || response.data?.id || response.data?.data?.id || 'unknown';
@@ -209,7 +179,6 @@ const sendOTPSMS = async (phoneNumber, otp) => {
         status: 'sent',
         provider: 'iProgSMS',
         cost: 'Using iProgSMS credits',
-        note: 'iProgSMS generated OTP automatically',
         response: response.data
       };
     } else {
@@ -256,9 +225,10 @@ const sendOTPSMS = async (phoneNumber, otp) => {
  * Verify OTP using iProgSMS verify_otp endpoint
  * @param {string} phoneNumber - Phone number to verify OTP for
  * @param {string} otp - 6-digit OTP code to verify
+ * @param {number} userId - User ID for database validation
  * @returns {Promise<Object>} - Verification result
  */
-const verifyOTP = async (phoneNumber, otp) => {
+const verifyOTP = async (phoneNumber, otp, userId = null) => {
   try {
     if (!IPROGSMS_API_KEY) {
       console.error('iProgSMS configuration missing:', {
@@ -272,54 +242,90 @@ const verifyOTP = async (phoneNumber, otp) => {
     }
     
     const formattedNumber = formatPhoneNumber(phoneNumber);
+    console.log('Verifying OTP for:', formattedNumber);
+    console.log('OTP to verify:', otp);
+    
+    // If userId is provided, validate OTP exists in database first
+    if (userId) {
+      const pool = require('../config/db');
+      const dbOtpQuery = `
+        SELECT id, otp, expires_at, attempts, verified FROM otps 
+        WHERE user_id = $1 
+        AND phone_number = $2
+        AND otp_type = 'sms'
+        AND expires_at > NOW() 
+        AND verified = false
+        AND attempts < 5
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `;
+      
+      const dbOtpResult = await pool.query(dbOtpQuery, [userId, formattedNumber]);
+      
+      if (dbOtpResult.rows.length === 0) {
+        console.log('No valid OTP found in database for user:', userId);
+        return {
+          success: false,
+          error: 'No valid OTP found. Please request a new verification code.',
+          code: 'OTP_NOT_FOUND'
+        };
+      }
+      
+      const dbOtpRecord = dbOtpResult.rows[0];
+      
+      // Verify OTP matches what was sent
+      if (dbOtpRecord.otp !== otp) {
+        // Increment attempts for wrong OTP
+        await pool.query(
+          'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
+          [dbOtpRecord.id]
+        );
+        return {
+          success: false,
+          error: 'Invalid OTP code. Please check and try again.',
+          code: 'INVALID_OTP'
+        };
+      }
+      
+      console.log('OTP validated against database record');
+    }
     
     const verifyData = {
       api_token: IPROGSMS_API_KEY,
       phone_number: formattedNumber,
       otp: otp
     };
-
-    let response;
-    try {
-      response = await axios.post(
-        `${IPROGSMS_API_URL}/otp/verify_otp`,
-        verifyData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
+    
+    console.log('Making verify API request to:', `${IPROGSMS_API_URL}/otp/verify_otp`);
+    
+    // Use only the verify_otp endpoint - no fallback to prevent security bypass
+    const response = await axios.post(
+      `${IPROGSMS_API_URL}/otp/verify_otp`,
+      verifyData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
-      );
-    } catch (verifyError) {
-
-      try {
-        const alternativeData = {
-          api_token: IPROGSMS_API_KEY,
-          phone_number: formattedNumber,
-          otp: otp,
-          action: 'verify' // Some APIs use an action parameter
-        };
-        
-        response = await axios.post(
-          `${IPROGSMS_API_URL}/otp/send_otp`,
-          alternativeData,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            }
-          }
-        );
-      } catch (altError) {
-        throw verifyError; // Throw the original error
       }
-    }
- 
+    );
+    
+    console.log('iProgSMS Verify API Response Status:', response.status);
+    console.log('iProgSMS Verify API Response Data:', JSON.stringify(response.data, null, 2));
     
     if (response.status === 200) {
       // Check if verification was successful
       if (response.data?.success || response.data?.verified || response.data?.status === 'success') {
+        // If userId is provided, mark OTP as verified in database
+        if (userId) {
+          const pool = require('../config/db');
+          await pool.query(
+            'UPDATE otps SET verified = TRUE WHERE user_id = $1 AND phone_number = $2 AND otp_type = $3 AND otp = $4 AND verified = FALSE',
+            [userId, formattedNumber, 'sms', otp]
+          );
+          console.log('OTP marked as verified in database');
+        }
+        
         return {
           success: true,
           message: 'OTP verified successfully',
