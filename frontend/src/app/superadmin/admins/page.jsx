@@ -134,10 +134,12 @@ export default function AdminsPage() {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
+      toast.success("Admin archived successfully.");
       setShowArchiveModal(false);
       fetchAdmins();
     } catch (error) {
       console.error("Error archiving admin:", error);
+      toast.error("Failed to archive admin.");
     }
   };
 
@@ -166,10 +168,12 @@ export default function AdminsPage() {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
+      toast.success("Admin moved to deleted folder.");
       setShowDeleteModal(false);
       fetchAdmins();
     } catch (error) {
       console.error("Error deleting admin:", error);
+      toast.error("Failed to delete admin.");
     }
   };
 
@@ -185,10 +189,11 @@ export default function AdminsPage() {
         }
       );
   
-      // Using toast notification instead of alert
+      toast.success("Admin account unlocked successfully.");
       fetchAdmins();
     } catch (error) {
       console.error("Error unlocking admin account:", error);
+      toast.error("Failed to unlock admin account.");
     }
   };
 

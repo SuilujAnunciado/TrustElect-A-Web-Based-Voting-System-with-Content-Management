@@ -173,12 +173,12 @@ export default function ManageAdminsPage() {
         withCredentials: true,
       });
 
-      toast.success("Admin archived successfully");
+      toast.success("Admin archived successfully.");
       setShowArchiveModal(false);
       fetchAdmins();
     } catch (error) {
       console.error("Error archiving admin:", error);
-      toast.error("Failed to archive admin");
+      toast.error("Failed to archive admin.");
     }
   };
 
@@ -206,12 +206,12 @@ export default function ManageAdminsPage() {
         withCredentials: true,
       });
 
-      toast.success("Admin moved to deleted folder");
+      toast.success("Admin moved to deleted folder.");
       setShowDeleteModal(false);
       fetchAdmins();
     } catch (error) {
       console.error("Error deleting admin:", error);
-      toast.error("Failed to delete admin");
+      toast.error("Failed to delete admin.");
     }
   };
 
@@ -232,11 +232,11 @@ export default function ManageAdminsPage() {
         }
       );
 
-      toast.success("Admin account unlocked successfully");
+      toast.success("Admin account unlocked successfully.");
       fetchAdmins();
     } catch (error) {
       console.error("Error unlocking admin account:", error);
-      toast.error("Failed to unlock admin account");
+      toast.error("Failed to unlock admin account.");
     }
   };
 

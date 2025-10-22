@@ -5,6 +5,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
+import { toast } from "react-hot-toast";
 
 export default function ArchivedAdminsPage() {
   const router = useRouter();
@@ -47,10 +48,12 @@ export default function ArchivedAdminsPage() {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
+      toast.success("Admin restored successfully.");
       setShowRestoreModal(false);
       fetchArchivedAdmins(); 
     } catch (error) {
       console.error("Error restoring admin:", error);
+      toast.error("Failed to restore admin.");
     }
   };
 
@@ -70,17 +73,19 @@ export default function ArchivedAdminsPage() {
         withCredentials: true,
       });
       
+      toast.success("Admin permanently deleted.");
       setShowConfirmModal(false);
       fetchArchivedAdmins(); 
     } catch (error) {
       console.error("Error permanently deleting admin:", error);
-      let errorMessage = "Failed to permanently delete Admin.";
+      let errorMessage = "Failed to permanently delete admin.";
       
       if (error.response) {
         console.error("Response error data:", error.response.data);
         errorMessage = error.response.data.message || errorMessage;
       }
       
+      toast.error(errorMessage);
       setShowConfirmModal(false);
     } finally {
       setIsDeleting(false);

@@ -121,18 +121,18 @@ export default function DeletedAdminsPage() {
       });
       
       setShowConfirmModal(false);
-      alert("Admin permanently deleted.");
+      toast.success("Admin permanently deleted.");
       fetchDeletedAdmins(); 
     } catch (error) {
       console.error("Error permanently deleting admin:", error);
-      let errorMessage = "Failed to permanently delete Admin.";
+      let errorMessage = "Failed to permanently delete admin.";
       
       if (error.response) {
         console.error("Response error data:", error.response.data);
         errorMessage = error.response.data.message || errorMessage;
       }
       
-      alert(errorMessage);
+      toast.error(errorMessage);
       setShowConfirmModal(false);
     }
   };
