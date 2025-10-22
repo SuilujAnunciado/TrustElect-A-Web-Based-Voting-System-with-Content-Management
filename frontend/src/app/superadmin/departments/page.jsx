@@ -43,6 +43,7 @@ export default function DepartmentsPage() {
       });
   
       const departmentsArray = res.data.departments || res.data || [];
+      console.log('All Departments Loaded:', departmentsArray);
       setDepartments(departmentsArray);
 
       fetchAdmins();
@@ -78,6 +79,10 @@ export default function DepartmentsPage() {
         !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
       );
       
+      console.log('All Admins Loaded:', filteredAdmins);
+      console.log('Admins with Student Services in department field:', filteredAdmins.filter(admin => 
+        admin.department && admin.department.toLowerCase().includes('student services')
+      ));
       setAdmins(filteredAdmins);
     } catch (error) {
       console.error("Error fetching admins:", error);
@@ -238,9 +243,22 @@ export default function DepartmentsPage() {
                 const departmentAdmins = admins.filter(admin => {
                   if (!admin.department) return false;
                   const departments = admin.department.split(',').map(d => d.trim());
-                  return departments.some(dept => 
+                  const isMatch = departments.some(dept => 
                     dept.toLowerCase() === department.department_name.toLowerCase()
                   );
+                  
+                  // Debug logging for Student Services
+                  if (department.department_name.toLowerCase().includes('student services')) {
+                    console.log('Student Services Admin Filter Debug:', {
+                      departmentName: department.department_name,
+                      adminName: admin.first_name + ' ' + admin.last_name,
+                      adminDepartmentRaw: admin.department,
+                      splitAdminDepartments: departments,
+                      isMatch: isMatch
+                    });
+                  }
+                  
+                  return isMatch;
                 });
                 
                 return (

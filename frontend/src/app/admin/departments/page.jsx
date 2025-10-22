@@ -479,9 +479,22 @@ export default function AdminDepartmentsPage() {
                 const departmentAdmins = admins.filter(admin => {
                   if (!admin.department) return false;
                   const departments = admin.department.split(',').map(d => d.trim());
-                  return departments.some(dept => 
+                  const isMatch = departments.some(dept => 
                     dept.toLowerCase() === department.department_name.toLowerCase()
                   );
+                  
+                  // Debug logging for Student Services
+                  if (department.department_name.toLowerCase().includes('student services')) {
+                    console.log('Admin Page - Student Services Debug:', {
+                      departmentName: department.department_name,
+                      adminName: admin.first_name + ' ' + admin.last_name,
+                      adminDepartmentRaw: admin.department,
+                      splitAdminDepartments: departments,
+                      isMatch: isMatch
+                    });
+                  }
+                  
+                  return isMatch;
                 });
                 
                 return (
