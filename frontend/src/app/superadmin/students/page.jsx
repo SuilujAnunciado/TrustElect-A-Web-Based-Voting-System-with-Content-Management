@@ -11,6 +11,7 @@ import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 import BatchActionModal from "@/components/Modals/BatchActionModal";
 import { useDropzone } from 'react-dropzone';
 import { debounce } from 'lodash';
+import { toast } from "react-hot-toast";
 
 export default function ManageStudents() {
   const router = useRouter();
@@ -282,10 +283,12 @@ export default function ManageStudents() {
         withCredentials: true,
       });
 
+      toast.success("Student archived successfully.");
       setShowDeleteModal(false);
       fetchStudents(); 
     } catch (error) {
       console.error("Error deleting student:", error);
+      toast.error("Failed to archive student.");
     }
   };
 
@@ -301,10 +304,11 @@ export default function ManageStudents() {
         }
       );
   
-      // Using toast notification instead of alert
+      toast.success("Student account unlocked successfully.");
       fetchStudents();
     } catch (error) {
       console.error("Error unlocking student account:", error);
+      toast.error("Failed to unlock student account.");
     }
   };
 
@@ -351,12 +355,16 @@ export default function ManageStudents() {
       );
 
       if (response.data.success) {
+        toast.success(response.data.message || "Students archived successfully.");
         setShowBatchDeleteModal(false);
         setSelectedCourseForDelete("");
         fetchStudents(); // Refresh the student list
+      } else {
+        toast.error(response.data.message || "Failed to archive students.");
       }
     } catch (error) {
       console.error("Error in batch delete:", error);
+      toast.error(error.response?.data?.message || "Failed to archive students.");
     } finally {
       setIsDeleting(false);
     }
@@ -377,11 +385,15 @@ export default function ManageStudents() {
       });
 
       if (response.data.success) {
+        toast.success(response.data.message || "All students archived successfully.");
         setShowDeleteAllModal(false);
         fetchStudents(); // Refresh the student list
+      } else {
+        toast.error(response.data.message || "Failed to archive all students.");
       }
     } catch (error) {
       console.error("Error in delete all students:", error);
+      toast.error(error.response?.data?.message || "Failed to archive all students.");
     } finally {
       setIsDeletingAll(false);
     }

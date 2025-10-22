@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import usePermissions from "@/hooks/usePermissions";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
+import { toast } from "react-hot-toast";
 
 export default function ArchivedStudents() {
   const router = useRouter();
@@ -90,10 +91,12 @@ export default function ArchivedStudents() {
         withCredentials: true,
       });
       
+      toast.success("Student restored successfully.");
       setStudents((prevStudents) => prevStudents.filter((student) => student.id !== selectedStudentId));
       setShowRestoreModal(false);
     } catch (error) {
       console.error("Error restoring student:", error);
+      toast.error("Failed to restore student.");
     }
   };
 
@@ -110,19 +113,19 @@ export default function ArchivedStudents() {
         withCredentials: true,
       });
 
-      alert("Student permanently deleted.");
+      toast.success("Student permanently deleted.");
       setShowConfirmModal(false);
       fetchArchivedStudents(); 
     } catch (error) {
       console.error("Error permanently deleting student:", error);
-      alert("Failed to permanently delete student.");
+      toast.error("Failed to permanently delete student.");
     }
   };
 
   // Batch delete archived students by course (superadmin only)
   const handleBatchDeleteArchived = async () => {
     if (!selectedCourseForDelete) {
-      alert("Please select a course to delete archived students from.");
+      toast.error("Please select a course to delete archived students from.");
       return;
     }
 
@@ -142,16 +145,16 @@ export default function ArchivedStudents() {
       );
 
       if (response.data.success) {
-        alert(response.data.message);
+        toast.success(response.data.message || "Archived students deleted successfully.");
         setShowBatchDeleteModal(false);
         setSelectedCourseForDelete("");
         fetchArchivedStudents(); // Refresh the student list
       } else {
-        alert(response.data.message || "Failed to delete archived students.");
+        toast.error(response.data.message || "Failed to delete archived students.");
       }
     } catch (error) {
       console.error("Error in batch delete archived students:", error);
-      alert(error.response?.data?.message || "Failed to delete archived students.");
+      toast.error(error.response?.data?.message || "Failed to delete archived students.");
     } finally {
       setIsDeleting(false);
     }
@@ -172,15 +175,15 @@ export default function ArchivedStudents() {
       });
 
       if (response.data.success) {
-        alert(response.data.message);
+        toast.success(response.data.message || "All archived students deleted successfully.");
         setShowDeleteAllModal(false);
         fetchArchivedStudents(); // Refresh the student list
       } else {
-        alert(response.data.message || "Failed to delete all archived students.");
+        toast.error(response.data.message || "Failed to delete all archived students.");
       }
     } catch (error) {
       console.error("Error in delete all archived students:", error);
-      alert(error.response?.data?.message || "Failed to delete all archived students.");
+      toast.error(error.response?.data?.message || "Failed to delete all archived students.");
     } finally {
       setIsDeletingAll(false);
     }

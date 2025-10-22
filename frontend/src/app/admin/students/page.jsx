@@ -335,12 +335,12 @@ export default function StudentsListPage() {
         withCredentials: true,
       });
 
-      toast.success("Student moved to archive.");
+      toast.success("Student archived successfully.");
       setShowDeleteModal(false);
       fetchStudents(); 
     } catch (error) {
       console.error("Error deleting student:", error);
-      toast.error("Failed to delete student.");
+      toast.error("Failed to archive student.");
     }
   };
 
