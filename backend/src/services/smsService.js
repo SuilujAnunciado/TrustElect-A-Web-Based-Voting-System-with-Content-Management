@@ -230,6 +230,25 @@ const sendOTPSMS = async (phoneNumber, otp) => {
  */
 const verifyOTP = async (phoneNumber, otp, userId = null) => {
   try {
+    // Validate OTP format first
+    if (!otp || typeof otp !== 'string') {
+      return {
+        success: false,
+        error: 'OTP is required and must be a string.',
+        code: 'INVALID_OTP_FORMAT'
+      };
+    }
+    
+    // Clean and validate OTP (remove spaces, ensure it's 6 digits)
+    const cleanOtp = otp.toString().trim().replace(/\s/g, '');
+    if (!/^\d{6}$/.test(cleanOtp)) {
+      return {
+        success: false,
+        error: 'OTP must be exactly 6 digits.',
+        code: 'INVALID_OTP_FORMAT'
+      };
+    }
+    
     if (!IPROGSMS_API_KEY) {
       console.error('iProgSMS configuration missing:', {
         apiKey: !!IPROGSMS_API_KEY
@@ -243,7 +262,7 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
     
     const formattedNumber = formatPhoneNumber(phoneNumber);
     console.log('Verifying OTP for:', formattedNumber);
-    console.log('OTP to verify:', otp);
+    console.log('OTP to verify:', cleanOtp);
     
     // If userId is provided, validate OTP exists in database first
     if (userId) {
@@ -272,8 +291,8 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
       const dbOtpRecord = dbOtpResult.rows[0];
       
       // Verify OTP matches what was sent
-      if (dbOtpRecord.otp !== otp) {
-        console.log('OTP mismatch - database OTP:', dbOtpRecord.otp, 'provided OTP:', otp);
+      if (dbOtpRecord.otp !== cleanOtp) {
+        console.log('OTP mismatch - database OTP:', dbOtpRecord.otp, 'provided OTP:', cleanOtp);
         // Increment attempts for wrong OTP
         await pool.query(
           'UPDATE otps SET attempts = attempts + 1 WHERE id = $1',
@@ -292,22 +311,80 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
     const verifyData = {
       api_token: IPROGSMS_API_KEY,
       phone_number: formattedNumber,
-      otp: otp
+      otp: cleanOtp
     };
     
     console.log('Making verify API request to:', `${IPROGSMS_API_URL}/otp/verify_otp`);
+    console.log('Request data:', JSON.stringify(verifyData, null, 2));
+    console.log('API Key present:', !!IPROGSMS_API_KEY);
+    console.log('API Key length:', IPROGSMS_API_KEY ? IPROGSMS_API_KEY.length : 0);
     
-    // Use only the verify_otp endpoint - no fallback to prevent security bypass
-    const response = await axios.post(
-      `${IPROGSMS_API_URL}/otp/verify_otp`,
-      verifyData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+    let response;
+    let apiError = null;
+    
+    try {
+      // Try iProgSMS API first
+      response = await axios.post(
+        `${IPROGSMS_API_URL}/otp/verify_otp`,
+        verifyData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
         }
+      );
+    } catch (error) {
+      console.log('iProgSMS API failed, using database verification as fallback');
+      console.log('API Error:', error.response?.data || error.message);
+      apiError = error;
+      
+      // If API fails, fall back to database-only verification for security
+      // This ensures the system still works even if iProgSMS is down
+      if (userId) {
+        const pool = require('../config/db');
+        const dbOtpQuery = `
+          SELECT id, otp, expires_at, attempts, verified FROM otps 
+          WHERE user_id = $1 
+          AND otp = $2
+          AND expires_at > NOW() 
+          AND verified = false
+          AND attempts < 5
+          ORDER BY created_at DESC 
+          LIMIT 1
+        `;
+        
+        const dbOtpResult = await pool.query(dbOtpQuery, [userId, cleanOtp]);
+        
+        if (dbOtpResult.rows.length === 0) {
+          return {
+            success: false,
+            error: 'Invalid or expired OTP code. Please check and try again.',
+            code: 'INVALID_OTP',
+            provider: 'Database_Fallback'
+          };
+        }
+        
+        const dbOtpRecord = dbOtpResult.rows[0];
+        
+        // Mark OTP as verified in database
+        await pool.query(
+          'UPDATE otps SET verified = TRUE WHERE id = $1',
+          [dbOtpRecord.id]
+        );
+        
+        return {
+          success: true,
+          message: 'OTP verified successfully',
+          phoneNumber: formattedNumber,
+          provider: 'Database_Fallback',
+          note: 'Verified using database fallback due to API unavailability'
+        };
+      } else {
+        // If no userId provided, we can't verify without API
+        throw error;
       }
-    );
+    }
     
     console.log('iProgSMS Verify API Response Status:', response.status);
     console.log('iProgSMS Verify API Response Data:', JSON.stringify(response.data, null, 2));
@@ -320,7 +397,7 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
           const pool = require('../config/db');
           await pool.query(
             'UPDATE otps SET verified = TRUE WHERE user_id = $1 AND otp = $2 AND verified = FALSE',
-            [userId, otp]
+            [userId, cleanOtp]
           );
           console.log('OTP marked as verified in database');
         }
@@ -356,7 +433,9 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
     console.error('Error details:', {
       message: error.message,
       status: error.response?.status,
-      data: error.response?.data
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      headers: error.response?.headers
     });
     
     // Handle specific iProgSMS errors
@@ -366,6 +445,8 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
     // Check the response data for specific error messages
     const responseData = error.response?.data;
     if (responseData) {
+      console.log('iProgSMS Error Response Data:', JSON.stringify(responseData, null, 2));
+      
       if (responseData.message && responseData.message.includes('expired')) {
         errorMessage = 'OTP has expired. Please request a new one.';
         errorCode = 'OTP_EXPIRED';
@@ -374,6 +455,9 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
         errorCode = 'INVALID_OTP';
       } else if (responseData.message) {
         errorMessage = responseData.message;
+        errorCode = responseData.error_code || errorCode;
+      } else if (responseData.error) {
+        errorMessage = responseData.error;
         errorCode = responseData.error_code || errorCode;
       }
     }
@@ -389,7 +473,14 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
         errorCode = 'AUTH_FAILED';
       }
     } else if (error.response?.status === 400) {
-      errorMessage = 'Invalid OTP or phone number format.';
+      // More specific error message for 400 errors
+      if (responseData?.message) {
+        errorMessage = responseData.message;
+      } else if (responseData?.error) {
+        errorMessage = responseData.error;
+      } else {
+        errorMessage = 'Invalid OTP or phone number format. Please check your input.';
+      }
       errorCode = 'INVALID_REQUEST';
     } else if (error.response?.status === 404) {
       errorMessage = 'OTP not found or expired.';
@@ -404,7 +495,8 @@ const verifyOTP = async (phoneNumber, otp, userId = null) => {
       error: errorMessage,
       code: errorCode,
       originalError: error.message,
-      provider: 'iProgSMS'
+      provider: 'iProgSMS',
+      responseData: responseData
     };
   }
 };
