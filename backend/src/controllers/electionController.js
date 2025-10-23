@@ -635,8 +635,8 @@ exports.permanentDeleteElection = async (req, res) => {
 exports.getArchivedElections = async (req, res) => {
   try {
     // SuperAdmin (role_id = 1) can see all archived elections
-    // Admin (role_id = 2) can only see their own archived elections
-    const userId = req.user.role_id === 1 ? null : req.user.id;
+    // Admin (role_id = 2) can see all archived elections (same as SuperAdmin)
+    const userId = (req.user.role_id === 1 || req.user.role_id === 2) ? null : req.user.id;
     const elections = await getArchivedElections(userId);
     
     res.status(200).json({
@@ -656,7 +656,7 @@ exports.getArchivedElections = async (req, res) => {
 // Get deleted elections
 exports.getDeletedElections = async (req, res) => {
   try {
-    const userId = req.user.role_id === 1 ? null : req.user.id; // SuperAdmin can see all, others see only their own
+    const userId = (req.user.role_id === 1 || req.user.role_id === 2) ? null : req.user.id; // SuperAdmin and Admin can see all, others see only their own
     
     const elections = await getDeletedElections(userId);
     res.status(200).json({
