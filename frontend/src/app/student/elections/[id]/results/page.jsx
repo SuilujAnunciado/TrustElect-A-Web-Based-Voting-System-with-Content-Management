@@ -2,14 +2,32 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, User, Award, AlertCircle, SortDesc, SortAsc, Medals, Trophy } from 'lucide-react';
+import { ArrowLeft, Download, User, Award, AlertCircle, SortDesc, SortAsc, Medals, Trophy } from 'lucide-react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import Image from 'next/image';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 const API_BASE = '/api';
+const BASE_URL = '';
+
+// Add color palette for different candidates
+const CHART_COLORS = [
+  '#3b82f6', // blue
+  '#ef4444', // red
+  '#10b981', // green
+  '#f59e0b', // amber
+  '#8b5cf6', // purple
+  '#ec4899', // pink
+  '#06b6d4', // cyan
+  '#f97316', // orange
+  '#6366f1', // indigo
+  '#14b8a6', // teal
+];
 
 export default function ElectionResultsPage({ params }) {
-  const { id: electionId } = params;
+  const resolvedParams = React.use(params);
+  const { id: electionId } = resolvedParams;
   const router = useRouter();
   
   const [loading, setLoading] = useState(true);
@@ -18,6 +36,7 @@ export default function ElectionResultsPage({ params }) {
   const [candidateImages, setCandidateImages] = useState({});
   const [imageErrors, setImageErrors] = useState({});
   const [sortOrder, setSortOrder] = useState({});
+  const [expandedCandidate, setExpandedCandidate] = useState(null);
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/default-candidate.png';
@@ -27,65 +46,64 @@ export default function ElectionResultsPage({ params }) {
     }
     
     if (imageUrl.startsWith('/uploads')) {
-      return `${API_BASE}${imageUrl}`;
+      return `${BASE_URL}${imageUrl}`;
     }
     
     if (!imageUrl.startsWith('/')) {
-      return `${API_BASE}/uploads/candidates/${imageUrl}`;
+      return `${BASE_URL}/uploads/candidates/${imageUrl}`;
     }
     
-    return `${API_BASE}${imageUrl}`;
+    return `${BASE_URL}${imageUrl}`;
   };
 
   const handleImageError = (candidateId) => {
-    setImageErrors(prev => ({ ...prev, [candidateId]: true }));
+    setImageErrors(prev => ({
+      ...prev,
+      [candidateId]: true
+    }));
   };
 
   const toggleSortOrder = (positionId) => {
     setSortOrder(prev => ({
       ...prev,
-      [positionId]: prev[positionId] === 'desc' ? 'asc' : 'desc'
+      [positionId]: prev[positionId] === 'asc' ? 'desc' : 'asc'
     }));
   };
 
+  const toggleCandidateDetails = (candidateId) => {
+    setExpandedCandidate(expandedCandidate === candidateId ? null : candidateId);
+  };
+
   const formatResultsData = (positions) => {
-    if (!positions || !Array.isArray(positions) || positions.length === 0) return [];
+    if (!positions || positions.length === 0) return [];
     
+    // Create formatted data for each position
     return positions.map(position => {
-      if (!position || !position.position_id) return null;
-      
+      // Sort candidates by vote count in descending order
       let sortedCandidates = [...(position.candidates || [])];
-      const totalVotes = sortedCandidates.reduce((sum, candidate) => sum + (candidate.vote_count || 0), 0);
       
-      if (sortOrder[position.position_id] === 'asc') {
+      // Apply the current sort order for this position
+      if (sortOrder[position.id] === 'asc') {
         sortedCandidates.sort((a, b) => (a.vote_count || 0) - (b.vote_count || 0));
       } else {
         sortedCandidates.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
       }
       
-      const candidatesWithStats = sortedCandidates.map((candidate, index) => {
-        const voteCount = candidate.vote_count || 0;
-        const percentage = totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(2) : 0;
-        const ranking = sortOrder[position.position_id] === 'desc' ? index + 1 : sortedCandidates.length - index;
-        
-        return {
-          ...candidate,
-          percentage: parseFloat(percentage),
-          ranking,
-          isWinner: sortOrder[position.position_id] === 'desc' && index === 0,
-          isSecond: sortOrder[position.position_id] === 'desc' && index === 1,
-          isThird: sortOrder[position.position_id] === 'desc' && index === 2
-        };
-      });
+      // Format for chart with unique colors for each candidate
+      const chartData = sortedCandidates.map((candidate, index) => ({
+        name: `${candidate.first_name} ${candidate.last_name}`,
+        votes: candidate.vote_count || 0,
+        party: candidate.party || 'Independent',
+        // Assign a color based on index, cycling through the array if needed
+        color: CHART_COLORS[index % CHART_COLORS.length]
+      }));
       
       return {
         ...position,
-        id: position.position_id,
-        name: position.position_name,
-        sortedCandidates: candidatesWithStats,
-        totalVotes
+        sortedCandidates,
+        chartData
       };
-    }).filter(Boolean);
+    });
   };
 
   const fetchElectionResults = async () => {
@@ -93,40 +111,41 @@ export default function ElectionResultsPage({ params }) {
       setLoading(true);
       setError(null);
       
+      // Get authentication token
       const token = Cookies.get('token');
       if (!token) {
         throw new Error('Authentication required. Please log in again.');
       }
-
-      const response = await axios.get(`${API_BASE}/elections/completed/${electionId}/results`, {
+      
+ 
+      const response = await axios.get(`${API_BASE}/elections/${electionId}/details`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        withCredentials: true
       });
-
-      const { election: electionData, positions } = response.data.data;
       
+      console.log('Election results data:', response.data);
+      
+
+      const electionData = response.data.election;
       if (electionData.status !== 'completed') {
         throw new Error('Results are only available for completed elections');
       }
-
-      const electionWithPositions = {
-        ...electionData,
-        positions: positions
-      };
-
+    
       const initialSortOrder = {};
-      if (positions) {
-        positions.forEach(position => {
-          initialSortOrder[position.position_id] = 'desc'; 
+      if (electionData.positions) {
+        electionData.positions.forEach(position => {
+          initialSortOrder[position.id] = 'desc'; 
         });
       }
       setSortOrder(initialSortOrder);
       
+      // Process candidate images
       const imageCache = {};
-      if (positions) {
-        positions.forEach(position => {
+      if (electionData?.positions) {
+        electionData.positions.forEach(position => {
           position.candidates?.forEach(candidate => {
             if (candidate.image_url) {
               const processedUrl = getImageUrl(candidate.image_url);
@@ -137,7 +156,7 @@ export default function ElectionResultsPage({ params }) {
       }
       
       setCandidateImages(imageCache);
-      setElection(electionWithPositions);
+      setElection(electionData);
     } catch (err) {
       console.error('Error fetching election results:', err);
       
@@ -149,8 +168,10 @@ export default function ElectionResultsPage({ params }) {
         } else {
           setError(err.response.data?.message || 'Failed to load election results');
         }
+      } else if (err.request) {
+        setError('Failed to receive response from server. Please check your network connection.');
       } else {
-        setError(err.message || 'An error occurred while loading results');
+        setError(err.message || 'An error occurred while loading election results');
       }
     } finally {
       setLoading(false);
@@ -158,9 +179,7 @@ export default function ElectionResultsPage({ params }) {
   };
 
   useEffect(() => {
-    if (electionId) {
-      fetchElectionResults();
-    }
+    fetchElectionResults();
   }, [electionId]);
 
   if (loading) {
@@ -192,219 +211,199 @@ export default function ElectionResultsPage({ params }) {
     );
   }
 
-  if (!election) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  const resultsData = formatResultsData(election.positions);
-
   return (
     <div className="container mx-auto px-4 py-8">
       <button 
         onClick={() => router.push('/student')} 
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
+        className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
       >
         <ArrowLeft className="w-5 h-5 mr-2" />
-        Back to Dashboard
+        Back
       </button>
       
       <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-black mb-2">{election.title}</h1>
-          <p className="text-gray-600">{election.description}</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-blue-800">Total Voters</h3>
-            <p className="text-2xl font-bold text-blue-900">{election.total_eligible_voters || 0}</p>
-          </div>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-green-800">Votes Cast</h3>
-            <p className="text-2xl font-bold text-green-900">{election.total_votes || 0}</p>
-          </div>
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-purple-800">Participation</h3>
-            <p className="text-2xl font-bold text-purple-900">
-              {election.voter_turnout_percentage ? election.voter_turnout_percentage.toFixed(2) : '0.00'}%
-            </p>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-black">Election Results</h1>
+          <div className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+            OFFICIAL RESULTS
           </div>
         </div>
         
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-black">Results</h2>
+          <h2 className="text-xl font-semibold mb-2 text-black">Title: {election.title}</h2>
+          <p className="mb-4 text-black">Description: {election.description}</p>
           
-          {resultsData.length > 0 ? resultsData.map(position => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="bg-gray-50 p-3 rounded">
+              <p className="text-sm text-black">Election Dates</p>
+              <p className="text-sm text-black">From: {new Date(election.date_from).toLocaleDateString()} to {new Date(election.date_to).toLocaleDateString()}</p>
+            </div>
+            <div className="bg-gray-50 p-3 rounded">
+              <p className="text-sm text-black">Participation</p>
+              <p className="text-black">{Number(election.vote_count || 0).toLocaleString()} out of <span className="font-semibold">{Number(election.voter_count || 0).toLocaleString()}</span> eligible voters
+                      ({election.voter_count ? ((election.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'}% participation)</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-black">Result</h2>
+          
+          {formatResultsData(election.positions).map(position => (
             <div key={position.id} className="mb-8 pb-6 border-b">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-black">Position: {position.name}</h3>
+                <h3 className="text-lg font-medium text-black">Position Name: {position.name}</h3>
                 <button
                   onClick={() => toggleSortOrder(position.id)}
-                  className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                  className="flex items-center bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded text-blue-700 text-sm transition-colors"
                 >
-                  {sortOrder[position.id] === 'desc' ? (
+                  {sortOrder[position.id] === 'asc' ? (
                     <>
-                      <SortDesc className="w-4 h-4 mr-1" />
-                      Sort Ascending
+                      <SortAsc className="w-4 h-4 mr-1" />
+                      Lowest First
                     </>
                   ) : (
                     <>
-                      <SortAsc className="w-4 h-4 mr-1" />
-                      Sort Descending
+                      <SortDesc className="w-4 h-4 mr-1" />
+                      Highest First
                     </>
                   )}
                 </button>
               </div>
               
+              {/* Results chart */}
+              <div className="h-72 mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={position.chartData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value, name) => [`${value} votes`, 'Votes']}
+                      labelFormatter={(name) => `${name}`}
+                    />
+                    <Legend />
+                    <Bar 
+                      dataKey="votes" 
+                      name="Vote Count" 
+                      isAnimationActive={true}
+                    >
+                      {position.chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              
+              {/* Candidates sorted by votes */}
               <div className="space-y-4">
-                {position.sortedCandidates && position.sortedCandidates.length > 0 ? position.sortedCandidates.map((candidate, index) => {
-                  const getRankingStyle = () => {
-                    if (candidate.isWinner) {
-                      return {
-                        container: 'border-2 border-yellow-400 bg-gradient-to-r from-yellow-50 to-yellow-100',
-                        badge: 'bg-yellow-500 text-white',
-                        icon: <Trophy className="w-5 h-5" />
-                      };
-                    } else if (candidate.isSecond) {
-                      return {
-                        container: 'border-2 border-gray-300 bg-gradient-to-r from-gray-50 to-gray-100',
-                        badge: 'bg-gray-500 text-white',
-                        icon: <Medals className="w-5 h-5" />
-                      };
-                    } else if (candidate.isThird) {
-                      return {
-                        container: 'border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-orange-100',
-                        badge: 'bg-orange-500 text-white',
-                        icon: <Award className="w-5 h-5" />
-                      };
-                    } else {
-                      return {
-                        container: 'border border-gray-200 bg-white',
-                        badge: 'bg-gray-400 text-white',
-                        icon: <User className="w-4 h-4" />
-                      };
-                    }
-                  };
-                  
-                  const rankingStyle = getRankingStyle();
-                  
-                  return (
-                    <div key={candidate.id} className={`rounded-lg overflow-hidden ${rankingStyle.container} shadow-md`}>
-                      <div className="p-4">
-                        <div className="flex flex-col md:flex-row">
-                          <div className="flex items-start mb-4 md:mb-0 md:mr-6">
-                            <div className="relative w-24 h-24">
-                              {imageErrors[candidate.id] ? (
-                                <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
-                                  <User className="w-8 h-8 text-gray-400" />
-                                </div>
-                              ) : (
-                                <img
-                                  src={candidateImages[candidate.id] || getImageUrl(candidate.image_url)}
-                                  alt={`${candidate.first_name} ${candidate.last_name}`}
-                                  className="w-24 h-24 object-cover rounded-full"
-                                  onError={() => handleImageError(candidate.id)}
-                                />
-                              )}
-                              <div className={`absolute -top-2 -right-2 ${rankingStyle.badge} rounded-full p-2 flex items-center justify-center`}>
-                                {rankingStyle.icon}
+                {position.sortedCandidates.map((candidate, index) => (
+                  <div 
+                    key={candidate.id} 
+                    className={`rounded-lg overflow-hidden border ${index === 0 && sortOrder[position.id] === 'desc' ? 'border-blue-200' : 'border-gray-200'}`}
+                  >
+                    <div className={`p-4 ${index === 0 && sortOrder[position.id] === 'desc' ? 'bg-blue-50' : 'bg-white'}`}>
+                      <div className="flex flex-col md:flex-row">
+                        <div className="flex items-start mb-4 md:mb-0 md:mr-6">
+                          <div className="relative w-20 h-20">
+                            {candidate.image_url && !imageErrors[candidate.id] ? (
+                              <Image
+                                src={candidateImages[candidate.id] || getImageUrl(candidate.image_url)}
+                                alt={`${candidate.first_name} ${candidate.last_name}`}
+                                fill
+                                sizes="80px"
+                                className="object-cover rounded-full"
+                                onError={() => handleImageError(candidate.id)}
+                              />
+                            ) : (
+                              <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
+                                <User className="w-10 h-10 text-gray-400" />
                               </div>
-                            </div>
+                            )}
+                            {index === 0 && sortOrder[position.id] === 'desc' && (
+                              <div className="absolute -top-2 -right-2 bg-blue-500 rounded-full p-1">
+                                <Trophy className="w-4 h-4 text-white" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                          <div className="col-span-2 mb-2">
+                            <h4 className="text-lg font-semibold text-black">
+                              {candidate.first_name} {candidate.last_name}
+                              {index === 0 && sortOrder[position.id] === 'desc' && (
+                                <span className="ml-2 text-blue-600 font-medium text-sm inline-flex items-center">
+                                  <Award className="w-4 h-4 mr-1" />
+                                  Winner
+                                </span>
+                              )}
+                            </h4>
                           </div>
                           
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                            <div className="col-span-2 mb-2">
-                              <div className="flex items-center justify-between">
-                                <h4 className="text-xl font-bold text-black">
-                                  {candidate.first_name} {candidate.last_name}
-                                </h4>
-                                <div className="flex items-center space-x-2">
-                                  {candidate.isWinner && (
-                                    <span className="px-3 py-1 bg-yellow-500 text-white font-bold text-sm rounded-full flex items-center">
-                                      <Trophy className="w-4 h-4 mr-1" />
-                                      1st Place
-                                    </span>
-                                  )}
-                                  {candidate.isSecond && (
-                                    <span className="px-3 py-1 bg-gray-500 text-white font-bold text-sm rounded-full flex items-center">
-                                      <Medals className="w-4 h-4 mr-1" />
-                                      2nd Place
-                                    </span>
-                                  )}
-                                  {candidate.isThird && (
-                                    <span className="px-3 py-1 bg-orange-500 text-white font-bold text-sm rounded-full flex items-center">
-                                      <Award className="w-4 h-4 mr-1" />
-                                      3rd Place
-                                    </span>
-                                  )}
-                                  {!candidate.isWinner && !candidate.isSecond && !candidate.isThird && (
-                                    <span className="px-3 py-1 bg-gray-400 text-white font-bold text-sm rounded-full">
-                                      #{candidate.ranking}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            
+                          <div>
+                            <p className="text-sm font-medium text-black">Party/Organization:</p>
+                            <p className="text-black">{candidate.party || 'Independent'}</p>
+                          </div>
+                          
+                          {candidate.slogan && (
                             <div>
-                              <p className="text-sm font-medium text-black mb-1">Party/List:</p>
-                              <p className="text-black">{candidate.partylist_name || 'Independent'}</p>
+                              <p className="text-sm font-medium text-black">Campaign Slogan:</p>
+                              <p className="text-black italic">"{candidate.slogan}"</p>
                             </div>
-                            
+                          )}
+                          
+                          {candidate.course && (
                             <div>
-                              <p className="text-sm font-medium text-black mb-1">Department:</p>
-                              <p className="text-black">{candidate.department || 'N/A'}</p>
+                              <p className="text-sm font-medium text-black">Course:</p>
+                              <p className="text-black">{candidate.course}</p>
                             </div>
-                            
-                            <div className="col-span-2 mt-3">
-                              <p className="text-sm font-medium text-black mb-1">Votes Received:</p>
-                              <div className="flex items-center">
-                                <div className="w-full max-w-md h-4 bg-gray-200 rounded-full overflow-hidden">
-                                  <div 
-                                    className={`h-full rounded-full ${
-                                      candidate.isWinner ? 'bg-yellow-500' : 
-                                      candidate.isSecond ? 'bg-gray-500' : 
-                                      candidate.isThird ? 'bg-orange-500' : 'bg-blue-500'
-                                    }`}
-                                    style={{ width: `${candidate.percentage || 0}%` }}
-                                  />
-                                </div>
-                                <span className="ml-3 text-black font-bold text-lg">
-                                  {candidate.vote_count || 0} votes ({candidate.percentage || 0}%)
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between mt-2">
-                                <p className="text-sm text-black">
-                                  <span className="font-medium">Ranking:</span> #{candidate.ranking} of {position.sortedCandidates.length}
-                                </p>
-                                {candidate.isWinner && (
-                                  <span className="text-yellow-600 font-bold text-sm">
-                                    🏆 WINNER
-                                  </span>
-                                )}
-                              </div>
+                          )}
+                          
+                          {candidate.year_level && (
+                            <div>
+                              <p className="text-sm font-medium text-black">Year Level:</p>
+                              <p className="text-black">{candidate.year_level}</p>
                             </div>
+                          )}
+                          
+                          <div className="col-span-2 mt-2">
+                            <p className="text-sm font-medium text-black">Platform:</p>
+                            <p className="text-black line-clamp-2">{candidate.platform || 'No platform provided'}</p>
+                          </div>
+                          
+                          <div className="col-span-2 mt-3">
+                            <p className="text-sm font-medium text-black mb-1">Votes Received:</p>
+                            <div className="flex items-center">
+                              <div className="w-full max-w-md h-3 bg-gray-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-500 rounded-full"
+                                  style={{ width: `${candidate.percentage || 0}%` }}
+                                />
+                              </div>
+                              <span className="ml-3 text-black font-medium">
+                                {candidate.vote_count || 0} votes ({candidate.percentage || 0}%)
+                              </span>
+                            </div>
+                            <p className="text-sm text-black mt-1">
+                              <span className="font-medium">Ranking:</span> {sortOrder[position.id] === 'desc' ? 
+                                position.sortedCandidates.indexOf(candidate) + 1 : 
+                                position.sortedCandidates.length - position.sortedCandidates.indexOf(candidate)}{' '}
+                              of {position.sortedCandidates.length}
+                            </p>
                           </div>
                         </div>
                       </div>
                     </div>
-                  );
-                }) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No candidates available for this position</p>
                   </div>
-                )}
+                ))}
               </div>
             </div>
-          )) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>No election results available</p>
-            </div>
-          )}
+          ))}
         </div>
         
         <div className="mt-6 p-4 bg-gray-50 rounded">
@@ -413,7 +412,8 @@ export default function ElectionResultsPage({ params }) {
             <div>
               <h3 className="font-medium text-black">Official Election Results</h3>
               <p className="text-sm text-black">
-                These results are final. Results were finalized on {new Date(election.date_to).toLocaleDateString()} at {election.end_time}.
+                These results are final.
+                Results were finalized on {new Date(election.date_to).toLocaleDateString()} at {election.end_time}.
               </p>
             </div>
           </div>
@@ -421,4 +421,4 @@ export default function ElectionResultsPage({ params }) {
       </div>
     </div>
   );
-}
+} 
