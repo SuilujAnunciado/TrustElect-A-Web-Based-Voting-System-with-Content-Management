@@ -258,6 +258,43 @@ export default function Home() {
     }
   };
 
+  // Enhanced background image component for better quality
+  const BackgroundImage = ({ imageUrl, className = "", children }) => {
+    const formattedUrl = formatImageUrl(imageUrl);
+    
+    if (!formattedUrl) {
+      return <div className={className}>{children}</div>;
+    }
+
+    return (
+      <div 
+        className={`relative ${className} high-quality-bg`}
+        style={{
+          backgroundImage: `url(${formattedUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        {/* High-quality background image overlay */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat high-quality-bg"
+          style={{
+            backgroundImage: `url(${formattedUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+        {/* Content overlay */}
+        <div className="relative z-10">
+          {children}
+        </div>
+      </div>
+    );
+  };
+
   const renderImage = (url, alt, width, height, className, onErrorAction) => {
     const formattedUrl = formatImageUrl(url);
     if (!formattedUrl) return null;
@@ -270,6 +307,8 @@ export default function Home() {
         height={height || 300}
         className={className || ""}
         unoptimized={true}
+        quality={95}
+        priority={false}
         onError={(e) => {
           console.error("Error loading image:", formattedUrl);
           if (onErrorAction) onErrorAction(e);
@@ -617,15 +656,12 @@ export default function Home() {
 
       {/* Call to Action Section - Moved after Hero */}
       {landingContent.callToAction.enabled && (
-        <section 
-          className="text-white py-16 px-6 relative"
+        <BackgroundImage
+          imageUrl={landingContent.callToAction?.backgroundImage}
+          className="text-white py-16 px-6"
           style={{
             backgroundColor: landingContent.callToAction?.bgColor || '#1e3a8a',
-            color: landingContent.callToAction?.textColor || '#ffffff',
-            backgroundImage: landingContent.callToAction?.backgroundImage ? `url(${formatImageUrl(landingContent.callToAction.backgroundImage)})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
+            color: landingContent.callToAction?.textColor || '#ffffff'
           }}
         >
           <div className="container mx-auto max-w-6xl">
@@ -701,18 +737,15 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </section>
+        </BackgroundImage>
       )}
 
       {/* Features Section - Moved after CTA */}
-      <section 
-        className="py-20 px-6 relative"
+      <BackgroundImage
+        imageUrl={landingContent.features?.backgroundImage}
+        className="py-20 px-6"
         style={{
-          backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb',
-          backgroundImage: landingContent.features?.backgroundImage ? `url(${formatImageUrl(landingContent.features.backgroundImage)})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb'
         }}
       >
         <div className="container mx-auto max-w-6xl">
@@ -752,10 +785,12 @@ export default function Home() {
                   <Image
                     src={imageUrl}
                     alt={feature.title || `Feature ${index + 1}`}
-                    width={400}
-                    height={300}
+                    width={800}
+                    height={600}
                     className="w-full h-full object-cover"
                     unoptimized={true}
+                    quality={95}
+                    priority={false}
                     onError={(e) => {
                       console.error(`Error loading feature image ${index}:`, imageUrl);
                       const container = e.currentTarget.closest('.mb-4');
@@ -780,7 +815,7 @@ export default function Home() {
             })}
           </div>
         </div>
-      </section>
+      </BackgroundImage>
 
 
       {/* New About Us Section */}
