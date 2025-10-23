@@ -5,6 +5,7 @@ import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, ArrowLeft, RotateCc
 import Cookies from 'js-cookie';
 import usePermissions from '../../../../hooks/usePermissions';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -125,7 +126,6 @@ export default function ArchivedElectionsPage() {
   const [elections, setElections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [actionMessage, setActionMessage] = useState(null);
   const [restoreModalOpen, setRestoreModalOpen] = useState(false);
   const [electionToRestore, setElectionToRestore] = useState(null);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -139,7 +139,6 @@ export default function ArchivedElectionsPage() {
       setLoading(true);
       setError("");
       
-      // Use the main elections endpoint (same pattern as superadmin)
       const data = await fetchWithAuth('/elections');
       
       if (data.success === false) {
@@ -216,24 +215,15 @@ export default function ArchivedElectionsPage() {
       // Update the elections state to remove the restored election
       setElections(prev => prev.filter(e => e.id !== electionToRestore.id));
       
-      setActionMessage({
-        type: 'success',
-        text: `Election "${electionToRestore.title}" was successfully restored.`
-      });
+      toast.success(`Election "${electionToRestore.title}" was successfully restored.`);
       
     } catch (error) {
-      setActionMessage({
-        type: 'error',
-        text: `Failed to restore election: ${error.message}`
-      });
+      toast.error(`Failed to restore election: ${error.message}`);
     } finally {
       setIsRestoring(false);
       setRestoreModalOpen(false);
       setElectionToRestore(null);
       
-      setTimeout(() => {
-        setActionMessage(null);
-      }, 5000);
     }
   };
 
@@ -250,24 +240,15 @@ export default function ArchivedElectionsPage() {
       // Update the elections state to remove the deleted election
       setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       
-      setActionMessage({
-        type: 'success',
-        text: `Election "${electionToDelete.title}" was permanently deleted.`
-      });
+      toast.success(`Election "${electionToDelete.title}" was permanently deleted.`);
       
     } catch (error) {
-      setActionMessage({
-        type: 'error',
-        text: `Failed to delete election: ${error.message}`
-      });
+      toast.error(`Failed to delete election: ${error.message}`);
     } finally {
       setIsDeleting(false);
       setDeleteModalOpen(false);
       setElectionToDelete(null);
       
-      setTimeout(() => {
-        setActionMessage(null);
-      }, 5000);
     }
   };
 
@@ -358,26 +339,6 @@ export default function ArchivedElectionsPage() {
         </div>
       )}
 
-      {actionMessage && (
-        <div className={`border-l-4 text-black p-4 rounded-lg mb-6 ${
-          actionMessage.type === 'success' 
-            ? 'bg-green-100 border-green-500' 
-            : 'bg-red-100 border-red-500'
-        }`}>
-          <div className="flex">
-            <div className="flex-shrink-0">
-              {actionMessage.type === 'success' ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              ) : (
-                <XCircle className="h-5 w-5 text-red-500" />
-              )}
-            </div>
-            <div className="ml-3">
-              <p className="text-sm">{actionMessage.text}</p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex justify-center items-center h-64">

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Plus, ArrowLeft, Trash2, Archive, FolderOpen, RotateCcw } from 'lucide-react';
 import Cookies from 'js-cookie';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -184,7 +185,6 @@ export default function ElectionPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [electionToDelete, setElectionToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [actionMessage, setActionMessage] = useState(null);
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
   const [electionToArchive, setElectionToArchive] = useState(null);
   const [isArchiving, setIsArchiving] = useState(false);
@@ -318,10 +318,7 @@ export default function ElectionPage() {
       setIsDeleting(true);
       
       if (electionToDelete.status !== 'completed') {
-        setActionMessage({
-          type: 'error',
-          text: 'Only completed elections can be deleted'
-        });
+        toast.error('Only completed elections can be deleted');
         setDeleteModalOpen(false);
         return;
       }
@@ -334,24 +331,15 @@ export default function ElectionPage() {
       setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       setFilteredElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       
-      setActionMessage({
-        type: 'success',
-        text: `Election "${electionToDelete.title}" was successfully deleted.`
-      });
+      toast.success(`Election "${electionToDelete.title}" was successfully deleted.`);
       
     } catch (error) {
-      setActionMessage({
-        type: 'error',
-        text: `Failed to delete election: ${error.message}`
-      });
+      toast.error(`Failed to delete election: ${error.message}`);
     } finally {
       setIsDeleting(false);
       setDeleteModalOpen(false);
       setElectionToDelete(null);
       
-      setTimeout(() => {
-        setActionMessage(null);
-      }, 5000);
     }
   };
 
@@ -362,10 +350,7 @@ export default function ElectionPage() {
       setIsArchiving(true);
       
       if (electionToArchive.status !== 'completed') {
-        setActionMessage({
-          type: 'error',
-          text: 'Only completed elections can be archived'
-        });
+        toast.error('Only completed elections can be archived');
         setArchiveModalOpen(false);
         return;
       }
@@ -378,24 +363,15 @@ export default function ElectionPage() {
       setElections(prev => prev.filter(e => e.id !== electionToArchive.id));
       setFilteredElections(prev => prev.filter(e => e.id !== electionToArchive.id));
       
-      setActionMessage({
-        type: 'success',
-        text: `Election "${electionToArchive.title}" was successfully archived.`
-      });
+      toast.success(`Election "${electionToArchive.title}" was successfully archived.`);
       
     } catch (error) {
-      setActionMessage({
-        type: 'error',
-        text: `Failed to archive election: ${error.message}`
-      });
+      toast.error(`Failed to archive election: ${error.message}`);
     } finally {
       setIsArchiving(false);
       setArchiveModalOpen(false);
       setElectionToArchive(null);
       
-      setTimeout(() => {
-        setActionMessage(null);
-      }, 5000);
     }
   };
 
@@ -406,10 +382,7 @@ export default function ElectionPage() {
       setIsSoftDeleting(true);
       
       if (electionToSoftDelete.status !== 'completed') {
-        setActionMessage({
-          type: 'error',
-          text: 'Only completed elections can be deleted'
-        });
+        toast.error('Only completed elections can be deleted');
         setSoftDeleteModalOpen(false);
         return;
       }
@@ -428,24 +401,15 @@ export default function ElectionPage() {
       setElections(prev => prev.filter(e => e.id !== electionToSoftDelete.id));
       setFilteredElections(prev => prev.filter(e => e.id !== electionToSoftDelete.id));
       
-      setActionMessage({
-        type: 'success',
-        text: `Election "${electionToSoftDelete.title}" was successfully deleted.`
-      });
+      toast.success(`Election "${electionToSoftDelete.title}" was successfully deleted.`);
       
     } catch (error) {
-      setActionMessage({
-        type: 'error',
-        text: `Failed to delete election: ${error.message}`
-      });
+      toast.error(`Failed to delete election: ${error.message}`);
     } finally {
       setIsSoftDeleting(false);
       setSoftDeleteModalOpen(false);
       setElectionToSoftDelete(null);
       
-      setTimeout(() => {
-        setActionMessage(null);
-      }, 5000);
     }
   };
 
@@ -554,26 +518,6 @@ export default function ElectionPage() {
         </div>
       )}
 
-      {actionMessage && (
-        <div className={`border-l-4 text-black p-4 rounded-lg mb-6 ${
-          actionMessage.type === 'success' 
-            ? 'bg-green-100 border-green-500' 
-            : 'bg-red-100 border-red-500'
-        }`}>
-          <div className="flex">
-            <div className="flex-shrink-0">
-              {actionMessage.type === 'success' ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              ) : (
-                <XCircle className="h-5 w-5 text-red-500" />
-              )}
-            </div>
-            <div className="ml-3">
-              <p className="text-sm">{actionMessage.text}</p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
