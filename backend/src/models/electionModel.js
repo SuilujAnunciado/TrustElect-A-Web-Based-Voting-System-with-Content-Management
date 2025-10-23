@@ -589,6 +589,28 @@ const archiveElection = async (id, userId) => {
 
 // Restore archived election - using admin system approach
 const restoreArchivedElection = async (id, userId) => {
+  // First check if election exists and get its current state
+  const checkResult = await pool.query(
+    `SELECT id, title, is_archived, is_deleted FROM elections WHERE id = $1`,
+    [id]
+  );
+  
+  if (checkResult.rows.length === 0) {
+    throw new Error("Election not found");
+  }
+  
+  const election = checkResult.rows[0];
+  
+  // Check if election is archived
+  if (!election.is_archived) {
+    throw new Error("Election is not archived");
+  }
+  
+  // Check if election is deleted (can't restore deleted elections from archive page)
+  if (election.is_deleted) {
+    throw new Error("Election is deleted, not archived");
+  }
+  
   const result = await pool.query(
     `UPDATE elections 
      SET is_archived = FALSE, archived_at = NULL, archived_by = NULL
@@ -598,7 +620,7 @@ const restoreArchivedElection = async (id, userId) => {
   );
   
   if (result.rows.length === 0) {
-    throw new Error("Archived election not found or already restored");
+    throw new Error("Failed to restore election - no rows updated");
   }
   
   return { message: "Election restored successfully", election: result.rows[0] };
@@ -665,15 +687,31 @@ const restoreDeletedElection = async (id, userId) => {
 
 // Permanent delete election (hard delete)
 const permanentDeleteElection = async (id) => {
+  // First check if election exists and is in archived or deleted state
+  const checkResult = await pool.query(
+    `SELECT id, title, is_archived, is_deleted FROM elections WHERE id = $1`,
+    [id]
+  );
+  
+  if (checkResult.rows.length === 0) {
+    throw new Error("Election not found");
+  }
+  
+  const election = checkResult.rows[0];
+  
+  // Check if election is in archived or deleted state
+  if (!election.is_archived && !election.is_deleted) {
+    throw new Error("Election is not in archived or deleted state");
+  }
+  
+  // Now perform the permanent delete
   const result = await pool.query(
-    `DELETE FROM elections 
-     WHERE id = $1 AND (is_archived = TRUE OR is_deleted = TRUE)
-     RETURNING *`,
+    `DELETE FROM elections WHERE id = $1 RETURNING *`,
     [id]
   );
   
   if (result.rows.length === 0) {
-    throw new Error("Election not found or not in archived/deleted state");
+    throw new Error("Failed to delete election");
   }
   
   return { message: "Election permanently deleted successfully" };
