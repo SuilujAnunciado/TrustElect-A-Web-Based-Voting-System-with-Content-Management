@@ -8,7 +8,6 @@ import Cookies from 'js-cookie';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 const API_BASE = '/api';
-const BASE_URL = '';
 
 // Add color palette for different candidates
 const CHART_COLORS = [
@@ -43,7 +42,6 @@ export default function ElectionResultsPage({ params }) {
       return imageUrl;
     }
     
-    // Fix the image URL construction to avoid Next.js image optimization issues
     if (imageUrl.startsWith('/uploads')) {
       return `${API_BASE}${imageUrl}`;
     }
@@ -56,16 +54,13 @@ export default function ElectionResultsPage({ params }) {
   };
 
   const handleImageError = (candidateId) => {
-    setImageErrors(prev => ({
-      ...prev,
-      [candidateId]: true
-    }));
+    setImageErrors(prev => ({ ...prev, [candidateId]: true }));
   };
 
   const toggleSortOrder = (positionId) => {
     setSortOrder(prev => ({
       ...prev,
-      [positionId]: prev[positionId] === 'asc' ? 'desc' : 'asc'
+      [positionId]: prev[positionId] === 'desc' ? 'asc' : 'desc'
     }));
   };
 
@@ -76,22 +71,18 @@ export default function ElectionResultsPage({ params }) {
   const formatResultsData = (positions) => {
     if (!positions || !Array.isArray(positions) || positions.length === 0) return [];
     
-    // Create formatted data for each position
     return positions.map(position => {
-      // Sort candidates by vote count in descending order
-      let sortedCandidates = [...(position.candidates || [])];
+      if (!position || !position.id) return null;
       
-      // Calculate total votes for percentage calculation
+      let sortedCandidates = [...(position.candidates || [])];
       const totalVotes = sortedCandidates.reduce((sum, candidate) => sum + (candidate.vote_count || 0), 0);
       
-      // Apply the current sort order for this position
       if (sortOrder[position.id] === 'asc') {
         sortedCandidates.sort((a, b) => (a.vote_count || 0) - (b.vote_count || 0));
       } else {
         sortedCandidates.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
       }
       
-      // Add percentage and ranking to each candidate
       const candidatesWithStats = sortedCandidates.map((candidate, index) => {
         const voteCount = candidate.vote_count || 0;
         const percentage = totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(2) : 0;
@@ -107,13 +98,11 @@ export default function ElectionResultsPage({ params }) {
         };
       });
       
-      // Format for chart with unique colors for each candidate
       const chartData = candidatesWithStats.map((candidate, index) => ({
         name: `${candidate.first_name} ${candidate.last_name}`,
         votes: candidate.vote_count || 0,
         party: candidate.party || 'Independent',
         percentage: candidate.percentage,
-        // Assign a color based on index, cycling through the array if needed
         color: CHART_COLORS[index % CHART_COLORS.length]
       }));
       
@@ -123,7 +112,7 @@ export default function ElectionResultsPage({ params }) {
         chartData,
         totalVotes
       };
-    });
+    }).filter(Boolean);
   };
 
   const fetchElectionResults = async () => {
@@ -131,29 +120,23 @@ export default function ElectionResultsPage({ params }) {
       setLoading(true);
       setError(null);
       
-      // Get authentication token
       const token = Cookies.get('token');
       if (!token) {
         throw new Error('Authentication required. Please log in again.');
       }
-      
- 
-      const response = await axios.get(`${API_BASE}/elections/${electionId}/details`, {
+
+      const response = await axios.get(`${API_BASE}/elections/${electionId}/results`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        },
-        withCredentials: true
+        }
       });
-      
-      console.log('Election results data:', response.data);
-      
 
       const electionData = response.data.election;
       if (electionData.status !== 'completed') {
         throw new Error('Results are only available for completed elections');
       }
-    
+
       const initialSortOrder = {};
       if (electionData.positions) {
         electionData.positions.forEach(position => {
@@ -162,7 +145,6 @@ export default function ElectionResultsPage({ params }) {
       }
       setSortOrder(initialSortOrder);
       
-      // Process candidate images
       const imageCache = {};
       if (electionData?.positions) {
         electionData.positions.forEach(position => {
@@ -188,10 +170,8 @@ export default function ElectionResultsPage({ params }) {
         } else {
           setError(err.response.data?.message || 'Failed to load election results');
         }
-      } else if (err.request) {
-        setError('Failed to receive response from server. Please check your network connection.');
       } else {
-        setError(err.message || 'An error occurred while loading election results');
+        setError(err.message || 'An error occurred while loading results');
       }
     } finally {
       setLoading(false);
@@ -241,111 +221,87 @@ export default function ElectionResultsPage({ params }) {
     );
   }
 
+  const resultsData = formatResultsData(election.positions);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <button 
         onClick={() => router.push('/student')} 
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+        className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
       >
         <ArrowLeft className="w-5 h-5 mr-2" />
-        Back
+        Back to Dashboard
       </button>
       
       <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-black">Election Results</h1>
-          <div className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-            OFFICIAL RESULTS
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-black mb-2">{election.title}</h1>
+          <p className="text-gray-600">{election.description}</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-blue-800">Total Voters</h3>
+            <p className="text-2xl font-bold text-blue-900">{election.voter_count || 0}</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-green-800">Votes Cast</h3>
+            <p className="text-2xl font-bold text-green-900">{election.vote_count || 0}</p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-purple-800">Participation</h3>
+            <p className="text-2xl font-bold text-purple-900">
+              {election.voter_count ? ((election.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'}%
+            </p>
           </div>
         </div>
         
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2 text-black">Title: {election.title}</h2>
-          <p className="mb-4 text-black">Description: {election.description}</p>
+          <h2 className="text-xl font-semibold mb-4 text-black">Results</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="bg-gray-50 p-3 rounded">
-              <p className="text-sm text-black">Election Dates</p>
-              <p className="text-sm text-black">From: {new Date(election.date_from).toLocaleDateString()} to {new Date(election.date_to).toLocaleDateString()}</p>
-            </div>
-            <div className="bg-gray-50 p-3 rounded">
-              <p className="text-sm text-black">Participation</p>
-              <p className="text-black">{Number(election.vote_count || 0).toLocaleString()} out of <span className="font-semibold">{Number(election.voter_count || 0).toLocaleString()}</span> eligible voters
-                      ({election.voter_count ? ((election.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'}% participation)</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-black">Result</h2>
-          
-          {election.positions && formatResultsData(election.positions).map(position => (
+          {resultsData.length > 0 ? resultsData.map(position => (
             <div key={position.id} className="mb-8 pb-6 border-b">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-black">Position Name: {position.name}</h3>
+                <h3 className="text-lg font-medium text-black">Position: {position.name}</h3>
                 <button
                   onClick={() => toggleSortOrder(position.id)}
-                  className="flex items-center bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded text-blue-700 text-sm transition-colors"
+                  className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                 >
-                  {sortOrder[position.id] === 'asc' ? (
+                  {sortOrder[position.id] === 'desc' ? (
                     <>
-                      <SortAsc className="w-4 h-4 mr-1" />
-                      Lowest First
+                      <SortDesc className="w-4 h-4 mr-1" />
+                      Sort Ascending
                     </>
                   ) : (
                     <>
-                      <SortDesc className="w-4 h-4 mr-1" />
-                      Highest First
+                      <SortAsc className="w-4 h-4 mr-1" />
+                      Sort Descending
                     </>
                   )}
                 </button>
               </div>
               
-              {/* Results chart */}
-              <div className="h-80 mb-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={position.chartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="name" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      interval={0}
-                    />
-                    <YAxis 
-                      domain={[0, 'dataMax']}
-                      tickFormatter={(value) => value.toLocaleString()}
-                    />
-                    <Tooltip 
-                      formatter={(value, name) => [
-                        `${value.toLocaleString()} votes (${position.chartData.find(d => d.votes === value)?.percentage || 0}%)`, 
-                        'Votes'
-                      ]}
-                      labelFormatter={(name) => `${name}`}
-                    />
-                    <Legend />
-                    <Bar 
-                      dataKey="votes" 
-                      name="Vote Count" 
-                      isAnimationActive={true}
-                      maxBarSize={60}
-                    >
-                      {position.chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {position.chartData && position.chartData.length > 0 && (
+                <div className="h-80 mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={position.chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} interval={0} />
+                      <YAxis domain={[0, 'dataMax']} />
+                      <Tooltip formatter={(value) => [`${value.toLocaleString()} votes`, 'Votes']} />
+                      <Legend />
+                      <Bar dataKey="votes" name="Vote Count" isAnimationActive={true} maxBarSize={60}>
+                        {position.chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
               
-              {/* Candidates sorted by votes */}
               <div className="space-y-4">
-                {position.sortedCandidates.map((candidate, index) => {
-                  // Determine styling based on ranking
+                {position.sortedCandidates && position.sortedCandidates.length > 0 ? position.sortedCandidates.map((candidate, index) => {
                   const getRankingStyle = () => {
                     if (candidate.isWinner) {
                       return {
@@ -373,37 +329,33 @@ export default function ElectionResultsPage({ params }) {
                       };
                     }
                   };
-
+                  
                   const rankingStyle = getRankingStyle();
-
+                  
                   return (
-                    <div 
-                      key={candidate.id} 
-                      className={`rounded-lg overflow-hidden ${rankingStyle.container} shadow-md`}
-                    >
+                    <div key={candidate.id} className={`rounded-lg overflow-hidden ${rankingStyle.container} shadow-md`}>
                       <div className="p-4">
                         <div className="flex flex-col md:flex-row">
                           <div className="flex items-start mb-4 md:mb-0 md:mr-6">
                             <div className="relative w-24 h-24">
-                              {candidate.image_url && !imageErrors[candidate.id] ? (
+                              {imageErrors[candidate.id] ? (
+                                <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
+                                  <User className="w-8 h-8 text-gray-400" />
+                                </div>
+                              ) : (
                                 <img
                                   src={candidateImages[candidate.id] || getImageUrl(candidate.image_url)}
                                   alt={`${candidate.first_name} ${candidate.last_name}`}
                                   className="w-24 h-24 object-cover rounded-full"
                                   onError={() => handleImageError(candidate.id)}
                                 />
-                              ) : (
-                                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
-                                  <User className="w-12 h-12 text-gray-400" />
-                                </div>
                               )}
-                              {/* Ranking badge */}
                               <div className={`absolute -top-2 -right-2 ${rankingStyle.badge} rounded-full p-2 flex items-center justify-center`}>
                                 {rankingStyle.icon}
                               </div>
                             </div>
                           </div>
-                        
+                          
                           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                             <div className="col-span-2 mb-2">
                               <div className="flex items-center justify-between">
@@ -439,34 +391,13 @@ export default function ElectionResultsPage({ params }) {
                             </div>
                             
                             <div>
-                              <p className="text-sm font-medium text-black">Party/Organization:</p>
+                              <p className="text-sm font-medium text-black mb-1">Party/List:</p>
                               <p className="text-black">{candidate.party || 'Independent'}</p>
                             </div>
                             
-                            {candidate.slogan && (
-                              <div>
-                                <p className="text-sm font-medium text-black">Campaign Slogan:</p>
-                                <p className="text-black italic">"{candidate.slogan}"</p>
-                              </div>
-                            )}
-                            
-                            {candidate.course && (
-                              <div>
-                                <p className="text-sm font-medium text-black">Course:</p>
-                                <p className="text-black">{candidate.course}</p>
-                              </div>
-                            )}
-                            
-                            {candidate.year_level && (
-                              <div>
-                                <p className="text-sm font-medium text-black">Year Level:</p>
-                                <p className="text-black">{candidate.year_level}</p>
-                              </div>
-                            )}
-                            
-                            <div className="col-span-2 mt-2">
-                              <p className="text-sm font-medium text-black">Platform:</p>
-                              <p className="text-black line-clamp-2">{candidate.platform || 'No platform provided'}</p>
+                            <div>
+                              <p className="text-sm font-medium text-black mb-1">Department:</p>
+                              <p className="text-black">{candidate.department || 'N/A'}</p>
                             </div>
                             
                             <div className="col-span-2 mt-3">
@@ -502,10 +433,18 @@ export default function ElectionResultsPage({ params }) {
                       </div>
                     </div>
                   );
-                })}
+                }) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No candidates available for this position</p>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>No election results available</p>
+            </div>
+          )}
         </div>
         
         <div className="mt-6 p-4 bg-gray-50 rounded">
@@ -514,8 +453,7 @@ export default function ElectionResultsPage({ params }) {
             <div>
               <h3 className="font-medium text-black">Official Election Results</h3>
               <p className="text-sm text-black">
-                These results are final.
-                Results were finalized on {new Date(election.date_to).toLocaleDateString()} at {election.end_time}.
+                These results are final. Results were finalized on {new Date(election.date_to).toLocaleDateString()} at {election.end_time}.
               </p>
             </div>
           </div>
