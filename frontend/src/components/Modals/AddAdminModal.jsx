@@ -19,7 +19,8 @@ export default function AddAdminModal({ onClose }) {
     departments: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     cms: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     auditLog: { canView: false, canCreate: false, canEdit: false, canDelete: false },
-    adminManagement: { canView: false, canCreate: false, canEdit: false, canDelete: false }
+    adminManagement: { canView: false, canCreate: false, canEdit: false, canDelete: false },
+    maintenance: { canView: false, canCreate: false, canEdit: false, canDelete: false }
   });
 
   const [departments, setDepartments] = useState([]);
@@ -855,6 +856,67 @@ export default function AddAdminModal({ onClose }) {
                         className="form-checkbox h-5 w-5 text-blue-600"
                       />
                       <span className="text-black">Delete Admins</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Maintenance Permission Section */}
+                <div className="mb-6 p-3 border rounded">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-semibold text-black">Maintenance</h3>
+                    <div className="space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectAll('maintenance')}
+                        className="px-2 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        Select All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeselectAll('maintenance')}
+                        className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                      >
+                        Deselect All
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={permissions.maintenance.canView}
+                        onChange={() => handlePermissionChange('maintenance', 'canView')}
+                        className="form-checkbox h-5 w-5 text-blue-600"
+                      />
+                      <span className="text-black">View Maintenance</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={permissions.maintenance.canCreate}
+                        onChange={() => handlePermissionChange('maintenance', 'canCreate')}
+                        className="form-checkbox h-5 w-5 text-blue-600"
+                      />
+                      <span className="text-black">Create Maintenance</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={permissions.maintenance.canEdit}
+                        onChange={() => handlePermissionChange('maintenance', 'canEdit')}
+                        className="form-checkbox h-5 w-5 text-blue-600"
+                      />
+                      <span className="text-black">Edit Maintenance</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={permissions.maintenance.canDelete}
+                        onChange={() => handlePermissionChange('maintenance', 'canDelete')}
+                        className="form-checkbox h-5 w-5 text-blue-600"
+                      />
+                      <span className="text-black">Delete Maintenance</span>
                     </label>
                   </div>
                 </div>
