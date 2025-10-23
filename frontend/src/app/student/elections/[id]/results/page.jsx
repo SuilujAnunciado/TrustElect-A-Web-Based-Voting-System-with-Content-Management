@@ -2,26 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, User, Award, AlertCircle, SortDesc, SortAsc, Medals, Trophy } from 'lucide-react';
+import { ArrowLeft, User, Award, AlertCircle, SortDesc, SortAsc, Medals, Trophy } from 'lucide-react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 const API_BASE = '/api';
-
-// Add color palette for different candidates
-const CHART_COLORS = [
-  '#3b82f6', // blue
-  '#ef4444', // red
-  '#10b981', // green
-  '#f59e0b', // amber
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#f97316', // orange
-  '#6366f1', // indigo
-  '#14b8a6', // teal
-];
 
 export default function ElectionResultsPage({ params }) {
   const { id: electionId } = params;
@@ -33,7 +18,6 @@ export default function ElectionResultsPage({ params }) {
   const [candidateImages, setCandidateImages] = useState({});
   const [imageErrors, setImageErrors] = useState({});
   const [sortOrder, setSortOrder] = useState({});
-  const [expandedCandidate, setExpandedCandidate] = useState(null);
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/default-candidate.png';
@@ -62,10 +46,6 @@ export default function ElectionResultsPage({ params }) {
       ...prev,
       [positionId]: prev[positionId] === 'desc' ? 'asc' : 'desc'
     }));
-  };
-
-  const toggleCandidateDetails = (candidateId) => {
-    setExpandedCandidate(expandedCandidate === candidateId ? null : candidateId);
   };
 
   const formatResultsData = (positions) => {
@@ -98,20 +78,11 @@ export default function ElectionResultsPage({ params }) {
         };
       });
       
-      const chartData = candidatesWithStats.map((candidate, index) => ({
-        name: `${candidate.first_name} ${candidate.last_name}`,
-        votes: candidate.vote_count || 0,
-        party: candidate.partylist_name || 'Independent',
-        percentage: candidate.percentage,
-        color: CHART_COLORS[index % CHART_COLORS.length]
-      }));
-      
       return {
         ...position,
-        id: position.position_id, // Map position_id to id for consistency
-        name: position.position_name, // Map position_name to name for consistency
+        id: position.position_id,
+        name: position.position_name,
         sortedCandidates: candidatesWithStats,
-        chartData,
         totalVotes
       };
     }).filter(Boolean);
@@ -140,7 +111,6 @@ export default function ElectionResultsPage({ params }) {
         throw new Error('Results are only available for completed elections');
       }
 
-      // Add positions to election data
       const electionWithPositions = {
         ...electionData,
         positions: positions
@@ -289,25 +259,6 @@ export default function ElectionResultsPage({ params }) {
                   )}
                 </button>
               </div>
-              
-              {position.chartData && position.chartData.length > 0 && (
-                <div className="h-80 mb-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={position.chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} interval={0} />
-                      <YAxis domain={[0, 'dataMax']} />
-                      <Tooltip formatter={(value) => [`${value.toLocaleString()} votes`, 'Votes']} />
-                      <Legend />
-                      <Bar dataKey="votes" name="Vote Count" isAnimationActive={true} maxBarSize={60}>
-                        {position.chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
               
               <div className="space-y-4">
                 {position.sortedCandidates && position.sortedCandidates.length > 0 ? position.sortedCandidates.map((candidate, index) => {
