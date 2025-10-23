@@ -70,25 +70,39 @@ const ElectionCard = ({ election, onClick }) => {
     try {
       if (!dateStr || !timeStr) return 'Date not set';
       
-      const [year, month, day] = dateStr.split('T')[0].split('-').map(Number);
-    
+      // Debug logging to help identify the issue
+      console.log('Parsing date:', { dateStr, timeStr });
+      
+      // Handle both date formats: "2024-01-15" and "2024-01-15T00:00:00.000Z"
+      let datePart = dateStr;
+      if (dateStr.includes('T')) {
+        datePart = dateStr.split('T')[0];
+      }
+      
+      const [year, month, day] = datePart.split('-').map(Number);
+      
       const timeParts = timeStr.includes(':') ? timeStr.split(':') : [timeStr, '00'];
       const hours = parseInt(timeParts[0], 10);
       const minutes = parseInt(timeParts[1], 10);
       
-      // FIX: Remove the +1 from day
+      // Create date object in local timezone (Philippines)
+      // This ensures we don't have timezone conversion issues
       const dateObj = new Date(year, month - 1, day, hours, minutes);
       
       if (isNaN(dateObj.getTime())) return 'Invalid date';
       
-      return new Intl.DateTimeFormat('en-PH', {
+      const formatted = new Intl.DateTimeFormat('en-PH', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: true 
+        hour12: true,
+        timeZone: 'Asia/Manila'
       }).format(dateObj);
+      
+      console.log('Formatted date:', formatted);
+      return formatted;
     } catch (error) {
       console.error('Date parsing error:', error);
       return 'Invalid date';
