@@ -72,12 +72,12 @@ export default function ElectionResultsPage({ params }) {
     if (!positions || !Array.isArray(positions) || positions.length === 0) return [];
     
     return positions.map(position => {
-      if (!position || !position.id) return null;
+      if (!position || !position.position_id) return null;
       
       let sortedCandidates = [...(position.candidates || [])];
       const totalVotes = sortedCandidates.reduce((sum, candidate) => sum + (candidate.vote_count || 0), 0);
       
-      if (sortOrder[position.id] === 'asc') {
+      if (sortOrder[position.position_id] === 'asc') {
         sortedCandidates.sort((a, b) => (a.vote_count || 0) - (b.vote_count || 0));
       } else {
         sortedCandidates.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
@@ -86,28 +86,30 @@ export default function ElectionResultsPage({ params }) {
       const candidatesWithStats = sortedCandidates.map((candidate, index) => {
         const voteCount = candidate.vote_count || 0;
         const percentage = totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(2) : 0;
-        const ranking = sortOrder[position.id] === 'desc' ? index + 1 : sortedCandidates.length - index;
+        const ranking = sortOrder[position.position_id] === 'desc' ? index + 1 : sortedCandidates.length - index;
         
         return {
           ...candidate,
           percentage: parseFloat(percentage),
           ranking,
-          isWinner: sortOrder[position.id] === 'desc' && index === 0,
-          isSecond: sortOrder[position.id] === 'desc' && index === 1,
-          isThird: sortOrder[position.id] === 'desc' && index === 2
+          isWinner: sortOrder[position.position_id] === 'desc' && index === 0,
+          isSecond: sortOrder[position.position_id] === 'desc' && index === 1,
+          isThird: sortOrder[position.position_id] === 'desc' && index === 2
         };
       });
       
       const chartData = candidatesWithStats.map((candidate, index) => ({
         name: `${candidate.first_name} ${candidate.last_name}`,
         votes: candidate.vote_count || 0,
-        party: candidate.party || 'Independent',
+        party: candidate.partylist_name || 'Independent',
         percentage: candidate.percentage,
         color: CHART_COLORS[index % CHART_COLORS.length]
       }));
       
       return {
         ...position,
+        id: position.position_id, // Map position_id to id for consistency
+        name: position.position_name, // Map position_name to name for consistency
         sortedCandidates: candidatesWithStats,
         chartData,
         totalVotes
@@ -125,29 +127,36 @@ export default function ElectionResultsPage({ params }) {
         throw new Error('Authentication required. Please log in again.');
       }
 
-      const response = await axios.get(`${API_BASE}/elections/${electionId}/results`, {
+      const response = await axios.get(`${API_BASE}/elections/completed/${electionId}/results`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
-      const electionData = response.data.election;
+      const { election: electionData, positions } = response.data.data;
+      
       if (electionData.status !== 'completed') {
         throw new Error('Results are only available for completed elections');
       }
 
+      // Add positions to election data
+      const electionWithPositions = {
+        ...electionData,
+        positions: positions
+      };
+
       const initialSortOrder = {};
-      if (electionData.positions) {
-        electionData.positions.forEach(position => {
-          initialSortOrder[position.id] = 'desc'; 
+      if (positions) {
+        positions.forEach(position => {
+          initialSortOrder[position.position_id] = 'desc'; 
         });
       }
       setSortOrder(initialSortOrder);
       
       const imageCache = {};
-      if (electionData?.positions) {
-        electionData.positions.forEach(position => {
+      if (positions) {
+        positions.forEach(position => {
           position.candidates?.forEach(candidate => {
             if (candidate.image_url) {
               const processedUrl = getImageUrl(candidate.image_url);
@@ -158,7 +167,7 @@ export default function ElectionResultsPage({ params }) {
       }
       
       setCandidateImages(imageCache);
-      setElection(electionData);
+      setElection(electionWithPositions);
     } catch (err) {
       console.error('Error fetching election results:', err);
       
@@ -242,16 +251,16 @@ export default function ElectionResultsPage({ params }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-blue-50 p-4 rounded-lg">
             <h3 className="font-semibold text-blue-800">Total Voters</h3>
-            <p className="text-2xl font-bold text-blue-900">{election.voter_count || 0}</p>
+            <p className="text-2xl font-bold text-blue-900">{election.total_eligible_voters || 0}</p>
           </div>
           <div className="bg-green-50 p-4 rounded-lg">
             <h3 className="font-semibold text-green-800">Votes Cast</h3>
-            <p className="text-2xl font-bold text-green-900">{election.vote_count || 0}</p>
+            <p className="text-2xl font-bold text-green-900">{election.total_votes || 0}</p>
           </div>
           <div className="bg-purple-50 p-4 rounded-lg">
             <h3 className="font-semibold text-purple-800">Participation</h3>
             <p className="text-2xl font-bold text-purple-900">
-              {election.voter_count ? ((election.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'}%
+              {election.voter_turnout_percentage ? election.voter_turnout_percentage.toFixed(2) : '0.00'}%
             </p>
           </div>
         </div>
@@ -392,7 +401,7 @@ export default function ElectionResultsPage({ params }) {
                             
                             <div>
                               <p className="text-sm font-medium text-black mb-1">Party/List:</p>
-                              <p className="text-black">{candidate.party || 'Independent'}</p>
+                              <p className="text-black">{candidate.partylist_name || 'Independent'}</p>
                             </div>
                             
                             <div>
