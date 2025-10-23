@@ -355,19 +355,14 @@ const getAllElections = async () => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_active', 'is_archived', 'is_deleted')
+      AND column_name IN ('is_active', 'is_deleted')
     `);
     
-    const hasIsActive = columnCheck.rows.some(row => row.column_name === 'is_active');
-    const hasIsArchived = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     let whereClause = '';
-    if (hasIsArchived && hasDeleteColumns) {
-      // Use is_archived if it exists
-      whereClause = 'WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
-    } else if (hasIsActive && hasDeleteColumns) {
-      // Fall back to is_active if is_archived doesn't exist
+    if (hasActiveColumns && hasDeleteColumns) {
       whereClause = 'WHERE (e.is_active IS NULL OR e.is_active = TRUE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
     }
     
@@ -561,7 +556,7 @@ const deleteElection = async (id) => {
 const archiveElection = async (id, userId) => {
   // First check if election exists and get its current state
   const checkResult = await pool.query(
-    `SELECT id, title, is_archived, is_deleted, status FROM elections WHERE id = $1`,
+    `SELECT id, title, is_active, is_deleted, status FROM elections WHERE id = $1`,
     [id]
   );
   
@@ -571,8 +566,8 @@ const archiveElection = async (id, userId) => {
   
   const election = checkResult.rows[0];
   
-  // Check if already archived
-  if (election.is_archived === true && election.is_deleted === false) {
+  // Check if already archived (is_active = false, is_deleted = false)
+  if (election.is_active === false && election.is_deleted === false) {
     throw new Error("Election is already archived");
   }
   
@@ -581,27 +576,30 @@ const archiveElection = async (id, userId) => {
     throw new Error("Election is already deleted");
   }
   
-  // Check if is_archived column exists, if not, we need to add it
+  // Check if required columns exist, if not, add them
   const columnCheck = await pool.query(`
     SELECT column_name 
     FROM information_schema.columns 
     WHERE table_name = 'elections' 
-    AND column_name = 'is_archived'
+    AND column_name IN ('is_active', 'archived_at', 'archived_by')
   `);
   
-  if (columnCheck.rows.length === 0) {
-    // Add the missing column
+  const existingColumns = columnCheck.rows.map(row => row.column_name);
+  const missingColumns = ['is_active', 'archived_at', 'archived_by'].filter(col => !existingColumns.includes(col));
+  
+  if (missingColumns.length > 0) {
+    // Add missing columns
     await pool.query(`
       ALTER TABLE elections 
-      ADD COLUMN is_archived BOOLEAN DEFAULT FALSE,
-      ADD COLUMN archived_at TIMESTAMP NULL,
-      ADD COLUMN archived_by INTEGER NULL
+      ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP NULL,
+      ADD COLUMN IF NOT EXISTS archived_by INTEGER NULL
     `);
   }
   
   const result = await pool.query(
     `UPDATE elections 
-     SET is_archived = TRUE, is_deleted = FALSE, archived_at = NOW(), archived_by = $2
+     SET is_active = FALSE, is_deleted = FALSE, archived_at = NOW(), archived_by = $2
      WHERE id = $1
      RETURNING *`,
     [id, userId]
@@ -614,7 +612,7 @@ const archiveElection = async (id, userId) => {
 const restoreArchivedElection = async (id, userId) => {
   // First check if election exists and get its current state
   const checkResult = await pool.query(
-    `SELECT id, title, is_archived, is_deleted FROM elections WHERE id = $1`,
+    `SELECT id, title, is_active, is_deleted FROM elections WHERE id = $1`,
     [id]
   );
   
@@ -624,8 +622,8 @@ const restoreArchivedElection = async (id, userId) => {
   
   const election = checkResult.rows[0];
   
-  // Check if election is archived
-  if (!election.is_archived) {
+  // Check if election is archived (is_active = false, is_deleted = false)
+  if (election.is_active !== false) {
     throw new Error("Election is not archived");
   }
   
@@ -636,8 +634,8 @@ const restoreArchivedElection = async (id, userId) => {
   
   const result = await pool.query(
     `UPDATE elections 
-     SET is_archived = FALSE, archived_at = NULL, archived_by = NULL
-     WHERE id = $1 AND is_archived = TRUE AND is_deleted = FALSE
+     SET is_active = TRUE, archived_at = NULL, archived_by = NULL
+     WHERE id = $1 AND is_active = FALSE AND is_deleted = FALSE
      RETURNING *`,
     [id]
   );
@@ -653,7 +651,7 @@ const restoreArchivedElection = async (id, userId) => {
 const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   // First check if election exists
   const checkResult = await pool.query(
-    `SELECT id, is_archived, is_deleted FROM elections WHERE id = $1`,
+    `SELECT id, is_active, is_deleted FROM elections WHERE id = $1`,
     [id]
   );
   
@@ -668,8 +666,8 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
     throw new Error("Election is already deleted");
   }
   
-  // Check if already archived
-  if (election.is_archived === true && election.is_deleted === false) {
+  // Check if already archived (is_active = false, is_deleted = false)
+  if (election.is_active === false && election.is_deleted === false) {
     throw new Error("Election is already archived");
   }
   
@@ -678,16 +676,17 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
     SELECT column_name 
     FROM information_schema.columns 
     WHERE table_name = 'elections' 
-    AND column_name IN ('is_deleted', 'deleted_at', 'deleted_by', 'auto_delete_at')
+    AND column_name IN ('is_active', 'is_deleted', 'deleted_at', 'deleted_by', 'auto_delete_at')
   `);
   
   const existingColumns = columnCheck.rows.map(row => row.column_name);
-  const missingColumns = ['is_deleted', 'deleted_at', 'deleted_by', 'auto_delete_at'].filter(col => !existingColumns.includes(col));
+  const missingColumns = ['is_active', 'is_deleted', 'deleted_at', 'deleted_by', 'auto_delete_at'].filter(col => !existingColumns.includes(col));
   
   if (missingColumns.length > 0) {
     // Add missing columns
     await pool.query(`
       ALTER TABLE elections 
+      ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE,
       ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL,
       ADD COLUMN IF NOT EXISTS deleted_by INTEGER NULL,
@@ -704,7 +703,7 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   
   const result = await pool.query(
     `UPDATE elections 
-     SET is_archived = FALSE, is_deleted = TRUE, deleted_at = NOW(), deleted_by = $2, auto_delete_at = $3
+     SET is_active = FALSE, is_deleted = TRUE, deleted_at = NOW(), deleted_by = $2, auto_delete_at = $3
      WHERE id = $1
      RETURNING *`,
     [id, userId, autoDeleteAt]
@@ -717,7 +716,7 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
 const restoreDeletedElection = async (id, userId) => {
   const result = await pool.query(
     `UPDATE elections 
-     SET is_archived = FALSE, is_deleted = FALSE, deleted_at = NULL, deleted_by = NULL, auto_delete_at = NULL
+     SET is_active = TRUE, is_deleted = FALSE, deleted_at = NULL, deleted_by = NULL, auto_delete_at = NULL
      WHERE id = $1 AND is_deleted = TRUE
      RETURNING *`,
     [id]
@@ -734,7 +733,7 @@ const restoreDeletedElection = async (id, userId) => {
 const permanentDeleteElection = async (id) => {
   // First check if election exists and is in archived or deleted state
   const checkResult = await pool.query(
-    `SELECT id, title, is_archived, is_deleted FROM elections WHERE id = $1`,
+    `SELECT id, title, is_active, is_deleted FROM elections WHERE id = $1`,
     [id]
   );
   
@@ -745,7 +744,7 @@ const permanentDeleteElection = async (id) => {
   const election = checkResult.rows[0];
   
   // Check if election is in archived or deleted state
-  if (!election.is_archived && !election.is_deleted) {
+  if (election.is_active !== false && !election.is_deleted) {
     throw new Error("Election is not in archived or deleted state");
   }
   
@@ -769,10 +768,10 @@ const getArchivedElections = async (userId = null) => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_archived', 'is_deleted', 'archived_at', 'archived_by')
+      AND column_name IN ('is_active', 'is_deleted', 'archived_at', 'archived_by')
     `);
         
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     if (!hasActiveColumns || !hasDeleteColumns) {
@@ -793,7 +792,7 @@ const getArchivedElections = async (userId = null) => {
         e.status,
         e.created_at,
         e.updated_at,
-        e.is_archived,
+        e.is_active,
         e.is_deleted,
         e.archived_at,
         e.archived_by,
@@ -810,7 +809,7 @@ const getArchivedElections = async (userId = null) => {
       FROM elections e
       LEFT JOIN users u ON e.created_by = u.id
       LEFT JOIN users archived_user ON e.archived_by = archived_user.id
-      WHERE e.is_archived = TRUE AND e.is_deleted = FALSE
+      WHERE e.is_active = FALSE AND e.is_deleted = FALSE
     `;
     
     const params = [];
@@ -837,10 +836,10 @@ const getDeletedElections = async (userId = null) => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_archived', 'is_deleted', 'deleted_at', 'deleted_by')
+      AND column_name IN ('is_active', 'is_deleted', 'deleted_at', 'deleted_by')
     `);
     
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     if (!hasActiveColumns || !hasDeleteColumns) {
@@ -861,7 +860,7 @@ const getDeletedElections = async (userId = null) => {
         e.status,
         e.created_at,
         e.updated_at,
-        e.is_archived,
+        e.is_active,
         e.is_deleted,
         e.deleted_at,
         e.deleted_by,
