@@ -2,7 +2,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 
-// Idle timings (in milliseconds)
 const WARNING_MS = 10 * 60 * 1000; // 10 minutes
 const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 

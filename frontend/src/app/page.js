@@ -258,49 +258,6 @@ export default function Home() {
     }
   };
 
-  // Enhanced background image component for better quality
-  const BackgroundImage = ({ imageUrl, className = "", children, minHeight = "auto", fallbackColor = "transparent" }) => {
-    const formattedUrl = formatImageUrl(imageUrl);
-    
-    if (!formattedUrl) {
-      return <div className={className} style={{ backgroundColor: fallbackColor }}>{children}</div>;
-    }
-
-    return (
-      <div 
-        className={`relative ${className} background-image-container`}
-        style={{
-          minHeight: minHeight,
-          height: 'auto',
-          backgroundColor: fallbackColor
-        }}
-      >
-        {/* High-quality background image using img element for better quality */}
-        <img
-          src={formattedUrl}
-          alt="Background"
-          className="absolute inset-0 w-full h-full object-cover high-quality-bg"
-          style={{
-            minHeight: '100vh',
-            width: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center',
-            imageRendering: 'high-quality',
-            WebkitImageRendering: 'high-quality'
-          }}
-          onError={(e) => {
-            console.error('Background image failed to load:', formattedUrl);
-            e.target.style.display = 'none';
-          }}
-        />
-        {/* Content overlay */}
-        <div className="relative z-10">
-          {children}
-        </div>
-      </div>
-    );
-  };
-
   const renderImage = (url, alt, width, height, className, onErrorAction) => {
     const formattedUrl = formatImageUrl(url);
     if (!formattedUrl) return null;
@@ -313,8 +270,6 @@ export default function Home() {
         height={height || 300}
         className={className || ""}
         unoptimized={true}
-        quality={95}
-        priority={false}
         onError={(e) => {
           console.error("Error loading image:", formattedUrl);
           if (onErrorAction) onErrorAction(e);
@@ -662,13 +617,15 @@ export default function Home() {
 
       {/* Call to Action Section - Moved after Hero */}
       {landingContent.callToAction.enabled && (
-        <BackgroundImage
-          imageUrl={landingContent.callToAction?.backgroundImage}
-          className="text-white py-16 px-6"
-          minHeight="60vh"
-          fallbackColor={landingContent.callToAction?.bgColor || '#1e3a8a'}
+        <section 
+          className="text-white py-16 px-6 relative"
           style={{
-            color: landingContent.callToAction?.textColor || '#ffffff'
+            backgroundColor: landingContent.callToAction?.bgColor || '#1e3a8a',
+            color: landingContent.callToAction?.textColor || '#ffffff',
+            backgroundImage: landingContent.callToAction?.backgroundImage ? `url(${formatImageUrl(landingContent.callToAction.backgroundImage)})` : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
           }}
         >
           <div className="container mx-auto max-w-6xl">
@@ -744,15 +701,19 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </BackgroundImage>
+        </section>
       )}
 
       {/* Features Section - Moved after CTA */}
-      <BackgroundImage
-        imageUrl={landingContent.features?.backgroundImage}
-        className="py-20 px-6"
-        minHeight="80vh"
-        fallbackColor={landingContent.features?.sectionBgColor || '#f9fafb'}
+      <section 
+        className="py-20 px-6 relative"
+        style={{
+          backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb',
+          backgroundImage: landingContent.features?.backgroundImage ? `url(${formatImageUrl(landingContent.features.backgroundImage)})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       >
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
@@ -791,12 +752,10 @@ export default function Home() {
                   <Image
                     src={imageUrl}
                     alt={feature.title || `Feature ${index + 1}`}
-                    width={800}
-                    height={600}
+                    width={400}
+                    height={300}
                     className="w-full h-full object-cover"
                     unoptimized={true}
-                    quality={95}
-                    priority={false}
                     onError={(e) => {
                       console.error(`Error loading feature image ${index}:`, imageUrl);
                       const container = e.currentTarget.closest('.mb-4');
@@ -821,7 +780,7 @@ export default function Home() {
             })}
           </div>
         </div>
-      </BackgroundImage>
+      </section>
 
 
       {/* New About Us Section */}
