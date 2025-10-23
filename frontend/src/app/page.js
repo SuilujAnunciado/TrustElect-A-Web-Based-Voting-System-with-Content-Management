@@ -259,32 +259,38 @@ export default function Home() {
   };
 
   // Enhanced background image component for better quality
-  const BackgroundImage = ({ imageUrl, className = "", children }) => {
+  const BackgroundImage = ({ imageUrl, className = "", children, minHeight = "auto", fallbackColor = "transparent" }) => {
     const formattedUrl = formatImageUrl(imageUrl);
     
     if (!formattedUrl) {
-      return <div className={className}>{children}</div>;
+      return <div className={className} style={{ backgroundColor: fallbackColor }}>{children}</div>;
     }
 
     return (
       <div 
-        className={`relative ${className} high-quality-bg`}
+        className={`relative ${className} background-image-container`}
         style={{
-          backgroundImage: `url(${formattedUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
+          minHeight: minHeight,
+          height: 'auto',
+          backgroundColor: fallbackColor
         }}
       >
-        {/* High-quality background image overlay */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat high-quality-bg"
+        {/* High-quality background image using img element for better quality */}
+        <img
+          src={formattedUrl}
+          alt="Background"
+          className="absolute inset-0 w-full h-full object-cover high-quality-bg"
           style={{
-            backgroundImage: `url(${formattedUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
+            minHeight: '100vh',
+            width: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            imageRendering: 'high-quality',
+            WebkitImageRendering: 'high-quality'
+          }}
+          onError={(e) => {
+            console.error('Background image failed to load:', formattedUrl);
+            e.target.style.display = 'none';
           }}
         />
         {/* Content overlay */}
@@ -659,8 +665,9 @@ export default function Home() {
         <BackgroundImage
           imageUrl={landingContent.callToAction?.backgroundImage}
           className="text-white py-16 px-6"
+          minHeight="60vh"
+          fallbackColor={landingContent.callToAction?.bgColor || '#1e3a8a'}
           style={{
-            backgroundColor: landingContent.callToAction?.bgColor || '#1e3a8a',
             color: landingContent.callToAction?.textColor || '#ffffff'
           }}
         >
@@ -744,9 +751,8 @@ export default function Home() {
       <BackgroundImage
         imageUrl={landingContent.features?.backgroundImage}
         className="py-20 px-6"
-        style={{
-          backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb'
-        }}
+        minHeight="80vh"
+        fallbackColor={landingContent.features?.sectionBgColor || '#f9fafb'}
       >
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
