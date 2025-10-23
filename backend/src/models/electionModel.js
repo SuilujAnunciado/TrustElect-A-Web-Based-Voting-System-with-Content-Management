@@ -355,15 +355,20 @@ const getAllElections = async () => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_archived', 'is_deleted')
+      AND column_name IN ('is_active', 'is_archived', 'is_deleted')
     `);
     
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    const hasIsActive = columnCheck.rows.some(row => row.column_name === 'is_active');
+    const hasIsArchived = columnCheck.rows.some(row => row.column_name === 'is_archived');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     let whereClause = '';
-    if (hasActiveColumns && hasDeleteColumns) {
+    if (hasIsArchived && hasDeleteColumns) {
+      // Use is_archived if it exists
       whereClause = 'WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
+    } else if (hasIsActive && hasDeleteColumns) {
+      // Fall back to is_active if is_archived doesn't exist
+      whereClause = 'WHERE (e.is_active IS NULL OR e.is_active = TRUE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
     }
     
     const result = await pool.query(`
@@ -554,7 +559,7 @@ const deleteElection = async (id) => {
 
 // Archive election (soft archive) - using admin system approach
 const archiveElection = async (id, userId) => {
-  // First check if election exists
+  // First check if election exists and get its current state
   const checkResult = await pool.query(
     `SELECT id, title, is_archived, is_deleted, status FROM elections WHERE id = $1`,
     [id]
@@ -574,6 +579,24 @@ const archiveElection = async (id, userId) => {
   // Check if already deleted
   if (election.is_deleted === true) {
     throw new Error("Election is already deleted");
+  }
+  
+  // Check if is_archived column exists, if not, we need to add it
+  const columnCheck = await pool.query(`
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name = 'elections' 
+    AND column_name = 'is_archived'
+  `);
+  
+  if (columnCheck.rows.length === 0) {
+    // Add the missing column
+    await pool.query(`
+      ALTER TABLE elections 
+      ADD COLUMN is_archived BOOLEAN DEFAULT FALSE,
+      ADD COLUMN archived_at TIMESTAMP NULL,
+      ADD COLUMN archived_by INTEGER NULL
+    `);
   }
   
   const result = await pool.query(
@@ -648,6 +671,28 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   // Check if already archived
   if (election.is_archived === true && election.is_deleted === false) {
     throw new Error("Election is already archived");
+  }
+  
+  // Check if required columns exist, if not, add them
+  const columnCheck = await pool.query(`
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name = 'elections' 
+    AND column_name IN ('is_deleted', 'deleted_at', 'deleted_by', 'auto_delete_at')
+  `);
+  
+  const existingColumns = columnCheck.rows.map(row => row.column_name);
+  const missingColumns = ['is_deleted', 'deleted_at', 'deleted_by', 'auto_delete_at'].filter(col => !existingColumns.includes(col));
+  
+  if (missingColumns.length > 0) {
+    // Add missing columns
+    await pool.query(`
+      ALTER TABLE elections 
+      ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL,
+      ADD COLUMN IF NOT EXISTS deleted_by INTEGER NULL,
+      ADD COLUMN IF NOT EXISTS auto_delete_at TIMESTAMP NULL
+    `);
   }
   
   let autoDeleteAt = null;
