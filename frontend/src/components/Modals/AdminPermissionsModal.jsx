@@ -39,11 +39,25 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
         // Convert from API format to our state format
         const formattedPermissions = { ...permissions };
         
+        // Debug: Log the received permissions
+        console.log('Received permissions from API:', response.data.permissions);
+        
         Object.entries(response.data.permissions).forEach(([module, perms]) => {
           // Skip reports and notifications modules
           if (module === 'reports' || module === 'notifications') return;
           
-          formattedPermissions[module] = perms;
+          // Map module names to ensure consistency
+          let mappedModule = module;
+          if (module === 'maintenance' || module === 'Maintenance') {
+            mappedModule = 'maintenance';
+          } else if (module === 'adminManagement' || module === 'admin_management') {
+            mappedModule = 'adminManagement';
+          }
+          
+          // Ensure the module exists in our permissions structure
+          if (formattedPermissions.hasOwnProperty(mappedModule)) {
+            formattedPermissions[mappedModule] = perms;
+          }
         });
         
         // Ensure adminManagement module exists with default values if not present
@@ -66,11 +80,37 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
           };
         }
         
+        // Ensure all required modules exist with default values
+        const requiredModules = ['users', 'elections', 'departments', 'adminManagement', 'maintenance'];
+        requiredModules.forEach(module => {
+          if (!formattedPermissions[module]) {
+            formattedPermissions[module] = { 
+              canView: false, 
+              canCreate: false, 
+              canEdit: false, 
+              canDelete: false 
+            };
+          }
+        });
+        
+        // Debug: Log the final formatted permissions
+        console.log('Final formatted permissions:', formattedPermissions);
         setPermissions(formattedPermissions);
       }
     } catch (error) {
       console.error("Error fetching permissions:", error);
       setError("Failed to fetch permissions. Please try again.");
+      
+      // Fallback: Ensure maintenance module is always available
+      setPermissions(prev => ({
+        ...prev,
+        maintenance: { 
+          canView: false, 
+          canCreate: false, 
+          canEdit: false, 
+          canDelete: false 
+        }
+      }));
     } finally {
       setLoading(false);
     }
@@ -237,7 +277,11 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
       <div className="bg-white p-6 rounded-lg w-full max-w-2xl">
         <h2 className="text-xl font-bold mb-4">Manage Permissions for {admin.first_name} {admin.last_name}</h2>
         
-        {Object.entries(permissions).map(([module, perms]) => (
+        {Object.entries(permissions).map(([module, perms]) => {
+          // Skip if module doesn't have proper structure
+          if (!perms || typeof perms !== 'object') return null;
+          
+          return (
           <div key={module} className="mb-6">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-semibold capitalize">{module}</h3>
@@ -270,7 +314,8 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
               ))}
             </div>
           </div>
-        ))}
+          );
+        })}
 
         <div className="flex justify-end space-x-4 mt-6">
           <button
