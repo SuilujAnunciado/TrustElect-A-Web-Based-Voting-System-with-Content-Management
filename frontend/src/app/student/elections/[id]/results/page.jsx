@@ -25,8 +25,7 @@ const CHART_COLORS = [
 ];
 
 export default function ElectionResultsPage({ params }) {
-  const resolvedParams = React.use(params);
-  const { id: electionId } = resolvedParams;
+  const { id: electionId } = params;
   const router = useRouter();
   
   const [loading, setLoading] = useState(true);
@@ -75,7 +74,7 @@ export default function ElectionResultsPage({ params }) {
   };
 
   const formatResultsData = (positions) => {
-    if (!positions || positions.length === 0) return [];
+    if (!positions || !Array.isArray(positions) || positions.length === 0) return [];
     
     // Create formatted data for each position
     return positions.map(position => {
@@ -200,7 +199,9 @@ export default function ElectionResultsPage({ params }) {
   };
 
   useEffect(() => {
-    fetchElectionResults();
+    if (electionId) {
+      fetchElectionResults();
+    }
   }, [electionId]);
 
   if (loading) {
@@ -228,6 +229,14 @@ export default function ElectionResultsPage({ params }) {
             <p>{error}</p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!election) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -270,7 +279,7 @@ export default function ElectionResultsPage({ params }) {
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4 text-black">Result</h2>
           
-          {formatResultsData(election.positions).map(position => (
+          {election.positions && formatResultsData(election.positions).map(position => (
             <div key={position.id} className="mb-8 pb-6 border-b">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-black">Position Name: {position.name}</h3>
