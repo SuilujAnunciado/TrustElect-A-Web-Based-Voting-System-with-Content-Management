@@ -139,20 +139,16 @@ export default function DeletedElectionsPage() {
       setLoading(true);
       setError("");
       
-      // Fetch all elections and filter for deleted ones (like admin system)
-      const data = await fetchWithAuth('/elections');
+      // Use the dedicated deleted elections endpoint
+      const data = await fetchWithAuth('/elections/deleted');
       
       if (data.success === false) {
-        setError(data.message || "Failed to load elections. Please try again later.");
+        setError(data.message || "Failed to load deleted elections. Please try again later.");
         return;
       }
       
-      // Filter for deleted elections (is_deleted = true)
-      const deletedElections = (data.data || []).filter(election => 
-        election.is_deleted === true
-      );
-      
-      setElections(deletedElections);
+      // The backend already returns only deleted elections
+      setElections(data.data || []);
     } catch (err) {
       console.error("Failed to load deleted elections:", err);
       

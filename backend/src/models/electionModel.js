@@ -355,15 +355,15 @@ const getAllElections = async () => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_active', 'is_deleted')
+      AND column_name IN ('is_archived', 'is_deleted')
     `);
     
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
+    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     let whereClause = '';
     if (hasActiveColumns && hasDeleteColumns) {
-      whereClause = 'WHERE (e.is_active IS NULL OR e.is_active = TRUE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
+      whereClause = 'WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
     }
     
     const result = await pool.query(`
@@ -373,7 +373,7 @@ const getAllElections = async () => {
         FROM elections e
         LEFT JOIN eligible_voters ev ON e.id = ev.election_id
         ${whereClause}
-        GROUP BY e.id, e.is_active, e.is_deleted
+        GROUP BY e.id, e.is_archived, e.is_deleted
         ORDER BY e.created_at DESC;
     `);
     return result.rows;
@@ -556,7 +556,7 @@ const deleteElection = async (id) => {
 const archiveElection = async (id, userId) => {
   // First check if election exists
   const checkResult = await pool.query(
-    `SELECT id, title, is_active, is_deleted, status FROM elections WHERE id = $1`,
+    `SELECT id, title, is_archived, is_deleted, status FROM elections WHERE id = $1`,
     [id]
   );
   
@@ -567,7 +567,7 @@ const archiveElection = async (id, userId) => {
   const election = checkResult.rows[0];
   
   // Check if already archived
-  if (election.is_active === false && election.is_deleted === false) {
+  if (election.is_archived === true && election.is_deleted === false) {
     throw new Error("Election is already archived");
   }
   
@@ -578,7 +578,7 @@ const archiveElection = async (id, userId) => {
   
   const result = await pool.query(
     `UPDATE elections 
-     SET is_active = FALSE, is_deleted = FALSE, archived_at = NOW(), archived_by = $2
+     SET is_archived = TRUE, is_deleted = FALSE, archived_at = NOW(), archived_by = $2
      WHERE id = $1
      RETURNING *`,
     [id, userId]
@@ -591,8 +591,8 @@ const archiveElection = async (id, userId) => {
 const restoreArchivedElection = async (id, userId) => {
   const result = await pool.query(
     `UPDATE elections 
-     SET is_active = TRUE, archived_at = NULL, archived_by = NULL
-     WHERE id = $1 AND is_active = FALSE AND is_deleted = FALSE
+     SET is_archived = FALSE, archived_at = NULL, archived_by = NULL
+     WHERE id = $1 AND is_archived = TRUE AND is_deleted = FALSE
      RETURNING *`,
     [id]
   );
@@ -608,7 +608,7 @@ const restoreArchivedElection = async (id, userId) => {
 const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   // First check if election exists
   const checkResult = await pool.query(
-    `SELECT id, is_active, is_deleted FROM elections WHERE id = $1`,
+    `SELECT id, is_archived, is_deleted FROM elections WHERE id = $1`,
     [id]
   );
   
@@ -624,7 +624,7 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   }
   
   // Check if already archived
-  if (election.is_active === false && election.is_deleted === false) {
+  if (election.is_archived === true && election.is_deleted === false) {
     throw new Error("Election is already archived");
   }
   
@@ -637,7 +637,7 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   
   const result = await pool.query(
     `UPDATE elections 
-     SET is_active = FALSE, is_deleted = TRUE, deleted_at = NOW(), deleted_by = $2, auto_delete_at = $3
+     SET is_archived = FALSE, is_deleted = TRUE, deleted_at = NOW(), deleted_by = $2, auto_delete_at = $3
      WHERE id = $1
      RETURNING *`,
     [id, userId, autoDeleteAt]
@@ -650,7 +650,7 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
 const restoreDeletedElection = async (id, userId) => {
   const result = await pool.query(
     `UPDATE elections 
-     SET is_active = TRUE, is_deleted = FALSE, deleted_at = NULL, deleted_by = NULL, auto_delete_at = NULL
+     SET is_archived = FALSE, is_deleted = FALSE, deleted_at = NULL, deleted_by = NULL, auto_delete_at = NULL
      WHERE id = $1 AND is_deleted = TRUE
      RETURNING *`,
     [id]
@@ -686,10 +686,10 @@ const getArchivedElections = async (userId = null) => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_active', 'is_deleted', 'archived_at', 'archived_by')
+      AND column_name IN ('is_archived', 'is_deleted', 'archived_at', 'archived_by')
     `);
         
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
+    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     if (!hasActiveColumns || !hasDeleteColumns) {
@@ -710,7 +710,7 @@ const getArchivedElections = async (userId = null) => {
         e.status,
         e.created_at,
         e.updated_at,
-        e.is_active,
+        e.is_archived,
         e.is_deleted,
         e.archived_at,
         e.archived_by,
@@ -727,7 +727,7 @@ const getArchivedElections = async (userId = null) => {
       FROM elections e
       LEFT JOIN users u ON e.created_by = u.id
       LEFT JOIN users archived_user ON e.archived_by = archived_user.id
-      WHERE e.is_active = FALSE AND e.is_deleted = FALSE
+      WHERE e.is_archived = TRUE AND e.is_deleted = FALSE
     `;
     
     const params = [];
@@ -754,10 +754,10 @@ const getDeletedElections = async (userId = null) => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_active', 'is_deleted', 'deleted_at', 'deleted_by')
+      AND column_name IN ('is_archived', 'is_deleted', 'deleted_at', 'deleted_by')
     `);
     
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
+    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     if (!hasActiveColumns || !hasDeleteColumns) {
@@ -778,7 +778,7 @@ const getDeletedElections = async (userId = null) => {
         e.status,
         e.created_at,
         e.updated_at,
-        e.is_active,
+        e.is_archived,
         e.is_deleted,
         e.deleted_at,
         e.deleted_by,
@@ -1062,15 +1062,15 @@ const getAllElectionsWithCreator = async () => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_active', 'is_deleted')
+      AND column_name IN ('is_archived', 'is_deleted')
     `);
     
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
+    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     let whereClause = '';
     if (hasActiveColumns && hasDeleteColumns) {
-      whereClause = 'WHERE (e.is_active IS NULL OR e.is_active = TRUE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
+      whereClause = 'WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
     }
     
     const query = `
