@@ -40,7 +40,7 @@ const getSystemLoad = async (req, res) => {
       WITH hourly_logins AS (
         SELECT 
           ${grouping} as time_period,
-          COUNT(*) as count
+          COUNT(DISTINCT user_id) as count
         FROM audit_logs
         WHERE 
           action = 'LOGIN'
@@ -59,14 +59,19 @@ const getSystemLoad = async (req, res) => {
       FROM hourly_logins
     `;
 
-    // Get voting activity with timestamps for accurate date filtering
+    // Get voting activity with accurate distinct voter counting
+    // Count distinct student IDs per day/hour to match login patterns
     const votingQuery = `
       WITH hourly_votes AS (
         SELECT 
           ${grouping} as time_period,
-          COUNT(*) as count
-        FROM votes
-        WHERE created_at >= NOW() - ${interval}
+          COUNT(DISTINCT v.student_id) as count
+        FROM votes v
+        INNER JOIN elections e ON v.election_id = e.id
+        WHERE 
+          v.created_at >= NOW() - ${interval}
+          AND (e.is_active IS NULL OR e.is_active = TRUE)
+          AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
         GROUP BY ${grouping}
         ORDER BY time_period
       )
@@ -86,7 +91,7 @@ const getSystemLoad = async (req, res) => {
       WITH login_stats AS (
         SELECT 
           ${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'EXTRACT(DAY FROM' : 'EXTRACT(HOUR FROM'} ${grouping}) as hour,
-          COUNT(*) as count
+          COUNT(DISTINCT user_id) as count
         FROM audit_logs
         WHERE 
           action = 'LOGIN'
@@ -96,15 +101,21 @@ const getSystemLoad = async (req, res) => {
       vote_stats AS (
         SELECT 
           ${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'EXTRACT(DAY FROM' : 'EXTRACT(HOUR FROM'} ${grouping}) as hour,
-          COUNT(*) as count
-        FROM votes
-        WHERE created_at >= NOW() - ${interval}
+          COUNT(DISTINCT v.student_id) as count
+        FROM votes v
+        INNER JOIN elections e ON v.election_id = e.id
+        WHERE 
+          v.created_at >= NOW() - ${interval}
+          AND (e.is_active IS NULL OR e.is_active = TRUE)
+          AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
         GROUP BY ${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'EXTRACT(DAY FROM' : 'EXTRACT(HOUR FROM'} ${grouping})
       ),
       active_users AS (
         SELECT COUNT(DISTINCT user_id) as count
         FROM audit_logs
-        WHERE created_at >= NOW() - ${interval}
+        WHERE 
+          action = 'LOGIN'
+          AND created_at >= NOW() - ${interval}
       )
       SELECT
         (SELECT COALESCE(hour::TEXT || ':00', 'N/A') FROM login_stats ORDER BY count DESC LIMIT 1) as peak_login_hour,
@@ -120,6 +131,19 @@ const getSystemLoad = async (req, res) => {
       pool.query(peakStatsQuery)
     ]);
 
+    // Calculate total votes (all votes, not just distinct voters)
+    const totalVotesResult = await pool.query(`
+      SELECT COUNT(*) as total_votes
+      FROM votes v
+      INNER JOIN elections e ON v.election_id = e.id
+      WHERE 
+        v.created_at >= NOW() - ${interval}
+        AND (e.is_active IS NULL OR e.is_active = TRUE)
+        AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
+    `);
+
+    const totalVotes = parseInt(totalVotesResult.rows[0].total_votes) || 0;
+
     // Transform the data with proper timestamp information
     const response = {
       summary: {
@@ -128,6 +152,8 @@ const getSystemLoad = async (req, res) => {
         peak_voting_hour: peakStats.rows[0].peak_voting_hour || 'N/A',
         peak_voting_count: parseInt(peakStats.rows[0].peak_voting_count) || 0,
         total_active_users: parseInt(peakStats.rows[0].total_active_users) || 0,
+        total_distinct_voters: votingActivity.rows.reduce((sum, row) => sum + parseInt(row.count || 0), 0),
+        total_votes: totalVotes,
         timeframe: timeframe,
         generated_at: new Date().toISOString()
       },
@@ -138,7 +164,8 @@ const getSystemLoad = async (req, res) => {
         month: parseInt(row.month),
         year: parseInt(row.year),
         timestamp: row.timestamp.toISOString(),
-        formatted_time: row.formatted_time
+        formatted_time: row.formatted_time,
+        type: 'logins'
       })),
       voting_activity: votingActivity.rows.map(row => ({
         hour: parseInt(row.hour),
@@ -147,7 +174,8 @@ const getSystemLoad = async (req, res) => {
         month: parseInt(row.month),
         year: parseInt(row.year),
         timestamp: row.timestamp.toISOString(),
-        formatted_time: row.formatted_time
+        formatted_time: row.formatted_time,
+        type: 'voters'
       }))
     };
 

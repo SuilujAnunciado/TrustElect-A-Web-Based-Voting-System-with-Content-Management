@@ -471,6 +471,13 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
   const loginPeak = findPeakHour(processedLoginData);
   const votingPeak = findPeakHour(processedVotingData);
 
+  // Calculate data consistency metrics
+  const totalLogins = processedLoginData.reduce((sum, item) => sum + item.count, 0);
+  const totalDistinctVoters = processedVotingData.reduce((sum, item) => sum + item.count, 0);
+  const totalVotes = currentData.summary?.total_votes || 0;
+  const voterTurnout = totalLogins > 0 ? ((totalDistinctVoters / totalLogins) * 100).toFixed(1) : 0;
+  const avgVotesPerVoter = totalDistinctVoters > 0 ? (totalVotes / totalDistinctVoters).toFixed(2) : 0;
+
   // Chart configurations with improved color contrast and data validation
   const chartConfig = {
     login: {
@@ -481,7 +488,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
       data: processedLoginData,
       average: calculateAverage(processedLoginData),
       peak: loginPeak,
-      total: processedLoginData.reduce((sum, item) => sum + item.count, 0)
+      total: totalLogins
     },
     voting: {
       gradient: {
@@ -491,7 +498,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
       data: processedVotingData,
       average: calculateAverage(processedVotingData),
       peak: votingPeak,
-      total: processedVotingData.reduce((sum, item) => sum + item.count, 0)
+      total: totalDistinctVoters
     }
   };
 
@@ -658,6 +665,30 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             </div>
           )}
 
+          {/* Data Accuracy Info Box */}
+          {!isDataReset && (
+            <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-6 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 rounded">
+                  <AlertTriangle className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-blue-900 mb-2">Data Accuracy & Consistency</h3>
+                  <p className="text-sm text-blue-800 mb-2">
+                    <strong>Distinct Voters:</strong> Number of unique students who voted in active elections
+                  </p>
+                  <p className="text-sm text-blue-800 mb-2">
+                    <strong>Total Votes:</strong> Total number of individual vote records (students vote for multiple positions per election)
+                  </p>
+                  <p className="text-sm text-blue-800">
+                    <strong>Voter Turnout:</strong> ({totalDistinctVoters.toLocaleString()} voters ÷ {totalLogins.toLocaleString()} logins) = {voterTurnout}% | 
+                    <strong> Avg Votes/Voter:</strong> {totalVotes.toLocaleString()} votes ÷ {totalDistinctVoters.toLocaleString()} voters = {avgVotesPerVoter} per voter
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Loading Indicator */}
           {isLoading && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -692,16 +723,16 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                 <div className="p-2 bg-green-500 rounded-lg">
                   <Activity className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-sm font-semibold text-black">Peak Voting Hour</h3>
+                <h3 className="text-sm font-semibold text-black">Peak Voting Activity</h3>
               </div>
               <p className="text-3xl font-bold text-black mb-1">
                 {formatTime(chartConfig.voting.peak.hour)}
               </p>
               <p className="text-sm text-black">
-                {Math.round(chartConfig.voting.peak.count).toLocaleString()} votes
+                {Math.round(chartConfig.voting.peak.count).toLocaleString()} distinct voters
               </p>
               <div className="mt-2 text-xs text-green-600">
-                Total: {formatNumber(chartConfig.voting.total)} | Avg: {formatNumber(chartConfig.voting.average)}/hour
+                Total Voters: {formatNumber(chartConfig.voting.total)} | Avg: {formatNumber(chartConfig.voting.average)}/hour
               </div>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-sm">
@@ -709,33 +740,37 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                 <div className="p-2 bg-purple-500 rounded-lg">
                   <Users className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-sm font-semibold text-black">Total Activity</h3>
+                <h3 className="text-sm font-semibold text-black">Data Consistency</h3>
               </div>
               <p className="text-3xl font-bold text-black mb-1">
-                {Math.round(chartConfig.login.total + chartConfig.voting.total).toLocaleString()}
+                {voterTurnout}%
               </p>
               <p className="text-sm text-black">
-                total actions in the last {timeframeOptions.find(opt => opt.value === selectedTimeframe)?.label.toLowerCase()}
+                Voter turnout rate
               </p>
               <div className="mt-2 text-xs text-purple-600">
-                Logins: {formatNumber(chartConfig.login.total)} | Votes: {formatNumber(chartConfig.voting.total)}
+                Total Votes: {formatNumber(totalVotes)} | Avg: {avgVotesPerVoter} votes/voter
               </div>
             </div>
           </div>
 
           {/* Quick Stats Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
               <p className="text-xs text-gray-600 mb-1">Active Users</p>
               <p className="text-2xl font-bold text-black">{chartConfig.login.total > 0 ? Math.round(chartConfig.login.total / (chartConfig.login.average || 1)) : 0}</p>
             </div>
             <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-              <p className="text-xs text-gray-600 mb-1">Avg Login/Hour</p>
-              <p className="text-2xl font-bold text-black">{formatNumber(chartConfig.login.average)}</p>
+              <p className="text-xs text-gray-600 mb-1">Distinct Voters</p>
+              <p className="text-2xl font-bold text-black">{formatNumber(totalDistinctVoters)}</p>
             </div>
             <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-              <p className="text-xs text-gray-600 mb-1">Avg Vote/Hour</p>
-              <p className="text-2xl font-bold text-black">{formatNumber(chartConfig.voting.average)}</p>
+              <p className="text-xs text-gray-600 mb-1">Total Votes</p>
+              <p className="text-2xl font-bold text-black">{formatNumber(totalVotes)}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+              <p className="text-xs text-gray-600 mb-1">Voter Turnout</p>
+              <p className="text-2xl font-bold text-black">{voterTurnout}%</p>
             </div>
             <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
               <p className="text-xs text-gray-600 mb-1">Timeframe</p>
@@ -881,10 +916,10 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl text-black font-bold">Voting Activity</h3>
+                <h3 className="text-xl text-black font-bold">Voting Activity (Distinct Voters)</h3>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span>Peak: {formatTime(chartConfig.voting.peak.hour)} ({Math.round(chartConfig.voting.peak.count).toLocaleString()} votes)</span>
+                  <span>Peak: {formatTime(chartConfig.voting.peak.hour)} ({Math.round(chartConfig.voting.peak.count).toLocaleString()} voters)</span>
                 </div>
               </div>
               <div className="h-[350px]">
@@ -942,6 +977,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                       tick={{ fill: '#374151', fontSize: 11 }}
                       tickFormatter={(value) => Math.round(value).toLocaleString()}
                       axisLine={{ stroke: '#d1d5db' }}
+                      label={{ value: 'Distinct Voters', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151' } }}
                     />
                     <Tooltip 
                       content={<CustomTooltip />}
@@ -961,7 +997,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                     />
                     <Bar 
                       dataKey="count" 
-                      name="Votes" 
+                      name="Distinct Voters" 
                       fill={`url(#${chartConfig.voting.gradient.id})`}
                       radius={[6, 6, 0, 0]}
                       animationDuration={2000}
