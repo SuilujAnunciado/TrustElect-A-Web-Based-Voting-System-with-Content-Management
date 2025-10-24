@@ -270,10 +270,16 @@ export default function ElectionPage() {
 
   useEffect(() => {
     if (activeTab === 'all') {
-      setFilteredElections(elections);
+      setFilteredElections(elections.filter(election => 
+        election.is_active !== false && election.is_deleted !== true
+      ));
     } else {
       setFilteredElections(
         elections.filter(election => {
+          // Exclude archived and deleted elections
+          if (election.is_active === false || election.is_deleted === true) {
+            return false;
+          }
           if (activeTab === 'to_approve') {
             // Determine if the creator is a superadmin
             const isSuperAdminCreator =

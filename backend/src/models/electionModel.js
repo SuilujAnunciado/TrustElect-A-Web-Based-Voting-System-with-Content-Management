@@ -350,30 +350,13 @@ const createElection = async (electionData, userId, needsApproval = false) => {
 
 const getAllElections = async () => {
   try {
-    // Check if archive columns exist
-    const columnCheck = await pool.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'elections' 
-      AND column_name IN ('is_active', 'is_deleted')
-    `);
-    
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
-    const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
-    
-    let whereClause = '';
-    if (hasActiveColumns && hasDeleteColumns) {
-      whereClause = 'WHERE (e.is_active IS NULL OR e.is_active = TRUE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
-    }
-    
     const result = await pool.query(`
         SELECT 
             e.*, 
             COUNT(ev.id) AS voter_count
         FROM elections e
         LEFT JOIN eligible_voters ev ON e.id = ev.election_id
-        ${whereClause}
-        GROUP BY e.id, e.is_active, e.is_deleted
+        GROUP BY e.id
         ORDER BY e.created_at DESC;
     `);
     return result.rows;
@@ -1139,22 +1122,6 @@ const getPendingApprovalElections = async (adminId = null) => {
 
 const getAllElectionsWithCreator = async () => {
   try {
-    // Check if archive columns exist
-    const columnCheck = await pool.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'elections' 
-      AND column_name IN ('is_active', 'is_deleted')
-    `);
-    
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
-    const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
-    
-    let whereClause = '';
-    if (hasActiveColumns && hasDeleteColumns) {
-      whereClause = 'WHERE (e.is_active IS NULL OR e.is_active = TRUE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
-    }
-    
     const query = `
       SELECT e.*, 
              a.name as admin_name, 
@@ -1162,7 +1129,6 @@ const getAllElectionsWithCreator = async () => {
              a.id as admin_id
       FROM elections e
       LEFT JOIN admins a ON e.created_by = a.id
-      ${whereClause}
       ORDER BY e.date_from DESC
     `;
     const result = await pool.query(query);
@@ -1178,6 +1144,8 @@ const getAllElectionsWithCreator = async () => {
       status: getElectionStatus(row.date_from, row.date_to, row.start_time, row.end_time, row.needs_approval),
       needs_approval: row.needs_approval,
       election_type: row.election_type,
+      is_active: row.is_active,
+      is_deleted: row.is_deleted,
       created_by: row.admin_id ? {
         id: row.admin_id,
         name: row.admin_name,

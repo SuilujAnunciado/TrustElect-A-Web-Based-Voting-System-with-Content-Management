@@ -304,20 +304,28 @@ export default function ElectionPage() {
 
   useEffect(() => {
     if (activeTab === 'all') {
-      setFilteredElections(elections.map(election => {
-        // If created by super admin, treat as not needing approval
-        if (isCreatedBySystemAdmin(election) && election.needs_approval) {
-          return { ...election, needs_approval: false };
-        }
-        return election;
-      }));
+      setFilteredElections(elections
+        .filter(election => 
+          election.is_active !== false && election.is_deleted !== true
+        )
+        .map(election => {
+          // If created by super admin, treat as not needing approval
+          if (isCreatedBySystemAdmin(election) && election.needs_approval) {
+            return { ...election, needs_approval: false };
+          }
+          return election;
+        }));
     } else if (activeTab === 'pending') {
       // Use the dedicated pendingApprovals state
       setFilteredElections(pendingApprovals);
     } else {
-      // For other tabs, filter by status but exclude those needing approval
+      // For other tabs, filter by status but exclude those needing approval and archived/deleted
       setFilteredElections(
         elections.filter(election => {
+          // Exclude archived and deleted elections
+          if (election.is_active === false || election.is_deleted === true) {
+            return false;
+          }
           // If created by super admin, treat as not needing approval
           if (isCreatedBySystemAdmin(election) && election.needs_approval) {
             return election.status === activeTab;
