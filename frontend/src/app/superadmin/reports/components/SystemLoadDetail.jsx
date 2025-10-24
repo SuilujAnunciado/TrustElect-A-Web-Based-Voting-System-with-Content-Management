@@ -414,25 +414,19 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
     { value: '90d', label: 'Last 90 Days' }
   ];
 
-  // Improved data processing with accurate date handling
   const processRawData = (rawData, timeframe) => {
     if (!Array.isArray(rawData) || rawData.length === 0) return [];
     
-    // Return data with accurate timestamp information from backend
     return rawData.map((item) => {
-      // Use timestamp from backend if available
       if (item.timestamp) {
-        // Use backend-provided day/month/year to avoid timezone issues
         const day = item.day || parseInt(item.timestamp.split('T')[0].split('-')[2]);
         const month = item.month || parseInt(item.timestamp.split('T')[0].split('-')[1]);
         const year = item.year || parseInt(item.timestamp.split('T')[0].split('-')[0]);
         const hour = item.hour || 0;
         
-        // Create display date from backend values (not from Date object to avoid timezone shift)
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const displayDate = `${monthNames[month - 1]} ${day}, ${year}`;
         
-        // Format hour for display
         const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
         const displayPeriod = hour < 12 ? 'AM' : 'PM';
         const displayTime = `${displayHour}:00 ${displayPeriod}`;
