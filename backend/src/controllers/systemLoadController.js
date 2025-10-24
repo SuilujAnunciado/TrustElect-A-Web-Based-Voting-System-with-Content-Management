@@ -6,32 +6,38 @@ const getSystemLoad = async (req, res) => {
     let interval;
     let grouping;
     let dateFormat;
+    let extractField;
 
     // Set the time interval and grouping based on timeframe
     switch (timeframe) {
       case '7d':
         interval = 'INTERVAL \'7 days\'';
         grouping = 'date_trunc(\'hour\', al.created_at)';
+        extractField = 'HOUR';
         dateFormat = 'YYYY-MM-DD HH24:MI:SS';
         break;
       case '30d':
         interval = 'INTERVAL \'30 days\'';
         grouping = 'date_trunc(\'day\', al.created_at)';
+        extractField = 'DAY';
         dateFormat = 'YYYY-MM-DD';
         break;
       case '60d':
         interval = 'INTERVAL \'60 days\'';
         grouping = 'date_trunc(\'day\', al.created_at)';
+        extractField = 'DAY';
         dateFormat = 'YYYY-MM-DD';
         break;
       case '90d':
         interval = 'INTERVAL \'90 days\'';
         grouping = 'date_trunc(\'day\', al.created_at)';
+        extractField = 'DAY';
         dateFormat = 'YYYY-MM-DD';
         break;
       default: // 24h
         interval = 'INTERVAL \'24 hours\'';
         grouping = 'date_trunc(\'hour\', al.created_at)';
+        extractField = 'HOUR';
         dateFormat = 'YYYY-MM-DD HH24:MI:SS';
     }
 
@@ -50,7 +56,7 @@ const getSystemLoad = async (req, res) => {
       )
       SELECT 
         time_period as timestamp,
-        ${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'EXTRACT(DAY FROM time_period) as hour' : 'EXTRACT(HOUR FROM time_period) as hour'},
+        EXTRACT(${extractField} FROM time_period)::INTEGER as hour,
         EXTRACT(DAY FROM time_period)::INTEGER as day,
         EXTRACT(MONTH FROM time_period)::INTEGER as month,
         EXTRACT(YEAR FROM time_period)::INTEGER as year,
@@ -60,12 +66,10 @@ const getSystemLoad = async (req, res) => {
     `;
 
     // Get voting activity with accurate distinct voter counting
-    // Count distinct student IDs per day/hour to match login patterns
-    const votingGrouping = grouping.replace(/al\./g, 'v.');
     const votingQuery = `
       WITH hourly_votes AS (
         SELECT 
-          ${votingGrouping} as time_period,
+          date_trunc('${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'day' : 'hour'}', v.created_at) as time_period,
           COUNT(DISTINCT v.student_id) as count
         FROM votes v
         INNER JOIN elections e ON v.election_id = e.id
@@ -73,12 +77,12 @@ const getSystemLoad = async (req, res) => {
           v.created_at >= NOW() - ${interval}
           AND (e.is_active IS NULL OR e.is_active = TRUE)
           AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
-        GROUP BY ${votingGrouping}
+        GROUP BY date_trunc('${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'day' : 'hour'}', v.created_at)
         ORDER BY time_period
       )
       SELECT 
         time_period as timestamp,
-        ${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'EXTRACT(DAY FROM time_period) as hour' : 'EXTRACT(HOUR FROM time_period) as hour'},
+        EXTRACT(${extractField} FROM time_period)::INTEGER as hour,
         EXTRACT(DAY FROM time_period)::INTEGER as day,
         EXTRACT(MONTH FROM time_period)::INTEGER as month,
         EXTRACT(YEAR FROM time_period)::INTEGER as year,
@@ -88,22 +92,20 @@ const getSystemLoad = async (req, res) => {
     `;
 
     // Get peak hours and counts with better timeframe handling
-    const peakGrouping = grouping.replace(/al\./g, 'al.');
-    const peakVotingGrouping = grouping.replace(/al\./g, 'v.');
     const peakStatsQuery = `
       WITH login_stats AS (
         SELECT 
-          ${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'EXTRACT(DAY FROM' : 'EXTRACT(HOUR FROM'} ${peakGrouping}) as hour,
+          EXTRACT(${extractField} FROM ${grouping})::INTEGER as hour,
           COUNT(DISTINCT al.user_id) as count
         FROM audit_logs al
         WHERE 
           al.action = 'LOGIN'
           AND al.created_at >= NOW() - ${interval}
-        GROUP BY ${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'EXTRACT(DAY FROM' : 'EXTRACT(HOUR FROM'} ${peakGrouping})
+        GROUP BY EXTRACT(${extractField} FROM ${grouping})
       ),
       vote_stats AS (
         SELECT 
-          ${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'EXTRACT(DAY FROM' : 'EXTRACT(HOUR FROM'} ${peakVotingGrouping}) as hour,
+          EXTRACT(${extractField} FROM date_trunc('${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'day' : 'hour'}', v.created_at))::INTEGER as hour,
           COUNT(DISTINCT v.student_id) as count
         FROM votes v
         INNER JOIN elections e ON v.election_id = e.id
@@ -111,7 +113,7 @@ const getSystemLoad = async (req, res) => {
           v.created_at >= NOW() - ${interval}
           AND (e.is_active IS NULL OR e.is_active = TRUE)
           AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
-        GROUP BY ${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'EXTRACT(DAY FROM' : 'EXTRACT(HOUR FROM'} ${peakVotingGrouping}
+        GROUP BY EXTRACT(${extractField} FROM date_trunc('${timeframe === '30d' || timeframe === '60d' || timeframe === '90d' ? 'day' : 'hour'}', v.created_at))
       ),
       active_users AS (
         SELECT COUNT(DISTINCT al.user_id) as count
