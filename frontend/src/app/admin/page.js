@@ -626,26 +626,32 @@ export default function AdminDashboard() {
     return rawData.map((item) => {
       // Use timestamp from backend if available
       if (item.timestamp) {
-        const dateObj = new Date(item.timestamp);
+        // Use backend-provided day/month/year to avoid timezone issues
+        const day = item.day || parseInt(item.timestamp.split('T')[0].split('-')[2]);
+        const month = item.month || parseInt(item.timestamp.split('T')[0].split('-')[1]);
+        const year = item.year || parseInt(item.timestamp.split('T')[0].split('-')[0]);
+        const hour = item.hour || 0;
+        
+        // Create display date from backend values (not from Date object to avoid timezone shift)
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const displayDate = `${monthNames[month - 1]} ${day}, ${year}`;
+        
+        // Format hour for display
+        const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+        const displayPeriod = hour < 12 ? 'AM' : 'PM';
+        const displayTime = `${displayHour}:00 ${displayPeriod}`;
+        
         return {
           ...item,
-          hour: item.hour || 0,
+          hour: hour,
           count: Math.round(typeof item.count === 'number' && !isNaN(item.count) ? item.count : 0),
-          day: item.day || dateObj.getDate(),
-          month: item.month || (dateObj.getMonth() + 1),
-          year: item.year || dateObj.getFullYear(),
+          day: day,
+          month: month,
+          year: year,
           timestamp: item.timestamp,
           date: item.timestamp.split('T')[0],
-          displayTime: new Date(item.timestamp).toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: true 
-          }),
-          displayDate: new Date(item.timestamp).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-          })
+          displayTime: displayTime,
+          displayDate: displayDate
         };
       }
       return item;
@@ -1753,9 +1759,9 @@ export default function AdminDashboard() {
           <>
             {/* Process data */}
             {(() => {
-              // Try the new date-aware processing first
-              let processedLoginData = processDataWithDates(systemLoadData.login_activity || [], selectedTimeframe);
-              let processedVotingData = processDataWithDates(systemLoadData.voting_activity || [], selectedTimeframe);
+              // Use accurate backend timestamp data processing
+              let processedLoginData = processRawData(systemLoadData.login_activity || [], selectedTimeframe);
+              let processedVotingData = processRawData(systemLoadData.voting_activity || [], selectedTimeframe);
               
               // Apply date range filter if active
               if (isDateFiltered) {
@@ -1772,6 +1778,13 @@ export default function AdminDashboard() {
                 processedVotingData = validateData(systemLoadData.voting_activity);
               }
               
+              // Calculate data consistency metrics
+              const totalLogins = processedLoginData.reduce((sum, item) => sum + item.count, 0);
+              const totalDistinctVoters = processedVotingData.reduce((sum, item) => sum + item.count, 0);
+              const totalVotes = systemLoadData.summary?.total_votes || 0;
+              const voterTurnout = totalLogins > 0 ? ((totalDistinctVoters / totalLogins) * 100).toFixed(1) : 0;
+              const avgVotesPerVoter = totalDistinctVoters > 0 ? (totalVotes / totalDistinctVoters).toFixed(2) : 0;
+
               const loginPeak = findPeakHour(processedLoginData);
               const votingPeak = findPeakHour(processedVotingData);
 
@@ -1781,14 +1794,14 @@ export default function AdminDashboard() {
                   data: processedLoginData,
                   average: calculateAverage(processedLoginData),
                   peak: loginPeak,
-                  total: processedLoginData.reduce((sum, item) => sum + item.count, 0)
+                  total: totalLogins
                 },
                 voting: {
                   gradient: { id: 'votingGradient', color: '#10B981' },
                   data: processedVotingData,
                   average: calculateAverage(processedVotingData),
                   peak: votingPeak,
-                  total: processedVotingData.reduce((sum, item) => sum + item.count, 0)
+                  total: totalDistinctVoters
                 }
               };
 
