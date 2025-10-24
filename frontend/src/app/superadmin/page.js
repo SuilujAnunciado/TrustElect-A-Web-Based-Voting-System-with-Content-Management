@@ -438,18 +438,11 @@ export default function SuperAdminDashboard() {
       const responseData = await response.json();
 
       const rawData = responseData.success ? responseData.data : responseData;
- 
-      const processedData = {
-        ...rawData,
-        login_activity: enhanceTimeData(rawData.login_activity || [], timeframe),
-        voting_activity: enhanceTimeData(rawData.voting_activity || [], timeframe)
-      };
-      
 
       setSelectedTimeframe(timeframe);
-      setSystemLoadData(processedData);
+      setSystemLoadData(rawData);
       
-      return processedData;
+      return rawData;
     } catch (err) {
       setSystemLoadData({
         login_activity: [],
@@ -541,7 +534,6 @@ export default function SuperAdminDashboard() {
           const dayOffset = (index * 7 + Math.floor(index / 3)) % 30; // Better distribution
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
           date = targetDate.toISOString().split('T')[0];
-          // Use different hours throughout the day for variety
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           hour = hours[index % hours.length];
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
@@ -723,6 +715,40 @@ export default function SuperAdminDashboard() {
       date: item.date || (item.timestamp ? new Date(item.timestamp).toISOString().split('T')[0] : null),
       timestamp: item.timestamp || item.date || null
     }));
+  };
+
+  // Improved data processing with accurate date handling
+  const processRawData = (rawData, timeframe) => {
+    if (!Array.isArray(rawData) || rawData.length === 0) return [];
+    
+    // Return data with accurate timestamp information from backend
+    return rawData.map((item) => {
+      // Use timestamp from backend if available
+      if (item.timestamp) {
+        const dateObj = new Date(item.timestamp);
+        return {
+          ...item,
+          hour: item.hour || 0,
+          count: Math.round(typeof item.count === 'number' && !isNaN(item.count) ? item.count : 0),
+          day: item.day || dateObj.getDate(),
+          month: item.month || (dateObj.getMonth() + 1),
+          year: item.year || dateObj.getFullYear(),
+          timestamp: item.timestamp,
+          date: item.timestamp.split('T')[0],
+          displayTime: new Date(item.timestamp).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          }),
+          displayDate: new Date(item.timestamp).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          })
+        };
+      }
+      return item;
+    }).sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
   };
 
   const processDataWithDates = (data, timeframe) => {
@@ -1532,9 +1558,9 @@ export default function SuperAdminDashboard() {
           <>
             {/* Process data */}
             {(() => {
-              // Try the new date-aware processing first
-              let processedLoginData = processDataWithDates(systemLoadData.login_activity || [], selectedTimeframe);
-              let processedVotingData = processDataWithDates(systemLoadData.voting_activity || [], selectedTimeframe);
+              // Use accurate backend timestamp data processing
+              let processedLoginData = processRawData(systemLoadData.login_activity || [], selectedTimeframe);
+              let processedVotingData = processRawData(systemLoadData.voting_activity || [], selectedTimeframe);
               
               // Apply date range filter if active
               if (isDateFiltered) {
@@ -1551,6 +1577,13 @@ export default function SuperAdminDashboard() {
                 processedVotingData = validateData(systemLoadData.voting_activity);
               }
               
+              // Calculate data consistency metrics
+              const totalLogins = processedLoginData.reduce((sum, item) => sum + item.count, 0);
+              const totalDistinctVoters = processedVotingData.reduce((sum, item) => sum + item.count, 0);
+              const totalVotes = systemLoadData.summary?.total_votes || 0;
+              const voterTurnout = totalLogins > 0 ? ((totalDistinctVoters / totalLogins) * 100).toFixed(1) : 0;
+              const avgVotesPerVoter = totalDistinctVoters > 0 ? (totalVotes / totalDistinctVoters).toFixed(2) : 0;
+
               const loginPeak = findPeakHour(processedLoginData);
               const votingPeak = findPeakHour(processedVotingData);
 
@@ -1560,14 +1593,14 @@ export default function SuperAdminDashboard() {
                   data: processedLoginData,
                   average: calculateAverage(processedLoginData),
                   peak: loginPeak,
-                  total: processedLoginData.reduce((sum, item) => sum + item.count, 0)
+                  total: totalLogins
                 },
                 voting: {
                   gradient: { id: 'votingGradient', color: '#10B981' },
                   data: processedVotingData,
                   average: calculateAverage(processedVotingData),
                   peak: votingPeak,
-                  total: processedVotingData.reduce((sum, item) => sum + item.count, 0)
+                  total: totalDistinctVoters
                 }
               };
 
