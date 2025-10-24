@@ -348,7 +348,7 @@ export default function Home() {
               style={{ maxHeight: 'calc(51px - (0px * 2))' }}
             />
           )}
-          <span className="text-white">TrustElect Voting System</span>
+          <span className="text-white">TrustElect</span>
         </h1>
         
         <nav className="flex items-center gap-4 relative z-10">

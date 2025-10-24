@@ -373,7 +373,7 @@ const getAllElections = async () => {
         FROM elections e
         LEFT JOIN eligible_voters ev ON e.id = ev.election_id
         ${whereClause}
-        GROUP BY e.id, e.is_archived, e.is_deleted
+        GROUP BY e.id, e.is_active, e.is_deleted
         ORDER BY e.created_at DESC;
     `);
     return result.rows;
@@ -1144,15 +1144,15 @@ const getAllElectionsWithCreator = async () => {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'elections' 
-      AND column_name IN ('is_archived', 'is_deleted')
+      AND column_name IN ('is_active', 'is_deleted')
     `);
     
-    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_archived');
+    const hasActiveColumns = columnCheck.rows.some(row => row.column_name === 'is_active');
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     let whereClause = '';
     if (hasActiveColumns && hasDeleteColumns) {
-      whereClause = 'WHERE (e.is_archived IS NULL OR e.is_archived = FALSE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
+      whereClause = 'WHERE (e.is_active IS NULL OR e.is_active = TRUE) AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)';
     }
     
     const query = `
