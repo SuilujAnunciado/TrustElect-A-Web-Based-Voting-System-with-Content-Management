@@ -565,16 +565,10 @@ export default function AdminDashboard() {
 
       const rawData = responseData.success ? responseData.data : responseData;
       
-      const processedData = {
-        ...rawData,
-        login_activity: enhanceTimeData(rawData.login_activity || [], timeframe),
-        voting_activity: enhanceTimeData(rawData.voting_activity || [], timeframe)
-      };
-
       setSelectedTimeframe(timeframe);
-      setSystemLoadData(processedData);
+      setSystemLoadData(rawData);
       
-      return processedData;
+      return rawData;
     } catch (err) {
       setSystemLoadData({
         login_activity: [],
@@ -622,6 +616,40 @@ export default function AdminDashboard() {
     setDateFrom('');
     setDateTo('');
     setIsDateFiltered(false);
+  };
+  
+  // Improved data processing with accurate date handling
+  const processRawData = (rawData, timeframe) => {
+    if (!Array.isArray(rawData) || rawData.length === 0) return [];
+    
+    // Return data with accurate timestamp information from backend
+    return rawData.map((item) => {
+      // Use timestamp from backend if available
+      if (item.timestamp) {
+        const dateObj = new Date(item.timestamp);
+        return {
+          ...item,
+          hour: item.hour || 0,
+          count: Math.round(typeof item.count === 'number' && !isNaN(item.count) ? item.count : 0),
+          day: item.day || dateObj.getDate(),
+          month: item.month || (dateObj.getMonth() + 1),
+          year: item.year || dateObj.getFullYear(),
+          timestamp: item.timestamp,
+          date: item.timestamp.split('T')[0],
+          displayTime: new Date(item.timestamp).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          }),
+          displayDate: new Date(item.timestamp).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          })
+        };
+      }
+      return item;
+    }).sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
   };
   
   // Helper function to enhance data with proper time information

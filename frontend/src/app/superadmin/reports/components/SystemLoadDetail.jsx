@@ -665,30 +665,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             </div>
           )}
 
-          {/* Data Accuracy Info Box */}
-          {!isDataReset && (
-            <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-6 mb-6">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-100 rounded">
-                  <AlertTriangle className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-blue-900 mb-2">Data Accuracy & Consistency</h3>
-                  <p className="text-sm text-blue-800 mb-2">
-                    <strong>Distinct Voters:</strong> Number of unique students who voted in active elections
-                  </p>
-                  <p className="text-sm text-blue-800 mb-2">
-                    <strong>Total Votes:</strong> Total number of individual vote records (students vote for multiple positions per election)
-                  </p>
-                  <p className="text-sm text-blue-800">
-                    <strong>Voter Turnout:</strong> ({totalDistinctVoters.toLocaleString()} voters ÷ {totalLogins.toLocaleString()} logins) = {voterTurnout}% | 
-                    <strong> Avg Votes/Voter:</strong> {totalVotes.toLocaleString()} votes ÷ {totalDistinctVoters.toLocaleString()} voters = {avgVotesPerVoter} per voter
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Loading Indicator */}
           {isLoading && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
