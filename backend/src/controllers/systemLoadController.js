@@ -131,6 +131,15 @@ const getSystemLoad = async (req, res) => {
       pool.query(peakStatsQuery)
     ]);
 
+    // Validate query results
+    if (!loginActivity.rows || !votingActivity.rows || !peakStats.rows || peakStats.rows.length === 0) {
+      console.warn('Warning: One or more query results are empty', {
+        loginActivityRows: loginActivity?.rows?.length || 0,
+        votingActivityRows: votingActivity?.rows?.length || 0,
+        peakStatsRows: peakStats?.rows?.length || 0
+      });
+    }
+
     // Calculate total votes (all votes, not just distinct voters)
     const totalVotesResult = await pool.query(`
       SELECT COUNT(*) as total_votes
@@ -142,16 +151,16 @@ const getSystemLoad = async (req, res) => {
         AND (e.is_deleted IS NULL OR e.is_deleted = FALSE)
     `);
 
-    const totalVotes = parseInt(totalVotesResult.rows[0].total_votes) || 0;
+    const totalVotes = parseInt(totalVotesResult?.rows?.[0]?.total_votes) || 0;
 
     // Transform the data with proper timestamp information
     const response = {
       summary: {
-        peak_login_hour: peakStats.rows[0].peak_login_hour || 'N/A',
-        peak_login_count: parseInt(peakStats.rows[0].peak_login_count) || 0,
-        peak_voting_hour: peakStats.rows[0].peak_voting_hour || 'N/A',
-        peak_voting_count: parseInt(peakStats.rows[0].peak_voting_count) || 0,
-        total_active_users: parseInt(peakStats.rows[0].total_active_users) || 0,
+        peak_login_hour: peakStats.rows[0]?.peak_login_hour || 'N/A',
+        peak_login_count: parseInt(peakStats.rows[0]?.peak_login_count) || 0,
+        peak_voting_hour: peakStats.rows[0]?.peak_voting_hour || 'N/A',
+        peak_voting_count: parseInt(peakStats.rows[0]?.peak_voting_count) || 0,
+        total_active_users: parseInt(peakStats.rows[0]?.total_active_users) || 0,
         total_distinct_voters: votingActivity.rows.reduce((sum, row) => sum + parseInt(row.count || 0), 0),
         total_votes: totalVotes,
         timeframe: timeframe,
@@ -163,8 +172,8 @@ const getSystemLoad = async (req, res) => {
         day: parseInt(row.day),
         month: parseInt(row.month),
         year: parseInt(row.year),
-        timestamp: row.timestamp.toISOString(),
-        formatted_time: row.formatted_time,
+        timestamp: typeof row.timestamp === 'string' ? row.timestamp : (row.timestamp instanceof Date ? row.timestamp.toISOString() : new Date(row.timestamp).toISOString()),
+        formatted_time: row.formatted_time || '',
         type: 'logins'
       })),
       voting_activity: votingActivity.rows.map(row => ({
@@ -173,8 +182,8 @@ const getSystemLoad = async (req, res) => {
         day: parseInt(row.day),
         month: parseInt(row.month),
         year: parseInt(row.year),
-        timestamp: row.timestamp.toISOString(),
-        formatted_time: row.formatted_time,
+        timestamp: typeof row.timestamp === 'string' ? row.timestamp : (row.timestamp instanceof Date ? row.timestamp.toISOString() : new Date(row.timestamp).toISOString()),
+        formatted_time: row.formatted_time || '',
         type: 'voters'
       }))
     };

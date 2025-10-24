@@ -670,6 +670,26 @@ export default function AdminDashboard() {
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           hour = hours[index % hours.length];
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
+        } else if (timeframe === '60d') {
+          // For 60d, distribute across the past 60 days
+          const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
+          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
+          
+          // Use different hours throughout the day for variety
+          const hours = [8, 10, 12, 14, 16, 18, 20, 22];
+          const selectedHour = hours[index % hours.length];
+          
+          timestamp = new Date(`${targetDate.toISOString().split('T')[0]}T${selectedHour.toString().padStart(2, '0')}:00:00`).toISOString();
+        } else if (timeframe === '90d') {
+          // For 90d, distribute across the past 90 days
+          const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
+          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
+          
+          // Use different hours throughout the day for variety
+          const hours = [8, 10, 12, 14, 16, 18, 20, 22];
+          const selectedHour = hours[index % hours.length];
+          
+          timestamp = new Date(`${targetDate.toISOString().split('T')[0]}T${selectedHour.toString().padStart(2, '0')}:00:00`).toISOString();
         }
         // Fallback for other timeframes
         else {
@@ -1187,6 +1207,68 @@ export default function AdminDashboard() {
         }
         return dateCompare;
       });
+    } else if (timeframe === '60d') {
+      // For 60d, distribute across the past 60 days
+      data.forEach((item, index) => {
+        const count = Math.round(item.count || 0);
+        
+        if (count > 0) {
+          // Distribute data points across the past 60 days
+          const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
+          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
+          
+          // Use different hours throughout the day for variety
+          const hours = [8, 10, 12, 14, 16, 18, 20, 22];
+          const selectedHour = hours[index % hours.length];
+          
+          processedData.push({
+            hour: selectedHour,
+            count: count,
+            date: targetDate.toISOString().split('T')[0],
+            timestamp: new Date(`${targetDate.toISOString().split('T')[0]}T${selectedHour.toString().padStart(2, '0')}:00:00`).toISOString()
+          });
+        }
+      });
+      
+      // Sort by date and hour
+      processedData.sort((a, b) => {
+        const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
+        if (dateCompare === 0) {
+          return a.hour - b.hour;
+        }
+        return dateCompare;
+      });
+    } else if (timeframe === '90d') {
+      // For 90d, distribute across the past 90 days
+      data.forEach((item, index) => {
+        const count = Math.round(item.count || 0);
+        
+        if (count > 0) {
+          // Distribute data points across the past 90 days
+          const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
+          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
+          
+          // Use different hours throughout the day for variety
+          const hours = [8, 10, 12, 14, 16, 18, 20, 22];
+          const selectedHour = hours[index % hours.length];
+          
+          processedData.push({
+            hour: selectedHour,
+            count: count,
+            date: targetDate.toISOString().split('T')[0],
+            timestamp: new Date(`${targetDate.toISOString().split('T')[0]}T${selectedHour.toString().padStart(2, '0')}:00:00`).toISOString()
+          });
+        }
+      });
+      
+      // Sort by date and hour
+      processedData.sort((a, b) => {
+        const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
+        if (dateCompare === 0) {
+          return a.hour - b.hour;
+        }
+        return dateCompare;
+      });
     }
     
     return processedData;
@@ -1579,6 +1661,8 @@ export default function AdminDashboard() {
               <option value="24h" className="text-black">Last 24 Hours</option>
               <option value="7d" className="text-black">Last 7 Days</option>
               <option value="30d" className="text-black">Last 30 Days</option>
+              <option value="60d" className="text-black">Last 60 Days</option>
+              <option value="90d" className="text-black">Last 90 Days</option>
             </select>
           </div>
         </div>
