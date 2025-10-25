@@ -14,7 +14,6 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000, 
 });
 
-// Set timezone for all connections
 pool.on('connect', (client) => {
   client.query("SET timezone = 'Asia/Manila'");
 });

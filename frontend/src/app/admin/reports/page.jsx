@@ -233,11 +233,8 @@ export default function AdminReportsPage() {
     }
   };
 
-  const handleViewReport = async (report) => {
-    const data = await fetchReportData(report.id);
-    if (data) {
-      setSelectedReport({ ...report, data });
-    }
+  const handleViewReport = (report) => {
+    setSelectedReport(report);
   };
 
   const downloadReport = async (reportId) => {

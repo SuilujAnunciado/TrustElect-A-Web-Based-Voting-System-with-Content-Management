@@ -402,7 +402,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
         const itemDate = new Date(item.timestamp);
         return itemDate >= cutoffDate;
       }
-      return true; // If no timestamp, include all data
+      return true;
     });
   };
 
