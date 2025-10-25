@@ -454,10 +454,19 @@ export default function ReportsPage() {
     }
   };
 
-  const handleViewReport = (report) => {
-    // Open report immediately without waiting for data fetch
-    // Individual report components will handle their own data loading
-    setSelectedReport(report);
+  const handleViewReport = async (report) => {
+    // Open modal immediately
+    setSelectedReport({ ...report, loading: true });
+    
+    // Fetch data in background
+    const data = await fetchReportData(report.id);
+    
+    // Update with data (modal is already open)
+    if (data) {
+      setSelectedReport({ ...report, data, loading: false });
+    } else {
+      setSelectedReport({ ...report, data: null, loading: false, error: true });
+    }
   };
 
   const downloadReport = async (reportId) => {
