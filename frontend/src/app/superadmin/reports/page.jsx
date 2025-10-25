@@ -455,17 +455,9 @@ export default function ReportsPage() {
   };
 
   const handleViewReport = async (report) => {
-    // Open modal immediately
-    setSelectedReport({ ...report, loading: true });
-    
-    // Fetch data in background
     const data = await fetchReportData(report.id);
-    
-    // Update with data (modal is already open)
     if (data) {
-      setSelectedReport({ ...report, data, loading: false });
-    } else {
-      setSelectedReport({ ...report, data: null, loading: false, error: true });
+      setSelectedReport({ ...report, data });
     }
   };
 

@@ -198,7 +198,9 @@ export default function AuditLogsPage() {
       const csvContent = [
         headers.join(","),
         ...logs.map(log => {
-          const userName = log.details?.user_name || (log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`);
+          const userName = log.admin_name || log.user_name || log.student_name || 
+                          log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
+                          (log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`);
           const description = getActivityDescription(log).replace(/,/g, ';'); // Replace commas to avoid CSV issues
           return [
             log.id,
@@ -272,9 +274,11 @@ export default function AuditLogsPage() {
   const getActivityDescription = (log) => {
     if (!log) return "-";
     
-    // Extract user information - prioritize full name
+    // Extract user information - check top-level fields first (like AdminActivityReport does)
     const userName = log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`;
-    const userFullName = log.details?.user_name || log.details?.admin_name || log.details?.student_name || userName;
+    const userFullName = log.admin_name || log.user_name || log.student_name || 
+                         log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
+                         userName;
     const timestamp = new Date(log.created_at).toLocaleString();
     
     // Extract entity details
@@ -719,7 +723,9 @@ export default function AuditLogsPage() {
                       <td className="p-2 whitespace-nowrap text-sm text-black">{formatDateTime(log.created_at)}</td>
                       <td className="p-2">
                         <div className="text-sm text-black font-medium truncate max-w-[180px]">
-                          {log.details?.user_name || log.details?.admin_name || log.details?.student_name || (log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`)}
+                          {log.admin_name || log.user_name || log.student_name || 
+                           log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
+                           (log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`)}
                         </div>
                         <div className="text-xs mt-1">
                           <span className={`inline-block px-2 py-0.5 rounded-full ${getRoleColor(log.user_role)}`}>
