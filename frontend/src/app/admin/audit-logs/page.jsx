@@ -198,7 +198,7 @@ export default function AuditLogsPage() {
         ...logs.map(log => {
           const userName = log.admin_name || log.user_name || log.student_name || 
                           log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
-                          (log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`);
+                          'Unknown User';
           const description = getActivityDescription(log).replace(/,/g, ';'); // Replace commas to avoid CSV issues
           return [
             log.id,
@@ -230,8 +230,9 @@ export default function AuditLogsPage() {
   };
   
   useEffect(() => {
-    fetchAuditLogs();
-  }, []);
+    setPage(1);
+    fetchAuditLogs(1);
+  }, [filters.activityType, filters.userRole]);
   
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
@@ -272,11 +273,10 @@ export default function AuditLogsPage() {
   const getActivityDescription = (log) => {
     if (!log) return "-";
     
-    // Extract user information - check top-level fields first (like AdminActivityReport does)
-    const userName = log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`;
+    // Extract user information - use full name only (like AdminActivityReport does)
     const userFullName = log.admin_name || log.user_name || log.student_name || 
                          log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
-                         userName;
+                         'Unknown User';
     const timestamp = new Date(log.created_at).toLocaleString();
     
     // Extract entity details
@@ -631,9 +631,8 @@ export default function AuditLogsPage() {
           <select
             value={filters.activityType}
             onChange={(e) => {
-              handleFilterChange('activityType', e.target.value);
-              setPage(1);
-              setTimeout(() => fetchAuditLogs(1), 100);
+              const newValue = e.target.value;
+              setFilters(prev => ({ ...prev, activityType: newValue }));
             }}
             className="p-2 border rounded text-black"
           >
@@ -648,9 +647,8 @@ export default function AuditLogsPage() {
           <select
             value={filters.userRole}
             onChange={(e) => {
-              handleFilterChange('userRole', e.target.value);
-              setPage(1);
-              setTimeout(() => fetchAuditLogs(1), 100);
+              const newValue = e.target.value;
+              setFilters(prev => ({ ...prev, userRole: newValue }));
             }}
             className="p-2 border rounded text-black"
           >
@@ -709,7 +707,10 @@ export default function AuditLogsPage() {
                         <div className="text-sm text-black font-medium truncate max-w-[180px]">
                           {log.admin_name || log.user_name || log.student_name || 
                            log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
-                           (log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`)}
+                           'Unknown User'}
+                        </div>
+                        <div className="text-sm text-gray-500 truncate max-w-[180px]">
+                          {log.user_email || 'N/A'}
                         </div>
                         <div className="text-xs mt-1">
                           <span className={`inline-block px-2 py-0.5 rounded-full ${getRoleColor(log.user_role)}`}>
