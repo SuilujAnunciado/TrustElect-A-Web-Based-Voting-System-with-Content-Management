@@ -1802,12 +1802,12 @@ export default function BallotPage() {
         }
       } else { // No student number, validate by name
         if (!cand.first_name.trim()) {
-          candidateErrors[`candidate-fn-${cand.id}`] = "First name is required";
+          candidateErrors[`candidate-fn-${cand.id}`] = isSymposiumElection ? "Project title is required" : "First name is required";
           isCurrentCandidateInvalid = true;
         }
         
-        // Only require last name for individual students, not for groups
-        if (candidateType !== 'group' && !cand.last_name.trim()) {
+        // Only require last name for individual students, not for groups or symposium projects
+        if (candidateType !== 'group' && !isSymposiumElection && !cand.last_name.trim()) {
           candidateErrors[`candidate-ln-${cand.id}`] = "Last name is required";
           isCurrentCandidateInvalid = true;
         }
@@ -1846,8 +1846,8 @@ export default function BallotPage() {
           }
         }
 
-          // Only check student existence for individual students, not for groups
-          if (candidateType !== 'group') {
+          // Only check student existence for individual students, not for groups or symposium projects
+          if (candidateType !== 'group' && !isSymposiumElection) {
             const studentExists = allStudents.some(student =>
               student.first_name.toLowerCase() === cand.first_name.toLowerCase() &&
               student.last_name.toLowerCase() === cand.last_name.toLowerCase()
@@ -2165,6 +2165,11 @@ export default function BallotPage() {
           if (!cand.first_name.trim()) {
             newErrors[`candidate-fn-${cand.id}`] = "Group name is required";
           }
+        } else if (isSymposiumElection) {
+          if (!cand.first_name.trim()) {
+            newErrors[`candidate-fn-${cand.id}`] = "Project title is required";
+          }
+          // No last name required for symposium projects
         } else {
           if (!cand.first_name.trim()) {
             newErrors[`candidate-fn-${cand.id}`] = "First name is required";
