@@ -19,11 +19,16 @@ export const metadata = {
   description: "Secure Electronic Voting System",
   icons: {
     icon: [
-      { url: '/images/sti_logo.png' },
+      { url: '/images/sti_logo.png', sizes: '32x32', type: 'image/png' },
+      { url: '/images/sti_logo.png', sizes: '64x64', type: 'image/png' },
       { url: '/images/sti_logo.svg', type: 'image/svg+xml' },
     ],
-    shortcut: '/images/sti_logo.png',
-    apple: '/images/sti_logo.png',
+    shortcut: [
+      { url: '/images/sti_logo.png', sizes: '32x32' },
+    ],
+    apple: [
+      { url: '/images/sti_logo.png', sizes: '180x180' },
+    ],
   },
 };
 
