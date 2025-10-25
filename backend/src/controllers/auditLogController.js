@@ -90,11 +90,68 @@ exports.getAuditLogs = async (req, res) => {
       auditLogModel.getAuditLogsCount(filterOptions)
     ]);
  
+    // Get user details for each activity (admins and students)
+    let logsWithDetails = [];
+    try {
+      logsWithDetails = await Promise.all(
+        logs.map(async (log) => {
+          try {
+            // First try to get from users table (for admins)
+            const userQuery = `
+              SELECT u.id, u.email, u.first_name, u.last_name, u.role_id
+              FROM users u
+              WHERE u.id = $1
+            `;
+            const userResult = await auditLogModel.executeQuery(userQuery, [log.user_id]);
+            
+            if (userResult.rows.length > 0) {
+              const user = userResult.rows[0];
+              return {
+                ...log,
+                user_email: user.email || log.user_email,
+                admin_name: `${user.first_name} ${user.last_name}`,
+                user_name: `${user.first_name} ${user.last_name}`,
+                user_role: user.role_id === 1 ? 'Super Admin' : user.role_id === 2 ? 'Admin' : log.user_role
+              };
+            }
+            
+            // If not found in users, try students table
+            const studentQuery = `
+              SELECT s.id, s.email, s.first_name, s.last_name
+              FROM students s
+              WHERE s.id = $1
+            `;
+            const studentResult = await auditLogModel.executeQuery(studentQuery, [log.user_id]);
+            
+            if (studentResult.rows.length > 0) {
+              const student = studentResult.rows[0];
+              return {
+                ...log,
+                user_email: student.email || log.user_email,
+                student_name: `${student.first_name} ${student.last_name}`,
+                user_name: `${student.first_name} ${student.last_name}`,
+                user_role: 'Student'
+              };
+            }
+            
+            // If not found in either table, return with original data
+            return log;
+          } catch (error) {
+            console.error('Error getting user details for log:', log.id, error);
+            return log;
+          }
+        })
+      );
+    } catch (error) {
+      console.error('Error processing logs with details:', error);
+      logsWithDetails = logs;
+    }
+ 
     const totalPages = Math.ceil(count / parseInt(limit, 10));
     
     res.status(200).json({
       success: true,
-      data: logs,
+      data: logsWithDetails,
       pagination: {
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),

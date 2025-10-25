@@ -115,6 +115,11 @@ export default function AuditLogsPage() {
         const seenLogs = new Set();
         
         res.data.data.forEach(log => {
+          // Filter out SMS_VERIFIED logs
+          if (log.action === 'SMS_VERIFIED') {
+            return;
+          }
+          
           // Create a more comprehensive unique key
           const logKey = `${log.action}-${log.entity_type}-${log.entity_id}-${log.user_id}-${log.user_email}-${new Date(log.created_at).getTime()}`;
           if (!seenLogs.has(logKey)) {
@@ -720,12 +725,12 @@ export default function AuditLogsPage() {
                     <tr key={log.id} className="border-b hover:bg-gray-50">
                       <td className="p-2 whitespace-nowrap text-sm text-black">{formatDateTime(log.created_at)}</td>
                       <td className="p-2">
-                        <div className="text-sm text-black font-medium truncate max-w-[180px]">
+                        <div className="text-sm text-black font-medium">
                           {log.admin_name || log.user_name || log.student_name || 
                            log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
                            'Unknown User'}
                         </div>
-                        <div className="text-sm text-gray-500 truncate max-w-[180px]">
+                        <div className="text-sm text-gray-500 break-all">
                           {log.user_email || 'N/A'}
                         </div>
                         <div className="text-xs mt-1">

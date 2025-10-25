@@ -92,7 +92,7 @@ const getAuditLogs = async (options = {}) => {
   } = options;
 
   try {
-    let query = 'SELECT * FROM audit_logs WHERE 1=1';
+    let query = 'SELECT * FROM audit_logs WHERE 1=1 AND action != \'SMS_VERIFIED\'';
     const values = [];
     let paramCount = 1;
 
@@ -227,7 +227,7 @@ const getAuditLogsCount = async (options = {}) => {
   } = options;
 
   try {
-    let query = 'SELECT COUNT(*) FROM audit_logs WHERE 1=1';
+    let query = 'SELECT COUNT(*) FROM audit_logs WHERE 1=1 AND action != \'SMS_VERIFIED\'';
     const values = [];
     let paramCount = 1;
 
