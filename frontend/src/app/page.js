@@ -618,17 +618,38 @@ export default function Home() {
       {/* Call to Action Section - Moved after Hero */}
       {landingContent.callToAction.enabled && (
         <section 
-          className="text-white py-16 px-6 relative"
+          className="text-white py-16 px-6 relative overflow-hidden"
           style={{
             backgroundColor: landingContent.callToAction?.bgColor || '#1e3a8a',
-            color: landingContent.callToAction?.textColor || '#ffffff',
-            backgroundImage: landingContent.callToAction?.backgroundImage ? `url(${formatImageUrl(landingContent.callToAction.backgroundImage)})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
+            color: landingContent.callToAction?.textColor || '#ffffff'
           }}
         >
-          <div className="container mx-auto max-w-6xl">
+          {/* Background Image Layer with Anti-Pixelation Effects */}
+          {landingContent.callToAction?.backgroundImage && (
+            <>
+              <div 
+                className="absolute inset-0 z-0"
+                style={{
+                  backgroundImage: `url(${formatImageUrl(landingContent.callToAction.backgroundImage)})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  filter: 'blur(0.5px)',
+                  transform: 'scale(1.02)',
+                  imageRendering: '-webkit-optimize-contrast'
+                }}
+              />
+              {/* Semi-transparent overlay to reduce pixelation visibility */}
+              <div 
+                className="absolute inset-0 z-0"
+                style={{
+                  backgroundColor: landingContent.callToAction?.bgColor || '#1e3a8a',
+                  opacity: 0.3
+                }}
+              />
+            </>
+          )}
+          <div className="container mx-auto max-w-6xl relative z-10">
             {/* Changed to flex layout with video on left and content on right */}
             <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
               {/* Video container - Left side, smaller size */}
@@ -706,16 +727,37 @@ export default function Home() {
 
       {/* Features Section - Moved after CTA */}
       <section 
-        className="py-20 px-6 relative"
+        className="py-20 px-6 relative overflow-hidden"
         style={{
-          backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb',
-          backgroundImage: landingContent.features?.backgroundImage ? `url(${formatImageUrl(landingContent.features.backgroundImage)})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb'
         }}
       >
-        <div className="container mx-auto max-w-6xl">
+        {/* Background Image Layer with Anti-Pixelation Effects */}
+        {landingContent.features?.backgroundImage && (
+          <>
+            <div 
+              className="absolute inset-0 z-0"
+              style={{
+                backgroundImage: `url(${formatImageUrl(landingContent.features.backgroundImage)})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                filter: 'blur(0.5px)',
+                transform: 'scale(1.02)',
+                imageRendering: '-webkit-optimize-contrast'
+              }}
+            />
+            {/* Semi-transparent overlay to reduce pixelation visibility */}
+            <div 
+              className="absolute inset-0 z-0"
+              style={{
+                backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb',
+                opacity: 0.3
+              }}
+            />
+          </>
+        )}
+        <div className="container mx-auto max-w-6xl relative z-10">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Key Features
           </h2>
