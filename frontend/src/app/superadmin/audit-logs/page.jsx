@@ -272,9 +272,10 @@ export default function AuditLogsPage() {
   const getActivityDescription = (log) => {
     if (!log) return "-";
     
-    // Extract user information
+    // Extract user information - prioritize full name
     const userName = log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`;
-    const userFullName = log.details?.user_name || userName;
+    const userFullName = log.details?.user_name || log.details?.admin_name || log.details?.student_name || userName;
+    const timestamp = new Date(log.created_at).toLocaleString();
     
     // Extract entity details
     const entityId = log.entity_id ? `#${log.entity_id}` : '';
@@ -286,177 +287,177 @@ export default function AuditLogsPage() {
 
     switch (log.action) {
       case 'LOGIN':
-        return `${userFullName} logged in successfully`;
+        return `${userFullName} logged in successfully on ${timestamp}`;
       case 'LOGIN_FAILED':
-        return `Failed login attempt by ${userFullName}`;
+        return `Failed login attempt by ${userFullName} on ${timestamp}`;
       case 'LOGOUT':
-        return `${userFullName} logged out`;
+        return `${userFullName} logged out on ${timestamp}`;
       case 'VOTE':
         if (electionTitle) {
-          return `${userFullName} cast a vote in "${electionTitle}" election`;
+          return `${userFullName} cast a vote in "${electionTitle}" election on ${timestamp}`;
         }
-        return `${userFullName} cast a vote in election ${entityId}`;
+        return `${userFullName} cast a vote in election ${entityId} on ${timestamp}`;
       case 'CREATE':
         if (log.entity_type === 'elections') {
           return electionTitle 
-            ? `${userFullName} created election "${electionTitle}"` 
-            : `${userFullName} created election ${entityId}`;
+            ? `${userFullName} created election "${electionTitle}" on ${timestamp}` 
+            : `${userFullName} created election ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'ballots') {
           return electionTitle
-            ? `${userFullName} created ballot for "${electionTitle}"`
-            : `${userFullName} created ballot ${entityId}`;
+            ? `${userFullName} created ballot for "${electionTitle}" on ${timestamp}`
+            : `${userFullName} created ballot ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'candidates') {
           const desc = candidateName 
             ? `candidate "${candidateName}"` 
             : `candidate ${entityId}`;
           return positionName 
-            ? `${userFullName} added ${desc} for position "${positionName}"`
-            : `${userFullName} added ${desc}`;
+            ? `${userFullName} added ${desc} for position "${positionName}" on ${timestamp}`
+            : `${userFullName} added ${desc} on ${timestamp}`;
         }
         if (log.entity_type === 'positions') {
           return positionName
-            ? `${userFullName} created position "${positionName}"`
-            : `${userFullName} created position ${entityId}`;
+            ? `${userFullName} created position "${positionName}" on ${timestamp}`
+            : `${userFullName} created position ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'admin') {
           return adminName
-            ? `${userFullName} created admin account for ${adminName}`
-            : `${userFullName} created admin account ${entityId}`;
+            ? `${userFullName} created admin account for ${adminName} on ${timestamp}`
+            : `${userFullName} created admin account ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'departments') {
           return departmentName
-            ? `${userFullName} created department "${departmentName}"`
-            : `${userFullName} created department ${entityId}`;
+            ? `${userFullName} created department "${departmentName}" on ${timestamp}`
+            : `${userFullName} created department ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'students') {
           const studentName = log.details?.student_name || '';
           return studentName
-            ? `${userFullName} added student "${studentName}"`
-            : `${userFullName} added student ${entityId}`;
+            ? `${userFullName} added student "${studentName}" on ${timestamp}`
+            : `${userFullName} added student ${entityId} on ${timestamp}`;
         }
-        return `${userFullName} created ${log.entity_type} ${entityId}`;
+        return `${userFullName} created ${log.entity_type} ${entityId} on ${timestamp}`;
       case 'CREATE_ELECTION_WITH_BALLOT':
         return electionTitle
-          ? `${userFullName} created election "${electionTitle}" with ballot`
-          : `${userFullName} created election ${entityId} with ballot`;
+          ? `${userFullName} created election "${electionTitle}" with ballot on ${timestamp}`
+          : `${userFullName} created election ${entityId} with ballot on ${timestamp}`;
       case 'UPDATE':
         if (log.entity_type === 'elections') {
           return electionTitle
-            ? `${userFullName} updated election "${electionTitle}"`
-            : `${userFullName} updated election ${entityId}`;
+            ? `${userFullName} updated election "${electionTitle}" on ${timestamp}`
+            : `${userFullName} updated election ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'ballots') {
           return electionTitle
-            ? `${userFullName} updated ballot for "${electionTitle}"`
-            : `${userFullName} updated ballot ${entityId}`;
+            ? `${userFullName} updated ballot for "${electionTitle}" on ${timestamp}`
+            : `${userFullName} updated ballot ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'candidates') {
           return candidateName
-            ? `${userFullName} updated candidate "${candidateName}"`
-            : `${userFullName} updated candidate ${entityId}`;
+            ? `${userFullName} updated candidate "${candidateName}" on ${timestamp}`
+            : `${userFullName} updated candidate ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'positions') {
           return positionName
-            ? `${userFullName} updated position "${positionName}"`
-            : `${userFullName} updated position ${entityId}`;
+            ? `${userFullName} updated position "${positionName}" on ${timestamp}`
+            : `${userFullName} updated position ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'user' || log.entity_type === 'profile') {
-          return `${userFullName} updated their profile`;
+          return `${userFullName} updated their profile on ${timestamp}`;
         }
         if (log.entity_type === 'admin') {
           return adminName
-            ? `${userFullName} updated admin account for ${adminName}`
-            : `${userFullName} updated admin profile`;
+            ? `${userFullName} updated admin account for ${adminName} on ${timestamp}`
+            : `${userFullName} updated admin profile on ${timestamp}`;
         }
         if (log.entity_type === 'departments') {
           return departmentName
-            ? `${userFullName} updated department "${departmentName}"`
-            : `${userFullName} updated department ${entityId}`;
+            ? `${userFullName} updated department "${departmentName}" on ${timestamp}`
+            : `${userFullName} updated department ${entityId} on ${timestamp}`;
         }
-        return `${userFullName} updated ${log.entity_type} ${entityId}`;
+        return `${userFullName} updated ${log.entity_type} ${entityId} on ${timestamp}`;
       case 'DELETE':
         if (log.entity_type === 'elections') {
           return electionTitle
-            ? `${userFullName} deleted election "${electionTitle}"`
-            : `${userFullName} deleted election ${entityId}`;
+            ? `${userFullName} deleted election "${electionTitle}" on ${timestamp}`
+            : `${userFullName} deleted election ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'candidates') {
           return candidateName
-            ? `${userFullName} removed candidate "${candidateName}"`
-            : `${userFullName} removed candidate ${entityId}`;
+            ? `${userFullName} removed candidate "${candidateName}" on ${timestamp}`
+            : `${userFullName} removed candidate ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'positions') {
           return positionName
-            ? `${userFullName} removed position "${positionName}"`
-            : `${userFullName} removed position ${entityId}`;
+            ? `${userFullName} removed position "${positionName}" on ${timestamp}`
+            : `${userFullName} removed position ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'admin') {
           return adminName
-            ? `${userFullName} deactivated admin account for ${adminName}`
-            : `${userFullName} deactivated admin account ${entityId}`;
+            ? `${userFullName} deactivated admin account for ${adminName} on ${timestamp}`
+            : `${userFullName} deactivated admin account ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'departments') {
           return departmentName
-            ? `${userFullName} deleted department "${departmentName}"`
-            : `${userFullName} deleted department ${entityId}`;
+            ? `${userFullName} deleted department "${departmentName}" on ${timestamp}`
+            : `${userFullName} deleted department ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'students') {
           const studentName = log.details?.student_name || '';
           return studentName
-            ? `${userFullName} removed student "${studentName}"`
-            : `${userFullName} removed student ${entityId}`;
+            ? `${userFullName} removed student "${studentName}" on ${timestamp}`
+            : `${userFullName} removed student ${entityId} on ${timestamp}`;
         }
-        return `${userFullName} deleted ${log.entity_type} ${entityId}`;
+        return `${userFullName} deleted ${log.entity_type} ${entityId} on ${timestamp}`;
       case 'APPROVE':
         return electionTitle
-          ? `${userFullName} approved election "${electionTitle}"`
-          : `${userFullName} approved election ${entityId}`;
+          ? `${userFullName} approved election "${electionTitle}" on ${timestamp}`
+          : `${userFullName} approved election ${entityId} on ${timestamp}`;
       case 'REJECT':
         return electionTitle
-          ? `${userFullName} rejected election "${electionTitle}"`
-          : `${userFullName} rejected election ${entityId}`;
+          ? `${userFullName} rejected election "${electionTitle}" on ${timestamp}`
+          : `${userFullName} rejected election ${entityId} on ${timestamp}`;
       case 'RESTORE':
         return electionTitle
-          ? `${userFullName} restored election "${electionTitle}"`
-          : `${userFullName} restored election ${entityId}`;
+          ? `${userFullName} restored election "${electionTitle}" on ${timestamp}`
+          : `${userFullName} restored election ${entityId} on ${timestamp}`;
       case 'ARCHIVE':
         if (log.entity_type === 'elections') {
           return electionTitle
-            ? `${userFullName} archived election "${electionTitle}"`
-            : `${userFullName} archived election ${entityId}`;
+            ? `${userFullName} archived election "${electionTitle}" on ${timestamp}`
+            : `${userFullName} archived election ${entityId} on ${timestamp}`;
         }
         if (log.entity_type === 'admin') {
           return adminName
-            ? `${userFullName} archived admin account for ${adminName}`
-            : `${userFullName} archived admin ${entityId}`;
+            ? `${userFullName} archived admin account for ${adminName} on ${timestamp}`
+            : `${userFullName} archived admin ${entityId} on ${timestamp}`;
         }
-        return `${userFullName} archived ${log.entity_type} ${entityId}`;
+        return `${userFullName} archived ${log.entity_type} ${entityId} on ${timestamp}`;
       case 'UNLOCK':
         return adminName
-          ? `${userFullName} unlocked admin account for ${adminName}`
-          : `${userFullName} unlocked admin account ${entityId}`;
+          ? `${userFullName} unlocked admin account for ${adminName} on ${timestamp}`
+          : `${userFullName} unlocked admin account ${entityId} on ${timestamp}`;
       case 'RESET_PASSWORD':
         return adminName
-          ? `${userFullName} reset password for ${adminName}`
-          : `${userFullName} reset password for admin ${entityId}`;
+          ? `${userFullName} reset password for ${adminName} on ${timestamp}`
+          : `${userFullName} reset password for admin ${entityId} on ${timestamp}`;
       case 'UPLOAD':
         if (log.entity_type === 'students') {
           const count = log.details?.count || '';
           return count
-            ? `${userFullName} uploaded ${count} student records`
-            : `${userFullName} uploaded student records`;
+            ? `${userFullName} uploaded ${count} student records on ${timestamp}`
+            : `${userFullName} uploaded student records on ${timestamp}`;
         }
-        return `${userFullName} uploaded ${log.entity_type}`;
+        return `${userFullName} uploaded ${log.entity_type} on ${timestamp}`;
       case 'EXPORT':
-        return `${userFullName} exported ${log.entity_type} data`;
+        return `${userFullName} exported ${log.entity_type} data on ${timestamp}`;
       case 'PASSWORD_CHANGE':
-        return `${userFullName} changed their password`;
+        return `${userFullName} changed their password on ${timestamp}`;
       case 'FIRST_LOGIN':
-        return `${userFullName} completed first-time login setup`;
+        return `${userFullName} completed first-time login setup on ${timestamp}`;
       default:
-        return `${userFullName} performed ${log.action} on ${log.entity_type} ${entityId}`;
+        return `${userFullName} performed ${log.action} on ${log.entity_type} ${entityId} on ${timestamp}`;
     }
   };
 
@@ -718,10 +719,7 @@ export default function AuditLogsPage() {
                       <td className="p-2 whitespace-nowrap text-sm text-black">{formatDateTime(log.created_at)}</td>
                       <td className="p-2">
                         <div className="text-sm text-black font-medium truncate max-w-[180px]">
-                          {log.details?.user_name || (log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`)}
-                        </div>
-                        <div className="text-xs text-gray-600 truncate max-w-[180px]">
-                          {log.user_email}
+                          {log.details?.user_name || log.details?.admin_name || log.details?.student_name || (log.user_email ? log.user_email.split('@')[0] : `User #${log.user_id}`)}
                         </div>
                         <div className="text-xs mt-1">
                           <span className={`inline-block px-2 py-0.5 rounded-full ${getRoleColor(log.user_role)}`}>
