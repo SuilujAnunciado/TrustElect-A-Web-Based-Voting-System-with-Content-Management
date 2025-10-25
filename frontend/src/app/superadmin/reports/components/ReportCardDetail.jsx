@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Download, X, Calendar, Filter, Users, BarChart2, Eye } from "lucide-react";
 import { generatePdfReport } from '@/utils/pdfGenerator';
 import Cookies from 'js-cookie';
@@ -227,65 +227,6 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
   const [selectedElection, setSelectedElection] = useState(null);
   const [electionDetails, setElectionDetails] = useState(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-  const [reportData, setReportData] = useState(null);
-  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
-  const [error, setError] = useState(null);
-  
-  // Fetch summary data on component mount
-  const fetchSummaryData = async () => {
-    setIsLoadingSummary(true);
-    setError(null);
-    try {
-      const token = Cookies.get('token');
-      const response = await fetch(`${API_BASE}/reports/summary`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch election summary data');
-      
-      const data = await response.json();
-      const electionData = data.data || data;
-      
-      const transformedData = {
-        summary: {
-          total_elections: electionData.summary?.total_elections || 0,
-          ongoing_elections: electionData.summary?.ongoing_elections || 0,
-          completed_elections: electionData.summary?.completed_elections || 0,
-          upcoming_elections: electionData.summary?.upcoming_elections || 0,
-          total_eligible_voters: electionData.summary?.total_eligible_voters || 0,
-          total_votes_cast: electionData.summary?.total_votes_cast || 0,
-          voter_turnout_percentage: electionData.summary?.voter_turnout_percentage || 0
-        },
-        recent_elections: Array.isArray(electionData.recent_elections) 
-          ? electionData.recent_elections.map(election => ({
-              id: election.id,
-              title: election.title,
-              status: election.status,
-              election_type: election.election_type,
-              start_date: election.start_date,
-              end_date: election.end_date,
-              voter_count: election.voter_count || 0,
-              votes_cast: election.total_votes || 0,
-              turnout_percentage: election.voter_turnout_percentage
-            }))
-          : []
-      };
-      
-      setReportData(transformedData);
-    } catch (error) {
-      console.error('Error fetching election summary data:', error);
-      setError('Failed to load election summary data. Please try again.');
-    } finally {
-      setIsLoadingSummary(false);
-    }
-  };
-
-  // Fetch summary data on mount
-  useEffect(() => {
-    fetchSummaryData();
-  }, []);
   
   const fetchElectionDetails = async (electionId) => {
     setIsLoadingDetails(true);
@@ -342,7 +283,7 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
   };
 
   const handleDownload = async () => {
-    if (!reportData) {
+    if (!report || !report.data) {
       console.error('No report data available');
       return;
     }
@@ -351,15 +292,15 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
       title: "Election Summary Report",
       description: "Overview of all elections with detailed statistics and voter turnout",
       summary: {
-        total_elections: reportData.summary?.total_elections || 0,
-        ongoing_elections: reportData.summary?.ongoing_elections || 0,
-        completed_elections: reportData.summary?.completed_elections || 0,
-        upcoming_elections: reportData.summary?.upcoming_elections || 0,
-        total_eligible_voters: reportData.summary?.total_eligible_voters || 0,
-        total_votes_cast: reportData.summary?.total_votes_cast || 0,
-        voter_turnout_percentage: formatPercentage(reportData.summary?.voter_turnout_percentage || 0)
+        total_elections: report.data.summary?.total_elections || 0,
+        ongoing_elections: report.data.summary?.ongoing_elections || 0,
+        completed_elections: report.data.summary?.completed_elections || 0,
+        upcoming_elections: report.data.summary?.upcoming_elections || 0,
+        total_eligible_voters: report.data.summary?.total_eligible_voters || 0,
+        total_votes_cast: report.data.summary?.total_votes_cast || 0,
+        voter_turnout_percentage: formatPercentage(report.data.summary?.voter_turnout_percentage || 0)
       },
-      recent_elections: (reportData.recent_elections || []).map(election => ({
+      recent_elections: (report.data.recent_elections || []).map(election => ({
         title: election.title || 'Unknown Election',
         election_type: election.election_type || 'Unknown Type',
         status: election.status || 'Unknown Status',
@@ -469,67 +410,39 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
           </div>
 
           <div className="overflow-y-auto max-h-[50vh]">
-            {isLoadingSummary ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#01579B]"></div>
-              </div>
-            ) : error ? (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-600">{error}</p>
-                <button 
-                  onClick={fetchSummaryData}
-                  className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : activeTab === "summary" && reportData ? (
+            {activeTab === "summary" && report.data && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="border rounded-lg p-4">
                   <h3 className="text-sm font-medium text-black mb-1">Total Elections</h3>
-                  <p className="text-2xl font-bold text-black">{formatNumber(reportData.summary.total_elections)}</p>
+                  <p className="text-2xl font-bold text-black">{formatNumber(report.data.summary.total_elections)}</p>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h3 className="text-sm font-medium text-black mb-1">Ongoing Elections</h3>
-                  <p className="text-2xl font-bold text-blue-600">{formatNumber(reportData.summary.ongoing_elections)}</p>
+                  <p className="text-2xl font-bold text-blue-600">{formatNumber(report.data.summary.ongoing_elections)}</p>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h3 className="text-sm font-medium text-black mb-1">Completed Elections</h3>
-                  <p className="text-2xl font-bold text-green-600">{formatNumber(reportData.summary.completed_elections)}</p>
+                  <p className="text-2xl font-bold text-green-600">{formatNumber(report.data.summary.completed_elections)}</p>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h3 className="text-sm font-medium text-black mb-1">Upcoming Elections</h3>
-                  <p className="text-2xl font-bold text-orange-600">{formatNumber(reportData.summary.upcoming_elections)}</p>
+                  <p className="text-2xl font-bold text-orange-600">{formatNumber(report.data.summary.upcoming_elections)}</p>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h3 className="text-sm font-medium text-black mb-1">Total Eligible Voters</h3>
-                  <p className="text-2xl font-bold text-black">{formatNumber(reportData.summary.total_eligible_voters)}</p>
+                  <p className="text-2xl font-bold text-black">{formatNumber(report.data.summary.total_eligible_voters)}</p>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h3 className="text-sm font-medium text-black mb-1">Total Votes Cast</h3>
-                  <p className="text-2xl font-bold text-black">{formatNumber(reportData.summary.total_votes_cast)}</p>
+                  <p className="text-2xl font-bold text-black">{formatNumber(report.data.summary.total_votes_cast)}</p>
                   <p className="text-sm text-gray-500">
-                    {formatPercentage(reportData.summary.voter_turnout_percentage)} turnout
+                    {formatPercentage(report.data.summary.voter_turnout_percentage)} turnout
                   </p>
                 </div>
               </div>
-            ) : null}
+            )}
 
-            {isLoadingSummary ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#01579B]"></div>
-              </div>
-            ) : error ? (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-600">{error}</p>
-                <button 
-                  onClick={fetchSummaryData}
-                  className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : activeTab === "details" && reportData ? (
+            {activeTab === "details" && report.data && (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
@@ -545,7 +458,7 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {reportData.recent_elections.map((election) => (
+                    {report.data.recent_elections.map((election) => (
                       <tr key={election.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => handleViewDetails(election)}>
                         <td className="p-3 text-sm text-black flex items-center gap-2">
                           {election.title}
@@ -571,7 +484,7 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
                   </tbody>
                 </table>
               </div>
-            ) : null}
+            )}
           </div>
 
           {/* Election Details Modal */}

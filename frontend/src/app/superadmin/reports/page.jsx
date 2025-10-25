@@ -454,8 +454,18 @@ export default function ReportsPage() {
     }
   };
 
-  const handleViewReport = (report) => {
-    setSelectedReport(report);
+  const handleViewReport = async (report) => {
+    // Open modal immediately with loading state
+    setSelectedReport({ ...report, loading: true, data: null });
+    
+    // Fetch data in background and update
+    const data = await fetchReportData(report.id);
+    if (data) {
+      setSelectedReport({ ...report, loading: false, data });
+    } else {
+      // If fetch fails, keep modal open but show error state
+      setSelectedReport({ ...report, loading: false, data: null, error: true });
+    }
   };
 
   const downloadReport = async (reportId) => {
@@ -484,6 +494,63 @@ export default function ReportsPage() {
   };
 
   const renderReportDetail = (report) => {
+    // Show loading state while data is being fetched
+    if (report.loading) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#01579B] mb-4"></div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Report</h3>
+              <p className="text-sm text-gray-600">Please wait while we fetch the data...</p>
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="mt-4 px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Show error state if data fetch failed
+    if (report.error || !report.data) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Report</h3>
+              <p className="text-sm text-gray-600 text-center mb-4">
+                {error || "Unable to fetch report data. Please try again."}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleViewReport({ id: report.id, title: report.title, type: report.type })}
+                  className="px-4 py-2 bg-[#01579B] text-white rounded hover:bg-[#01416E]"
+                >
+                  Retry
+                </button>
+                <button
+                  onClick={() => setSelectedReport(null)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Render the actual report component once data is loaded
     switch (report.id) {
       case 1:
         return (
