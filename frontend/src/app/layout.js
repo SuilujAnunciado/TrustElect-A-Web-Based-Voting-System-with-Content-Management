@@ -17,6 +17,14 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "TrustElect",
   description: "Secure Electronic Voting System",
+  icons: {
+    icon: [
+      { url: '/images/sti_logo.png' },
+      { url: '/images/sti_logo.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/images/sti_logo.png',
+    apple: '/images/sti_logo.png',
+  },
 };
 
 export default function RootLayout({ children }) {
