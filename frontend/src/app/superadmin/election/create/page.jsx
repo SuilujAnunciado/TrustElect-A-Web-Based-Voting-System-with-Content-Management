@@ -736,7 +736,7 @@ export default function CreateElectionPage() {
       {showBackConfirmation && (
         <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4 text-black">Confirm Navigation</h3>
+            <h3 className="text-xl font-bold mb-4 text-black">Confirmation</h3>
             <p className="mb-6 text-black">
               Are you sure you want to go back? Any unsaved changes will be lost.
             </p>
