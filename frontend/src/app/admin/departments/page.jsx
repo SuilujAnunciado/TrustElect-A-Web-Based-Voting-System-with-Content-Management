@@ -213,7 +213,7 @@ export default function AdminDepartmentsPage() {
     const matchesSearch = dept.department_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === "All" || dept.department_type === filter;
     // Only show active departments (not archived or deleted)
-    const isActive = !dept.is_archived && !dept.is_deleted;
+    const isActive = dept.is_active && !dept.is_deleted;
     return matchesSearch && matchesFilter && isActive;
   });
 

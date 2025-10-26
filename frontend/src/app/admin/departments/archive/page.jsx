@@ -33,7 +33,7 @@ export default function ArchivedDepartmentsPage() {
       let success = false;
 
       try {
-        // First try admin endpoint
+        // First try admin archived endpoint
         const res = await axios.get("/api/admin/departments/archived", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,10 +45,10 @@ export default function ArchivedDepartmentsPage() {
         departmentsArray = res.data.departments || res.data || [];
         success = true;
       } catch (firstError) {
-        console.warn("Error on admin endpoint, trying fallback:", firstError.message);
+        console.warn("Error on admin archived endpoint, trying fallback:", firstError.message);
         
         try {
-          // Try superadmin endpoint as fallback
+          // Try superadmin archived endpoint as fallback
           const res = await axios.get("/api/superadmin/departments/archived", {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -60,9 +60,9 @@ export default function ArchivedDepartmentsPage() {
           departmentsArray = res.data.departments || res.data || [];
           success = true;
         } catch (secondError) {
-          console.error("Error on superadmin endpoint:", secondError.message);
+          console.error("Error on superadmin archived endpoint:", secondError.message);
           
-          // Try generic endpoint as last resort
+          // Try generic archived endpoint as last resort
           try {
             const res = await axios.get("/api/departments/archived", {
               headers: {
@@ -75,7 +75,7 @@ export default function ArchivedDepartmentsPage() {
             departmentsArray = res.data.departments || res.data || [];
             success = true;
           } catch (thirdError) {
-            console.error("Error on generic endpoint:", thirdError.message);
+            console.error("Error on generic archived endpoint:", thirdError.message);
             // If all endpoints fail, return empty array instead of throwing error
             departmentsArray = [];
             success = true;

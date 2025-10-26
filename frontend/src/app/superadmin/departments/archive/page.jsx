@@ -31,8 +31,8 @@ export default function ArchivedDepartmentsPage() {
       let success = false;
 
       try {
-        // First try superadmin endpoint
-        const res = await axios.get("/api/superadmin/departments", {
+        // First try superadmin archived endpoint
+        const res = await axios.get("/api/superadmin/departments/archived", {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -40,16 +40,14 @@ export default function ArchivedDepartmentsPage() {
           withCredentials: true
         });
         
-        const allDepartments = res.data.departments || res.data || [];
-        // Filter for archived departments
-        departmentsArray = allDepartments.filter(dept => dept.is_archived === true);
+        departmentsArray = res.data.departments || res.data || [];
         success = true;
       } catch (firstError) {
-        console.warn("Error on superadmin endpoint, trying fallback:", firstError.message);
+        console.warn("Error on superadmin archived endpoint, trying fallback:", firstError.message);
         
         try {
-          // Try admin endpoint as fallback
-          const res = await axios.get("/api/admin/departments", {
+          // Try admin archived endpoint as fallback
+          const res = await axios.get("/api/admin/departments/archived", {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -57,16 +55,14 @@ export default function ArchivedDepartmentsPage() {
             withCredentials: true
           });
           
-          const allDepartments = res.data.departments || res.data || [];
-          // Filter for archived departments
-          departmentsArray = allDepartments.filter(dept => dept.is_archived === true);
+          departmentsArray = res.data.departments || res.data || [];
           success = true;
         } catch (secondError) {
-          console.error("Error on admin endpoint:", secondError.message);
+          console.error("Error on admin archived endpoint:", secondError.message);
           
-          // Try generic endpoint as last resort
+          // Try generic archived endpoint as last resort
           try {
-            const res = await axios.get("/api/departments", {
+            const res = await axios.get("/api/departments/archived", {
               headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -74,12 +70,10 @@ export default function ArchivedDepartmentsPage() {
               withCredentials: true
             });
             
-            const allDepartments = res.data.departments || res.data || [];
-            // Filter for archived departments
-            departmentsArray = allDepartments.filter(dept => dept.is_archived === true);
+            departmentsArray = res.data.departments || res.data || [];
             success = true;
           } catch (thirdError) {
-            console.error("Error on generic endpoint:", thirdError.message);
+            console.error("Error on generic archived endpoint:", thirdError.message);
             departmentsArray = [];
             success = true;
           }
