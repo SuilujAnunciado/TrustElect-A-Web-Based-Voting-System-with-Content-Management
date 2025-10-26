@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Search, X } from 'lucide-react';
+import { Download, Search, X, User } from 'lucide-react';
 import { generatePdfReport } from '@/utils/pdfGenerator';
 
 const CandidateListDetail = ({ report, onClose, onDownload }) => {
@@ -9,9 +9,46 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
       : null
   );
   const [searchTerm, setSearchTerm] = useState('');
+  const [imageErrors, setImageErrors] = useState(new Set());
 
   const handleElectionChange = (electionId) => {
     setSelectedElection(electionId);
+  };
+
+  const handleImageError = (candidateId) => {
+    console.error(`Failed to load image for candidate ID: ${candidateId}`);
+    setImageErrors(prev => new Set(prev).add(candidateId));
+  };
+
+  const getImageUrl = (candidate) => {
+    if (!candidate.image_url) return null;
+    
+    // Debug logging
+    console.log('Original image_url:', candidate.image_url);
+    
+    // Handle different URL formats
+    if (candidate.image_url.startsWith('http')) {
+      console.log('Using HTTP URL:', candidate.image_url);
+      return candidate.image_url;
+    }
+    
+    // Handle relative URLs
+    if (candidate.image_url.startsWith('/')) {
+      console.log('Using relative URL:', candidate.image_url);
+      return candidate.image_url;
+    }
+    
+    // Handle uploads folder paths
+    if (candidate.image_url.includes('uploads/')) {
+      const finalUrl = candidate.image_url.startsWith('/') ? candidate.image_url : `/${candidate.image_url}`;
+      console.log('Using uploads URL:', finalUrl);
+      return finalUrl;
+    }
+    
+    // Default case - assume it's a relative path
+    const defaultUrl = `/${candidate.image_url}`;
+    console.log('Using default URL:', defaultUrl);
+    return defaultUrl;
   };
 
   const currentElection = Array.isArray(report.data?.elections) 
@@ -184,29 +221,54 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
                       <h3 className="font-semibold text-black">{position.position}</h3>
                     </div>
                     <div className="divide-y">
-                      {Array.isArray(position.candidates) ? position.candidates.map((candidate) => (
-                        <div key={candidate.id} className="p-4 flex items-center gap-4">
-                          {candidate.image_url && (
-                            <img
-                              src={candidate.image_url}
-                              alt={`${candidate.first_name} ${candidate.last_name}`}
-                              className="w-16 h-16 object-cover rounded"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-black">
-                              {candidate.first_name} {candidate.last_name}
-                            </h4>
-                            <p className="text-sm text-black">Course: {candidate.course}</p>
-                            <p className="text-sm text-black">
-                              Party: {candidate.party || 'Independent'}
-                            </p>
+                      {Array.isArray(position.candidates) ? position.candidates.map((candidate) => {
+                        const imageUrl = getImageUrl(candidate);
+                        const hasImageError = imageErrors.has(candidate.id);
+                        
+                        return (
+                          <div key={candidate.id} className="p-4 flex items-center gap-4">
+                            <div className="w-16 h-16 flex-shrink-0">
+                              {imageUrl && !hasImageError ? (
+                                <img
+                                  src={imageUrl}
+                                  alt={`${candidate.first_name} ${candidate.last_name}`}
+                                  className="w-16 h-16 object-cover rounded border border-gray-200"
+                                  onError={() => handleImageError(candidate.id)}
+                                  onLoad={() => {
+                                    // Remove from error set if image loads successfully
+                                    setImageErrors(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.delete(candidate.id);
+                                      return newSet;
+                                    });
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-16 h-16 bg-gray-200 rounded border border-gray-300 flex items-center justify-center">
+                                  <User className="w-8 h-8 text-gray-500" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-black">
+                                {candidate.first_name} {candidate.last_name}
+                              </h4>
+                              <p className="text-sm text-black">Course: {candidate.course}</p>
+                              <p className="text-sm text-black">
+                                Party: {candidate.party || 'Independent'}
+                              </p>
+                              {candidate.slogan && (
+                                <p className="text-xs text-gray-600 italic mt-1">
+                                  "{candidate.slogan}"
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-black">{candidate.vote_count || 0} votes</p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-black">{candidate.vote_count} votes</p>
-                          </div>
-                        </div>
-                      )) : []}
+                        );
+                      }) : []}
                     </div>
                   </div>
                 )) : []}
