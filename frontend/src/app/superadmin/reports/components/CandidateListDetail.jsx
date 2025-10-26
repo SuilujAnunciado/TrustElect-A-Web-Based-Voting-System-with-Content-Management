@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Search, X, User } from 'lucide-react';
 import { generatePdfReport } from '@/utils/pdfGenerator';
+import { BASE_URL } from '@/config';
 
 const CandidateListDetail = ({ report, onClose, onDownload }) => {
   const [selectedElection, setSelectedElection] = useState(
@@ -10,9 +11,28 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [imageErrors, setImageErrors] = useState(new Set());
+  const [candidateImages, setCandidateImages] = useState({});
 
   const handleElectionChange = (electionId) => {
     setSelectedElection(electionId);
+    
+    // Cache images for the selected election
+    const election = Array.isArray(report.data?.elections) 
+      ? report.data.elections.find(e => e.id === electionId)
+      : null;
+    
+    if (election?.positions) {
+      const imageCache = {};
+      election.positions.forEach(position => {
+        position.candidates?.forEach(candidate => {
+          if (candidate.image_url) {
+            const processedUrl = getImageUrl(candidate.image_url);
+            imageCache[candidate.id] = processedUrl;
+          }
+        });
+      });
+      setCandidateImages(imageCache);
+    }
   };
 
   const handleImageError = (candidateId) => {
@@ -20,40 +40,59 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
     setImageErrors(prev => new Set(prev).add(candidateId));
   };
 
-  const getImageUrl = (candidate) => {
-    if (!candidate.image_url) return null;
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return '/default-candidate.png';
     
     // Debug logging
-    console.log('Original image_url:', candidate.image_url);
+    console.log('Original image_url:', imageUrl);
+    console.log('BASE_URL:', BASE_URL);
+    console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+    
+    // Use BASE_URL if available, otherwise fallback to empty string for relative paths
+    const baseUrl = BASE_URL || '';
     
     // Handle different URL formats
-    if (candidate.image_url.startsWith('http')) {
-      console.log('Using HTTP URL:', candidate.image_url);
-      return candidate.image_url;
+    if (imageUrl.startsWith('http')) {
+      console.log('Using HTTP URL:', imageUrl);
+      return imageUrl;
     }
     
-    // Handle relative URLs
-    if (candidate.image_url.startsWith('/')) {
-      console.log('Using relative URL:', candidate.image_url);
-      return candidate.image_url;
-    }
-    
-    // Handle uploads folder paths
-    if (candidate.image_url.includes('uploads/')) {
-      const finalUrl = candidate.image_url.startsWith('/') ? candidate.image_url : `/${candidate.image_url}`;
+    if (imageUrl.startsWith('/uploads')) {
+      const finalUrl = baseUrl ? `${baseUrl}${imageUrl}` : imageUrl;
       console.log('Using uploads URL:', finalUrl);
       return finalUrl;
     }
-    
-    // Default case - assume it's a relative path
-    const defaultUrl = `/${candidate.image_url}`;
-    console.log('Using default URL:', defaultUrl);
-    return defaultUrl;
+
+    if (!imageUrl.startsWith('/')) {
+      const finalUrl = baseUrl ? `${baseUrl}/uploads/candidates/${imageUrl}` : `/uploads/candidates/${imageUrl}`;
+      console.log('Using candidates folder URL:', finalUrl);
+      return finalUrl;
+    }
+
+    const finalUrl = baseUrl ? `${baseUrl}${imageUrl}` : imageUrl;
+    console.log('Using final URL:', finalUrl);
+    return finalUrl;
   };
 
   const currentElection = Array.isArray(report.data?.elections) 
     ? report.data.elections.find(e => e.id === selectedElection)
     : null;
+
+  // Initialize image cache when component mounts or election changes
+  useEffect(() => {
+    if (currentElection?.positions) {
+      const imageCache = {};
+      currentElection.positions.forEach(position => {
+        position.candidates?.forEach(candidate => {
+          if (candidate.image_url) {
+            const processedUrl = getImageUrl(candidate.image_url);
+            imageCache[candidate.id] = processedUrl;
+          }
+        });
+      });
+      setCandidateImages(imageCache);
+    }
+  }, [currentElection]);
 
   const filteredPositions = currentElection?.positions && Array.isArray(currentElection.positions)
     ? currentElection.positions.map(position => ({
@@ -222,7 +261,7 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
                     </div>
                     <div className="divide-y">
                       {Array.isArray(position.candidates) ? position.candidates.map((candidate) => {
-                        const imageUrl = getImageUrl(candidate);
+                        const imageUrl = getImageUrl(candidate.image_url);
                         const hasImageError = imageErrors.has(candidate.id);
                         
                         return (
@@ -230,7 +269,7 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
                             <div className="w-16 h-16 flex-shrink-0">
                               {imageUrl && !hasImageError ? (
                                 <img
-                                  src={imageUrl}
+                                  src={candidateImages[candidate.id] || imageUrl}
                                   alt={`${candidate.first_name} ${candidate.last_name}`}
                                   className="w-16 h-16 object-cover rounded border border-gray-200"
                                   onError={() => handleImageError(candidate.id)}
