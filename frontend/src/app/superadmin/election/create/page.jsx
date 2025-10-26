@@ -989,8 +989,10 @@ export default function CreateElectionPage() {
                                     return (
                                       <label 
                                         key={program} 
-                                        className={"inline-flex items-center bg-white px-2 py-1 rounded"}
+                                        className={"inline-flex items-center bg-white px-2 py-1 rounded " }
+                                        
                                       >
+                                        
                                         <input
                                           type="checkbox"
                                           checked={isChecked}

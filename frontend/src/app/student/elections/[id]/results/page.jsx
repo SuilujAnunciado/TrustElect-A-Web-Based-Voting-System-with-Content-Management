@@ -7,9 +7,9 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BASE_URL } from '@/config';
 
 const API_BASE = '/api';
-const BASE_URL = '';
 
 // Add color palette for different candidates
 const CHART_COLORS = [
@@ -41,22 +41,34 @@ export default function ElectionResultsPage({ params }) {
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/default-candidate.png';
     
+    // Debug logging
+    console.log('Original image_url:', imageUrl);
+    console.log('BASE_URL:', BASE_URL);
+    
     if (imageUrl.startsWith('http')) {
+      console.log('Using HTTP URL:', imageUrl);
       return imageUrl;
     }
     
     if (imageUrl.startsWith('/uploads')) {
-      return `${BASE_URL}${imageUrl}`;
+      const finalUrl = `${BASE_URL}${imageUrl}`;
+      console.log('Using uploads URL:', finalUrl);
+      return finalUrl;
     }
-    
+
     if (!imageUrl.startsWith('/')) {
-      return `${BASE_URL}/uploads/candidates/${imageUrl}`;
+      const finalUrl = `${BASE_URL}/uploads/candidates/${imageUrl}`;
+      console.log('Using candidates folder URL:', finalUrl);
+      return finalUrl;
     }
-    
-    return `${BASE_URL}${imageUrl}`;
+
+    const finalUrl = `${BASE_URL}${imageUrl}`;
+    console.log('Using final URL:', finalUrl);
+    return finalUrl;
   };
 
   const handleImageError = (candidateId) => {
+    console.error(`Failed to load image for candidate ID: ${candidateId}`);
     setImageErrors(prev => ({
       ...prev,
       [candidateId]: true
