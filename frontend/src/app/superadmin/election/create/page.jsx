@@ -250,6 +250,7 @@ export default function CreateElectionPage() {
   const [apiError, setApiError] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [totalRegisteredVoters, setTotalRegisteredVoters] = useState(0);
+  const [showBackConfirmation, setShowBackConfirmation] = useState(false);
 
   // Add state for managing visibility of program selections
   const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
@@ -615,6 +616,19 @@ export default function CreateElectionPage() {
     setShowPreview(true);
   };
 
+  const handleBackClick = () => {
+    setShowBackConfirmation(true);
+  };
+
+  const handleBackConfirm = () => {
+    setShowBackConfirmation(false);
+    router.back();
+  };
+
+  const handleBackCancel = () => {
+    setShowBackConfirmation(false);
+  };
+
   const handleConfirmCreate = async () => {
     setShowPreview(false);
     try {
@@ -719,8 +733,33 @@ export default function CreateElectionPage() {
         />
       )}
 
+      {showBackConfirmation && (
+        <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4 text-black">Confirm Navigation</h3>
+            <p className="mb-6 text-black">
+              Are you sure you want to go back? Any unsaved changes will be lost.
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={handleBackCancel}
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors text-black"
+              >
+                No
+              </button>
+              <button
+                onClick={handleBackConfirm}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <button 
-        onClick={() => router.back()} 
+        onClick={handleBackClick} 
         className="flex items-center text-blue-900 hover:text-blue-700 mb-4"
       >
         <ArrowLeft className="w-6 h-6 mr-2" />
