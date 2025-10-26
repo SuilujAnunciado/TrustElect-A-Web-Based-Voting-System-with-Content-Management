@@ -142,18 +142,6 @@ const ElectionCard = ({ election, onClick, onDeleteClick, canDelete, activeTab }
           </span>
         </div>
         
-        {displayStatus === 'completed' && canDelete && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteClick(election);
-            }}
-            className="text-red-500 hover:text-red-700 p-1 hover:bg-white hover:bg-opacity-50 rounded-full"
-            title="Delete Election"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
-        )}
       </div>
 
       {/* Content */}
