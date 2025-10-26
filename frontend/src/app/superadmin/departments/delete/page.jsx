@@ -217,163 +217,147 @@ export default function DeletedDepartmentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4 text-black">Deleted Departments</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4 text-black">Deleted Departments</h1>
 
-        <button 
-          onClick={() => router.push("/superadmin/departments")} 
-          className="bg-[#01579B] text-white px-4 py-2 rounded mb-4"
-        >
-          Back
-        </button>
+      <button 
+        onClick={() => router.push("/superadmin/departments")} 
+        className="bg-[#01579B] text-white px-4 py-2 rounded mb-4"
+      >
+        Back
+      </button>
 
-        {/* Auto-Delete Controls */}
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex items-center gap-4 mb-3">
-            <h3 className="text-sm font-semibold text-black">Auto-Delete Settings:</h3>
-          </div>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-black">Delete after:</label>
-              <select
-                value={autoDeleteDays}
-                onChange={(e) => setAutoDeleteDays(parseInt(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={autoDeleteEnabled}
-              >
-                <option value={3}>3 days</option>
-                <option value={7}>7 days</option>
-                <option value={14}>14 days</option>
-                <option value={30}>30 days</option>
-                <option value={60}>60 days</option>
-              </select>
-            </div>
-            
-            {!autoDeleteEnabled ? (
-              <button
-                onClick={enableAutoDelete}
-                className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors"
-              >
-                Enable Auto-Delete
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded">
-                  Auto-delete enabled for {autoDeleteDays} days
-                </div>
-                <button
-                  onClick={disableAutoDelete}
-                  className="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600 transition-colors"
-                >
-                  Disable
-                </button>
-              </div>
-            )}
-          </div>
+      {/* Auto-Delete Controls */}
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="flex items-center gap-4 mb-3">
+          <h3 className="text-sm font-semibold text-black">Auto-Delete Settings:</h3>
         </div>
-
-        {loading && <p>Loading deleted departments...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-
-        {filteredDepartments.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow text-black">
-              <thead className="bg-[#01579B] text-white">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Department Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Deleted Date
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredDepartments.map((department) => (
-                  <tr key={department.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium">{department.department_name}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        department.department_type === 'Academic' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : department.department_type === 'Administrative'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-purple-100 text-purple-800'
-                      }`}>
-                        {department.department_type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {department.deleted_at ? new Date(department.deleted_at).toLocaleDateString() : 'Unknown'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <button
-                          onClick={() => confirmPermanentDelete(department.id)}
-                          className="bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center"
-                          title="Permanently Delete Department"
-                        >
-                          <Trash className="w-4 h-4 mr-1" />
-                          Delete Now
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-black">Delete after:</label>
+            <select
+              value={autoDeleteDays}
+              onChange={(e) => setAutoDeleteDays(parseInt(e.target.value))}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled={autoDeleteEnabled}
+            >
+              <option value={3}>3 days</option>
+              <option value={7}>7 days</option>
+              <option value={14}>14 days</option>
+              <option value={30}>30 days</option>
+              <option value={60}>60 days</option>
+            </select>
           </div>
-        ) : (
-          <div className="bg-white p-6 rounded-lg shadow text-black text-center">
-            <p>No deleted departments found.</p>
-          </div>
-        )}
-
-        <ConfirmationModal
-          isOpen={showConfirmModal}
-          onClose={() => setShowConfirmModal(false)}
-          onConfirm={permanentlyDeleteDepartment}
-          title="Confirm Permanent Deletion"
-          message="Are you sure you want to permanently delete this department? This action CANNOT be undone!"
-          confirmText="Delete Permanently"
-          cancelText="Cancel"
-          type="danger"
-          isLoading={false}
-        />
-
-        <ConfirmationModal
-          isOpen={showAutoDeleteModal}
-          onClose={() => setShowAutoDeleteModal(false)}
-          onConfirm={confirmEnableAutoDelete}
-          title="Enable Auto-Delete"
-          message={`Are you sure you want to enable auto-deletion? All deleted departments will be permanently deleted after ${autoDeleteDays} days.`}
-          confirmText="Enable Auto-Delete"
-          cancelText="Cancel"
-          type="warning"
-          isLoading={false}
-        />
-
-        <ConfirmationModal
-          isOpen={showDisableAutoDeleteModal}
-          onClose={() => setShowDisableAutoDeleteModal(false)}
-          onConfirm={confirmDisableAutoDelete}
-          title="Disable Auto-Delete"
-          message="Are you sure you want to disable auto-deletion? The auto-deletion timer will be cancelled."
-          confirmText="Disable"
-          cancelText="Cancel"
-          type="info"
-          isLoading={false}
-        />
+          
+          {!autoDeleteEnabled ? (
+            <button
+              onClick={enableAutoDelete}
+              className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors"
+            >
+              Enable Auto-Delete
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded">
+                Auto-delete enabled for {autoDeleteDays} days
+              </div>
+              <button
+                onClick={disableAutoDelete}
+                className="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600 transition-colors"
+              >
+                Disable
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {loading && <p>Loading deleted departments...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+
+      <table className="w-full bg-white shadow-md rounded-lg overflow-hidden text-black">
+        <thead>
+          <tr className="bg-[#01579B] text-white">
+            <th className="p-3">Department Name</th>
+            <th className="p-3">Type</th>
+            <th className="p-3">Deleted Date</th>
+            <th className="p-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredDepartments.length > 0 ? (
+            filteredDepartments.map((department) => (
+              <tr key={department.id} className="text-center border-b">
+                <td className="p-3">{department.department_name}</td>
+                <td className="p-3">
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    department.department_type === 'Academic' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : department.department_type === 'Administrative'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-purple-100 text-purple-800'
+                  }`}>
+                    {department.department_type}
+                  </span>
+                </td>
+                <td className="p-3">
+                  {department.deleted_at ? new Date(department.deleted_at).toLocaleDateString() : 'Unknown'}
+                </td>
+                <td className="p-3 flex justify-center gap-2">
+                  <button 
+                    onClick={() => confirmPermanentDelete(department.id)} 
+                    className="bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center"
+                    title="Permanently Delete Department"
+                  >
+                    <Trash className="w-4 h-4 mr-1" />
+                    Delete Now
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" className="p-3 text-center">No deleted departments found.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={permanentlyDeleteDepartment}
+        title="Confirm Permanent Deletion"
+        message="Are you sure you want to permanently delete this department? This action CANNOT be undone!"
+        confirmText="Delete Permanently"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={false}
+      />
+
+      <ConfirmationModal
+        isOpen={showAutoDeleteModal}
+        onClose={() => setShowAutoDeleteModal(false)}
+        onConfirm={confirmEnableAutoDelete}
+        title="Enable Auto-Delete"
+        message={`Are you sure you want to enable auto-deletion? All deleted departments will be permanently deleted after ${autoDeleteDays} days.`}
+        confirmText="Enable Auto-Delete"
+        cancelText="Cancel"
+        type="warning"
+        isLoading={false}
+      />
+
+      <ConfirmationModal
+        isOpen={showDisableAutoDeleteModal}
+        onClose={() => setShowDisableAutoDeleteModal(false)}
+        onConfirm={confirmDisableAutoDelete}
+        title="Disable Auto-Delete"
+        message="Are you sure you want to disable auto-deletion? The auto-deletion timer will be cancelled."
+        confirmText="Disable"
+        cancelText="Cancel"
+        type="info"
+        isLoading={false}
+      />
     </div>
   );
 }

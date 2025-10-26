@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { RotateCcw, Trash2, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
@@ -13,8 +12,6 @@ export default function ArchivedDepartmentsPage() {
   const [archivedDepartments, setArchivedDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState("All");
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
@@ -104,12 +101,6 @@ export default function ArchivedDepartmentsPage() {
   useEffect(() => {
     fetchArchivedDepartments();
   }, []);
-
-  const filteredDepartments = archivedDepartments.filter(dept => {
-    const matchesSearch = dept.department_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === "All" || dept.department_type === filter;
-    return matchesSearch && matchesFilter;
-  });
 
   const handleRestore = async (id) => {
     setSelectedDepartmentId(id);
@@ -219,16 +210,14 @@ export default function ArchivedDepartmentsPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center mb-4">
-        <button
-          onClick={() => router.push("/superadmin/departments")}
-          className="mr-4 p-2 bg-gray-800 text-white hover:bg-gray-700 rounded transition-colors"
-          title="Go Back"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <h1 className="text-2xl font-bold text-black">Archived Departments</h1>
-      </div>
+      <h1 className="text-2xl font-bold mb-4 text-black">Archived Departments</h1>
+
+      <button 
+        onClick={() => router.push("/superadmin/departments")} 
+        className="bg-[#01579B] text-white px-4 py-2 rounded mb-4"
+      >
+        Back
+      </button>
       
       {error && (
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
@@ -236,101 +225,59 @@ export default function ArchivedDepartmentsPage() {
         </div>
       )}
 
-      {/* Search and Filter */}
-      <div className="flex flex-wrap gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search archived departments..."
-          className="border p-2 rounded flex-grow max-w-md text-black"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <select
-          className="border p-2 rounded text-black"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="All">All Types</option>
-          <option value="Academic">Academic</option>
-          <option value="Administrative">Administrative</option>
-          <option value="Organization">Organization</option>
-        </select>
-      </div>
+      {loading && <p>Loading archived departments...</p>}
 
-      {/* Archived Departments Table */}
-      {loading ? (
-        <div className="text-center py-8">Loading archived departments...</div>
-      ) : filteredDepartments.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow text-black">
-            <thead className="bg-gray-600 text-white">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Department Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Archived Date
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
-                  Actions
-                </th>
+      <table className="w-full bg-white shadow-md rounded-lg overflow-hidden text-black">
+        <thead>
+          <tr className="bg-[#01579B] text-white">
+            <th className="p-3">Department Name</th>
+            <th className="p-3">Type</th>
+            <th className="p-3">Archived Date</th>
+            <th className="p-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {archivedDepartments.length > 0 ? (
+            archivedDepartments.map((department) => (
+              <tr key={department.id} className="text-center border-b">
+                <td className="p-3">{department.department_name}</td>
+                <td className="p-3">
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    department.department_type === 'Academic' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : department.department_type === 'Administrative'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-purple-100 text-purple-800'
+                  }`}>
+                    {department.department_type}
+                  </span>
+                </td>
+                <td className="p-3">
+                  {department.updated_at ? new Date(department.updated_at).toLocaleDateString() : 'N/A'}
+                </td>
+                <td className="p-3 flex justify-center gap-2">
+                  <button
+                    onClick={() => handleRestore(department.id)}
+                    className="bg-yellow-500 text-white px-3 py-1 rounded"
+                  >
+                    Restore
+                  </button>
+                  <button
+                    onClick={() => handlePermanentDelete(department.id)}
+                    className="bg-red-700 text-white px-3 py-1 rounded"
+                  >
+                    Permanently Delete
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredDepartments.map((department) => (
-                <tr key={department.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-500 line-through">
-                      {department.department_name}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      department.department_type === 'Academic' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : department.department_type === 'Administrative'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-purple-100 text-purple-800'
-                    }`}>
-                      {department.department_type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {department.updated_at ? new Date(department.updated_at).toLocaleDateString() : 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => handleRestore(department.id)}
-                        className="bg-green-500 text-white px-3 py-1 rounded text-sm flex items-center"
-                        title="Restore Department"
-                      >
-                        <RotateCcw className="w-4 h-4 mr-1" />
-                        Restore
-                      </button>
-                      <button
-                        onClick={() => handlePermanentDelete(department.id)}
-                        className="bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center"
-                        title="Permanently Delete"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="bg-white p-6 rounded-lg shadow text-black text-center">
-          <p>No archived departments found.</p>
-        </div>
-      )}
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" className="p-3 text-center">No archived departments found.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
 
       <ConfirmationModal
         isOpen={showRestoreModal}
