@@ -35,8 +35,19 @@ const getImageUrl = (imageUrl) => {
   return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
 };
 
-const formatNameSimple = (lastName, firstName, positionName) => {
-  if (!lastName || !firstName) return 'Unknown Candidate';
+const formatNameSimple = (lastName, firstName, positionName, candidate = null) => {
+  // Try to get name from candidate object if first/last names are missing
+  if (!lastName || !firstName) {
+    // Check if candidate has a name field
+    if (candidate && candidate.name) {
+      return candidate.name;
+    }
+    // Try camelCase variants
+    if (candidate && candidate.lastName && candidate.firstName) {
+      return candidate.firstName + ' ' + candidate.lastName;
+    }
+    return 'Unknown Candidate';
+  }
   
   // For positions like "President", "Vice President", etc., use "Last, First" format
   if (positionName && (positionName.toLowerCase().includes('president') || 
@@ -161,9 +172,21 @@ const ElectionResultReport = () => {
 
       const { election, positions } = response.data.data;
       
+      console.log('Election results data:', { election, positions });
+      
       // Group candidates by position and sort by vote count
       const groupedPositions = Array.isArray(positions) ? positions.map(position => {
         const sortedCandidates = Array.isArray(position.candidates) ? [...position.candidates].sort((a, b) => b.vote_count - a.vote_count) : [];
+        
+        // Debug: Log candidate data structure
+        if (sortedCandidates.length > 0) {
+          console.log('Position candidates sample:', {
+            positionName: position.position_name,
+            firstCandidate: sortedCandidates[0],
+            fields: Object.keys(sortedCandidates[0])
+          });
+        }
+        
         return {
           ...position,
           sortedCandidates,
@@ -266,7 +289,7 @@ const ElectionResultReport = () => {
           total_votes: position.total_votes || 0,
           candidates: position.sortedCandidates.map((candidate, index) => ({
             rank: index + 1,
-            name: formatNameSimple(candidate.last_name, candidate.first_name, position.position_name),
+            name: formatNameSimple(candidate.last_name, candidate.first_name, position.position_name, candidate),
             first_name: candidate.first_name,
             last_name: candidate.last_name,
             party: candidate.partylist_name || 'Independent',
@@ -423,7 +446,7 @@ const ElectionResultReport = () => {
                     
                     <div className="flex-1">
                       <h4 className="font-bold text-black text-xl mb-2">
-                        {formatNameSimple(position.winner.last_name, position.winner.first_name, position.position_name)}
+                        {formatNameSimple(position.winner.last_name, position.winner.first_name, position.position_name, position.winner)}
                       </h4>
                       {position.winner.partylist_name && position.winner.partylist_name !== '-' && (
                         <div className="mb-3">
@@ -481,7 +504,7 @@ const ElectionResultReport = () => {
                       </div>
                       <div>
                         <h6 className="font-semibold text-black">
-                          {formatNameSimple(candidate.last_name, candidate.first_name, position.position_name)}
+                          {formatNameSimple(candidate.last_name, candidate.first_name, position.position_name, candidate)}
                         </h6>
                         {candidate.partylist_name && candidate.partylist_name !== '-' && (
                           <p className="text-sm text-gray-600">{candidate.partylist_name}</p>
