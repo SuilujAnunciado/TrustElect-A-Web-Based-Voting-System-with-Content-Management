@@ -54,6 +54,11 @@ export default function LoginForm({ onClose }) {
   // Phone registration for first-time login
   const [registerPhoneNumber, setRegisterPhoneNumber] = useState("");
   
+  // OTP visibility states
+  const [showOtp, setShowOtp] = useState(false);
+  const [showSmsOtp, setShowSmsOtp] = useState(false);
+  const [showResetOtp, setShowResetOtp] = useState(false);
+  
   const router = useRouter();
 
   const handleLoginKeyDown = (e) => {
@@ -974,14 +979,24 @@ export default function LoginForm({ onClose }) {
             <p className="text-sm text-gray-700 mb-2">
               A verification code has been sent to your email.
             </p>
-            <Input
-              type="text"
-              placeholder="Enter 6-digit OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              onKeyDown={handleOtpKeyDown}
-              required
-            />
+            <div className="relative">
+              <Input
+                type={showOtp ? "text" : "password"}
+                placeholder="Enter 6-digit OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                onKeyDown={handleOtpKeyDown}
+                required
+                className="pr-16"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10"
+                onClick={() => setShowOtp(!showOtp)}
+              >
+                {showOtp ? "Hide" : "Show"}
+              </button>
+            </div>
 
             {devOtp && (
               <div className="mt-2 p-2 bg-gray-100 rounded text-center">
@@ -1075,20 +1090,30 @@ export default function LoginForm({ onClose }) {
                   <p className="text-sm text-gray-700 mb-2">
                     Enter the 6-digit code sent to your phone.
                   </p>
-                  <Input
-                    type="text"
-                    placeholder="Enter 6-digit SMS OTP"
-                    value={smsOtp}
-                    onChange={(e) => {
-                      // Only allow numeric input and limit to 6 digits
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                      setSmsOtp(value);
-                    }}
-                    onKeyDown={handleSmsOtpKeyDown}
-                    maxLength={6}
-                    pattern="[0-9]{6}"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showSmsOtp ? "text" : "password"}
+                      placeholder="Enter 6-digit SMS OTP"
+                      value={smsOtp}
+                      onChange={(e) => {
+                        // Only allow numeric input and limit to 6 digits
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setSmsOtp(value);
+                      }}
+                      onKeyDown={handleSmsOtpKeyDown}
+                      maxLength={6}
+                      pattern="[0-9]{6}"
+                      required
+                      className="pr-16"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10"
+                      onClick={() => setShowSmsOtp(!showSmsOtp)}
+                    >
+                      {showSmsOtp ? "Hide" : "Show"}
+                    </button>
+                  </div>
 
                   {smsDevOtp && (
                     <div className="mt-2 p-2 bg-gray-100 rounded text-center">
@@ -1260,15 +1285,24 @@ export default function LoginForm({ onClose }) {
                 <p className="text-sm text-gray-700 mb-3">
                   Enter the 6-digit verification code sent to your email.
                 </p>
-                <Input
-                  type="text"
-                  placeholder="Enter 6-digit code"
-                  value={resetOtp}
-                  onChange={(e) => setResetOtp(e.target.value)}
-                  onKeyDown={handleResetOtpKeyDown}
-                  required
-                  className="mb-3"
-                />
+                <div className="relative">
+                  <Input
+                    type={showResetOtp ? "text" : "password"}
+                    placeholder="Enter 6-digit code"
+                    value={resetOtp}
+                    onChange={(e) => setResetOtp(e.target.value)}
+                    onKeyDown={handleResetOtpKeyDown}
+                    required
+                    className="mb-3 pr-16"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10 top-0"
+                    onClick={() => setShowResetOtp(!showResetOtp)}
+                  >
+                    {showResetOtp ? "Hide" : "Show"}
+                  </button>
+                </div>
                 
                 {devOtp && (
                   <div className="mt-2 p-2 bg-gray-100 rounded text-center mb-3">

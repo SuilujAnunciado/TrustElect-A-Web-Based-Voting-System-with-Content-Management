@@ -456,7 +456,6 @@ const notifyStudentsAboutElection = async (election) => {
         endTime: election.end_time
       };
 
-      // Add to queue instead of sending immediately
       addElectionNotificationToQueue(userId, email, electionData);
     }
 

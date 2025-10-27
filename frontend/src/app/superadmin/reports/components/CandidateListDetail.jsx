@@ -16,7 +16,6 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
   const handleElectionChange = (electionId) => {
     setSelectedElection(electionId);
     
-    // Cache images for the selected election
     const election = Array.isArray(report.data?.elections) 
       ? report.data.elections.find(e => e.id === electionId)
       : null;
@@ -42,35 +41,23 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/default-candidate.png';
-    
-    // Debug logging
-    console.log('Original image_url:', imageUrl);
-    console.log('BASE_URL:', BASE_URL);
-    console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
-    
-    // Use BASE_URL if available, otherwise fallback to empty string for relative paths
     const baseUrl = BASE_URL || '';
     
-    // Handle different URL formats
     if (imageUrl.startsWith('http')) {
-      console.log('Using HTTP URL:', imageUrl);
       return imageUrl;
     }
     
     if (imageUrl.startsWith('/uploads')) {
       const finalUrl = baseUrl ? `${baseUrl}${imageUrl}` : imageUrl;
-      console.log('Using uploads URL:', finalUrl);
       return finalUrl;
     }
 
     if (!imageUrl.startsWith('/')) {
       const finalUrl = baseUrl ? `${baseUrl}/uploads/candidates/${imageUrl}` : `/uploads/candidates/${imageUrl}`;
-      console.log('Using candidates folder URL:', finalUrl);
       return finalUrl;
     }
 
     const finalUrl = baseUrl ? `${baseUrl}${imageUrl}` : imageUrl;
-    console.log('Using final URL:', finalUrl);
     return finalUrl;
   };
 
@@ -78,7 +65,6 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
     ? report.data.elections.find(e => e.id === selectedElection)
     : null;
 
-  // Initialize image cache when component mounts or election changes
   useEffect(() => {
     if (currentElection?.positions) {
       const imageCache = {};
@@ -110,10 +96,8 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
 
   const formatDateTime = (date, time) => {
     try {
-      // Create a Date object from the date string
       const dateObj = new Date(date);
       
-      // Extract hours and minutes from time string (assuming format "HH:MM:SS")
       const [hours, minutes] = time.split(':');
       
       // Set the time on our date object
@@ -169,7 +153,7 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
     };
 
     try {
-      await generatePdfReport(9, reportData); // 9 is the report ID for Candidate List
+      await generatePdfReport(9, reportData);
     } catch (error) {
       console.error('Error generating report:', error);
     }

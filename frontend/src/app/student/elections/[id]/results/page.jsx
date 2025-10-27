@@ -11,7 +11,6 @@ import { BASE_URL } from '@/config';
 
 const API_BASE = '/api';
 
-// Add color palette for different candidates
 const CHART_COLORS = [
   '#3b82f6', // blue
   '#ef4444', // red
@@ -40,13 +39,9 @@ export default function ElectionResultsPage({ params }) {
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/default-candidate.png';
-    
-    // Debug logging
-    console.log('Original image_url:', imageUrl);
-    console.log('BASE_URL:', BASE_URL);
+
     
     if (imageUrl.startsWith('http')) {
-      console.log('Using HTTP URL:', imageUrl);
       return imageUrl;
     }
     
@@ -58,12 +53,10 @@ export default function ElectionResultsPage({ params }) {
 
     if (!imageUrl.startsWith('/')) {
       const finalUrl = `${BASE_URL}/uploads/candidates/${imageUrl}`;
-      console.log('Using candidates folder URL:', finalUrl);
       return finalUrl;
     }
 
     const finalUrl = `${BASE_URL}${imageUrl}`;
-    console.log('Using final URL:', finalUrl);
     return finalUrl;
   };
 
@@ -101,12 +94,10 @@ export default function ElectionResultsPage({ params }) {
         sortedCandidates.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
       }
       
-      // Format for chart with unique colors for each candidate
       const chartData = sortedCandidates.map((candidate, index) => ({
         name: `${candidate.first_name} ${candidate.last_name}`,
         votes: candidate.vote_count || 0,
         party: candidate.party || 'Independent',
-        // Assign a color based on index, cycling through the array if needed
         color: CHART_COLORS[index % CHART_COLORS.length]
       }));
       
@@ -122,8 +113,7 @@ export default function ElectionResultsPage({ params }) {
     try {
       setLoading(true);
       setError(null);
-      
-      // Get authentication token
+  
       const token = Cookies.get('token');
       if (!token) {
         throw new Error('Authentication required. Please log in again.');
@@ -137,9 +127,7 @@ export default function ElectionResultsPage({ params }) {
         },
         withCredentials: true
       });
-      
-      console.log('Election results data:', response.data);
-      
+            
 
       const electionData = response.data.election;
       if (electionData.status !== 'completed') {
@@ -154,7 +142,6 @@ export default function ElectionResultsPage({ params }) {
       }
       setSortOrder(initialSortOrder);
       
-      // Process candidate images
       const imageCache = {};
       if (electionData?.positions) {
         electionData.positions.forEach(position => {
