@@ -36,16 +36,44 @@ const getImageUrl = (imageUrl) => {
 };
 
 const formatNameSimple = (lastName, firstName, positionName, candidate = null) => {
-  // Try to get name from candidate object if first/last names are missing
-  if (!lastName || !firstName) {
-    // Check if candidate has a name field
-    if (candidate && candidate.name) {
+  // Helper function to check if a value is empty
+  const isEmpty = (val) => !val || val === null || val === undefined || val.trim() === '';
+  
+  // Get actual values from candidate object if provided, supporting both snake_case and camelCase
+  let actualFirstName = firstName;
+  let actualLastName = lastName;
+  
+  if (candidate) {
+    // Try camelCase first
+    if (isEmpty(actualFirstName) && candidate.firstName) {
+      actualFirstName = candidate.firstName;
+    }
+    if (isEmpty(actualLastName) && candidate.lastName) {
+      actualLastName = candidate.lastName;
+    }
+    
+    // Try snake_case
+    if (isEmpty(actualFirstName) && candidate.first_name) {
+      actualFirstName = candidate.first_name;
+    }
+    if (isEmpty(actualLastName) && candidate.last_name) {
+      actualLastName = candidate.last_name;
+    }
+    
+    // If still empty, try to get from a combined name field
+    if ((isEmpty(actualFirstName) || isEmpty(actualLastName)) && candidate.name) {
       return candidate.name;
     }
-    // Try camelCase variants
-    if (candidate && candidate.lastName && candidate.firstName) {
-      return candidate.firstName + ' ' + candidate.lastName;
+  }
+  
+  // If we still don't have valid names, try to use party/partylist as fallback
+  if (isEmpty(actualFirstName) || isEmpty(actualLastName)) {
+    if (candidate && (candidate.partylist_name || candidate.party)) {
+      const partyName = candidate.partylist_name || candidate.party;
+      console.warn('Using party name as fallback:', { candidate, partyName });
+      return partyName;
     }
+    console.warn('Missing candidate name data:', { candidate, firstName, lastName, actualFirstName, actualLastName });
     return 'Unknown Candidate';
   }
   
@@ -54,11 +82,11 @@ const formatNameSimple = (lastName, firstName, positionName, candidate = null) =
       positionName.toLowerCase().includes('vice') || 
       positionName.toLowerCase().includes('secretary') ||
       positionName.toLowerCase().includes('treasurer'))) {
-    return `${lastName}, ${firstName}`;
+    return `${actualLastName}, ${actualFirstName}`;
   }
   
   // For other positions, use "First Last" format
-  return `${firstName} ${lastName}`;
+  return `${actualFirstName} ${actualLastName}`;
 };
 
 const ElectionResultReport = () => {
@@ -173,6 +201,7 @@ const ElectionResultReport = () => {
       const { election, positions } = response.data.data;
       
       console.log('Election results data:', { election, positions });
+      console.log('Sample position data:', positions && positions[0]);
       
       // Group candidates by position and sort by vote count
       const groupedPositions = Array.isArray(positions) ? positions.map(position => {
@@ -183,7 +212,11 @@ const ElectionResultReport = () => {
           console.log('Position candidates sample:', {
             positionName: position.position_name,
             firstCandidate: sortedCandidates[0],
-            fields: Object.keys(sortedCandidates[0])
+            fields: Object.keys(sortedCandidates[0]),
+            hasFirstName: !!sortedCandidates[0].first_name,
+            hasLastName: !!sortedCandidates[0].last_name,
+            firstNameValue: sortedCandidates[0].first_name,
+            lastNameValue: sortedCandidates[0].last_name
           });
         }
         
