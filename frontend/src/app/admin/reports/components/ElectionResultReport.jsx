@@ -37,11 +37,11 @@ const getImageUrl = (imageUrl) => {
 
 const formatNameSimple = (lastName, firstName, positionName, candidate = null) => {
   // Helper function to check if a value is empty
-  const isEmpty = (val) => !val || val === null || val === undefined || val.trim() === '';
+  const isEmpty = (val) => !val || val === null || val === undefined || (typeof val === 'string' && val.trim() === '');
   
   // Get actual values from candidate object if provided, supporting both snake_case and camelCase
-  let actualFirstName = firstName;
-  let actualLastName = lastName;
+  let actualFirstName = firstName || '';
+  let actualLastName = lastName || '';
   
   if (candidate) {
     // Try camelCase first
@@ -59,21 +59,41 @@ const formatNameSimple = (lastName, firstName, positionName, candidate = null) =
     if (isEmpty(actualLastName) && candidate.last_name) {
       actualLastName = candidate.last_name;
     }
-    
-    // If still empty, try to get from a combined name field
-    if ((isEmpty(actualFirstName) || isEmpty(actualLastName)) && candidate.name) {
-      return candidate.name;
-    }
   }
   
-  // If we still don't have valid names, try to use party/partylist as fallback
-  if (isEmpty(actualFirstName) || isEmpty(actualLastName)) {
+  // Handle group candidates where name might be entirely in first_name with empty last_name
+  // For group candidates, the full group name is often stored in first_name only
+  if (!isEmpty(actualFirstName) && isEmpty(actualLastName)) {
+    // This is likely a group candidate with full name in first_name
+    return actualFirstName.trim();
+  }
+  
+  // If both are empty or missing, try to get from combined name or party
+  if (isEmpty(actualFirstName) && isEmpty(actualLastName)) {
+    if (candidate && candidate.name) {
+      return candidate.name;
+    }
+    
+    // Try party/partylist as fallback
     if (candidate && (candidate.partylist_name || candidate.party)) {
       const partyName = candidate.partylist_name || candidate.party;
-      console.warn('Using party name as fallback:', { candidate, partyName });
+      console.warn('Using party name as fallback for empty candidate names:', { 
+        candidate, 
+        partyName,
+        first_name: candidate.first_name,
+        last_name: candidate.last_name 
+      });
       return partyName;
     }
-    console.warn('Missing candidate name data:', { candidate, firstName, lastName, actualFirstName, actualLastName });
+    
+    console.warn('Missing candidate name data:', { 
+      candidate, 
+      firstName, 
+      lastName, 
+      actualFirstName, 
+      actualLastName,
+      candidateKeys: candidate ? Object.keys(candidate) : []
+    });
     return 'Unknown Candidate';
   }
   
@@ -82,11 +102,11 @@ const formatNameSimple = (lastName, firstName, positionName, candidate = null) =
       positionName.toLowerCase().includes('vice') || 
       positionName.toLowerCase().includes('secretary') ||
       positionName.toLowerCase().includes('treasurer'))) {
-    return `${actualLastName}, ${actualFirstName}`;
+    return `${actualLastName.trim()}, ${actualFirstName.trim()}`;
   }
   
   // For other positions, use "First Last" format
-  return `${actualFirstName} ${actualLastName}`;
+  return `${actualFirstName.trim()} ${actualLastName.trim()}`.trim();
 };
 
 const ElectionResultReport = () => {
