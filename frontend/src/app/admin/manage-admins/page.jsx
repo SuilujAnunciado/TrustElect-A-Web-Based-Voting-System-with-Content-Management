@@ -439,8 +439,12 @@ export default function ManageAdminsPage() {
               <td className="p-3">{admin.employee_number || '-'}</td>
               <td className="p-3">{admin.department}</td>
               <td className="p-3">
-                <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                  Admin
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  (admin.department === 'Administrator' || admin.role_id === 1)
+                    ? 'bg-purple-100 text-purple-800'
+                    : 'bg-blue-100 text-blue-800'
+                }`}>
+                  {(admin.department === 'Administrator' || admin.role_id === 1) ? 'System Admin' : 'Admin'}
                 </span>
               </td>
               <td className="p-3">

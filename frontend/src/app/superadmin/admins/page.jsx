@@ -288,9 +288,11 @@ export default function AdminsPage() {
               <td className="p-3">{admin.department}</td>
               <td className="p-3">
                 <span className={`px-2 py-1 rounded-full text-xs ${
-                  isSuperAdmin(admin) ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                  (admin.department === 'Administrator' || admin.role_id === 1)
+                    ? 'bg-purple-100 text-purple-800'
+                    : 'bg-blue-100 text-blue-800'
                 }`}>
-                  {isSuperAdmin(admin) ? 'System Admin' : 'Admin'}
+                  {(admin.department === 'Administrator' || admin.role_id === 1) ? 'System Admin' : 'Admin'}
                 </span>
               </td>
               <td className="p-3">
