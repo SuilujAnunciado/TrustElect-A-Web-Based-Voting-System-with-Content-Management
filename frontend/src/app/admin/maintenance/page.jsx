@@ -100,9 +100,14 @@ const AdminMaintenancePage = () => {
           "/api/admin/departments",
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        // Transform the data to match the expected format
+        // Transform and filter out archived/deleted departments
         const departments = response.data.departments || response.data || [];
-        setItems(departments.map(dept => ({
+        const activeDepartments = departments.filter(dept => {
+          const isDeleted = dept.is_deleted === true;
+          const isActive = dept.is_active !== false; // treat null/undefined as active true
+          return isActive && !isDeleted;
+        });
+        setItems(activeDepartments.map(dept => ({
           id: dept.id,
           name: dept.department_name,
           department_type: dept.department_type
