@@ -980,21 +980,26 @@ export default function ContentManagement() {
           newContent.logo = {
             imageUrl: response.data.content.imageUrl || null
           };
-        } else if (section === 'features' && response.data.content.columns) {
-  
-          newContent.features = {
-            columns: response.data.content.columns.map((column, index) => {
-        
-            
-              return {
+        } else if (section === 'features') {
+          // Merge to preserve existing columns and fields when only background changes
+          if (response.data.content.columns) {
+            newContent.features = {
+              ...landingContent.features,
+              columns: response.data.content.columns.map((column) => ({
                 title: column.title || '',
                 description: column.description || '',
                 imageUrl: column.imageUrl || null,
                 bgColor: column.bgColor || "#ffffff",
                 textColor: column.textColor || "#000000"
-              };
-            })
-          };
+              }))
+            };
+          } else {
+            newContent.features = {
+              ...landingContent.features,
+              ...response.data.content,
+              columns: landingContent.features.columns
+            };
+          }
         } else if (section === 'hero') {
 
           newContent.hero = {
@@ -1007,9 +1012,25 @@ export default function ContentManagement() {
             textColor: response.data.content.textColor || "#ffffff",
             backgroundImage: response.data.content.backgroundImage || null
           };
+        } else if (section === 'callToAction') {
+          newContent.callToAction = {
+            ...landingContent.callToAction,
+            ...response.data.content
+          };
+        } else if (section === 'header') {
+          newContent.header = { ...landingContent.header, ...response.data.content };
+        } else if (section === 'logo') {
+          newContent.logo = { ...landingContent.logo, ...response.data.content };
+        } else if (section === 'candidates') {
+          newContent.candidates = {
+            ...landingContent.candidates,
+            ...response.data.content,
+            items: Array.isArray(response.data.content.items)
+              ? response.data.content.items
+              : (landingContent.candidates.items || [])
+          };
         } else {
- 
-        newContent[section] = response.data.content;
+          newContent[section] = { ...landingContent[section], ...response.data.content };
         }
         
         setLandingContent(newContent);

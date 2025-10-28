@@ -659,12 +659,50 @@ export default function ContentManagement() {
           newValue: Date.now().toString()
         }));
         
-        // Update local state with saved content
+        // Update local state with saved content (merge to preserve existing fields)
         if (response.data.content) {
-          setLandingContent(prev => ({
-            ...prev,
-            [section]: response.data.content
-          }));
+          setLandingContent(prev => {
+            if (section === 'features') {
+              return {
+                ...prev,
+                features: {
+                  ...prev.features,
+                  ...response.data.content,
+                  columns: Array.isArray(response.data.content.columns)
+                    ? response.data.content.columns
+                    : (prev.features.columns || [])
+                }
+              };
+            }
+            if (section === 'callToAction') {
+              return {
+                ...prev,
+                callToAction: {
+                  ...prev.callToAction,
+                  ...response.data.content
+                }
+              };
+            }
+            if (section === 'header') {
+              return {
+                ...prev,
+                header: { ...prev.header, ...response.data.content }
+              };
+            }
+            if (section === 'candidates') {
+              return {
+                ...prev,
+                candidates: {
+                  ...prev.candidates,
+                  ...response.data.content,
+                  items: Array.isArray(response.data.content.items)
+                    ? response.data.content.items
+                    : (prev.candidates.items || [])
+                }
+              };
+            }
+            return { ...prev, [section]: { ...prev[section], ...response.data.content } };
+          });
         }
 
         // Set success message based on section
@@ -696,8 +734,31 @@ export default function ContentManagement() {
               textColor: response.data.content.textColor || "#ffffff",
               backgroundImage: response.data.content.backgroundImage || null
             };
+          } else if (section === 'features') {
+            newContent.features = {
+              ...landingContent.features,
+              ...response.data.content,
+              columns: Array.isArray(response.data.content.columns)
+                ? response.data.content.columns
+                : landingContent.features.columns
+            };
+          } else if (section === 'callToAction') {
+            newContent.callToAction = {
+              ...landingContent.callToAction,
+              ...response.data.content
+            };
+          } else if (section === 'header') {
+            newContent.header = { ...landingContent.header, ...response.data.content };
+          } else if (section === 'candidates') {
+            newContent.candidates = {
+              ...landingContent.candidates,
+              ...response.data.content,
+              items: Array.isArray(response.data.content.items)
+                ? response.data.content.items
+                : (landingContent.candidates.items || [])
+            };
           } else {
-            newContent[section] = response.data.content;
+            newContent[section] = { ...landingContent[section], ...response.data.content };
           }
           
           setLandingContent(newContent);

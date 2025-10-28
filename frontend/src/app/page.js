@@ -287,7 +287,7 @@ export default function Home() {
       <img
         src={withTs}
         alt={alt || 'Background'}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover z-0"
         draggable={false}
         loading="eager"
         style={{ imageRendering: 'auto' }}
@@ -648,7 +648,7 @@ export default function Home() {
           {landingContent.callToAction?.backgroundImage && (
             renderSectionBackground(landingContent.callToAction.backgroundImage, 'Call To Action Background')
           )}
-          <div className="container mx-auto max-w-6xl w-full">
+          <div className="container mx-auto max-w-6xl w-full relative z-10">
             {/* Changed to flex layout with video on left and content on right */}
             <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
               {/* Video container - Left side, smaller size */}
@@ -734,7 +734,7 @@ export default function Home() {
         {landingContent.features?.backgroundImage && (
           renderSectionBackground(landingContent.features.backgroundImage, 'Features Background')
         )}
-        <div className="container mx-auto max-w-6xl w-full">
+        <div className="container mx-auto max-w-6xl w-full relative z-10">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Key Features
           </h2>
