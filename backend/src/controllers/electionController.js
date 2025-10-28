@@ -99,21 +99,23 @@ const validateClientIP = async (client, req, studentId, electionId) => {
       };
     }
     
-    const precinctId = studentAssignment.rows[0].precinct_id;
-    const precinctName = studentAssignment.rows[0].precinct_name;
+    // Build list of assigned precincts
+    const assignedPrecincts = studentAssignment.rows.map(r => ({ id: r.precinct_id, name: r.precinct_name }));
+    const assignedPrecinctIds = assignedPrecincts.map(p => p.id);
+    const assignedNames = assignedPrecincts.map(p => p.name);
     
-    // Check if client IP is registered for the assigned precinct
+    // Check if client IP is registered for ANY of the assigned precincts
     const ipCheck = await client.query(`
-      SELECT ip_address, ip_type
+      SELECT laboratory_precinct_id, ip_address, ip_type
       FROM laboratory_ip_addresses 
-      WHERE laboratory_precinct_id = $1 
+      WHERE laboratory_precinct_id = ANY($1::int[])
       AND is_active = true
-    `, [precinctId]);
+    `, [assignedPrecinctIds]);
     
     if (ipCheck.rows.length === 0) {
       return { 
         allowed: false, 
-        message: `Access denied. No IP addresses are registered for your assigned laboratory: ${precinctName}. Please contact your administrator.` 
+        message: `Access denied. No IP addresses are registered for your assigned laboratories: ${assignedNames.join(', ')}. Please contact your administrator.` 
       };
     }
     
@@ -187,7 +189,7 @@ const validateClientIP = async (client, req, studentId, electionId) => {
     if (!ipMatch) {
       return { 
         allowed: false, 
-        message: `Access denied. You can only vote from your assigned laboratory: ${precinctName}. Please go to the designated laboratory to cast your vote.` 
+        message: `Access denied. You can only vote from your assigned laboratories: ${assignedNames.join(', ')}. Please go to any of the designated laboratories to cast your vote.` 
       };
     }
     

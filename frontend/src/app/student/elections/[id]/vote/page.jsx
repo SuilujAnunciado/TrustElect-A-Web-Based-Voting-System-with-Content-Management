@@ -415,7 +415,24 @@ export default function VotePage({ params }) {
               <p className="text-sm">
                 <strong>Go to your assigned laboratory to cast your vote</strong>
               </p>
-             
+              {(() => {
+                try {
+                  const match = error.match(/assigned (?:laboratory|laboratories):\s*(.*)$/i);
+                  if (match && match[1]) {
+                    const labs = match[1].split(',').map(s => s.trim()).filter(Boolean);
+                    if (labs.length > 1) {
+                      return (
+                        <ul className="list-disc list-inside text-sm text-orange-700 mt-2">
+                          {labs.map((lab, idx) => (
+                            <li key={idx}>{lab}</li>
+                          ))}
+                        </ul>
+                      );
+                    }
+                  }
+                } catch {}
+                return null;
+              })()}
             </div>
           )}
         </div>
