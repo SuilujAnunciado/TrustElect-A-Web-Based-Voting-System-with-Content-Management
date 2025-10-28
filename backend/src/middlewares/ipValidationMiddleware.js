@@ -51,7 +51,7 @@ const validateVotingIP = async (req, res, next) => {
       return next();
     }
     
-    // Check if student is assigned to any precinct for this election
+    // Check if student is assigned to any precinct(s) for this election
     const studentAssignment = await pool.query(`
       SELECT 
         s.course_name,
@@ -72,22 +72,24 @@ const validateVotingIP = async (req, res, next) => {
       });
     }
     
-    const precinctId = studentAssignment.rows[0].precinct_id;
-    const precinctName = studentAssignment.rows[0].precinct_name;
-    
-    // Check if client IP is registered for the assigned precinct
+    // Build list of assigned precinct IDs and names
+    const assignedPrecincts = studentAssignment.rows.map(r => ({ id: r.precinct_id, name: r.precinct_name }));
+    const assignedPrecinctIds = assignedPrecincts.map(p => p.id);
+    const assignedNames = assignedPrecincts.map(p => p.name);
+
+    // Load all active IP addresses for all assigned precincts
     const ipCheck = await pool.query(`
-      SELECT ip_address, ip_type
-      FROM laboratory_ip_addresses 
-      WHERE laboratory_precinct_id = $1 
+      SELECT laboratory_precinct_id, ip_address, ip_type
+      FROM laboratory_ip_addresses
+      WHERE laboratory_precinct_id = ANY($1::int[])
       AND is_active = true
-    `, [precinctId]);
+    `, [assignedPrecinctIds]);
     
-    // If no IP addresses registered for this precinct, deny access
+    // If no IP addresses registered for any assigned precincts, deny
     if (ipCheck.rows.length === 0) {
       return res.status(403).json({
         success: false,
-        message: `Access denied. No IP addresses are registered for your assigned laboratory: ${precinctName}. Please contact your election administrator.`
+        message: `Access denied. No IP addresses are registered for your assigned laboratories: ${assignedNames.join(', ')}. Please contact your election administrator.`
       });
     }
     
@@ -127,7 +129,7 @@ const validateVotingIP = async (req, res, next) => {
     if (!ipMatch) {
       return res.status(403).json({
         success: false,
-        message: `Access denied. You can only vote from your assigned laboratory: ${precinctName}. Please go to the designated laboratory to cast your vote.`
+        message: `Access denied. You can only vote from your assigned laboratories: ${assignedNames.join(', ')}. Please go to any of the designated laboratories to cast your vote.`
       });
     }
     
