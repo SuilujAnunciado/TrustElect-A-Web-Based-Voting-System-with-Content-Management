@@ -190,7 +190,7 @@ export default function Sidebar() {
 
           <button 
             className={`block w-full text-left p-3 rounded transition-colors ${
-              isActiveRoute("/superadmin/reports") 
+              isActiveRoute("/superadmin/results-verification") 
                 ? "bg-[#01579B] text-white shadow-md" 
                 : "hover:bg-[#01579B] hover:text-white"
             }`} 
