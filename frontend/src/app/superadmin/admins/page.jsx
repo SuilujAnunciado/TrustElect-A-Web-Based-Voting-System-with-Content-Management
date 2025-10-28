@@ -288,11 +288,13 @@ export default function AdminsPage() {
               <td className="p-3">{admin.department}</td>
               <td className="p-3">
                 <span className={`px-2 py-1 rounded-full text-xs ${
-                  (admin.department === 'Administrator' || admin.role_id === 1)
-                    ? 'bg-purple-100 text-purple-800'
-                    : 'bg-blue-100 text-blue-800'
+                  admin.role_id === 1
+                    ? 'bg-purple-100 text-purple-800' // Root Admin
+                    : (admin.department === 'Administrator'
+                        ? 'bg-purple-100 text-purple-800' // System Admin styling
+                        : 'bg-blue-100 text-blue-800') // Admin
                 }`}>
-                  {(admin.department === 'Administrator' || admin.role_id === 1) ? 'System Admin' : 'Admin'}
+                  {admin.role_id === 1 ? 'Root Admin' : (admin.department === 'Administrator' ? 'System Admin' : 'Admin')}
                 </span>
               </td>
               <td className="p-3">
