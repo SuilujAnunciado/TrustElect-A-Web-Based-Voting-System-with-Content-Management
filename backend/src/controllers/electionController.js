@@ -40,7 +40,6 @@ const { generateUniqueCode } = require('../utils/verificationCodeGenerator');
 // Enhanced IP validation function that supports both private and public IPs
 const validateClientIP = async (client, req, studentId, electionId) => {
   try {
-    // Get client IP from various sources (including additional proxy headers)
     const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                      req.headers['x-real-ip'] ||
                      req.headers['cf-connecting-ip'] ||
@@ -53,7 +52,6 @@ const validateClientIP = async (client, req, studentId, electionId) => {
                      req.ip ||
                      req.ips?.[0];
     
-    // Clean IPv6-mapped IPv4 addresses
     let cleanIP = clientIP;
     if (cleanIP && cleanIP.startsWith('::ffff:')) {
       cleanIP = cleanIP.substring(7);
@@ -62,7 +60,6 @@ const validateClientIP = async (client, req, studentId, electionId) => {
       cleanIP = '127.0.0.1';
     }
 
-    // Check if IP validation tables exist
     const tableCheck = await client.query(`
       SELECT EXISTS (
         SELECT 1 FROM information_schema.tables 
@@ -71,19 +68,16 @@ const validateClientIP = async (client, req, studentId, electionId) => {
       ) as table_exists
     `);
     
-    // If no IP validation tables, allow access
     if (!tableCheck.rows[0].table_exists) {
       return { allowed: true };
     }
     
-    // Check if there are any election-precinct assignments
     const assignmentCount = await client.query('SELECT COUNT(*) as count FROM election_precinct_programs');
     
     if (assignmentCount.rows[0].count === 0) {
       return { allowed: true };
     }
-    
-    // Check if student is assigned to any precinct for this election
+
     const studentAssignment = await client.query(`
       SELECT 
         s.course_name,
@@ -115,15 +109,14 @@ const validateClientIP = async (client, req, studentId, electionId) => {
       AND is_active = true
     `, [precinctId]);
     
-    // If no IP addresses registered for this precinct, deny access
     if (ipCheck.rows.length === 0) {
       return { 
         allowed: false, 
-        message: `Access denied. No IP addresses are registered for your assigned laboratory: ${precinctName}. Please contact your election administrator.` 
+        message: `Access denied. No IP addresses are registered for your assigned laboratory: ${precinctName}. Please contact your administrator.` 
       };
     }
     
-    // Get all possible IP variations from the request
+
     const possibleIPs = [
       clientIP,
       cleanIP,
@@ -238,7 +231,6 @@ exports.createElection = async (req, res) => {
       }
     }
 
-    // Send notifications if the election was created successfully
     if (result.election) {
       try {
         const electionWithCreator = {
@@ -249,7 +241,6 @@ exports.createElection = async (req, res) => {
         };
 
         if (needsApproval) {
-          // Send notification to superadmins for approval (admin-created election)
           const { rows: superadminDetails } = await pool.query(
             `SELECT id, email, active FROM users WHERE role_id = 1`
           );
@@ -1391,18 +1382,16 @@ exports.submitVote = async (req, res) => {
           }))
         };
 
-        // Send email receipt (don't await to avoid blocking the response)
         sendVoteReceiptEmail(student.user_id, student.email, receiptData)
           .then(result => {
-            console.log(`✅ Vote receipt email sent successfully to ${student.email}`);
+            console.log(` Vote receipt email sent successfully to ${student.email}`);
           })
           .catch(error => {
-            console.error(`❌ Failed to send vote receipt email to ${student.email}:`, error.message);
+            console.error(`Failed to send vote receipt email to ${student.email}:`, error.message);
           });
       }
     } catch (emailError) {
       console.error('Error sending vote receipt email:', emailError);
-      // Don't fail the vote submission if email fails
     }
 
     return res.status(200).json({
@@ -2380,9 +2369,7 @@ exports.getVotesPerCandidate = async (req, res) => {
       });
     });
 
-    console.log('Grouped positions:', Object.keys(positions).length, 'positions');
 
-    // Convert to array and sort by display order, then by position ID
     const positionsArray = Object.values(positions)
       .sort((a, b) => {
         // Sort by display_order first, then by position ID

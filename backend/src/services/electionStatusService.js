@@ -3,7 +3,6 @@ const { DateTime } = require("luxon");
 // Import the notification service
 const notificationService = require("./notificationService");
 
-// Manila timezone (UTC+8)
 const MANILA_TIMEZONE = "Asia/Manila";
 
 async function updateElectionStatuses() {
