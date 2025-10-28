@@ -97,7 +97,7 @@ const AdminMaintenancePage = () => {
       let response;
       if (activeTab === "departments") {
         response = await axios.get(
-          "/api/superadmin/departments",
+          "/api/admin/departments",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         // Transform the data to match the expected format
@@ -169,7 +169,7 @@ const AdminMaintenancePage = () => {
       
       if (activeTab === "departments") {
         await axios.post(
-          "/api/superadmin/departments",
+          "/api/admin/departments",
           {
             department_name: newItemName,
             department_type: departmentType
@@ -222,7 +222,7 @@ const AdminMaintenancePage = () => {
       
       if (activeTab === "departments") {
         await axios.put(
-          `/api/superadmin/departments/${editingItem.id}`,
+          `/api/admin/departments/${editingItem.id}`,
           {
             department_name: editName,
             department_type: departmentType
@@ -267,7 +267,7 @@ const AdminMaintenancePage = () => {
       
       if (activeTab === "departments") {
         await axios.delete(
-          `/api/superadmin/departments/${selectedItem.id}`,
+          `/api/admin/departments/${selectedItem.id}?action=delete`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {

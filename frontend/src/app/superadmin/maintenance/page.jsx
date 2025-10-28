@@ -247,7 +247,7 @@ const MaintenancePage = () => {
       
       if (activeTab === "departments") {
         await axios.delete(
-          `/api/superadmin/departments/${selectedItem.id}`,
+          `/api/superadmin/departments/${selectedItem.id}?action=delete`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
@@ -263,7 +263,7 @@ const MaintenancePage = () => {
       fetchItems();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete item");
-      console.error(error);
+      console.error("API Error:", error);
     } finally {
       setIsLoading(false);
     }
