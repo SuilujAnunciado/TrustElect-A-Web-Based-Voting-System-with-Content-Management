@@ -123,6 +123,46 @@ const AdminActivityDetail = ({ report, onClose, onDownload }) => {
     }
   };
 
+  const getRoleColor = (role, department) => {
+    if (!role) return 'bg-gray-100 text-gray-800';
+    const roleLc = role.toLowerCase();
+    const deptLc = (department || '').toLowerCase();
+    const isAdministratorDept = deptLc === 'administrator' || deptLc === 'administration' || deptLc === 'system';
+    
+    if (roleLc === 'admin' && isAdministratorDept) {
+      return 'bg-red-100 text-red-800'; // System Admin color
+    }
+    
+    switch (roleLc) {
+      case 'admin': return 'bg-purple-100 text-purple-800';
+      case 'systemadmin': 
+      case 'super admin': 
+      case 'root admin':
+        return 'bg-red-100 text-red-800';
+      case 'student': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatRoleDisplay = (role, department) => {
+    if (!role) return 'Unknown';
+    const roleLc = role.toLowerCase();
+    const deptLc = (department || '').toLowerCase();
+    const isAdministratorDept = deptLc === 'administrator' || deptLc === 'administration' || deptLc === 'system';
+    
+    if (roleLc === 'admin' && isAdministratorDept) return 'System Admin';
+    
+    switch (roleLc) {
+      case 'systemadmin': 
+      case 'super admin': 
+      case 'root admin':
+        return 'Root Admin';
+      case 'admin': return 'Admin';
+      case 'student': return 'Student';
+      default: return role;
+    }
+  };
+
   const handleDownload = async () => {
     const reportData = {
       title: "Admin Activity Report",
@@ -309,8 +349,10 @@ const AdminActivityDetail = ({ report, onClose, onDownload }) => {
                           <div className="text-sm text-black/70">
                             {activity.user_email}
                           </div>
-                          <div className="text-xs text-black/50">
-                            {activity.role_name}
+                          <div className="mt-1">
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getRoleColor(activity.role_name, activity.department)}`}>
+                              {formatRoleDisplay(activity.role_name, activity.department)}
+                            </span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
