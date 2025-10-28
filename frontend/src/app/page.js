@@ -278,6 +278,27 @@ export default function Home() {
     );
   };
 
+  // Full-bleed background image renderer to avoid CSS background blur/pixelation
+  const renderSectionBackground = (url, alt) => {
+    const formattedUrl = formatImageUrl(url);
+    if (!formattedUrl) return null;
+    const withTs = `${formattedUrl}?timestamp=${new Date().getTime()}`;
+    return (
+      <img
+        src={withTs}
+        alt={alt || 'Background'}
+        className="absolute inset-0 w-full h-full object-cover"
+        draggable={false}
+        loading="eager"
+        style={{ imageRendering: 'auto' }}
+        onError={(e) => {
+          console.error('Error loading section background image:', withTs);
+          e.currentTarget.style.display = 'none';
+        }}
+      />
+    );
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col">
       {/* Header Section - Updated to remove About button */}
@@ -618,16 +639,15 @@ export default function Home() {
       {/* Call to Action Section - Moved after Hero */}
       {landingContent.callToAction.enabled && (
         <section 
-          className="text-white py-16 px-6 relative min-h-[700px] flex items-center"
+          className="text-white py-16 px-6 relative min-h-[700px] flex items-center overflow-hidden"
           style={{
             backgroundColor: landingContent.callToAction?.bgColor || '#1e3a8a',
-            color: landingContent.callToAction?.textColor || '#ffffff',
-            backgroundImage: landingContent.callToAction?.backgroundImage ? `url(${formatImageUrl(landingContent.callToAction.backgroundImage)})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
+            color: landingContent.callToAction?.textColor || '#ffffff'
           }}
         >
+          {landingContent.callToAction?.backgroundImage && (
+            renderSectionBackground(landingContent.callToAction.backgroundImage, 'Call To Action Background')
+          )}
           <div className="container mx-auto max-w-6xl w-full">
             {/* Changed to flex layout with video on left and content on right */}
             <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
@@ -706,15 +726,14 @@ export default function Home() {
 
       {/* Features Section - Moved after CTA */}
       <section 
-        className="py-20 px-6 relative min-h-[750px] flex items-center"
+        className="py-20 px-6 relative min-h-[750px] flex items-center overflow-hidden"
         style={{
-          backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb',
-          backgroundImage: landingContent.features?.backgroundImage ? `url(${formatImageUrl(landingContent.features.backgroundImage)})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb'
         }}
       >
+        {landingContent.features?.backgroundImage && (
+          renderSectionBackground(landingContent.features.backgroundImage, 'Features Background')
+        )}
         <div className="container mx-auto max-w-6xl w-full">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Key Features
