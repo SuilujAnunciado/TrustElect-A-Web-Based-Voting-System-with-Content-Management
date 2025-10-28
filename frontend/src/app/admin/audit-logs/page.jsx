@@ -117,6 +117,11 @@ export default function AuditLogsPage() {
           if (log.action === 'SMS_VERIFIED') {
             return;
           }
+          // Hide Root Admin/System Admin actions from admin views
+          const role = (log.user_role || '').toLowerCase();
+          if (role === 'systemadmin' || role === 'super admin' || role === 'root admin' || role === 'superadmin') {
+            return;
+          }
           
           // Create a more comprehensive unique key
           const logKey = `${log.action}-${log.entity_type}-${log.entity_id}-${log.user_id}-${log.user_email}-${new Date(log.created_at).getTime()}`;

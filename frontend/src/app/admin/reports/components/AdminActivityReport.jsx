@@ -83,6 +83,12 @@ const AdminActivityReport = () => {
       }
 
       let activities = activitiesResponse.data.data?.activities || [];
+
+      // Hide Root Admin/System Admin actions from admin views
+      activities = activities.filter(activity => {
+        const role = (activity.user_role || '').toLowerCase();
+        return !(role === 'systemadmin' || role === 'super admin' || role === 'root admin' || role === 'superadmin');
+      });
       
       // Client-side filtering for user if backend filtering doesn't work properly
       if (selectedUser !== 'all') {
@@ -121,7 +127,12 @@ const AdminActivityReport = () => {
           email: activity.user_email || '',
           role: activity.user_role || 'admin'
         }))
-        .filter(user => user.first_name && user.last_name && user.first_name !== 'Unknown');
+        .filter(user => user.first_name && user.last_name && user.first_name !== 'Unknown')
+        // Exclude root-level roles from dropdown as well
+        .filter(user => {
+          const role = (user.role || '').toLowerCase();
+          return !(role === 'systemadmin' || role === 'super admin' || role === 'root admin' || role === 'superadmin');
+        });
 
       // Combine with existing users and remove duplicates
       setAvailableUsers(prevUsers => {
