@@ -254,10 +254,23 @@ export default function AuditLogsPage() {
     }
   };
 
-  const getRoleColor = (role, departmentName) => {
+  const getDepartmentFromLog = (log) => {
+    return (
+      log?.details?.department_name ||
+      log?.details?.department ||
+      log?.department_name ||
+      log?.department ||
+      log?.user_department ||
+      log?.details?.user_department ||
+      ''
+    );
+  };
+
+  const getRoleColor = (role, log) => {
     if (!role) return 'bg-gray-100 text-gray-800';
     const roleLc = role.toLowerCase();
-    const deptLc = (departmentName || '').toLowerCase();
+    const deptName = getDepartmentFromLog(log);
+    const deptLc = (deptName || '').toLowerCase();
     const isAdministratorDept = deptLc === 'administrator' || deptLc === 'administration' || deptLc === 'system';
     
     if (roleLc === 'admin' && isAdministratorDept) {
@@ -275,10 +288,11 @@ export default function AuditLogsPage() {
     }
   };
  
-  const formatRoleDisplay = (role, departmentName) => {
+  const formatRoleDisplay = (role, log) => {
     if (!role) return 'Unknown';
     const roleLc = role.toLowerCase();
-    const deptLc = (departmentName || '').toLowerCase();
+    const deptName = getDepartmentFromLog(log);
+    const deptLc = (deptName || '').toLowerCase();
     const isAdministratorDept = deptLc === 'administrator' || deptLc === 'administration' || deptLc === 'system';
     
     if (roleLc === 'admin' && isAdministratorDept) return 'System Admin';
@@ -737,8 +751,8 @@ export default function AuditLogsPage() {
                           {log.user_email || 'N/A'}
                         </div>
                         <div className="text-xs mt-1">
-                          <span className={`inline-block px-2 py-0.5 rounded-full ${getRoleColor(log.user_role, log.details?.department_name || log.department_name)}`}>
-                            {formatRoleDisplay(log.user_role, log.details?.department_name || log.department_name)}
+                          <span className={`inline-block px-2 py-0.5 rounded-full ${getRoleColor(log.user_role, log)}`}>
+                            {formatRoleDisplay(log.user_role, log)}
                           </span>
                         </div>
                       </td>
