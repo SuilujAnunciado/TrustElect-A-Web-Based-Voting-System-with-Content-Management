@@ -362,7 +362,7 @@ const getAllElections = async () => {
     return result.rows;
   } catch (error) {
     console.error('Error in getAllElections:', error);
-    // Fallback to basic query without archive filtering
+    
     const result = await pool.query(`
         SELECT 
             e.*, 

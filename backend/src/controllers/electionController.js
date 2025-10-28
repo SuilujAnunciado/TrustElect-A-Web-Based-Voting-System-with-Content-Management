@@ -30,6 +30,7 @@ const {
 } = require("../models/electionModel");
 const pool = require("../config/db");
 const crypto = require('crypto');
+const bcrypt = require("bcryptjs");
 const notificationService = require('../services/notificationService');
 const cryptoService = require('../utils/cryptoService');
 const electionModel = require("../models/electionModel");
@@ -991,6 +992,7 @@ exports.getBallotForStudent = async (req, res) => {
     if (eligible.rows.length === 0) {
       return res.status(403).json({ message: "Not eligible for this election" });
     }
+
 
     const ballot = await pool.query(
       `SELECT 

@@ -190,11 +190,11 @@ export default function Sidebar() {
 
           <button 
             className={`block w-full text-left p-3 rounded transition-colors ${
-              isActiveRoute("/superadmin/results-verification") 
+              isActiveRoute("/superadmin/results") 
                 ? "bg-[#01579B] text-white shadow-md" 
                 : "hover:bg-[#01579B] hover:text-white"
             }`} 
-            onClick={() => router.push("/superadmin/results-verification")}
+            onClick={() => router.push("/superadmin/results")}
           >
             Results Verification
           </button>
