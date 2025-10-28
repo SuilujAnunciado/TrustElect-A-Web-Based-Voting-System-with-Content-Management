@@ -104,6 +104,111 @@ const AdminActivityDetail = ({ report, onClose, onDownload }) => {
     });
   };
 
+  const getActionDescription = (activity) => {
+    const { action, entity_type, admin_name, created_at } = activity;
+    const timestamp = new Date(created_at).toLocaleString();
+    
+    switch (action) {
+      case 'CREATE':
+        switch (entity_type) {
+          case 'election':
+            return `${admin_name} created a new election on ${timestamp}`;
+          case 'candidate':
+            return `${admin_name} added a new candidate on ${timestamp}`;
+          case 'user':
+            return `${admin_name} created a new user account on ${timestamp}`;
+          case 'ballot':
+            return `${admin_name} created a new ballot on ${timestamp}`;
+          case 'position':
+            return `${admin_name} created a new position on ${timestamp}`;
+          case 'admin':
+            return `${admin_name} created a new admin account on ${timestamp}`;
+          case 'departments':
+            return `${admin_name} created a new department on ${timestamp}`;
+          default:
+            return `${admin_name} created a new ${entity_type} on ${timestamp}`;
+        }
+      case 'UPDATE':
+        switch (entity_type) {
+          case 'election':
+            return `${admin_name} updated election details on ${timestamp}`;
+          case 'candidate':
+            return `${admin_name} modified candidate information on ${timestamp}`;
+          case 'user':
+            return `${admin_name} updated user profile on ${timestamp}`;
+          case 'ballot':
+            return `${admin_name} modified ballot configuration on ${timestamp}`;
+          case 'position':
+            return `${admin_name} updated position details on ${timestamp}`;
+          case 'content':
+            return `${admin_name} updated website content on ${timestamp}`;
+          case 'admin':
+            return `${admin_name} updated admin account on ${timestamp}`;
+          case 'departments':
+            return `${admin_name} updated department details on ${timestamp}`;
+          default:
+            return `${admin_name} updated ${entity_type} on ${timestamp}`;
+        }
+      case 'DELETE':
+        switch (entity_type) {
+          case 'election':
+            return `${admin_name} deleted an election on ${timestamp}`;
+          case 'candidate':
+            return `${admin_name} removed a candidate on ${timestamp}`;
+          case 'user':
+            return `${admin_name} deleted a user account on ${timestamp}`;
+          case 'ballot':
+            return `${admin_name} deleted a ballot on ${timestamp}`;
+          case 'position':
+            return `${admin_name} removed a position on ${timestamp}`;
+          case 'admin':
+            return `${admin_name} deleted an admin account on ${timestamp}`;
+          case 'departments':
+            return `${admin_name} deleted a department on ${timestamp}`;
+          default:
+            return `${admin_name} deleted ${entity_type} on ${timestamp}`;
+        }
+      case 'LOGIN':
+        return `${admin_name} logged into the system on ${timestamp}`;
+      case 'LOGOUT':
+        return `${admin_name} logged out of the system on ${timestamp}`;
+      case 'LOGIN_FAILED':
+        return `Failed login attempt by ${admin_name} on ${timestamp}`;
+      case 'VOTE':
+        return `${admin_name} cast a vote on ${timestamp}`;
+      case 'APPROVE':
+        switch (entity_type) {
+          case 'election':
+            return `${admin_name} approved an election on ${timestamp}`;
+          case 'user':
+            return `${admin_name} approved a user account on ${timestamp}`;
+          default:
+            return `${admin_name} approved ${entity_type} on ${timestamp}`;
+        }
+      case 'REJECT':
+        switch (entity_type) {
+          case 'election':
+            return `${admin_name} rejected an election on ${timestamp}`;
+          case 'user':
+            return `${admin_name} rejected a user account on ${timestamp}`;
+          default:
+            return `${admin_name} rejected ${entity_type} on ${timestamp}`;
+        }
+      case 'PUBLISH':
+        return `${admin_name} published an election on ${timestamp}`;
+      case 'UNPUBLISH':
+        return `${admin_name} unpublished an election on ${timestamp}`;
+      case 'START':
+        return `${admin_name} started an election on ${timestamp}`;
+      case 'END':
+        return `${admin_name} ended an election on ${timestamp}`;
+      case 'CANCEL':
+        return `${admin_name} cancelled an election on ${timestamp}`;
+      default:
+        return `${admin_name} performed ${action} on ${entity_type} on ${timestamp}`;
+    }
+  };
+
   const getActionColor = (action) => {
     switch (action?.toUpperCase()) {
       case 'CREATE':
@@ -335,6 +440,9 @@ const AdminActivityDetail = ({ report, onClose, onDownload }) => {
                         Entity Type
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                        Details/Description
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                         Timestamp
                       </th>
                     </tr>
@@ -362,6 +470,11 @@ const AdminActivityDetail = ({ report, onClose, onDownload }) => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                           {activity.entity_type}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-black">
+                            {getActionDescription(activity)}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                           {formatDate(activity.created_at)}
