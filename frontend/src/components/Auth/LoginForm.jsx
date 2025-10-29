@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import stiLogo from "../../assets/sti_logo.png";
+import stiLogo from "../../assets/sti_nova_logo.png";
 
 
 export default function LoginForm({ onClose }) {
