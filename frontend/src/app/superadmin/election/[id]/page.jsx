@@ -889,7 +889,7 @@ export default function ElectionDetailsPage() {
       if (election.positions && election.positions.length > 0) {
         ballotData = {
           positions: election.positions.map(pos => ({
-            position: pos.name || pos.position_name || pos.position_title || pos.positionTitle || pos.title || 'Unnamed Position',
+            position: pos.position_name || pos.name || pos.position_title || pos.positionTitle || pos.title || 'Unnamed Position',
             max_choices: pos.max_choices,
             candidates: (pos.candidates || []).map(candidate => {
               const isGroup = (!candidate.first_name && !candidate.last_name && candidate.name) || candidate.is_group;
@@ -925,7 +925,7 @@ export default function ElectionDetailsPage() {
             positions: election.positions.map(pos => {
               const sortedCandidates = (pos.candidates || []).sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
               return {
-                position_name: pos.name || pos.position_name || pos.position_title || pos.positionTitle || pos.title || 'Unnamed Position',
+                position_name: pos.position_name || pos.name || pos.position_title || pos.positionTitle || pos.title || 'Unnamed Position',
                 candidates: sortedCandidates.map((candidate, index) => ({
                   name: (() => {
                     const isGroup = (!candidate.first_name && !candidate.last_name && candidate.name) || candidate.is_group;
@@ -970,7 +970,7 @@ export default function ElectionDetailsPage() {
           voter_turnout_percentage: election.voter_count ? ((election.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'
         },
         ballot_info: ballotData.positions?.map(position => ({
-          position_name: position.position || position.position_name || position.position_title || position.positionTitle || 'Unnamed Position',
+          position_name: position.position_name || position.position || position.position_title || position.positionTitle || 'Unnamed Position',
           max_choices: position.max_choices,
           candidates: position.candidates?.map(candidate => {
             const candidateData = {
@@ -1007,7 +1007,7 @@ export default function ElectionDetailsPage() {
           })) || []
         })) || [],
         candidate_votes: candidateVotes.map(position => ({
-          position_name: position.position_title || position.positionTitle || position.name || position.position_name || 'Unnamed Position',
+          position_name: position.position_name || position.name || position.position_title || position.positionTitle || 'Unnamed Position',
           max_choices: position.max_choices,
           candidates: position.candidates?.map(candidate => ({
             name: formatNameSimple(candidate.lastName, candidate.firstName, candidate.name),
