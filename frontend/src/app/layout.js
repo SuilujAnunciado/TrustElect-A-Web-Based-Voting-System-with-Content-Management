@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from 'react-hot-toast';
 import { NotificationProvider } from '../contexts/NotificationContext';
-//import IdleSessionProvider from '../contexts/IdleSessionProvider';
+import IdleSessionProvider from '../contexts/IdleSessionProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,10 +40,10 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NotificationProvider>
-           {/*<IdleSessionProvider> */} 
+          <IdleSessionProvider>
             {children}
             <Toaster position="top-center" />
-            {/*<IdleSessionProvider> */} 
+           </IdleSessionProvider> 
         </NotificationProvider>
       </body>
     </html>
