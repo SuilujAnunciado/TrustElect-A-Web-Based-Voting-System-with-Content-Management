@@ -639,7 +639,7 @@ export default function Home() {
       {/* Call to Action Section - Moved after Hero */}
       {landingContent.callToAction.enabled && (
         <section 
-          className="text-white py-16 px-6 relative min-h-[700px] flex items-center overflow-hidden"
+           className="text-white py-16 px-6 min-h-screen flex items-center relative pt-24"
           style={{
             backgroundColor: landingContent.callToAction?.bgColor || '#1e3a8a',
             color: landingContent.callToAction?.textColor || '#ffffff'
@@ -726,7 +726,7 @@ export default function Home() {
 
       {/* Features Section - Moved after CTA */}
       <section 
-        className="py-20 px-6 relative min-h-[750px] flex items-center overflow-hidden"
+        className="text-white py-16 px-6 min-h-screen flex items-center relative pt-24"
         style={{
           backgroundColor: landingContent.features?.sectionBgColor || '#f9fafb'
         }}
