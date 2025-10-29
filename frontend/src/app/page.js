@@ -304,7 +304,15 @@ export default function Home() {
       {/* Header Section - Updated to remove About button */}
       <header 
         className="w-full flex justify-between items-center bg-[#0020C2] p-6 shadow-md fixed top-0 left-0 right-0 z-50"
+       
       >
+         {/*style={{
+          backgroundColor: landingContent.header?.bgColor || '#0020C2',
+          backgroundImage: landingContent.header?.backgroundImage ? `url(${formatImageUrl(landingContent.header.backgroundImage)})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }} */}
         <h1 className="text-4xl font-bold flex items-center relative z-10">
           {landingContent.logo?.imageUrl ? (
             <Image 

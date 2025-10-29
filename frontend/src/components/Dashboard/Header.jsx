@@ -45,7 +45,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 w-full bg-[#01579B] text-white shadow-md p-4 flex justify-between items-center h-20 z-50">
+    <header className="fixed top-0 left-0 right-0 w-full bg-[#0020C2] text-white shadow-md p-4 flex justify-between items-center h-20 z-50">
      
       <h2 className="text-2xl font-bold flex items-center">
         {logoUrl ? (
