@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import axios from "axios";
@@ -54,34 +54,10 @@ export default function LoginForm({ onClose }) {
   // Phone registration for first-time login
   const [registerPhoneNumber, setRegisterPhoneNumber] = useState("");
   
-  // OTP visibility states (persistent toggles)
+  // OTP visibility states
   const [showOtp, setShowOtp] = useState(false);
   const [showSmsOtp, setShowSmsOtp] = useState(false);
   const [showResetOtp, setShowResetOtp] = useState(false);
-  
-  // Transient visibility for OTP fields (show briefly, then mask)
-  const [otpTransientVisible, setOtpTransientVisible] = useState(false);
-  const [smsOtpTransientVisible, setSmsOtpTransientVisible] = useState(false);
-  const [resetOtpTransientVisible, setResetOtpTransientVisible] = useState(false);
-  const otpRevealTimeoutRef = useRef(null);
-  const smsOtpRevealTimeoutRef = useRef(null);
-  const resetOtpRevealTimeoutRef = useRef(null);
-  // Refs and computed positions for precise last-char overlay placement
-  const otpInputRef = useRef(null);
-  const otpMirrorRef = useRef(null);
-  const otpMirrorCharRef = useRef(null);
-  const smsOtpInputRef = useRef(null);
-  const smsOtpMirrorRef = useRef(null);
-  const smsOtpMirrorCharRef = useRef(null);
-  const resetOtpInputRef = useRef(null);
-  const resetOtpMirrorRef = useRef(null);
-  const resetOtpMirrorCharRef = useRef(null);
-  const [otpOverlayLeft, setOtpOverlayLeft] = useState(0);
-  const [smsOtpOverlayLeft, setSmsOtpOverlayLeft] = useState(0);
-  const [resetOtpOverlayLeft, setResetOtpOverlayLeft] = useState(0);
-  const [otpCharWidth, setOtpCharWidth] = useState(0);
-  const [smsOtpCharWidth, setSmsOtpCharWidth] = useState(0);
-  const [resetOtpCharWidth, setResetOtpCharWidth] = useState(0);
   
   const router = useRouter();
 
@@ -214,41 +190,6 @@ export default function LoginForm({ onClose }) {
     }
     return () => clearInterval(interval);
   }, [smsCooldownActive, smsCooldownTime]);
-
-  // Cleanup reveal timers on unmount
-  useEffect(() => {
-    return () => {
-      if (otpRevealTimeoutRef.current) clearTimeout(otpRevealTimeoutRef.current);
-      if (smsOtpRevealTimeoutRef.current) clearTimeout(smsOtpRevealTimeoutRef.current);
-      if (resetOtpRevealTimeoutRef.current) clearTimeout(resetOtpRevealTimeoutRef.current);
-    };
-  }, []);
-
-  // Helpers to compute overlay left position centered on the next character cell
-  const computeOverlayLeft = (inputEl, mirrorEl, mirrorCharEl, prefixLength) => {
-    if (!inputEl || !mirrorEl) return 0;
-    // Sync font styles for accurate measurement
-    const cs = window.getComputedStyle(inputEl);
-    mirrorEl.style.font = cs.font;
-    mirrorEl.style.letterSpacing = cs.letterSpacing;
-    mirrorEl.style.padding = cs.padding;
-    mirrorEl.style.border = cs.border;
-    mirrorEl.style.whiteSpace = 'pre';
-    if (mirrorCharEl) {
-      mirrorCharEl.style.font = cs.font;
-      mirrorCharEl.style.letterSpacing = cs.letterSpacing;
-      mirrorCharEl.style.whiteSpace = 'pre';
-      mirrorCharEl.textContent = '0';
-    }
-    // Use monospace placeholder to measure width of preceding slots
-    mirrorEl.textContent = '0'.repeat(Math.max(0, prefixLength));
-    const paddingLeft = parseFloat(cs.paddingLeft || '0');
-    const scrollLeft = inputEl.scrollLeft || 0;
-    const prefixWidth = mirrorEl.offsetWidth;
-    const charWidth = mirrorCharEl ? mirrorCharEl.offsetWidth : 0;
-    // Center overlay over the next character cell
-    return paddingLeft + prefixWidth + charWidth / 2 - scrollLeft;
-  };
 
   const handleLogin = async () => {
     setError("");
@@ -1043,45 +984,11 @@ export default function LoginForm({ onClose }) {
                 type={showOtp ? "text" : "password"}
                 placeholder="Enter 6-digit OTP"
                 value={otp}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                  setOtp(value);
-                  setOtpTransientVisible(true);
-                  if (otpRevealTimeoutRef.current) clearTimeout(otpRevealTimeoutRef.current);
-                  otpRevealTimeoutRef.current = setTimeout(() => setOtpTransientVisible(false), 300);
-                  // Position overlay after preceding characters
-                  requestAnimationFrame(() => {
-                    const prefixLen = Math.max(0, value.length - 1);
-                    setOtpOverlayLeft(
-                      computeOverlayLeft(otpInputRef.current, otpMirrorRef.current, otpMirrorCharRef.current, prefixLen)
-                    );
-                  });
-                }}
-                onBlur={() => setOtpTransientVisible(false)}
+                onChange={(e) => setOtp(e.target.value)}
                 onKeyDown={handleOtpKeyDown}
                 required
-                className="pr-16 font-mono"
-                ref={otpInputRef}
+                className="pr-16"
               />
-              {/* Hidden mirror for width measurement */}
-              <span
-                ref={otpMirrorRef}
-                aria-hidden="true"
-                className="absolute top-1/2 -translate-y-1/2 opacity-0 pointer-events-none whitespace-pre"
-              />
-              <span
-                ref={otpMirrorCharRef}
-                aria-hidden="true"
-                className="absolute top-1/2 -translate-y-1/2 opacity-0 pointer-events-none whitespace-pre"
-              />
-              {otpTransientVisible && !showOtp && otp.length > 0 && (
-                <span
-                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-gray-900 select-none pointer-events-none"
-                  style={{ left: otpOverlayLeft }}
-                >
-                  {otp.slice(-1)}
-                </span>
-              )}
               <button
                 type="button"
                 className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10"
@@ -1089,7 +996,6 @@ export default function LoginForm({ onClose }) {
               >
                 {showOtp ? "Hide" : "Show"}
               </button>
-              
             </div>
 
             {devOtp && (
@@ -1190,44 +1096,16 @@ export default function LoginForm({ onClose }) {
                       placeholder="Enter 6-digit SMS OTP"
                       value={smsOtp}
                       onChange={(e) => {
+                        
                         const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                         setSmsOtp(value);
-                        setSmsOtpTransientVisible(true);
-                        if (smsOtpRevealTimeoutRef.current) clearTimeout(smsOtpRevealTimeoutRef.current);
-                        smsOtpRevealTimeoutRef.current = setTimeout(() => setSmsOtpTransientVisible(false), 300);
-                        requestAnimationFrame(() => {
-                          const prefixLen = Math.max(0, value.length - 1);
-                          setSmsOtpOverlayLeft(
-                            computeOverlayLeft(smsOtpInputRef.current, smsOtpMirrorRef.current, smsOtpMirrorCharRef.current, prefixLen)
-                          );
-                        });
                       }}
-                      onBlur={() => setSmsOtpTransientVisible(false)}
                       onKeyDown={handleSmsOtpKeyDown}
                       maxLength={6}
                       pattern="[0-9]{6}"
                       required
-                      className="pr-16 font-mono"
-                      ref={smsOtpInputRef}
+                      className="pr-16"
                     />
-                    <span
-                      ref={smsOtpMirrorRef}
-                      aria-hidden="true"
-                      className="absolute top-1/2 -translate-y-1/2 opacity-0 pointer-events-none whitespace-pre"
-                    />
-                    <span
-                      ref={smsOtpMirrorCharRef}
-                      aria-hidden="true"
-                      className="absolute top-1/2 -translate-y-1/2 opacity-0 pointer-events-none whitespace-pre"
-                    />
-                    {smsOtpTransientVisible && !showSmsOtp && smsOtp.length > 0 && (
-                      <span
-                        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-gray-900 select-none pointer-events-none"
-                        style={{ left: smsOtpOverlayLeft }}
-                      >
-                        {smsOtp.slice(-1)}
-                      </span>
-                    )}
                     <button
                       type="button"
                       className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10"
@@ -1235,7 +1113,6 @@ export default function LoginForm({ onClose }) {
                     >
                       {showSmsOtp ? "Hide" : "Show"}
                     </button>
-                    
                   </div>
 
                   {smsDevOtp && (
@@ -1413,43 +1290,11 @@ export default function LoginForm({ onClose }) {
                     type={showResetOtp ? "text" : "password"}
                     placeholder="Enter 6-digit code"
                     value={resetOtp}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                      setResetOtp(value);
-                      setResetOtpTransientVisible(true);
-                      if (resetOtpRevealTimeoutRef.current) clearTimeout(resetOtpRevealTimeoutRef.current);
-                      resetOtpRevealTimeoutRef.current = setTimeout(() => setResetOtpTransientVisible(false), 300);
-                      requestAnimationFrame(() => {
-                        const prefixLen = Math.max(0, value.length - 1);
-                        setResetOtpOverlayLeft(
-                          computeOverlayLeft(resetOtpInputRef.current, resetOtpMirrorRef.current, resetOtpMirrorCharRef.current, prefixLen)
-                        );
-                      });
-                    }}
-                    onBlur={() => setResetOtpTransientVisible(false)}
+                    onChange={(e) => setResetOtp(e.target.value)}
                     onKeyDown={handleResetOtpKeyDown}
                     required
-                    className="mb-3 pr-16 font-mono"
-                    ref={resetOtpInputRef}
+                    className="mb-3 pr-16"
                   />
-                  <span
-                    ref={resetOtpMirrorRef}
-                    aria-hidden="true"
-                    className="absolute top-1/2 -translate-y-1/2 opacity-0 pointer-events-none whitespace-pre"
-                  />
-                  <span
-                    ref={resetOtpMirrorCharRef}
-                    aria-hidden="true"
-                    className="absolute top-1/2 -translate-y-1/2 opacity-0 pointer-events-none whitespace-pre"
-                  />
-                  {resetOtpTransientVisible && !showResetOtp && resetOtp.length > 0 && (
-                    <span
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-gray-900 select-none pointer-events-none"
-                      style={{ left: resetOtpOverlayLeft }}
-                    >
-                      {resetOtp.slice(-1)}
-                    </span>
-                  )}
                   <button
                     type="button"
                     className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10 top-0"
@@ -1457,7 +1302,6 @@ export default function LoginForm({ onClose }) {
                   >
                     {showResetOtp ? "Hide" : "Show"}
                   </button>
-                  
                 </div>
                 
                 {devOtp && (
