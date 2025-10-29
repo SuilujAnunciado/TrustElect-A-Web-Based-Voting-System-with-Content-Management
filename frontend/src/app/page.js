@@ -735,7 +735,7 @@ export default function Home() {
           renderSectionBackground(landingContent.features.backgroundImage, 'Features Background')
         )}
         <div className="container mx-auto max-w-6xl w-full relative z-10">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+          <h2 className="text-3xl font-bold text-center mb-12 text-white">
             Key Features
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
