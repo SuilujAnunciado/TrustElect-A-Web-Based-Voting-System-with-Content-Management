@@ -1160,12 +1160,20 @@ export default function ElectionDetailsPage() {
           <span className="font-medium">Created by: </span>
           <span className="text-black">
             {election.creator_name || election.created_by_name || 'Unknown'}
-            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-              election.creator_role === 'SuperAdmin' 
-                ? 'bg-purple-100 text-purple-800' 
-                : 'bg-blue-100 text-blue-800'
-            }`}>
-              {election.creator_role || 'Admin'}
+            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${(() => {
+              const role = (election.creator_role || 'Admin') + '';
+              const lower = role.toLowerCase();
+              return (lower.includes('super') || lower.includes('system') || lower.includes('root'))
+                ? 'bg-purple-100 text-purple-800'
+                : 'bg-blue-100 text-blue-800';
+            })()}`}>
+              {(() => {
+                const role = (election.creator_role || 'Admin') + '';
+                const lower = role.toLowerCase();
+                return (lower.includes('super') || lower.includes('system') || lower.includes('root'))
+                  ? 'Root Admin'
+                  : role;
+              })()}
             </span>
           </span>
           {election.created_at && (
