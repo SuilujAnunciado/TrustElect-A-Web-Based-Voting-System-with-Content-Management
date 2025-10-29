@@ -786,12 +786,14 @@ export default function Home() {
                 </div>
                 ) : null}
                 <h3 
-                  className="text-xl font-semibold mb-2"
+                  className="text-2xl font-semibold mb-2"
                   style={{ color: feature.textColor || '#000000' }}
                 >
                   {feature.title}
                 </h3>
-                <p style={{ color: feature.textColor || '#000000' }}>
+                <p 
+                className="text-xl"
+                style={{ color: feature.textColor || '#000000' }}>
                   {feature.description}
                 </p>
               </div>
