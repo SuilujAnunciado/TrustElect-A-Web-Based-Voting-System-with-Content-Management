@@ -998,7 +998,7 @@ export default function LoginForm({ onClose }) {
             </p>
             <div className="relative">
               <Input
-                type={(showOtp || otpTransientVisible) ? "text" : "password"}
+                type={showOtp ? "text" : "password"}
                 placeholder="Enter 6-digit OTP"
                 value={otp}
                 onChange={(e) => {
@@ -1013,6 +1013,11 @@ export default function LoginForm({ onClose }) {
                 required
                 className="pr-16"
               />
+              {otpTransientVisible && !showOtp && otp.length > 0 && (
+                <span className="absolute inset-y-0 right-10 flex items-center text-gray-900 select-none pointer-events-none">
+                  {otp.slice(-1)}
+                </span>
+              )}
               <button
                 type="button"
                 className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10"
@@ -1117,7 +1122,7 @@ export default function LoginForm({ onClose }) {
                   </p>
                   <div className="relative">
                     <Input
-                      type={(showSmsOtp || smsOtpTransientVisible) ? "text" : "password"}
+                      type={showSmsOtp ? "text" : "password"}
                       placeholder="Enter 6-digit SMS OTP"
                       value={smsOtp}
                       onChange={(e) => {
@@ -1134,6 +1139,11 @@ export default function LoginForm({ onClose }) {
                       required
                       className="pr-16"
                     />
+                    {smsOtpTransientVisible && !showSmsOtp && smsOtp.length > 0 && (
+                      <span className="absolute inset-y-0 right-10 flex items-center text-gray-900 select-none pointer-events-none">
+                        {smsOtp.slice(-1)}
+                      </span>
+                    )}
                     <button
                       type="button"
                       className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10"
@@ -1316,7 +1326,7 @@ export default function LoginForm({ onClose }) {
                 </p>
                 <div className="relative">
                   <Input
-                    type={(showResetOtp || resetOtpTransientVisible) ? "text" : "password"}
+                    type={showResetOtp ? "text" : "password"}
                     placeholder="Enter 6-digit code"
                     value={resetOtp}
                     onChange={(e) => {
@@ -1331,6 +1341,11 @@ export default function LoginForm({ onClose }) {
                     required
                     className="mb-3 pr-16"
                   />
+                  {resetOtpTransientVisible && !showResetOtp && resetOtp.length > 0 && (
+                    <span className="absolute inset-y-0 right-10 flex items-center text-gray-900 select-none pointer-events-none">
+                      {resetOtp.slice(-1)}
+                    </span>
+                  )}
                   <button
                     type="button"
                     className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10 top-0"
