@@ -132,7 +132,7 @@ const ElectionCard = ({ election, onClick, onDeleteClick, canDelete, activeTab }
   };
   
   return (
-    <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 bg-white">
+    <div className="border rounded-lg overflow-hidden shadow-md hover:shadow-2xl transition-all duration-200 bg-white">
       {/* Status Banner */}
       <div className={`w-full py-2 px-4 flex items-center justify-between ${statusColors[displayStatus]}`}>
         <div className="flex items-center">
@@ -1426,7 +1426,7 @@ export default function AdminDashboard() {
       
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-medium mb-2 text-black">Total Elections</h3>
           <p className="text-4xl font-bold text-black">
             {Number(
@@ -1437,13 +1437,13 @@ export default function AdminDashboard() {
             ).toLocaleString()}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-medium mb-2 text-black">Total Voters</h3>
           <p className="text-4xl font-bold text-black">
             {Number(totalUniqueVoters).toLocaleString()}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-medium mb-2 text-black">Total Votes Cast</h3>
           <p className="text-4xl font-bold text-black">
             {Number(stats.reduce((sum, stat) => sum + parseInt(stat.total_votes || 0), 0)).toLocaleString()}
@@ -1452,7 +1452,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Status Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6 p-1">
+      <div className="bg-white rounded-lg shadow-lg mb-6 p-1">
         <div className="flex">
           {statusTabs.map(tab => {
             // Use actual elections count instead of stats
@@ -1544,7 +1544,7 @@ export default function AdminDashboard() {
                 />
               ))
             ) : (
-              <div className="col-span-full text-center py-12 bg-white rounded-lg shadow">
+              <div className="col-span-full text-center py-12 bg-white rounded-lg shadow-lg">
                 <div className="text-gray-400 mb-4">
                   {activeTab === 'ongoing' && <Clock className="w-16 h-16 mx-auto" />}
                   {activeTab === 'upcoming' && <Calendar className="w-16 h-16 mx-auto" />}
