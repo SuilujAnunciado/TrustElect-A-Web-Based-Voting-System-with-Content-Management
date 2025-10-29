@@ -863,28 +863,24 @@ export default function ElectionDetailsPage() {
       if (election.positions && election.positions.length > 0) {
         ballotData = {
           positions: election.positions.map(pos => ({
-            position: pos.name,
+            position: pos.name || pos.position_name || pos.title || 'Unnamed Position',
             max_choices: pos.max_choices,
             candidates: (pos.candidates || []).map(candidate => {
+              const isGroup = (!candidate.first_name && !candidate.last_name && candidate.name) || candidate.is_group;
+              const displayCourse = candidate.course || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || '';
               const candidateData = {
-                first_name: candidate.first_name,
-                last_name: candidate.last_name
+                first_name: isGroup ? '' : (candidate.first_name || ''),
+                last_name: isGroup ? '' : (candidate.last_name || ''),
+                name: isGroup ? (candidate.name || 'Group Candidates') : undefined,
+                course: displayCourse && displayCourse.trim() !== '' ? displayCourse : (isGroup ? 'Group Candidates' : 'Not specified'),
+                party: candidate.party || candidate.partylistName || ''
               };
-              
-              // Only add fields that have actual data
-              if (candidate.course && candidate.course.trim() !== '') {
-                candidateData.course = candidate.course;
-              }
-              if (candidate.party && candidate.party.trim() !== '') {
-                candidateData.party = candidate.party;
-              }
               if (candidate.slogan && candidate.slogan.trim() !== '') {
                 candidateData.slogan = candidate.slogan;
               }
               if (candidate.platform && candidate.platform.trim() !== '') {
                 candidateData.platform = candidate.platform;
               }
-              
               return candidateData;
             })
           }))
@@ -893,7 +889,7 @@ export default function ElectionDetailsPage() {
 
       // Try to fetch results data (optional - election might not have results yet)
       try {
-        resultsData = await fetchWithAuth(`/elections/completed/${params.id}/results`);
+          resultsData = await fetchWithAuth(`/elections/completed/${params.id}/results`);
       } catch (resultsError) {
         console.warn('No results found for this election:', resultsError.message);
         // Use existing election positions with vote counts if available
@@ -903,9 +899,12 @@ export default function ElectionDetailsPage() {
             positions: election.positions.map(pos => {
               const sortedCandidates = (pos.candidates || []).sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
               return {
-                position_name: pos.name,
+                position_name: pos.name || pos.position_name || pos.title || 'Unnamed Position',
                 candidates: sortedCandidates.map((candidate, index) => ({
-                  name: `${candidate.first_name} ${candidate.last_name}`,
+                  name: (() => {
+                    const isGroup = (!candidate.first_name && !candidate.last_name && candidate.name) || candidate.is_group;
+                    return isGroup ? (candidate.name || 'Group Candidates') : `${candidate.first_name || ''} ${candidate.last_name || ''}`.trim();
+                  })(),
                   party: candidate.party || 'Independent',
                   vote_count: candidate.vote_count || 0,
                   vote_percentage: election.voter_count ? ((candidate.vote_count / election.voter_count) * 100).toFixed(2) : '0.00',
@@ -945,16 +944,16 @@ export default function ElectionDetailsPage() {
           voter_turnout_percentage: election.voter_count ? ((election.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'
         },
         ballot_info: ballotData.positions?.map(position => ({
-          position_name: position.position,
+          position_name: position.position || position.position_name || 'Unnamed Position',
           max_choices: position.max_choices,
           candidates: position.candidates?.map(candidate => {
             const candidateData = {
               name: formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)
             };
             
-            // Only add fields that have actual data
-            if (candidate.course && candidate.course.trim() !== '') {
-              candidateData.course = candidate.course;
+            const displayCourse = candidate.course || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || '';
+            if (displayCourse && (`${displayCourse}`).trim() !== '') {
+              candidateData.course = displayCourse;
             }
             if (candidate.party && candidate.party.trim() !== '') {
               candidateData.party = candidate.party;
@@ -970,7 +969,7 @@ export default function ElectionDetailsPage() {
           }) || []
         })) || [],
         results: resultsData.positions?.map(position => ({
-          position_name: position.position_name,
+          position_name: position.position_name || position.name || position.title || 'Unnamed Position',
           candidates: position.candidates?.map(candidate => ({
             name: candidate.name,
             party: candidate.party || 'Independent',
@@ -982,12 +981,12 @@ export default function ElectionDetailsPage() {
           })) || []
         })) || [],
         candidate_votes: candidateVotes.map(position => ({
-          position_name: position.position_title,
+          position_name: position.position_title || position.name || position.position_name || 'Unnamed Position',
           max_choices: position.max_choices,
           candidates: position.candidates?.map(candidate => ({
             name: formatNameSimple(candidate.lastName, candidate.firstName, candidate.name),
             party: candidate.partylistName || candidate.party || 'Independent',
-            course: candidate.course || 'Not specified',
+            course: candidate.course || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || 'Not specified',
             vote_count: candidate.voteCount || candidate.vote_count || 0,
             vote_percentage: election.voter_count ? (((candidate.voteCount || candidate.vote_count || 0) / election.voter_count) * 100).toFixed(2) : '0.00'
           })) || []
