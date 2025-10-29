@@ -1306,12 +1306,12 @@ export default function ContentManagement() {
             >
               Engagement
             </button>
-            <button 
+            {/*<button 
               className={`px-3 py-2 text-sm ${activeTab === 'students' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-black'}`}
               onClick={() => setActiveTab('students')}
             >
               Students UI
-            </button>
+            </button> */}
             <button 
               className={`px-3 py-2 text-sm ${activeTab === 'themes' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-black'}`}
               onClick={() => setActiveTab('themes')}
