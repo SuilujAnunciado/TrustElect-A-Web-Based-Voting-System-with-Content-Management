@@ -818,7 +818,36 @@ export default function ElectionDetailsPage() {
       let resultsData = { positions: [] };
       let candidateVotes = [];
 
-      // Use existing election data which has complete candidate information
+      // Helper to resolve candidate course robustly (also cross-reference candidateVotes when available)
+      const resolveCourse = (cand, votesByName) => {
+        const direct = cand.course || cand.courseAbbrev || cand.course_abbrev || cand.courseCode || cand.course_code || cand.courseShort || cand.course_short || cand.program || cand.courseName || cand.course_name || cand.department || cand.dept || (cand.student && (cand.student.course || cand.student.program));
+        if (direct && (`${direct}`).trim() !== '') return direct;
+        // Try lookup by full name in votes data
+        const key = `${(cand.first_name || cand.firstName || '').trim()} ${(cand.last_name || cand.lastName || '').trim()}`.trim().toLowerCase();
+        if (key && votesByName && votesByName.has(key)) {
+          const v = votesByName.get(key);
+          const fromVotes = v.course || v.courseAbbrev || v.course_abbrev || v.courseCode || v.course_code || v.courseShort || v.course_short || v.program || v.courseName || v.course_name || v.department || v.dept;
+          if (fromVotes && (`${fromVotes}`).trim() !== '') return fromVotes;
+        }
+        return '';
+      };
+
+      // Preload candidate votes to build a quick lookup by name
+      try {
+        const candidateVotesResponse = await fetchWithAuth(`/elections/${params.id}/votes-per-candidate`);
+        candidateVotes = candidateVotesResponse.data?.positions || [];
+      } catch (candidateVotesError) {
+        candidateVotes = [];
+      }
+      const votesByName = new Map();
+      candidateVotes.forEach(p => {
+        (p.candidates || []).forEach(c => {
+          const nameKey = `${(c.firstName || c.first_name || '').trim()} ${(c.lastName || c.last_name || '').trim()}`.trim().toLowerCase();
+          if (nameKey) votesByName.set(nameKey, c);
+        });
+      });
+
+      // Use existing election data which has complete candidate information (augment with resolved courses)
       if (election.positions && election.positions.length > 0) {
         ballotData = {
           positions: election.positions.map(pos => ({
@@ -826,7 +855,7 @@ export default function ElectionDetailsPage() {
             max_choices: pos.max_choices,
             candidates: (pos.candidates || []).map(candidate => {
               const isGroup = (!candidate.first_name && !candidate.last_name && candidate.name) || candidate.is_group;
-              const displayCourse = candidate.course || candidate.courseAbbrev || candidate.course_abbrev || candidate.courseCode || candidate.course_code || candidate.courseShort || candidate.course_short || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || (candidate.student && (candidate.student.course || candidate.student.program)) || '';
+              const displayCourse = resolveCourse(candidate, votesByName);
               const candidateData = {
                 first_name: isGroup ? '' : (candidate.first_name || ''),
                 last_name: isGroup ? '' : (candidate.last_name || ''),
@@ -878,14 +907,7 @@ export default function ElectionDetailsPage() {
       }
 
 
-      // Try to fetch candidate votes
-      try {
-        const candidateVotesResponse = await fetchWithAuth(`/elections/${params.id}/votes-per-candidate`);
-        candidateVotes = candidateVotesResponse.data?.positions || [];
-      } catch (candidateVotesError) {
-        console.warn('No candidate votes found for this election:', candidateVotesError.message);
-        candidateVotes = [];
-      }
+      // candidateVotes already loaded above for course cross-ref
 
       // Prepare report data
       const reportData = {
@@ -910,7 +932,7 @@ export default function ElectionDetailsPage() {
               name: formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)
             };
             
-            const displayCourse = candidate.course || candidate.courseAbbrev || candidate.course_abbrev || candidate.courseCode || candidate.course_code || candidate.courseShort || candidate.course_short || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || (candidate.student && (candidate.student.course || candidate.student.program)) || '';
+            const displayCourse = resolveCourse(candidate, votesByName);
             if (displayCourse && (`${displayCourse}`).trim() !== '') {
               candidateData.course = displayCourse;
             }

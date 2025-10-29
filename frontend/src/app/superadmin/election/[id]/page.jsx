@@ -859,6 +859,32 @@ export default function ElectionDetailsPage() {
       let resultsData = { positions: [] };
       let candidateVotes = [];
 
+      // Helper to resolve candidate course with cross-reference to candidate votes
+      const resolveCourse = (cand, votesByName) => {
+        const direct = cand.course || cand.courseAbbrev || cand.course_abbrev || cand.courseCode || cand.course_code || cand.courseShort || cand.course_short || cand.program || cand.courseName || cand.course_name || cand.department || cand.dept || (cand.student && (cand.student.course || cand.student.program));
+        if (direct && (`${direct}`).trim() !== '') return direct;
+        const key = `${(cand.first_name || cand.firstName || '').trim()} ${(cand.last_name || cand.lastName || '').trim()}`.trim().toLowerCase();
+        if (key && votesByName && votesByName.has(key)) {
+          const v = votesByName.get(key);
+          const fromVotes = v.course || v.courseAbbrev || v.course_abbrev || v.courseCode || v.course_code || v.courseShort || v.course_short || v.program || v.courseName || v.course_name || v.department || v.dept;
+          if (fromVotes && (`${fromVotes}`).trim() !== '') return fromVotes;
+        }
+        return '';
+      };
+
+      // Preload candidate votes for lookup
+      try {
+        const candidateVotesResponse = await fetchWithAuth(`/elections/${params.id}/votes-per-candidate`);
+        candidateVotes = candidateVotesResponse.data?.positions || [];
+      } catch {}
+      const votesByName = new Map();
+      (candidateVotes || []).forEach(p => {
+        (p.candidates || []).forEach(c => {
+          const key = `${(c.firstName || c.first_name || '').trim()} ${(c.lastName || c.last_name || '').trim()}`.trim().toLowerCase();
+          if (key) votesByName.set(key, c);
+        });
+      });
+
       // Use existing election data which has complete candidate information
       if (election.positions && election.positions.length > 0) {
         ballotData = {
@@ -867,7 +893,7 @@ export default function ElectionDetailsPage() {
             max_choices: pos.max_choices,
             candidates: (pos.candidates || []).map(candidate => {
               const isGroup = (!candidate.first_name && !candidate.last_name && candidate.name) || candidate.is_group;
-              const displayCourse = candidate.course || candidate.courseAbbrev || candidate.course_abbrev || candidate.courseCode || candidate.course_code || candidate.courseShort || candidate.course_short || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || (candidate.student && (candidate.student.course || candidate.student.program)) || '';
+              const displayCourse = resolveCourse(candidate, votesByName);
               const candidateData = {
                 first_name: isGroup ? '' : (candidate.first_name || ''),
                 last_name: isGroup ? '' : (candidate.last_name || ''),
