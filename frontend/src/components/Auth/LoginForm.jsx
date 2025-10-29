@@ -54,7 +54,7 @@ export default function LoginForm({ onClose }) {
   // Phone registration for first-time login
   const [registerPhoneNumber, setRegisterPhoneNumber] = useState("");
   
-  // OTP visibility states
+  // OTP visibility states (persistent toggles)
   const [showOtp, setShowOtp] = useState(false);
   const [showSmsOtp, setShowSmsOtp] = useState(false);
   const [showResetOtp, setShowResetOtp] = useState(false);
@@ -998,18 +998,17 @@ export default function LoginForm({ onClose }) {
             </p>
             <div className="relative">
               <Input
-                type={showOtp ? "text" : (otpTransientVisible ? "text" : "password")}
+                type={(showOtp || otpTransientVisible) ? "text" : "password"}
                 placeholder="Enter 6-digit OTP"
                 value={otp}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                   setOtp(value);
-                  if (!showOtp) {
-                    setOtpTransientVisible(true);
-                    if (otpRevealTimeoutRef.current) clearTimeout(otpRevealTimeoutRef.current);
-                    otpRevealTimeoutRef.current = setTimeout(() => setOtpTransientVisible(false), 800);
-                  }
+                  setOtpTransientVisible(true);
+                  if (otpRevealTimeoutRef.current) clearTimeout(otpRevealTimeoutRef.current);
+                  otpRevealTimeoutRef.current = setTimeout(() => setOtpTransientVisible(false), 300);
                 }}
+                onBlur={() => setOtpTransientVisible(false)}
                 onKeyDown={handleOtpKeyDown}
                 required
                 className="pr-16"
@@ -1021,6 +1020,7 @@ export default function LoginForm({ onClose }) {
               >
                 {showOtp ? "Hide" : "Show"}
               </button>
+              
             </div>
 
             {devOtp && (
@@ -1117,18 +1117,17 @@ export default function LoginForm({ onClose }) {
                   </p>
                   <div className="relative">
                     <Input
-                      type={showSmsOtp ? "text" : (smsOtpTransientVisible ? "text" : "password")}
+                      type={(showSmsOtp || smsOtpTransientVisible) ? "text" : "password"}
                       placeholder="Enter 6-digit SMS OTP"
                       value={smsOtp}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                         setSmsOtp(value);
-                        if (!showSmsOtp) {
-                          setSmsOtpTransientVisible(true);
-                          if (smsOtpRevealTimeoutRef.current) clearTimeout(smsOtpRevealTimeoutRef.current);
-                          smsOtpRevealTimeoutRef.current = setTimeout(() => setSmsOtpTransientVisible(false), 800);
-                        }
+                        setSmsOtpTransientVisible(true);
+                        if (smsOtpRevealTimeoutRef.current) clearTimeout(smsOtpRevealTimeoutRef.current);
+                        smsOtpRevealTimeoutRef.current = setTimeout(() => setSmsOtpTransientVisible(false), 300);
                       }}
+                      onBlur={() => setSmsOtpTransientVisible(false)}
                       onKeyDown={handleSmsOtpKeyDown}
                       maxLength={6}
                       pattern="[0-9]{6}"
@@ -1142,6 +1141,7 @@ export default function LoginForm({ onClose }) {
                     >
                       {showSmsOtp ? "Hide" : "Show"}
                     </button>
+                    
                   </div>
 
                   {smsDevOtp && (
@@ -1316,18 +1316,17 @@ export default function LoginForm({ onClose }) {
                 </p>
                 <div className="relative">
                   <Input
-                    type={showResetOtp ? "text" : (resetOtpTransientVisible ? "text" : "password")}
+                    type={(showResetOtp || resetOtpTransientVisible) ? "text" : "password"}
                     placeholder="Enter 6-digit code"
                     value={resetOtp}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                       setResetOtp(value);
-                      if (!showResetOtp) {
-                        setResetOtpTransientVisible(true);
-                        if (resetOtpRevealTimeoutRef.current) clearTimeout(resetOtpRevealTimeoutRef.current);
-                        resetOtpRevealTimeoutRef.current = setTimeout(() => setResetOtpTransientVisible(false), 800);
-                      }
+                      setResetOtpTransientVisible(true);
+                      if (resetOtpRevealTimeoutRef.current) clearTimeout(resetOtpRevealTimeoutRef.current);
+                      resetOtpRevealTimeoutRef.current = setTimeout(() => setResetOtpTransientVisible(false), 300);
                     }}
+                    onBlur={() => setResetOtpTransientVisible(false)}
                     onKeyDown={handleResetOtpKeyDown}
                     required
                     className="mb-3 pr-16"
@@ -1339,6 +1338,7 @@ export default function LoginForm({ onClose }) {
                   >
                     {showResetOtp ? "Hide" : "Show"}
                   </button>
+                  
                 </div>
                 
                 {devOtp && (
