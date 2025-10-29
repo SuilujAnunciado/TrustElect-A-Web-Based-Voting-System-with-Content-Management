@@ -1439,23 +1439,7 @@ export default function ElectionDetailsPage() {
                 Edit Election
               </Link>
               
-              {election.positions && election.positions.length > 0 ? (
-                <Link
-                  href={`/admin/election/${election.id}/ballot`}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Ballot
-                </Link>
-              ) : (
-                <Link
-                  href={`/admin/election/${election.id}/ballot`}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Ballot
-                </Link>
-              )}
+              {/* Ballot editing buttons removed as requested */}
               
               {/* Cancel button for pending approval elections, only if not superadmin creator and has edit permission */}
               {(election.needs_approval && !isSuperAdminCreator) && canEditElection() && (
@@ -1473,22 +1457,7 @@ export default function ElectionDetailsPage() {
                 </button>
               )}
 
-              {/* Archive and Delete buttons for all elections */}
-              <button
-                onClick={() => handleArchiveClick(election)}
-                className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-              >
-                <FolderOpen className="w-4 h-4 mr-2" />
-                Archive
-              </button>
-
-              <button
-                onClick={() => handleSoftDeleteClick(election)}
-                className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Delete
-              </button>
+              {/* Archive and Delete buttons removed as requested */}
             </>
           )}
         </div>

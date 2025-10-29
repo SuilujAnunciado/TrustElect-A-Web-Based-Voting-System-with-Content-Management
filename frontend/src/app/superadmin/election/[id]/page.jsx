@@ -1125,7 +1125,7 @@ export default function ElectionDetailsPage() {
             Generate Report
           </button>
    
-          {(election.needs_approval || election.status === 'upcoming' || election.status === 'ongoing' || election.status === 'completed') ? (
+                {(election.needs_approval || election.status === 'upcoming' || election.status === 'ongoing' || election.status === 'completed') ? (
             (isSystemAdminCreator || isCurrentUserSuperAdmin) ? (
               <>
                 <Link
@@ -1135,32 +1135,7 @@ export default function ElectionDetailsPage() {
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Election
                 </Link>
-                {(election.status !== 'ongoing' && election.status !== 'completed') && (
-                  <Link
-                    href={`/superadmin/election/${election.id}/ballot`}
-                    className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Ballot
-                  </Link>
-                )}
-
-                {/* Archive and Delete buttons for all elections */}
-                <button
-                  onClick={() => handleArchiveClick(election)}
-                  className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-                >
-                  <FolderOpen className="w-4 h-4 mr-2" />
-                  Archive
-                </button>
-
-                <button
-                  onClick={() => handleSoftDeleteClick(election)}
-                  className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Delete
-                </button>
+                {/* Ballot edit, Archive, and Delete buttons removed as requested */}
               </>
             ) : (
               <div className="flex items-center px-4 py-2 bg-gray-200 text-gray-600 rounded cursor-not-allowed">
