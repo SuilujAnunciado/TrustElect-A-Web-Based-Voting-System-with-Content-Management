@@ -303,7 +303,7 @@ export default function Home() {
     <div className="relative min-h-screen flex flex-col">
       {/* Header Section - Updated to remove About button */}
       <header 
-        className="w-full flex justify-between items-center bg-blue-800 p-6 shadow-md fixed top-0 left-0 right-0 z-50"
+        className="w-full flex justify-between items-center bg-[#0020C2] p-6 shadow-md fixed top-0 left-0 right-0 z-50"
         style={{
           backgroundColor: landingContent.header?.bgColor || '#00000FF',
           backgroundImage: landingContent.header?.backgroundImage ? `url(${formatImageUrl(landingContent.header.backgroundImage)})` : 'none',
@@ -879,7 +879,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#01579B] text-white py-8 px-6">
+      <footer className="bg-[#0020C2] text-white py-8 px-6">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
