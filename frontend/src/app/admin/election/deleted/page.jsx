@@ -133,6 +133,8 @@ export default function DeletedElectionsPage() {
   const [electionToDelete, setElectionToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { hasPermission, loading: permissionsLoading } = usePermissions();
+  const [autoDeleteEnabled, setAutoDeleteEnabled] = useState(false);
+  const [autoDeleteDays, setAutoDeleteDays] = useState(7);
 
   const fetchDeletedElections = useCallback(async () => {
     try {
@@ -171,6 +173,11 @@ export default function DeletedElectionsPage() {
       fetchDeletedElections();
     } else if (!permissionsLoading) {
       setLoading(false);
+    }
+    // Check existing auto-delete timer
+    const existingTimer = localStorage.getItem('electionAutoDeleteTimer:admin');
+    if (existingTimer) {
+      setAutoDeleteEnabled(true);
     }
   }, [fetchDeletedElections, hasPermission, permissionsLoading]);
 
@@ -249,6 +256,73 @@ export default function DeletedElectionsPage() {
       setDeleteModalOpen(false);
       setElectionToDelete(null);
       
+    }
+  };
+
+  // Auto-delete flow (mirrors Deleted Admins page behavior)
+  const enableAutoDelete = () => {
+    if (!hasPermission('elections', 'delete')) {
+      alert("You don't have permission to enable auto-delete");
+      return;
+    }
+    if (!confirm(`Enable auto-deletion? All deleted elections will be permanently deleted after ${autoDeleteDays} days.`)) return;
+    setAutoDeleteEnabled(true);
+    toast.success(`Auto-deletion enabled for ${autoDeleteDays} days`);
+    const timer = setTimeout(() => {
+      performAutoDelete();
+    }, autoDeleteDays * 24 * 60 * 60 * 1000);
+    localStorage.setItem('electionAutoDeleteTimer:admin', timer.toString());
+  };
+
+  const disableAutoDelete = () => {
+    if (!hasPermission('elections', 'delete')) {
+      alert("You don't have permission to disable auto-delete");
+      return;
+    }
+    if (!confirm('Disable auto-deletion?')) return;
+    setAutoDeleteEnabled(false);
+    const timerId = localStorage.getItem('electionAutoDeleteTimer:admin');
+    if (timerId) {
+      clearTimeout(parseInt(timerId));
+      localStorage.removeItem('electionAutoDeleteTimer:admin');
+    }
+    toast.success('Auto-deletion disabled');
+  };
+
+  const performAutoDelete = async () => {
+    try {
+      if (!hasPermission('elections', 'delete')) {
+        alert("You don't have permission to delete elections");
+        return;
+      }
+      const now = new Date();
+      const cutoffDate = new Date(now.getTime() - (autoDeleteDays * 24 * 60 * 60 * 1000));
+      const electionsToDelete = elections.filter(e => {
+        if (!e.deleted_at) return false;
+        const deletedDate = new Date(e.deleted_at);
+        return deletedDate <= cutoffDate;
+      });
+
+      if (electionsToDelete.length === 0) {
+        toast('No elections found for auto-deletion');
+        return;
+      }
+
+      for (const election of electionsToDelete) {
+        try {
+          await fetchWithAuth(`/elections/${election.id}/permanent`, { method: 'DELETE' });
+        } catch (err) {
+          console.error(`Error auto-deleting election ${election.id}:`, err);
+        }
+      }
+
+      toast.success(`${electionsToDelete.length} election(s) auto-deleted successfully`);
+      fetchDeletedElections();
+      setAutoDeleteEnabled(false);
+      localStorage.removeItem('electionAutoDeleteTimer:admin');
+    } catch (error) {
+      console.error('Error performing auto-deletion:', error);
+      toast.error('Failed to perform auto-deletion');
     }
   };
 
@@ -336,6 +410,53 @@ export default function DeletedElectionsPage() {
           <span>Back to Elections</span>
         </Link>
         <h1 className="text-3xl font-bold text-black">Deleted Elections</h1>
+      </div>
+
+      {/* Auto-Delete Controls */}
+      <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
+        <div className="flex items-center gap-4 mb-3">
+          <h3 className="text-sm font-semibold text-black">Auto-Delete Settings</h3>
+        </div>
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-black">Delete after:</label>
+            <select
+              value={autoDeleteDays}
+              onChange={(e) => setAutoDeleteDays(parseInt(e.target.value))}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled={autoDeleteEnabled}
+            >
+              <option value={3}>3 days</option>
+              <option value={7}>7 days</option>
+              <option value={14}>14 days</option>
+              <option value={30}>30 days</option>
+              <option value={60}>60 days</option>
+            </select>
+          </div>
+
+          {!autoDeleteEnabled ? (
+            <button
+              onClick={enableAutoDelete}
+              className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors"
+              disabled={!hasPermission('elections', 'delete')}
+            >
+              Enable Auto-Delete
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded">
+                Auto-delete enabled for {autoDeleteDays} days
+              </div>
+              <button
+                onClick={disableAutoDelete}
+                className="bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
+                disabled={!hasPermission('elections', 'delete')}
+              >
+                Disable
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (
