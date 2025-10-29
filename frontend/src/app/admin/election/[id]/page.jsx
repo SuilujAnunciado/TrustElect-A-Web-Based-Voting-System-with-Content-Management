@@ -822,11 +822,11 @@ export default function ElectionDetailsPage() {
       if (election.positions && election.positions.length > 0) {
         ballotData = {
           positions: election.positions.map(pos => ({
-            position: pos.name || pos.position_name || pos.title || 'Unnamed Position',
+            position: pos.name || pos.position_name || pos.position_title || pos.positionTitle || pos.title || 'Unnamed Position',
             max_choices: pos.max_choices,
             candidates: (pos.candidates || []).map(candidate => {
               const isGroup = (!candidate.first_name && !candidate.last_name && candidate.name) || candidate.is_group;
-              const displayCourse = candidate.course || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || '';
+              const displayCourse = candidate.course || candidate.courseAbbrev || candidate.course_abbrev || candidate.courseCode || candidate.course_code || candidate.courseShort || candidate.course_short || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || (candidate.student && (candidate.student.course || candidate.student.program)) || '';
               const candidateData = {
                 first_name: isGroup ? '' : (candidate.first_name || ''),
                 last_name: isGroup ? '' : (candidate.last_name || ''),
@@ -858,7 +858,7 @@ export default function ElectionDetailsPage() {
             positions: election.positions.map(pos => {
               const sortedCandidates = (pos.candidates || []).sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
               return {
-                position_name: pos.name || pos.position_name || pos.title || 'Unnamed Position',
+                position_name: pos.name || pos.position_name || pos.position_title || pos.positionTitle || pos.title || 'Unnamed Position',
                 candidates: sortedCandidates.map((candidate, index) => ({
                   name: (() => {
                     const isGroup = (!candidate.first_name && !candidate.last_name && candidate.name) || candidate.is_group;
@@ -903,14 +903,14 @@ export default function ElectionDetailsPage() {
           voter_turnout_percentage: election.voter_count ? ((election.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'
         },
         ballot_info: ballotData.positions?.map(position => ({
-          position_name: position.position || position.position_name || 'Unnamed Position',
+          position_name: position.position || position.position_name || position.position_title || position.positionTitle || 'Unnamed Position',
           max_choices: position.max_choices,
           candidates: position.candidates?.map(candidate => {
             const candidateData = {
               name: formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)
             };
             
-            const displayCourse = candidate.course || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || '';
+            const displayCourse = candidate.course || candidate.courseAbbrev || candidate.course_abbrev || candidate.courseCode || candidate.course_code || candidate.courseShort || candidate.course_short || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || (candidate.student && (candidate.student.course || candidate.student.program)) || '';
             if (displayCourse && (`${displayCourse}`).trim() !== '') {
               candidateData.course = displayCourse;
             }
@@ -928,7 +928,7 @@ export default function ElectionDetailsPage() {
           }) || []
         })) || [],
         results: resultsData.positions?.map(position => ({
-          position_name: position.position_name || position.name || position.title || 'Unnamed Position',
+          position_name: position.position_name || position.name || position.position_title || position.positionTitle || position.title || 'Unnamed Position',
           candidates: position.candidates?.map(candidate => ({
             name: candidate.name,
             party: candidate.party || 'Independent',
@@ -940,12 +940,12 @@ export default function ElectionDetailsPage() {
           })) || []
         })) || [],
         candidate_votes: candidateVotes.map(position => ({
-          position_name: position.position_title || position.name || position.position_name || 'Unnamed Position',
+          position_name: position.position_title || position.positionTitle || position.name || position.position_name || 'Unnamed Position',
           max_choices: position.max_choices,
           candidates: position.candidates?.map(candidate => ({
             name: formatNameSimple(candidate.lastName, candidate.firstName, candidate.name),
             party: candidate.partylistName || candidate.party || 'Independent',
-            course: candidate.course || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || 'Not specified',
+            course: candidate.course || candidate.courseAbbrev || candidate.course_abbrev || candidate.courseCode || candidate.course_code || candidate.courseShort || candidate.course_short || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || (candidate.student && (candidate.student.course || candidate.student.program)) || 'Not specified',
             vote_count: candidate.voteCount || candidate.vote_count || 0,
             vote_percentage: election.voter_count ? (((candidate.voteCount || candidate.vote_count || 0) / election.voter_count) * 100).toFixed(2) : '0.00'
           })) || []

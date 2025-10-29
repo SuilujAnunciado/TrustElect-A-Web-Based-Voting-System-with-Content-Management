@@ -1220,7 +1220,6 @@ export default function SuperAdminDashboard() {
         </div>
       )}
       
-     
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-xl font-medium mb-2 text-black">Total Elections</h3>
