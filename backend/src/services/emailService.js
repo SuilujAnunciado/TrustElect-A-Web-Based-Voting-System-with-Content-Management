@@ -351,7 +351,7 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
           <!-- Main Content -->
           <div style="padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
             <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
-              Hello${isSuperAdmin ? ' Administrator' : ''},
+              Hello${isSuperAdmin ? ' Administrator' : user.firstName + ' ' + user.lastName},
             </p>
             ${isSuperAdmin ? `<p style="font-size: 14px; color: #666; margin-bottom: 20px;">This receipt is for account: <strong>${originalEmail}</strong></p>` : ''}
             
