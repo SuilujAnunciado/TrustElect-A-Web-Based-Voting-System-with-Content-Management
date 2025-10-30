@@ -564,7 +564,7 @@ const sendElectionNotification = async (userId, email, electionData) => {
             <h2>STI TrustElect</h2>
           </div>
           <div style="padding: 15px; border: 1px solid #e0e0e0;">
-            <p>Hello${isSuperAdmin ? ' Administrator' : ''},</p>
+            <p>Hello${isSuperAdmin ? ' Administrator' : user.firstName + '' + user.lastName},</p>
             ${isSuperAdmin ? `<p>This notification is for account: <strong>${originalEmail}</strong></p>` : ''}
             
             <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 20px; margin: 20px 0;">
