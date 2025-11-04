@@ -137,7 +137,7 @@ const sendOTPEmail = async (userId, email, otp, purpose = 'login') => {
     }
 
     const mailOptions = {
-      from: `"STI TrustElect" <${process.env.HOSTINGER_EMAIL_USER}>`,
+      from: `"STI TrustElect" <${process.env.GMAIL_USER}>`,
       to: recipientEmail, 
       subject: subject,
       html: `
