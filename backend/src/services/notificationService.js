@@ -335,7 +335,7 @@ const notifyBallotCreated = async (adminId, election) => {
         )
       );
     }
-
+              ``
     const { rows: superadmins } = await pool.query(`
       SELECT id FROM superadmins
     `);
