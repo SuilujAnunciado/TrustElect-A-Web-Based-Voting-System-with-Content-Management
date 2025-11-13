@@ -303,10 +303,10 @@ export default function Home() {
     <div className="relative min-h-screen flex flex-col">
       {/* Header Section - Updated to remove About button */}
       <header 
-        className="w-full flex justify-between items-center p-6 shadow-md fixed top-0 left-0 right-0 z-50"
+        className="w-full flex justify-between items-center bg-[#0020C2] p-6 shadow-md fixed top-0 left-0 right-0 z-50"
         style={{
-          backgroundColor: landingContent.header?.bgColor || '#0020C2',
-          color: landingContent.header?.textColor || '#0020C2',
+          backgroundColor: landingContent.header?.bgColor || 'bg-[#0020C2]',
+          color: landingContent.header?.textColor || '#ffffff',
           backgroundImage: landingContent.header?.backgroundImage ? `url(${formatImageUrl(landingContent.header.backgroundImage)})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -315,7 +315,7 @@ export default function Home() {
       >
         <h1
           className="text-4xl font-bold flex items-center relative z-10"
-          style={{ color: landingContent.header?.textColor || '#0020C2' }}
+          style={{ color: landingContent.header?.textColor || '#ffffff' }}
         >
           {landingContent.logo?.imageUrl ? (
             <Image 
