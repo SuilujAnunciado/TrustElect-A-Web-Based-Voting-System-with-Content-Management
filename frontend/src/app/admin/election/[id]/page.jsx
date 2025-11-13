@@ -1654,6 +1654,9 @@ export default function ElectionDetailsPage() {
               <p className="text-gray-800">
                 Votes Cast: {Number(election.vote_count || 0).toLocaleString()} {election.voter_count ? `(${((election.vote_count / election.voter_count) * 100).toFixed(2)}%)` : '(0.00%)'}
               </p>
+              <p className="text-gray-800">
+                Total Voters Left: {Math.max(0, (election.voter_count || 0) - (election.vote_count || 0)).toLocaleString()}
+              </p>
             </div>
             <div className="bg-white rounded-lg shadow p-4">
               <h3 className="font-medium text-gray-500 mb-2">Election/Event Type</h3>

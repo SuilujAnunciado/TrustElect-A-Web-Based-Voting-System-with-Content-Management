@@ -1389,6 +1389,9 @@ export default function ElectionDetailsPage() {
                   )}
                 </p>
               )}
+              <p className="text-gray-800">
+                Total Voters Left: {Math.max(0, (election.voter_count || 0) - (election.vote_count || 0)).toLocaleString()}
+              </p>
             </div>
             <div className="bg-white rounded-lg shadow p-4">
               <h3 className="font-medium mb-2 text-black flex items-center gap-2">
