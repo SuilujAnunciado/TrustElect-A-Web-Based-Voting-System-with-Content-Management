@@ -306,7 +306,7 @@ export default function Home() {
         className="w-full flex justify-between items-center p-6 shadow-md fixed top-0 left-0 right-0 z-50"
         style={{
           backgroundColor: landingContent.header?.bgColor || '#0020C2',
-          color: landingContent.header?.textColor || '#ffffff',
+          color: landingContent.header?.textColor || '#0020C2',
           backgroundImage: landingContent.header?.backgroundImage ? `url(${formatImageUrl(landingContent.header.backgroundImage)})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -315,7 +315,7 @@ export default function Home() {
       >
         <h1
           className="text-4xl font-bold flex items-center relative z-10"
-          style={{ color: landingContent.header?.textColor || '#ffffff' }}
+          style={{ color: landingContent.header?.textColor || '#0020C2' }}
         >
           {landingContent.logo?.imageUrl ? (
             <Image 
