@@ -36,6 +36,9 @@ const ThemesSection = ({
               setNewTheme({
                 name: "",
                 colors: {
+                  headerBg: "#0020C2",
+                  headerText: "#ffffff",
+                  featureSectionBg: "#f9fafb",
                   heroBg: "#1e40af",
                   heroText: "#ffffff",
                   featureBg: "#ffffff",
@@ -121,6 +124,20 @@ const ThemesSection = ({
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 mt-3">
+                <div className="flex items-center">
+                  <div 
+                    className="w-6 h-6 rounded-full mr-2 border" 
+                    style={{ backgroundColor: theme.colors.headerBg || "#0020C2" }}
+                  ></div>
+                  <span className="text-xs text-gray-600">Header Background</span>
+                </div>
+                <div className="flex items-center">
+                  <div 
+                    className="w-6 h-6 rounded-full mr-2 border" 
+                    style={{ backgroundColor: theme.colors.headerText || "#ffffff" }}
+                  ></div>
+                  <span className="text-xs text-gray-600">Header Text</span>
+                </div>
                 <div className="flex items-center">
                   <div 
                     className="w-6 h-6 rounded-full mr-2 border" 
@@ -242,29 +259,28 @@ const ThemeCreationForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-3">
           <div className="space-y-3">
             <ColorPickerField 
-              label="Primary Color"
-              id="primaryColor"
-              value={newTheme.colors.primary}
-              onChange={(value) => handleThemeColorChange('primary', value)}
+              label="Header Background"
+              id="headerBg"
+              value={newTheme.colors.headerBg || "#0020C2"}
+              onChange={(value) => handleThemeColorChange('headerBg', value)}
             />
 
             <ColorPickerField 
-              label="Secondary Color"
-             
-              id="secondaryColor"
-              value={newTheme.colors.secondary}
-              onChange={(value) => handleThemeColorChange('secondary', value)}
+              label="Header Text"
+              id="headerText"
+              value={newTheme.colors.headerText || "#ffffff"}
+              onChange={(value) => handleThemeColorChange('headerText', value)}
             />
 
             <ColorPickerField 
-              label="Background"
+              label="Hero Background"
               id="heroBg"
               value={newTheme.colors.heroBg}
               onChange={(value) => handleThemeColorChange('heroBg', value)}
             />
 
             <ColorPickerField 
-              label="Text"
+              label="Hero Text"
               id="heroText"
               value={newTheme.colors.heroText}
               onChange={(value) => handleThemeColorChange('heroText', value)}
@@ -294,11 +310,17 @@ const ThemeCreationForm = ({
             />
 
             <ColorPickerField 
-              label="Background"
-
+              label="CTA Background"
               id="ctaBg"
               value={newTheme.colors.ctaBg}
               onChange={(value) => handleThemeColorChange('ctaBg', value)}
+            />
+
+            <ColorPickerField 
+              label="CTA Text Color"
+              id="ctaText"
+              value={newTheme.colors.ctaText}
+              onChange={(value) => handleThemeColorChange('ctaText', value)}
             />
           </div>
         </div>
@@ -321,6 +343,9 @@ const ThemeCreationForm = ({
             setNewTheme({
               name: "",
               colors: {
+                headerBg: "#0020C2",
+                headerText: "#ffffff",
+                featureSectionBg: "#f9fafb",
                 heroBg: "#1e40af",
                 heroText: "#ffffff",
                 featureBg: "#ffffff",
@@ -392,6 +417,7 @@ const EditThemeForm = ({
       ...editedTheme,
       colors: {
         ...editedTheme.colors,
+        headerBg: bulkBackgroundColor,
         heroBg: bulkBackgroundColor,
         featureSectionBg: bulkBackgroundColor,
         featureBg: bulkBackgroundColor,
@@ -478,6 +504,22 @@ const EditThemeForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-3">
           <div className="space-y-3">
             <ColorPickerField 
+              label="Header Background"
+              description="(top bar)"
+              id="edit-headerBg"
+              value={editedTheme.colors.headerBg || "#0020C2"}
+              onChange={(value) => handleColorChange('headerBg', value)}
+            />
+
+            <ColorPickerField 
+              label="Header Text"
+              description="(top bar text)"
+              id="edit-headerText"
+              value={editedTheme.colors.headerText || "#ffffff"}
+              onChange={(value) => handleColorChange('headerText', value)}
+            />
+
+            <ColorPickerField 
               label="Hero Background"
               description="(main banner)"
               id="edit-heroBg"
@@ -555,7 +597,13 @@ const EditThemeForm = ({
         <div className="mt-4">
           <h4 className="text-xs font-medium text-gray-800 mb-2">Theme Preview</h4>
           <div className="border rounded-md p-3 bg-white">
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-5 gap-2">
+              <div 
+                className="h-8 rounded border flex items-center justify-center text-xs"
+                style={{ backgroundColor: editedTheme.colors.headerBg || "#0020C2", color: editedTheme.colors.headerText || "#ffffff" }}
+              >
+                Header
+              </div>
               <div 
                 className="h-8 rounded border flex items-center justify-center text-xs"
                 style={{ backgroundColor: editedTheme.colors.heroBg, color: editedTheme.colors.heroText }}
@@ -593,6 +641,16 @@ const ColorPreview = ({ newTheme }) => {
     <div className="border rounded-md p-4 mt-6">
       <h3 className="text-sm font-medium text-black mb-3">Color Preview</h3>
       <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2">
+          <div className="mb-2 text-xs font-medium text-gray-700">Header Bar</div>
+          <div
+            className="p-3 rounded shadow-sm flex items-center justify-between"
+            style={{ backgroundColor: newTheme.colors.headerBg || "#0020C2", color: newTheme.colors.headerText || "#ffffff" }}
+          >
+            <span className="text-sm font-bold">TrustElect</span>
+            <span className="text-xs font-semibold">Login</span>
+          </div>
+        </div>
         <div>
           <div className="mb-2 text-xs font-medium text-gray-700">Hero Section</div>
           <div
@@ -659,6 +717,23 @@ const ThemeUIPreview = ({ newTheme }) => {
     <div className="border rounded-md p-4 mt-6">
       <h3 className="text-sm font-medium text-black mb-3">Theme UI Preview</h3>
       <div className="space-y-4 border rounded overflow-hidden">
+
+        <div 
+          className="p-4 flex items-center justify-between"
+          style={{ backgroundColor: newTheme.colors.headerBg || "#0020C2", color: newTheme.colors.headerText || "#ffffff" }}
+        >
+          <div className="text-sm font-bold">TrustElect</div>
+          <button 
+            className="px-3 py-1 text-xs rounded border border-white/40"
+            style={{ 
+              backgroundColor: newTheme.colors.headerText || "#ffffff", 
+              color: newTheme.colors.headerBg || "#0020C2", 
+              fontWeight: 'bold' 
+            }}
+          >
+            Login
+          </button>
+        </div>
 
         <div 
           className="p-4 text-center"

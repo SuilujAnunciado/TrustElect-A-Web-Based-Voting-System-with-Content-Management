@@ -28,6 +28,7 @@ export const updateAllBackgrounds = (colorValue, theme) => {
     ...theme,
     colors: {
       ...theme.colors,
+      headerBg: colorValue,
       heroBg: colorValue,
       featureSectionBg: colorValue,
       featureBg: colorValue,
@@ -134,6 +135,11 @@ export const applyThemeColors = (theme, landingContent, setLandingContent, saveC
   console.log("Applying theme colors with direct function:", theme.name);
   // Use a temporary variable to create a completely new object
   const updatedContent = JSON.parse(JSON.stringify(landingContent));
+
+  // Ensure header object exists and apply colors
+  updatedContent.header = updatedContent.header || {};
+  updatedContent.header.bgColor = theme.colors.headerBg || updatedContent.header.bgColor || "#01579B";
+  updatedContent.header.textColor = theme.colors.headerText || updatedContent.header.textColor || "#ffffff";
   
   // Update hero colors
   updatedContent.hero.bgColor = theme.colors.heroBg;

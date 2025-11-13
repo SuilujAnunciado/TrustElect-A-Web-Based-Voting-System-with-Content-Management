@@ -25,6 +25,8 @@ export default function ContentManagement() {
   const [newTheme, setNewTheme] = useState({
     name: "",
     colors: {
+      headerBg: "#0020C2",
+      headerText: "#ffffff",
       heroBg: "#1e40af",
       heroText: "#ffffff",
       featureSectionBg: "#f9fafb",
@@ -79,6 +81,7 @@ export default function ContentManagement() {
     },
     header: {
       bgColor: "#01579B",
+      textColor: "#ffffff",
       backgroundImage: null
     },
     hero: {
@@ -145,7 +148,7 @@ export default function ContentManagement() {
     setIsLoading(true);
     try {
       const token = Cookies.get('token');
-      const sections = ['logo', 'hero', 'features', 'callToAction', 'candidates'];
+      const sections = ['logo', 'header', 'hero', 'features', 'callToAction', 'candidates'];
       const contentData = {};
 
       // Fetch content for each section
@@ -169,6 +172,11 @@ export default function ContentManagement() {
       if (Object.keys(contentData).length > 0) {
         const newContent = {
           logo: contentData.logo || landingContent.logo,
+          header: {
+            bgColor: contentData.header?.bgColor || landingContent.header?.bgColor || "#01579B",
+            textColor: contentData.header?.textColor || landingContent.header?.textColor || "#ffffff",
+            backgroundImage: contentData.header?.backgroundImage ?? landingContent.header?.backgroundImage ?? null
+          },
           hero: contentData.hero || landingContent.hero,
           features: contentData.features || landingContent.features,
           callToAction: contentData.callToAction || landingContent.callToAction,
@@ -263,6 +271,11 @@ export default function ContentManagement() {
 
     const newContent = {
       ...landingContent,
+      header: {
+        ...landingContent.header,
+        bgColor: theme.colors.headerBg || landingContent.header?.bgColor || "#01579B",
+        textColor: theme.colors.headerText || landingContent.header?.textColor || "#ffffff"
+      },
       hero: {
         ...landingContent.hero,
         bgColor: theme.colors.heroBg,

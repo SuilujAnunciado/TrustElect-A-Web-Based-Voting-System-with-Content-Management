@@ -303,17 +303,20 @@ export default function Home() {
     <div className="relative min-h-screen flex flex-col">
       {/* Header Section - Updated to remove About button */}
       <header 
-        className="w-full flex justify-between items-center bg-[#0020C2] p-6 shadow-md fixed top-0 left-0 right-0 z-50"
-       
-      >
-         {/*style={{
+        className="w-full flex justify-between items-center p-6 shadow-md fixed top-0 left-0 right-0 z-50"
+        style={{
           backgroundColor: landingContent.header?.bgColor || '#0020C2',
+          color: landingContent.header?.textColor || '#ffffff',
           backgroundImage: landingContent.header?.backgroundImage ? `url(${formatImageUrl(landingContent.header.backgroundImage)})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
-        }} */}
-        <h1 className="text-4xl font-bold flex items-center relative z-10">
+        }}
+      >
+        <h1
+          className="text-4xl font-bold flex items-center relative z-10"
+          style={{ color: landingContent.header?.textColor || '#ffffff' }}
+        >
           {landingContent.logo?.imageUrl ? (
             <Image 
               src={`${formatImageUrl(landingContent.logo.imageUrl)}?timestamp=${new Date().getTime()}`}
@@ -370,14 +373,21 @@ export default function Home() {
               style={{ maxHeight: 'calc(51px - (0px * 2))' }}
             />
           )}
-          <span className="text-white">TrustElect</span>
+          <span>{'TrustElect'}</span>
         </h1>
         
-        <nav className="flex items-center gap-4 relative z-10">
+        <nav
+          className="flex items-center gap-4 relative z-10"
+          style={{ color: landingContent.header?.textColor || '#ffffff' }}
+        >
           {/* Removed About button */}
           <Button
             onClick={() => setShowLogin(true)}
-            className="cursor-pointer px-6 py-2 br-5 bg-blue-800 text-white font-semibold rounded-lg shadow-md hover:bg-blue-500"
+            className="cursor-pointer px-6 py-2 br-5 font-semibold rounded-lg shadow-md"
+            style={{
+              backgroundColor: landingContent.header?.textColor || '#ffffff',
+              color: landingContent.header?.bgColor || '#0020C2'
+            }}
           >
             Login
           </Button>

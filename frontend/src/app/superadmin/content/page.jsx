@@ -54,6 +54,8 @@ export default function ContentManagement() {
   const [newTheme, setNewTheme] = useState({
     name: "",
     colors: {
+      headerBg: "#0020C2",
+      headerText: "#ffffff",
       heroBg: "#1e40af",
       heroText: "#ffffff",
       featureSectionBg: "#f9fafb",
@@ -73,6 +75,7 @@ export default function ContentManagement() {
     },
     header: {
       bgColor: "#01579B",
+      textColor: "#ffffff",
       backgroundImage: null
     },
     hero: {
@@ -168,6 +171,11 @@ export default function ContentManagement() {
         const newContent = {
           logo: {
             imageUrl: response.data.logo?.imageUrl || landingContent.logo.imageUrl
+          },
+          header: {
+            bgColor: response.data.header?.bgColor || landingContent.header?.bgColor || "#01579B",
+            textColor: response.data.header?.textColor || landingContent.header?.textColor || "#ffffff",
+            backgroundImage: response.data.header?.backgroundImage ?? landingContent.header?.backgroundImage ?? null
           },
           hero: {
             title: newHero.title || landingContent.hero.title,
@@ -289,6 +297,11 @@ export default function ContentManagement() {
 
     const newContent = {
       ...landingContent,
+      header: {
+        ...landingContent.header,
+        bgColor: theme.colors.headerBg || landingContent.header?.bgColor || "#01579B",
+        textColor: theme.colors.headerText || landingContent.header?.textColor || "#ffffff"
+      },
       hero: {
         ...landingContent.hero,
         bgColor: theme.colors.heroBg,

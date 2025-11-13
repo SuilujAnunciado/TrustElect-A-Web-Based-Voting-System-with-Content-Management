@@ -28,6 +28,7 @@ export const updateAllBackgrounds = (colorValue, theme) => {
     ...theme,
     colors: {
       ...theme.colors,
+      headerBg: colorValue,
       heroBg: colorValue,
       featureSectionBg: colorValue,
       featureBg: colorValue,
@@ -135,6 +136,11 @@ export const applyThemeColors = (theme, landingContent, setLandingContent, saveC
 
   const newContent = {
     ...landingContent,
+    header: {
+      ...(landingContent.header || {}),
+      bgColor: theme.colors.headerBg || landingContent.header?.bgColor || "#01579B",
+      textColor: theme.colors.headerText || landingContent.header?.textColor || "#ffffff"
+    },
     hero: {
       ...landingContent.hero,
       bgColor: theme.colors.heroBg,
