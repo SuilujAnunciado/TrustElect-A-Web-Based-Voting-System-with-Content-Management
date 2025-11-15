@@ -626,9 +626,18 @@ export default function ElectionDetailsPage() {
     if (!positions || positions.length === 0) return [];
 
     return positions.map(position => {
-      const sortedCandidates = [...(position.candidates || [])].sort((a, b) => 
-        (b.vote_count || 0) - (a.vote_count || 0)
-      );
+      // Sort candidates: first by tie_breaker_message (if exists), then by vote count
+      const sortedCandidates = [...(position.candidates || [])].sort((a, b) => {
+        // If one has tie_breaker_message and the other doesn't, prioritize the one with tie_breaker_message
+        const aHasTieBreaker = !!(a.tie_breaker_message && a.tie_breaker_message.trim());
+        const bHasTieBreaker = !!(b.tie_breaker_message && b.tie_breaker_message.trim());
+        
+        if (aHasTieBreaker && !bHasTieBreaker) return -1;
+        if (!aHasTieBreaker && bHasTieBreaker) return 1;
+        
+        // If both have or both don't have tie_breaker_message, sort by vote count
+        return (b.vote_count || 0) - (a.vote_count || 0);
+      });
 
       const chartData = sortedCandidates.map((candidate, index) => ({
         name: formatNameSimple(candidate.last_name, candidate.first_name, candidate.name),
@@ -750,9 +759,18 @@ export default function ElectionDetailsPage() {
   const getTop3AndOtherCandidates = (candidates) => {
     if (!candidates || candidates.length === 0) return { top3: [], others: [] };
     
-    const sortedCandidates = [...candidates].sort((a, b) => 
-      (b.vote_count || 0) - (a.vote_count || 0)
-    );
+    // Sort candidates: first by tie_breaker_message (if exists), then by vote count
+    const sortedCandidates = [...candidates].sort((a, b) => {
+      // If one has tie_breaker_message and the other doesn't, prioritize the one with tie_breaker_message
+      const aHasTieBreaker = !!(a.tie_breaker_message && a.tie_breaker_message.trim());
+      const bHasTieBreaker = !!(b.tie_breaker_message && b.tie_breaker_message.trim());
+      
+      if (aHasTieBreaker && !bHasTieBreaker) return -1;
+      if (!aHasTieBreaker && bHasTieBreaker) return 1;
+      
+      // If both have or both don't have tie_breaker_message, sort by vote count
+      return (b.vote_count || 0) - (a.vote_count || 0);
+    });
     
     return {
       top3: sortedCandidates.slice(0, 3),
@@ -2009,6 +2027,8 @@ export default function ElectionDetailsPage() {
                   <div className="space-y-3">
                     {position.sortedCandidates.map((candidate, index) => {
                       const isTied = tieInfo && tieInfo.tiedCandidates.some(c => c.id === candidate.id);
+                      // Winner is the first candidate (index 0) after sorting, which prioritizes tie_breaker_message
+                      const hasTieBreaker = !!(candidate.tie_breaker_message && candidate.tie_breaker_message.trim());
                       const isWinner = index === 0 && election.status === 'completed';
                       
                       return (
