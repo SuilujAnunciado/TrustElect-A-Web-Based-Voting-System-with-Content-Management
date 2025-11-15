@@ -2117,6 +2117,7 @@ exports.getCompletedElectionResults = async (req, res) => {
         c.last_name,
         c.image_url,
         c.party as partylist_name,
+        c.tie_breaker_message,
         COALESCE(vc.vote_count, 0) as vote_count,
         CASE 
           WHEN pt.total_position_votes = 0 THEN 0
@@ -2155,6 +2156,7 @@ exports.getCompletedElectionResults = async (req, res) => {
         last_name: row.last_name,
         image_url: row.image_url,
         partylist_name: row.partylist_name,
+        tie_breaker_message: row.tie_breaker_message,
         vote_count: parseInt(row.vote_count),
         vote_percentage: parseFloat(row.vote_percentage) || 0,
         is_winner: row.is_winner
@@ -2406,6 +2408,99 @@ exports.getVotesPerCandidate = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch votes per candidate: " + error.message
+    });
+  }
+};
+
+exports.setTieBreaker = async (req, res) => {
+  try {
+    const { id: electionId } = req.params;
+    const { position_id, candidate_id, tie_breaker_message } = req.body;
+
+    // Validate input
+    if (!position_id || !candidate_id || !tie_breaker_message || !tie_breaker_message.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Position ID, candidate ID, and tie-breaker message are required"
+      });
+    }
+
+    // Verify election exists and is completed
+    const electionResult = await pool.query(
+      'SELECT id, status FROM elections WHERE id = $1',
+      [electionId]
+    );
+
+    if (electionResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Election not found"
+      });
+    }
+
+    const election = electionResult.rows[0];
+    if (election.status !== 'completed') {
+      return res.status(400).json({
+        success: false,
+        message: "Tie-breaker can only be set for completed elections"
+      });
+    }
+
+    // Verify candidate belongs to the position and election
+    const candidateResult = await pool.query(`
+      SELECT c.id, c.position_id, p.ballot_id, b.election_id
+      FROM candidates c
+      JOIN positions p ON c.position_id = p.id
+      JOIN ballots b ON p.ballot_id = b.id
+      WHERE c.id = $1 AND c.position_id = $2 AND b.election_id = $3
+    `, [candidate_id, position_id, electionId]);
+
+    if (candidateResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Candidate not found or does not belong to this position/election"
+      });
+    }
+
+    // Check if tie_breaker_message column exists, if not, add it
+    try {
+      await pool.query(`
+        ALTER TABLE candidates 
+        ADD COLUMN IF NOT EXISTS tie_breaker_message TEXT
+      `);
+    } catch (alterError) {
+      // Column might already exist, ignore error
+      console.log('Column check:', alterError.message);
+    }
+
+    // Update candidate with tie-breaker message
+    const updateResult = await pool.query(`
+      UPDATE candidates
+      SET tie_breaker_message = $1, updated_at = NOW()
+      WHERE id = $2 AND position_id = $3
+      RETURNING id, first_name, last_name, tie_breaker_message
+    `, [tie_breaker_message.trim(), candidate_id, position_id]);
+
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Failed to update candidate"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Tie-breaker saved successfully",
+      data: {
+        candidate: updateResult.rows[0]
+      }
+    });
+
+  } catch (error) {
+    console.error('Error setting tie-breaker:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to set tie-breaker: " + error.message
     });
   }
 };

@@ -159,6 +159,12 @@ export default function ElectionDetailsPage() {
   const [softDeleteModalOpen, setSoftDeleteModalOpen] = useState(false);
   const [electionToSoftDelete, setElectionToSoftDelete] = useState(null);
   const [isSoftDeleting, setIsSoftDeleting] = useState(false);
+  const [tieBreakerModalOpen, setTieBreakerModalOpen] = useState(false);
+  const [tiedCandidates, setTiedCandidates] = useState([]);
+  const [currentTiedPosition, setCurrentTiedPosition] = useState(null);
+  const [tieBreakerMessage, setTieBreakerMessage] = useState('');
+  const [isSavingTieBreaker, setIsSavingTieBreaker] = useState(false);
+  const [selectedTieBreakerWinner, setSelectedTieBreakerWinner] = useState(null);
 
   const toggleFullScreen = async () => {
     if (!document.fullscreenElement) {
@@ -638,6 +644,96 @@ export default function ElectionDetailsPage() {
         chartData
       };
     });
+  };
+
+  // Function to detect tied votes for a position
+  const detectTiedVotes = (position) => {
+    if (!position || !position.candidates || position.candidates.length === 0) return null;
+    
+    const sortedCandidates = [...position.candidates].sort((a, b) => 
+      (b.vote_count || 0) - (a.vote_count || 0)
+    );
+    
+    if (sortedCandidates.length === 0) return null;
+    
+    const maxVotes = sortedCandidates[0].vote_count || 0;
+    if (maxVotes === 0) return null; // No votes yet
+    
+    // Find all candidates with the maximum vote count
+    const tiedCandidates = sortedCandidates.filter(c => (c.vote_count || 0) === maxVotes);
+    
+    // Only return tied candidates if there are 2 or more with the same max votes
+    // and they are the top candidates (potential winners)
+    if (tiedCandidates.length >= 2) {
+      // Check if any of the tied candidates already has a tie_breaker_message (already resolved)
+      const hasResolvedTie = tiedCandidates.some(c => c.tie_breaker_message);
+      
+      if (!hasResolvedTie) {
+        return {
+          position: position,
+          tiedCandidates: tiedCandidates,
+          maxVotes: maxVotes
+        };
+      }
+    }
+    
+    return null;
+  };
+
+  // Function to handle tie-breaker selection
+  const handleTieBreakerSelect = (position, candidate) => {
+    const tieInfo = detectTiedVotes(position);
+    if (!tieInfo) return;
+    
+    setCurrentTiedPosition(position);
+    setTiedCandidates(tieInfo.tiedCandidates);
+    setSelectedTieBreakerWinner(candidate);
+    setTieBreakerMessage('');
+    setTieBreakerModalOpen(true);
+  };
+
+  // Function to save tie-breaker
+  const handleSaveTieBreaker = async () => {
+    if (!selectedTieBreakerWinner || !tieBreakerMessage.trim()) {
+      toast.error('Please select a winner and enter a tie-breaker message');
+      return;
+    }
+
+    try {
+      setIsSavingTieBreaker(true);
+      const token = Cookies.get('token');
+      
+      const response = await fetch(`${API_BASE}/elections/${params.id}/tie-breaker`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          position_id: currentTiedPosition.id,
+          candidate_id: selectedTieBreakerWinner.id,
+          tie_breaker_message: tieBreakerMessage.trim()
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save tie-breaker');
+      }
+
+      toast.success('Tie-breaker saved successfully');
+      setTieBreakerModalOpen(false);
+      setTieBreakerMessage('');
+      setSelectedTieBreakerWinner(null);
+      
+      // Refresh election data to show updated results
+      await fetchElectionData();
+    } catch (error) {
+      console.error('Error saving tie-breaker:', error);
+      toast.error(error.message || 'Failed to save tie-breaker');
+    } finally {
+      setIsSavingTieBreaker(false);
+    }
   };
 
   const hasResults = election.positions && election.positions.length > 0 && 
@@ -1576,6 +1672,11 @@ export default function ElectionDetailsPage() {
                                     {candidate.party}
                                   </span>
                                 )}
+                                {candidate.tie_breaker_message && (
+                                  <p className="text-sm text-yellow-800 mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                                    <span className="font-bold">Tie-breaker: </span>{candidate.tie_breaker_message}
+                                  </p>
+                                )}
                               </div>
                               <div className="text-right">
                                 <div className="font-bold text-black text-lg">
@@ -1621,6 +1722,11 @@ export default function ElectionDetailsPage() {
                                 <span className="text-sm text-black">
                                   {candidate.party}
                                 </span>
+                              )}
+                              {candidate.tie_breaker_message && (
+                                <p className="text-sm text-yellow-800 mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                                  <span className="font-bold">Tie-breaker: </span>{candidate.tie_breaker_message}
+                                </p>
                               )}
                             </div>
                             <div className="text-right">
@@ -1755,9 +1861,28 @@ export default function ElectionDetailsPage() {
                   const position = formatResultsData(election.positions)[currentPositionPage];
                   if (!position) return null;
                   
+                  const tieInfo = detectTiedVotes(position);
+                  
                   return (
                 <div key={position.id} className="mb-8 border-b pb-6">
                   <h3 className="text-lg font-medium text-black mb-4">{position.name}</h3>
+                  
+                  {/* Tie-breaker alert */}
+                  {tieInfo && election.status === 'completed' && (isSystemAdminCreator || isCurrentUserSuperAdmin) && (
+                    <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
+                          <div>
+                            <h4 className="font-semibold text-yellow-800">Tied Votes Detected</h4>
+                            <p className="text-sm text-yellow-700 mt-1">
+                              {tieInfo.tiedCandidates.length} candidates have {tieInfo.maxVotes} votes each. Please select a winner.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Winner banner (for completed elections) */}
                   {election.status === 'completed' && position.sortedCandidates.length > 0 && (
@@ -1797,6 +1922,12 @@ export default function ElectionDetailsPage() {
                               <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-sm rounded">
                                 {position.sortedCandidates[0].party}
                               </span>
+                            </div>
+                          )}
+                          {position.sortedCandidates[0].tie_breaker_message && (
+                            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                              <span className="font-medium">Tie-breaker: </span>
+                              {position.sortedCandidates[0].tie_breaker_message}
                             </div>
                           )}
                           <div className="mt-3">
@@ -1876,8 +2007,12 @@ export default function ElectionDetailsPage() {
                   
                   {/* Candidates sorted by votes */}
                   <div className="space-y-3">
-                    {position.sortedCandidates.map((candidate, index) => (
-                      <div key={candidate.id} className={`flex items-center p-3 rounded-lg ${index === 0 && election.status === 'completed' ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
+                    {position.sortedCandidates.map((candidate, index) => {
+                      const isTied = tieInfo && tieInfo.tiedCandidates.some(c => c.id === candidate.id);
+                      const isWinner = index === 0 && election.status === 'completed';
+                      
+                      return (
+                      <div key={candidate.id} className={`flex items-center p-3 rounded-lg ${isWinner ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
                         <div className="relative w-16 h-20 mr-4">
                           {candidate.image_url && !imageErrors[candidate.id] ? (
                             <Image
@@ -1893,7 +2028,7 @@ export default function ElectionDetailsPage() {
                               <User className="w-8 h-8 text-gray-400" />
                             </div>
                           )}
-                          {index === 0 && election.status === 'completed' && (
+                          {isWinner && (
                             <div className="absolute -top-2 -right-2 bg-blue-500 rounded-full p-1">
                               <Award className="w-4 h-4 text-white" />
                             </div>
@@ -1901,16 +2036,32 @@ export default function ElectionDetailsPage() {
                         </div>
                         
                         <div className="flex-1">
-                          <div className="flex items-center">
-                            <h4 className="font-medium text-black">
-                              {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
-                            </h4>
-                            {candidate.party && (
-                              <span className="ml-2 px-2 py-1 bg-gray-100 text-black text-xs rounded">
-                                {candidate.party}
-                              </span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <h4 className="font-medium text-black">
+                                {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                              </h4>
+                              {candidate.party && (
+                                <span className="ml-2 px-2 py-1 bg-gray-100 text-black text-xs rounded">
+                                  {candidate.party}
+                                </span>
+                              )}
+                            </div>
+                            {isTied && election.status === 'completed' && (isSystemAdminCreator || isCurrentUserSuperAdmin) && !candidate.tie_breaker_message && (
+                              <button
+                                onClick={() => handleTieBreakerSelect(position, candidate)}
+                                className="ml-2 px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 transition-colors"
+                              >
+                                Select as Winner
+                              </button>
                             )}
                           </div>
+                          {candidate.tie_breaker_message && (
+                            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                              <span className="font-medium">Tie-breaker: </span>
+                              {candidate.tie_breaker_message}
+                            </div>
+                          )}
                           <div className="flex items-center mt-1">
                             <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
                               <div 
@@ -1924,7 +2075,7 @@ export default function ElectionDetailsPage() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 </div>
                   );
@@ -3109,6 +3260,113 @@ export default function ElectionDetailsPage() {
                   </div>
                 ) : (
                   'Delete Election'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tie-Breaker Modal */}
+      {tieBreakerModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center mb-4">
+              <AlertCircle className="w-6 h-6 text-yellow-600 mr-3" />
+              <h3 className="text-lg font-semibold text-gray-900">Resolve Tied Votes</h3>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-gray-700 mb-4">
+                <span className="font-semibold">Position:</span> {currentTiedPosition?.name}
+              </p>
+              <p className="text-gray-700 mb-4">
+                The following candidates have tied with {tiedCandidates[0]?.vote_count || 0} votes each. Please select the winner and provide a reason for the tie-breaker decision.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <h4 className="font-semibold text-gray-800 mb-3">Tied Candidates:</h4>
+              <div className="space-y-2">
+                {tiedCandidates.map((candidate) => (
+                  <div
+                    key={candidate.id}
+                    onClick={() => setSelectedTieBreakerWinner(candidate)}
+                    className={`p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                      selectedTieBreakerWinner?.id === candidate.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                          selectedTieBreakerWinner?.id === candidate.id
+                            ? 'border-blue-500 bg-blue-500'
+                            : 'border-gray-400'
+                        }`}>
+                          {selectedTieBreakerWinner?.id === candidate.id && (
+                            <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                          )}
+                        </div>
+                        <div>
+                          <h5 className="font-medium text-black">
+                            {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                          </h5>
+                          {candidate.party && (
+                            <p className="text-sm text-gray-600">{candidate.party}</p>
+                          )}
+                          <p className="text-sm text-gray-500">
+                            {Number(candidate.vote_count || 0).toLocaleString()} votes
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tie-Breaker Message <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={tieBreakerMessage}
+                onChange={(e) => setTieBreakerMessage(e.target.value)}
+                placeholder="e.g., This candidate wins by toss coin"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={3}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                This message will be displayed below the winner's name in the final results.
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setTieBreakerModalOpen(false);
+                  setTieBreakerMessage('');
+                  setSelectedTieBreakerWinner(null);
+                }}
+                className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300"
+                disabled={isSavingTieBreaker}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveTieBreaker}
+                disabled={isSavingTieBreaker || !selectedTieBreakerWinner || !tieBreakerMessage.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingTieBreaker ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin h-4 w-4 mr-2 border-2 border-white rounded-full border-t-transparent"></div>
+                    Saving...
+                  </div>
+                ) : (
+                  'Save Tie-Breaker'
                 )}
               </button>
             </div>

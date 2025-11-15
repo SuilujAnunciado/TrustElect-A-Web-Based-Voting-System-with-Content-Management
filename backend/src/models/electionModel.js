@@ -960,6 +960,7 @@ const getElectionWithBallot = async (electionId) => {
           c.image_url,
           c.slogan,
           c.platform,
+          c.tie_breaker_message,
           COALESCE((SELECT COUNT(DISTINCT student_id) FROM votes WHERE candidate_id = c.id AND position_id = $2), 0) AS vote_count,
           CASE 
             WHEN (SELECT COUNT(DISTINCT student_id) FROM votes WHERE position_id = $2) > 0 

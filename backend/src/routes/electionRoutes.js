@@ -27,6 +27,7 @@ const {
     getCompletedElectionResults,
     getVoterVerificationCodes,
     getVotesPerCandidate,
+    setTieBreaker,
     // Archive and Delete functionality
     archiveElection,
     restoreArchivedElection,
@@ -219,6 +220,7 @@ router.get("/:id/vote-token", verifyToken, isStudent, getVoteToken);
 
 router.get("/:id/voter-codes", verifyToken, getVoterVerificationCodes);
 router.get("/:id/votes-per-candidate", verifyToken, getVotesPerCandidate);
+router.post("/:id/tie-breaker", verifyToken, setTieBreaker);
 
 // Archive and Delete functionality routes
 router.post("/:id/archive", verifyToken, archiveElection);
