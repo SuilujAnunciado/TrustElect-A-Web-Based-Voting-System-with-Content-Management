@@ -173,7 +173,8 @@ export default function LoginForm({ onClose }) {
     }
     return () => clearInterval(interval);
   }, [cooldownActive, cooldownTime]);
-
+  
+  
   // SMS cooldown timer effect
   useEffect(() => {
     let interval;
