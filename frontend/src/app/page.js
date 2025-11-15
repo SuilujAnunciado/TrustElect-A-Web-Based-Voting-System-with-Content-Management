@@ -19,7 +19,8 @@ export default function Home() {
       imageUrl: null
     },
     header: {
-      bgColor: "#01579B",
+      bgColor: "#0020C2",
+      textColor: "#ffffff",
       backgroundImage: null
     },
     hero: {
@@ -129,7 +130,8 @@ export default function Home() {
             imageUrl: response.data.logo?.imageUrl || landingContent.logo.imageUrl
           },
           header: {
-            bgColor: response.data.header?.bgColor || landingContent.header?.bgColor || "#01579B",
+            bgColor: response.data.header?.bgColor || landingContent.header?.bgColor || "#0020C2",
+            textColor: response.data.header?.textColor || landingContent.header?.textColor || "#ffffff",
             backgroundImage: response.data.header?.backgroundImage || null
           },
           hero: {
@@ -303,17 +305,20 @@ export default function Home() {
     <div className="relative min-h-screen flex flex-col">
       {/* Header Section - Updated to remove About button */}
       <header 
-        className="w-full flex justify-between items-center bg-[#0020C2] p-6 shadow-md fixed top-0 left-0 right-0 z-50"
-       
-      >
-         {/*style={{
+        className="w-full flex justify-between items-center p-6 shadow-md fixed top-0 left-0 right-0 z-50 relative"
+        style={{
           backgroundColor: landingContent.header?.bgColor || '#0020C2',
+          color: landingContent.header?.textColor || '#ffffff',
           backgroundImage: landingContent.header?.backgroundImage ? `url(${formatImageUrl(landingContent.header.backgroundImage)})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
-        }} */}
-        <h1 className="text-4xl font-bold flex items-center relative z-10">
+        }}
+      >
+        {landingContent.header?.backgroundImage && (
+          <div className="absolute inset-0 bg-black/30 z-0"></div>
+        )}
+        <h1 className="text-4xl font-bold flex items-center relative z-10" style={{ color: landingContent.header?.textColor || '#ffffff' }}>
           {landingContent.logo?.imageUrl ? (
             <Image 
               src={`${formatImageUrl(landingContent.logo.imageUrl)}?timestamp=${new Date().getTime()}`}
@@ -370,7 +375,7 @@ export default function Home() {
               style={{ maxHeight: 'calc(51px - (0px * 2))' }}
             />
           )}
-          <span className="text-white">TrustElect</span>
+          <span style={{ color: landingContent.header?.textColor || '#ffffff' }}>TrustElect</span>
         </h1>
         
         <nav className="flex items-center gap-4 relative z-10">
