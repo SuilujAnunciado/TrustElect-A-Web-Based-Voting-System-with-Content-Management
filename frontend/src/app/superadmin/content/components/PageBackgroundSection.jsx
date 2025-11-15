@@ -73,13 +73,72 @@ const PageBackgroundSection = ({
 
   const currentBackground = landingContent[section]?.backgroundImage;
 
+  // For header section, add color pickers
+  const isHeader = section === 'header';
+
+  const updateHeaderColor = (field, value) => {
+    setLandingContent(prev => ({
+      ...prev,
+      header: {
+        ...prev.header,
+        [field]: value
+      }
+    }));
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-lg font-semibold mb-4 text-gray-800">
-        {sectionName} Background
+        {sectionName} {isHeader ? 'Settings' : 'Background'}
       </h3>
       
       <div className="space-y-4">
+        {/* Color pickers for header section */}
+        {isHeader && (
+          <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Background Color
+              </label>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="color" 
+                  value={landingContent.header?.bgColor || "#0020C2"}
+                  onChange={(e) => updateHeaderColor('bgColor', e.target.value)}
+                  className="h-10 w-10 border rounded cursor-pointer"
+                />
+                <input 
+                  type="text"
+                  value={landingContent.header?.bgColor || "#0020C2"}
+                  onChange={(e) => updateHeaderColor('bgColor', e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-md text-black"
+                  placeholder="#0020C2"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Text Color
+              </label>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="color" 
+                  value={landingContent.header?.textColor || "#ffffff"}
+                  onChange={(e) => updateHeaderColor('textColor', e.target.value)}
+                  className="h-10 w-10 border rounded cursor-pointer"
+                />
+                <input 
+                  type="text"
+                  value={landingContent.header?.textColor || "#ffffff"}
+                  onChange={(e) => updateHeaderColor('textColor', e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-md text-black"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+          </div>
+        )}
         {/* Current Background Preview */}
         {currentBackground && (
           <div className="relative">

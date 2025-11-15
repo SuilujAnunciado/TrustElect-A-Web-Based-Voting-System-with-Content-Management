@@ -603,10 +603,11 @@ export default function ContentManagement() {
           }
         });
       } else if (section === 'header') {
-        // Handle header section - preserve all existing content
+        // Handle header section - preserve all existing content including colors
         contentData = {
-          ...landingContent.header, // Preserve all existing content
-          backgroundImage: landingContent.header.backgroundImage
+          bgColor: landingContent.header?.bgColor || "#0020C2",
+          textColor: landingContent.header?.textColor || "#ffffff",
+          backgroundImage: landingContent.header?.backgroundImage || null
         };
         
         // Handle header background image upload
@@ -827,7 +828,7 @@ export default function ContentManagement() {
     
     try {
       // Save each section with proper validation
-      const sections = ['features', 'hero', 'callToAction'];
+      const sections = ['header', 'features', 'hero', 'callToAction'];
       const results = [];
       
       for (const section of sections) {
