@@ -3269,24 +3269,24 @@ export default function ElectionDetailsPage() {
 
       {/* Tie-Breaker Modal */}
       {tieBreakerModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center mb-4">
               <AlertCircle className="w-6 h-6 text-yellow-600 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Resolve Tied Votes</h3>
+              <h3 className="text-lg font-semibold text-black">Resolve Tied Votes</h3>
             </div>
             
             <div className="mb-4">
-              <p className="text-gray-700 mb-4">
+              <p className="text-black mb-4">
                 <span className="font-semibold">Position:</span> {currentTiedPosition?.name}
               </p>
-              <p className="text-gray-700 mb-4">
+              <p className="text-black mb-4">
                 The following candidates have tied with {tiedCandidates[0]?.vote_count || 0} votes each. Please select the winner and provide a reason for the tie-breaker decision.
               </p>
             </div>
 
             <div className="mb-6">
-              <h4 className="font-semibold text-gray-800 mb-3">Tied Candidates:</h4>
+              <h4 className="font-semibold text-black mb-3">Tied Candidates:</h4>
               <div className="space-y-2">
                 {tiedCandidates.map((candidate) => (
                   <div
@@ -3314,9 +3314,9 @@ export default function ElectionDetailsPage() {
                             {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
                           </h5>
                           {candidate.party && (
-                            <p className="text-sm text-gray-600">{candidate.party}</p>
+                            <p className="text-sm text-black">{candidate.party}</p>
                           )}
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm textblack">
                             {Number(candidate.vote_count || 0).toLocaleString()} votes
                           </p>
                         </div>
@@ -3328,7 +3328,7 @@ export default function ElectionDetailsPage() {
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Tie-Breaker Message <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -3338,7 +3338,7 @@ export default function ElectionDetailsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-black mt-1">
                 This message will be displayed below the winner's name in the final results.
               </p>
             </div>
