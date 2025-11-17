@@ -126,6 +126,22 @@ export default function VotePage({ params }) {
     fetchBallot();
   }, [electionId]);
 
+  const electionType = (election?.election_type || '').toLowerCase();
+  const isSymposiumElection = electionType.includes('symposium') || electionType.includes('symphosium');
+
+  const getCandidateDisplayName = (candidate) => {
+    if (!candidate) return 'No Name';
+    if (isSymposiumElection) {
+      return candidate.first_name || candidate.name || 'Project';
+    }
+    return formatNameSimple(candidate.last_name, candidate.first_name, candidate.name);
+  };
+
+  const getCandidateProjectDescription = (candidate) => {
+    if (!isSymposiumElection) return '';
+    return candidate.platform || candidate.slogan || '';
+  };
+
   const handleCandidateSelect = (positionId, candidateId, maxChoices) => {
     setSelectedCandidates(prev => {
       const currentSelections = [...prev[positionId]];
@@ -525,7 +541,7 @@ export default function VotePage({ params }) {
                           {candidate.image_url && !imageErrors[candidate.id] ? (
                             <img 
                               src={imageCache[candidate.id] || getImageUrl(candidate.image_url)}
-                              alt={`${formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}`}
+                              alt={`${getCandidateDisplayName(candidate)}`}
                               className="w-full h-full object-cover"
                               onError={(e) => handleImageError(candidate.id, e)}
                             />
@@ -552,7 +568,22 @@ export default function VotePage({ params }) {
                         
                         {/* Candidate Details */}
                         <div>
-                          <h3 className="font-medium text-gray-800 text-lg">Full Name: {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}</h3>
+                          {isSymposiumElection ? (
+                            <>
+                              <h3 className="font-medium text-gray-800 text-lg">
+                                Project Name: {getCandidateDisplayName(candidate)}
+                              </h3>
+                              {getCandidateProjectDescription(candidate) && (
+                                <p className="text-sm text-gray-600">
+                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <h3 className="font-medium text-gray-800 text-lg">
+                              Full Name: {getCandidateDisplayName(candidate)}
+                            </h3>
+                          )}
                           {candidate.party && (
                             <div className="mt-1">
                               <span className="text-md font-medium text-black ">Partylist:</span>
@@ -636,7 +667,7 @@ export default function VotePage({ params }) {
                               {candidate.image_url && !imageErrors[candidate.id] ? (
                                 <img 
                                   src={imageCache[candidate.id] || getImageUrl(candidate.image_url)}
-                                  alt={`${formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}`}
+                                  alt={`${getCandidateDisplayName(candidate)}`}
                                   className="w-full h-full object-cover"
                                   onError={(e) => handleImageError(candidate.id, e)}
                                 />
@@ -649,7 +680,15 @@ export default function VotePage({ params }) {
                             
                             {/* Candidate Details */}
                             <div>
-                              <h3 className="font-medium text-gray-800 text-lg">{formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}</h3>
+                              <h3 className="font-medium text-gray-800 text-lg">
+                                {isSymposiumElection ? 'Project Name:' : ''}
+                                {isSymposiumElection ? ` ${getCandidateDisplayName(candidate)}` : getCandidateDisplayName(candidate)}
+                              </h3>
+                              {getCandidateProjectDescription(candidate) && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
+                                </p>
+                              )}
                               {candidate.party && (
                                 <div className="mt-1">
                                   <span className="text-xs font-medium text-gray-500">Party:</span>

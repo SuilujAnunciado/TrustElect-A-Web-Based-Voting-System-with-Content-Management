@@ -169,6 +169,36 @@ export default function ElectionDetailsPage() {
   const [candidateToRemove, setCandidateToRemove] = useState(null);
   const [isRemovingCandidate, setIsRemovingCandidate] = useState(false);
 
+  const normalizedElectionType = (election?.election_type || '').toLowerCase();
+  const isSymposiumElection = normalizedElectionType.includes('symposium') || normalizedElectionType.includes('symphosium');
+
+  const getCandidateDisplayName = (candidate, fallbackName) => {
+    if (!candidate) return 'No Name';
+    const firstName = candidate.first_name ?? candidate.firstName;
+    const lastName = candidate.last_name ?? candidate.lastName;
+    const displayName = candidate.name;
+    if (isSymposiumElection) {
+      return firstName || displayName || fallbackName || 'Project';
+    }
+    return formatNameSimple(lastName, firstName, fallbackName || displayName);
+  };
+
+  const getCandidateProjectDescription = (candidate) => {
+    if (!isSymposiumElection) return '';
+    return candidate.platform || candidate.slogan || '';
+  };
+
+  const renderProjectDescription = (candidate, className = 'text-sm text-gray-600 mt-1') => {
+    if (!isSymposiumElection) return null;
+    const description = getCandidateProjectDescription(candidate);
+    if (!description) return null;
+    return (
+      <p className={className}>
+        <span className="font-medium">Project Description:</span> {description}
+      </p>
+    );
+  };
+
   const toggleFullScreen = async () => {
     if (!document.fullscreenElement) {
       try {
@@ -643,7 +673,7 @@ export default function ElectionDetailsPage() {
       });
 
       const chartData = sortedCandidates.map((candidate, index) => ({
-        name: formatNameSimple(candidate.last_name, candidate.first_name, candidate.name),
+            name: getCandidateDisplayName(candidate),
         votes: Number(candidate.vote_count || 0), 
         party: candidate.party || 'Independent',
         percentage: election.voter_count ? ((candidate.vote_count || 0) / election.voter_count * 100).toFixed(2) : '0.00',
@@ -1133,7 +1163,7 @@ export default function ElectionDetailsPage() {
           max_choices: position.max_choices,
           candidates: position.candidates?.map(candidate => {
             const candidateData = {
-              name: formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)
+              name: getCandidateDisplayName(candidate)
             };
             
             const displayCourse = candidate.course || candidate.courseAbbrev || candidate.course_abbrev || candidate.courseCode || candidate.course_code || candidate.courseShort || candidate.course_short || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || (candidate.student && (candidate.student.course || candidate.student.program)) || '';
@@ -1169,7 +1199,7 @@ export default function ElectionDetailsPage() {
           position_name: position.position_name || position.name || position.position_title || position.positionTitle || 'Unnamed Position',
           max_choices: position.max_choices,
           candidates: position.candidates?.map(candidate => ({
-            name: formatNameSimple(candidate.lastName, candidate.firstName, candidate.name),
+            name: getCandidateDisplayName(candidate),
             party: candidate.partylistName || candidate.party || 'Independent',
             course: candidate.course || candidate.courseAbbrev || candidate.course_abbrev || candidate.courseCode || candidate.course_code || candidate.courseShort || candidate.course_short || candidate.program || candidate.courseName || candidate.course_name || candidate.department || candidate.dept || (candidate.student && (candidate.student.course || candidate.student.program)) || 'Not specified',
             vote_count: candidate.voteCount || candidate.vote_count || 0,
@@ -1728,13 +1758,15 @@ export default function ElectionDetailsPage() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-medium text-black">
-                                  {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                                  {getCandidateDisplayName(candidate)}
                                 </h4>
                                 {candidate.party && (
                                   <span className="text-sm text-black">
                                     {candidate.party}
                                   </span>
                                 )}
+                                {renderProjectDescription(candidate)}
+                                {renderProjectDescription(candidate)}
                                 {candidate.tie_breaker_message && (
                                   <p className="text-sm text-yellow-800 mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
                                     <span className="font-bold">Tie-breaker: </span>{candidate.tie_breaker_message}
@@ -1779,7 +1811,7 @@ export default function ElectionDetailsPage() {
                           <div className="flex items-center justify-between">
                             <div>
                               <h4 className="font-medium text-black">
-                                {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                                {getCandidateDisplayName(candidate)}
                               </h4>
                               {candidate.party && (
                                 <span className="text-sm text-black">
@@ -1977,7 +2009,7 @@ export default function ElectionDetailsPage() {
                         
                         <div>
                           <h4 className="font-bold text-black text-lg">
-                            {formatNameSimple(position.sortedCandidates[0].last_name, position.sortedCandidates[0].first_name, position.name)}
+                            {getCandidateDisplayName(position.sortedCandidates[0], position.name)}
                           </h4>
                           {position.sortedCandidates[0].party && (
                             <div className="mt-1">
@@ -1993,6 +2025,7 @@ export default function ElectionDetailsPage() {
                               {position.sortedCandidates[0].tie_breaker_message}
                             </div>
                           )}
+                          {renderProjectDescription(position.sortedCandidates[0])}
                           <div className="mt-3">
                             <div className="text-base text-black font-bold">
                               {Number(position.sortedCandidates[0].vote_count || 0).toLocaleString()} votes
@@ -2102,16 +2135,16 @@ export default function ElectionDetailsPage() {
                         
                         <div className="flex-1">
                           <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center">
-                              <h4 className="font-medium text-black">
-                                {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
-                              </h4>
-                              {candidate.party && (
-                                <span className="ml-2 px-2 py-1 bg-gray-100 text-black text-xs rounded">
-                                  {candidate.party}
-                                </span>
-                              )}
-                            </div>
+                              <div className="flex items-center">
+                                <h4 className="font-medium text-black">
+                                  {getCandidateDisplayName(candidate)}
+                                </h4>
+                                {candidate.party && (
+                                  <span className="ml-2 px-2 py-1 bg-gray-100 text-black text-xs rounded">
+                                    {candidate.party}
+                                  </span>
+                                )}
+                              </div>
                             <div className="flex items-center gap-2">
                               {isTied && election.status === 'completed' && canManageCandidates && !candidate.tie_breaker_message && (
                                 <button
@@ -2138,6 +2171,7 @@ export default function ElectionDetailsPage() {
                               {candidate.tie_breaker_message}
                             </div>
                           )}
+                            {renderProjectDescription(candidate)}
                           <div className="flex items-center mt-1">
                             <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
                               <div 
@@ -2331,13 +2365,14 @@ export default function ElectionDetailsPage() {
                                 
                                 <div className="w-full">
                                   <h4 className="font-bold text-black text-2xl mb-2">
-                                    {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                                    {getCandidateDisplayName(candidate)}
                                   </h4>
                                   {candidate.party && (
                                     <div className="px-3 py-1 bg-white rounded-full mb-3 shadow-sm">
                                       <span className="text-black font-medium text-base">{candidate.party}</span>
                                     </div>
                                   )}
+                                  {renderProjectDescription(candidate, 'text-sm text-gray-600')}
                                   <div className="mt-3">
                                     <div className="text-xl text-black mb-2 font-semibold">
                                       {Number(candidate.vote_count || 0).toLocaleString()} Votes ({election.voter_count ? ((candidate.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'}%)
@@ -2386,13 +2421,14 @@ export default function ElectionDetailsPage() {
                                   
                                   <div className="text-center w-full">
                                     <h4 className="font-medium text-black text-base mb-1 line-clamp-2">
-                                      {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                                      {getCandidateDisplayName(candidate)}
                                     </h4>
                                     {candidate.party && (
                                       <div className="text-xs text-black mb-1 px-2 py-1 bg-white rounded-full">
                                         {candidate.party}
                                       </div>
                                     )}
+                                    {renderProjectDescription(candidate, 'text-xs text-gray-600')}
                                     <div className="text-sm text-black font-semibold">
                                       {Number(candidate.vote_count || 0).toLocaleString()} Votes ({election.voter_count ? ((candidate.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'}%)
                                     </div>
@@ -2490,7 +2526,7 @@ export default function ElectionDetailsPage() {
                                   <div className={`${isFullScreen ? '' : 'flex items-center justify-between'}`}>
                                     <div>
                                       <h4 className={`font-medium text-black ${isFullScreen ? 'text-xl mb-2' : ''}`}>
-                                        {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                                        {getCandidateDisplayName(candidate)}
                                       </h4>
                                       {candidate.party && (
                                         <span className={`${isFullScreen ? 'block px-3 py-1 bg-gray-100 rounded-full mb-3' : 'text-sm'} text-black`}>
@@ -2549,7 +2585,7 @@ export default function ElectionDetailsPage() {
                                     <div className="flex items-center justify-between">
                                       <div>
                                         <h4 className={`font-medium text-black ${isFullScreen ? 'text-lg' : ''}`}>
-                                          {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                                          {getCandidateDisplayName(candidate)}
                                         </h4>
                                         {candidate.party && (
                                           <span className="text-sm text-black">
@@ -2849,7 +2885,7 @@ export default function ElectionDetailsPage() {
                                 
                                 <div className="text-center">
                                   <h5 className="font-bold text-black text-lg mb-2">
-                                    {formatNameSimple(winner.last_name, winner.first_name, winner.name)}
+                                    {getCandidateDisplayName(winner)}
                                   </h5>
                                   
                                   {winner.party && (
@@ -2859,6 +2895,7 @@ export default function ElectionDetailsPage() {
                                       </span>
                                     </div>
                                   )}
+                                  {renderProjectDescription(winner, 'text-sm text-gray-600')}
                                   
                                   <div className="text-lg text-blue-600 font-bold">
                                     {Number(winner.vote_count || 0).toLocaleString()} votes
@@ -2902,7 +2939,7 @@ export default function ElectionDetailsPage() {
                                       
                                       <div className="text-center">
                                         <h6 className="font-medium text-black text-sm mb-1">
-                                          {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                                          {getCandidateDisplayName(candidate)}
                                         </h6>
                                         
                                         {candidate.party && (
@@ -2912,6 +2949,8 @@ export default function ElectionDetailsPage() {
                                             </span>
                                           </div>
                                         )}
+                                        
+                                        {renderProjectDescription(candidate, 'text-xs text-gray-600')}
                                         
                                         <div className="text-sm text-gray-600 font-medium">
                                           {Number(candidate.vote_count || 0).toLocaleString()} votes
@@ -3168,7 +3207,7 @@ export default function ElectionDetailsPage() {
                                       
                                       <div className="text-center">
                                         <h5 className="font-bold text-black text-sm mb-1">
-                                          {formatNameSimple(winner.last_name, winner.first_name, winner.name)}
+                                          {getCandidateDisplayName(winner)}
                                         </h5>
                                         
                                         {winner.party && (
@@ -3178,6 +3217,8 @@ export default function ElectionDetailsPage() {
                                             </span>
                                           </div>
                                         )}
+                                        
+                                        {renderProjectDescription(winner, 'text-xs text-gray-600')}
                                         
                                         <div className="text-sm text-blue-600 font-bold">
                                           {Number(winner.vote_count || 0).toLocaleString()} votes
@@ -3221,7 +3262,7 @@ export default function ElectionDetailsPage() {
                                             
                                             <div className="text-center">
                                               <h6 className="font-medium text-black text-xs mb-1">
-                                                {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                                                {getCandidateDisplayName(candidate)}
                                               </h6>
                                               
                                               {candidate.party && (
@@ -3231,6 +3272,8 @@ export default function ElectionDetailsPage() {
                                                   </span>
                                                 </div>
                                               )}
+                                            
+                                            {renderProjectDescription(candidate, 'text-xs text-gray-600')}
                                               
                                               <div className="text-xs text-gray-600 font-medium">
                                                 {Number(candidate.vote_count || 0).toLocaleString()} votes
@@ -3354,11 +3397,7 @@ export default function ElectionDetailsPage() {
             <p className="text-black mb-4">
               Are you sure you want to remove{' '}
               <span className="font-semibold">
-                {formatNameSimple(
-                  candidateToRemove.candidate.last_name,
-                  candidateToRemove.candidate.first_name,
-                  candidateToRemove.candidate.name
-                )}
+                {getCandidateDisplayName(candidateToRemove.candidate)}
               </span>{' '}
               from the position{' '}
               <span className="font-semibold">{candidateToRemove.position.name}</span>?
@@ -3434,7 +3473,7 @@ export default function ElectionDetailsPage() {
                         </div>
                         <div>
                           <h5 className="font-medium text-black">
-                            {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
+                            {getCandidateDisplayName(candidate)}
                           </h5>
                           {candidate.party && (
                             <p className="text-sm text-black">{candidate.party}</p>
