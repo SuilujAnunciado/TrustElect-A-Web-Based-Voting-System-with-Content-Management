@@ -16,7 +16,8 @@ import SystemLoadDetail from './components/SystemLoadDetail';
 import VoterParticipationDetail from './components/VoterParticipationDetail';
 import CandidateListDetail from './components/CandidateListDetail';
 import AdminActivityDetail from './components/AdminActivityDetail';
-import { collectSignatureInfo, buildSignatureFooter } from "@/utils/reportGenerator";
+import { buildSignatureFooter } from "@/utils/reportGenerator";
+import { fetchCurrentUserName } from "@/utils/userIdentity";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -471,18 +472,11 @@ export default function ReportsPage() {
         throw new Error('No data available for download');
       }
 
-      const signatureInfo = collectSignatureInfo();
-      if (!signatureInfo) {
-        return;
-      }
+      const currentUserName = await fetchCurrentUserName();
+      const footerText = buildSignatureFooter(currentUserName);
 
-      const filePayload = {
-        ...data,
-        signatureInfo
-      };
-
-      const jsonString = JSON.stringify(filePayload, null, 2);
-      const fileContent = `${jsonString}\n\n${buildSignatureFooter(signatureInfo)}`;
+      const jsonString = JSON.stringify(data, null, 2);
+      const fileContent = `${jsonString}\n\n${footerText}`;
       const blob = new Blob([fileContent], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
