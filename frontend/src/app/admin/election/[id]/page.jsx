@@ -3364,7 +3364,7 @@ export default function ElectionDetailsPage() {
 
       {/* Archive Confirmation Modal */}
       {archiveModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex items-center mb-4">
               <FolderOpen className="w-6 h-6 text-yellow-600 mr-3" />
@@ -3402,7 +3402,7 @@ export default function ElectionDetailsPage() {
 
       {/* Soft Delete Confirmation Modal */}
       {softDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex items-center mb-4">
               <X className="w-6 h-6 text-red-600 mr-3" />
@@ -3440,7 +3440,7 @@ export default function ElectionDetailsPage() {
 
       {/* Remove Candidate Modal */}
       {removeCandidateModalOpen && candidateToRemove && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
             <div className="flex items-center mb-4">
               <Trash2 className="w-6 h-6 text-red-600 mr-3" />
@@ -3487,7 +3487,7 @@ export default function ElectionDetailsPage() {
 
       {/* Tie-Breaker Modal */}
       {tieBreakerModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center mb-4">
               <AlertCircle className="w-6 h-6 text-yellow-600 mr-3" />
