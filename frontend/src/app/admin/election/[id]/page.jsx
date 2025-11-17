@@ -1338,8 +1338,17 @@ export default function ElectionDetailsPage() {
   };
 
   const getCandidateProjectDescription = (candidate) => {
-    if (!isSymposiumElection) return '';
-    return candidate.platform || candidate.slogan || '';
+    if (!isSymposiumElection || !candidate) return '';
+    const description =
+      candidate.project_description ??
+      candidate.projectDescription ??
+      candidate.description ??
+      candidate.projectDetails ??
+      candidate.projectDetail ??
+      candidate.platform ??
+      candidate.slogan ??
+      '';
+    return typeof description === 'string' ? description : '';
   };
 
   const renderProjectDescription = (candidate, className = 'text-sm text-gray-600 mt-1') => {
@@ -2045,7 +2054,7 @@ export default function ElectionDetailsPage() {
                                   <span className="font-bold">Slogan: </span>"{candidate.slogan}"
                                 </p>
                               )}
-                              {candidate.platform && !isSymposiumElection && (
+                              {!isSymposiumElection && candidate.platform && (
                                 <p className="text-sm text-black"><span className="font-bold">Platform/Description: </span> {candidate.platform}</p>
                               )}
                             </div>

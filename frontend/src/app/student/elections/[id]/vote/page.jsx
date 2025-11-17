@@ -138,8 +138,17 @@ export default function VotePage({ params }) {
   };
 
   const getCandidateProjectDescription = (candidate) => {
-    if (!isSymposiumElection) return '';
-    return candidate.platform || candidate.slogan || '';
+    if (!isSymposiumElection || !candidate) return '';
+    const description =
+      candidate.project_description ??
+      candidate.projectDescription ??
+      candidate.description ??
+      candidate.projectDetails ??
+      candidate.projectDetail ??
+      candidate.platform ??
+      candidate.slogan ??
+      '';
+    return typeof description === 'string' ? description : '';
   };
 
   const handleCandidateSelect = (positionId, candidateId, maxChoices) => {
