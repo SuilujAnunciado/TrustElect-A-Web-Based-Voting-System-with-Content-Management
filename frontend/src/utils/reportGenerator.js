@@ -1,5 +1,6 @@
 import { Document, Paragraph, Table, TableRow, TableCell, TextRun, HeadingLevel, BorderStyle } from 'docx';
 import { saveAs } from 'file-saver';
+import { fetchCurrentUserName, buildSignatureFooter } from './userIdentity';
 
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', {
@@ -243,15 +244,6 @@ const generateAdminActivityReport = (data) => {
 // Add more report generators for other report types...
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
-
-export const buildSignatureFooter = (userName) => {
-  const resolvedName = (userName && userName.trim()) || '________________________';
-  return [
-    `Reviewed by: ${resolvedName} (user who downloaded the report)`,
-    `Checked by: ${resolvedName} (user who downloaded the report)`,
-    'Approved by: ________________________'
-  ].join('\n');
-};
 
 export const generateReport = async (reportId, data) => {
   let currentUserName = null;

@@ -16,8 +16,7 @@ import SystemLoadDetail from './components/SystemLoadDetail';
 import VoterParticipationDetail from './components/VoterParticipationDetail';
 import CandidateListDetail from './components/CandidateListDetail';
 import AdminActivityDetail from './components/AdminActivityDetail';
-import { buildSignatureFooter } from "@/utils/reportGenerator";
-import { fetchCurrentUserName } from "@/utils/userIdentity";
+import { fetchCurrentUserName, buildSignatureFooter } from "@/utils/userIdentity";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 

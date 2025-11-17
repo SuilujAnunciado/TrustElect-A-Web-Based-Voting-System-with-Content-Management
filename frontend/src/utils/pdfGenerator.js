@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 // Import jspdf-autotable
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import { fetchCurrentUserName, buildSignatureFooter } from './userIdentity';
 
 const formatDate = (date) => {
   try {
@@ -149,6 +150,29 @@ jsPDF.prototype.output = function(type, options) {
   // Add footer to all pages before output
   addFooterToAllPages(this, this._reportTitle || 'TrustElect Report');
   return originalOutput.call(this, type, options);
+};
+
+const addSignatureBlockToLastPage = (doc, footerText) => {
+  if (!footerText) {
+    return;
+  }
+
+  const totalPages = doc.internal.getNumberOfPages();
+  if (totalPages === 0) {
+    return;
+  }
+
+  doc.setPage(totalPages);
+  const pageHeight = doc.internal.pageSize.height || 297; // default A4 height in mm
+  const startY = Math.max(pageHeight - 60, 20);
+  const lines = footerText.split('\n');
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+
+  lines.forEach((line, index) => {
+    doc.text(line, 14, startY + index * 6);
+  });
 };
 
 // Helper function to create a summary table
@@ -1229,7 +1253,7 @@ const generateVotingTimeReport = (data) => {
   return doc;
 };
 
-export const generatePdfReport = (reportId, data) => {
+export const generatePdfReport = async (reportId, data) => {
   try {
     let doc;
     
@@ -1283,6 +1307,16 @@ export const generatePdfReport = (reportId, data) => {
         throw new Error('Invalid report ID');
     }
     
+    let currentUserName = null;
+    try {
+      currentUserName = await fetchCurrentUserName();
+    } catch (error) {
+      console.error('Unable to resolve current user name for PDF report:', error);
+    }
+
+    const signatureFooter = buildSignatureFooter(currentUserName);
+    addSignatureBlockToLastPage(doc, signatureFooter);
+
     // Ensure footer is added to all pages before saving
     const reportTitle = getReportTitle(reportId);
     addFooterToAllPages(doc, reportTitle);

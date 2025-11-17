@@ -15,8 +15,7 @@ import VoterParticipationReport from "./components/VoterParticipationReport";
 import CandidateListReport from "./components/CandidateListReport";
 import AdminActivityReport from "./components/AdminActivityReport";
 import SystemLoadDetail from "../../superadmin/reports/components/SystemLoadDetail";
-import { buildSignatureFooter } from "@/utils/reportGenerator";
-import { fetchCurrentUserName } from "@/utils/userIdentity";
+import { fetchCurrentUserName, buildSignatureFooter } from "@/utils/userIdentity";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 

@@ -59,3 +59,12 @@ export const fetchCurrentUserName = async () => {
   return Cookies.get('email') || 'Unknown User';
 };
 
+export const buildSignatureFooter = (userName) => {
+  const resolvedName = (userName && userName.trim()) || '________________________';
+  return [
+    `Reviewed by: ${resolvedName} (user who downloaded the report)`,
+    `Checked by: ${resolvedName} (user who downloaded the report)`,
+    'Approved by: ________________________'
+  ].join('\n');
+};
+
