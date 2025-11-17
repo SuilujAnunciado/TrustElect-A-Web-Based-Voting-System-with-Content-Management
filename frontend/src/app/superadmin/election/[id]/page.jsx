@@ -8,7 +8,7 @@ import {
   Lock, Award, ArrowDown, ArrowUp, PieChart,
   AlertCircle, XCircle, Check, X, Maximize2, Minimize2,
   ChevronRight, Play, Pause, Timer, FileText, Trophy, Download,
-  FolderOpen, RotateCcw
+  FolderOpen, RotateCcw, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
@@ -165,6 +165,9 @@ export default function ElectionDetailsPage() {
   const [tieBreakerMessage, setTieBreakerMessage] = useState('');
   const [isSavingTieBreaker, setIsSavingTieBreaker] = useState(false);
   const [selectedTieBreakerWinner, setSelectedTieBreakerWinner] = useState(null);
+  const [removeCandidateModalOpen, setRemoveCandidateModalOpen] = useState(false);
+  const [candidateToRemove, setCandidateToRemove] = useState(null);
+  const [isRemovingCandidate, setIsRemovingCandidate] = useState(false);
 
   const toggleFullScreen = async () => {
     if (!document.fullscreenElement) {
@@ -745,6 +748,47 @@ export default function ElectionDetailsPage() {
     }
   };
 
+  const handleOpenRemoveCandidateModal = (position, candidate) => {
+    setCandidateToRemove({ position, candidate });
+    setRemoveCandidateModalOpen(true);
+  };
+
+  const handleRemoveCandidateConfirm = async () => {
+    if (!candidateToRemove) return;
+
+    try {
+      setIsRemovingCandidate(true);
+      const token = Cookies.get('token');
+      const response = await fetch(`${API_BASE}/ballots/candidates/${candidateToRemove.candidate.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to remove candidate';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (_) {
+          // ignore parse errors
+        }
+        throw new Error(errorMessage);
+      }
+
+      toast.success('Candidate removed successfully');
+      setRemoveCandidateModalOpen(false);
+      setCandidateToRemove(null);
+      await fetchElectionData();
+    } catch (error) {
+      console.error('Error removing candidate:', error);
+      toast.error(error.message || 'Failed to remove candidate');
+    } finally {
+      setIsRemovingCandidate(false);
+    }
+  };
+
   const hasResults = election.positions && election.positions.length > 0 && 
     (election.status === 'ongoing' || election.status === 'completed');
 
@@ -755,6 +799,7 @@ export default function ElectionDetailsPage() {
     election.created_by === 1 ||
     (election.created_by && election.created_by.id === 1) ||
     election.created_by_role === 'SuperAdmin';
+  const canManageCandidates = isSystemAdminCreator || isCurrentUserSuperAdmin;
 
   const getTop3AndOtherCandidates = (candidates) => {
     if (!candidates || candidates.length === 0) return { top3: [], others: [] };
@@ -2056,7 +2101,7 @@ export default function ElectionDetailsPage() {
                         </div>
                         
                         <div className="flex-1">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center">
                               <h4 className="font-medium text-black">
                                 {formatNameSimple(candidate.last_name, candidate.first_name, candidate.name)}
@@ -2067,14 +2112,25 @@ export default function ElectionDetailsPage() {
                                 </span>
                               )}
                             </div>
-                            {isTied && election.status === 'completed' && (isSystemAdminCreator || isCurrentUserSuperAdmin) && !candidate.tie_breaker_message && (
-                              <button
-                                onClick={() => handleTieBreakerSelect(position, candidate)}
-                                className="ml-2 px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 transition-colors"
-                              >
-                                Select as Winner
-                              </button>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {isTied && election.status === 'completed' && canManageCandidates && !candidate.tie_breaker_message && (
+                                <button
+                                  onClick={() => handleTieBreakerSelect(position, candidate)}
+                                  className="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 transition-colors"
+                                >
+                                  Select as Winner
+                                </button>
+                              )}
+                              {canManageCandidates && (
+                                <button
+                                  onClick={() => handleOpenRemoveCandidateModal(position, candidate)}
+                                  className="flex items-center gap-1 px-3 py-1 border border-red-200 text-red-600 text-sm rounded hover:bg-red-50 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Remove
+                                </button>
+                              )}
+                            </div>
                           </div>
                           {candidate.tie_breaker_message && (
                             <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
@@ -3281,6 +3337,53 @@ export default function ElectionDetailsPage() {
                 ) : (
                   'Delete Election'
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove Candidate Modal */}
+      {removeCandidateModalOpen && candidateToRemove && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <div className="flex items-center mb-4">
+              <Trash2 className="w-6 h-6 text-red-600 mr-3" />
+              <h3 className="text-lg font-semibold text-black">Remove Candidate</h3>
+            </div>
+            <p className="text-black mb-4">
+              Are you sure you want to remove{' '}
+              <span className="font-semibold">
+                {formatNameSimple(
+                  candidateToRemove.candidate.last_name,
+                  candidateToRemove.candidate.first_name,
+                  candidateToRemove.candidate.name
+                )}
+              </span>{' '}
+              from the position{' '}
+              <span className="font-semibold">{candidateToRemove.position.name}</span>?
+            </p>
+            <p className="text-sm text-gray-600 mb-6">
+              Their votes will no longer be counted for this election. The next highest candidate
+              will automatically take the lead if applicable.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setRemoveCandidateModalOpen(false);
+                  setCandidateToRemove(null);
+                }}
+                className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300"
+                disabled={isRemovingCandidate}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemoveCandidateConfirm}
+                disabled={isRemovingCandidate}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+              >
+                {isRemovingCandidate ? 'Removing...' : 'Remove Candidate'}
               </button>
             </div>
           </div>
