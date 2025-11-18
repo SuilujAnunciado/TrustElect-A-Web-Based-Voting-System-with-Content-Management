@@ -53,6 +53,22 @@ const getImageUrl = (imageUrl) => {
 const candidateKey = (candidateId) => 
   candidateId === undefined || candidateId === null ? '' : String(candidateId);
 
+const extractProjectDescription = (candidate) => {
+  if (!candidate) return '';
+
+  const description =
+    candidate.project_description ??
+    candidate.projectDescription ??
+    candidate.description ??
+    candidate.projectDetails ??
+    candidate.projectDetail ??
+    candidate.platform ??
+    candidate.slogan ??
+    '';
+
+  return typeof description === 'string' ? description : '';
+};
+
 const mergePositionsWithDetails = (basePositions = [], detailedPositions = []) => {
   if (!Array.isArray(basePositions) || !Array.isArray(detailedPositions) || detailedPositions.length === 0) {
     return basePositions;
@@ -72,9 +88,18 @@ const mergePositionsWithDetails = (basePositions = [], detailedPositions = []) =
       return detail ? { ...candidate, ...detail } : candidate;
     });
 
+    const enrichedCandidates = (position.candidates || []).map((candidate) => {
+      const detail = detailMap.get(candidateKey(candidate.id));
+      const mergedCandidate = detail ? { ...candidate, ...detail } : candidate;
+      return {
+        ...mergedCandidate,
+        projectDescriptionComputed: extractProjectDescription(detail || candidate),
+      };
+    });
+
     return {
       ...position,
-      candidates: mergedCandidates
+      candidates: enrichedCandidates
     };
   });
 };
@@ -159,6 +184,7 @@ export default function VotePage({ params }) {
         // For symposium elections, we need to fetch full candidate details
         // since the student-ballot endpoint returns simplified data
         let enhancedPositions = response.data.positions;
+        let localDetailsMap = {};
         const electionTypeValue = (response.data.election?.election_type || '').toLowerCase();
         const shouldEnhanceCandidates = electionTypeValue.includes('symposium') || electionTypeValue.includes('symphosium');
 
@@ -167,31 +193,47 @@ export default function VotePage({ params }) {
           if (Array.isArray(detailedPositions) && detailedPositions.length > 0) {
             enhancedPositions = mergePositionsWithDetails(response.data.positions, detailedPositions);
 
-            const detailsMap = {};
             detailedPositions.forEach((position) => {
               (position.candidates || []).forEach((candidate) => {
-                detailsMap[candidateKey(candidate.id)] = candidate;
+                localDetailsMap[candidateKey(candidate.id)] = candidate;
               });
             });
-            setCandidateDetailsMap(detailsMap);
+            setCandidateDetailsMap(localDetailsMap);
           } else {
             setCandidateDetailsMap({});
           }
         } else {
           setCandidateDetailsMap({});
         }
+
+        const annotatedPositions = enhancedPositions.map((position) => {
+          const updatedCandidates = (position.candidates || []).map((candidate) => {
+            const details = localDetailsMap[candidateKey(candidate.id)];
+            return {
+              ...candidate,
+              projectDescriptionComputed:
+                candidate.projectDescriptionComputed ??
+                extractProjectDescription(details || candidate),
+            };
+          });
+
+          return {
+            ...position,
+            candidates: updatedCandidates,
+          };
+        });
         
-        setPositions(enhancedPositions);
+        setPositions(annotatedPositions);
 
         const initialSelections = {};
-        enhancedPositions.forEach(position => {
+        annotatedPositions.forEach(position => {
           initialSelections[position.position_id] = [];
         });
         setSelectedCandidates(initialSelections);
 
         const newImageCache = {};
         
-        enhancedPositions.forEach(position => {
+        annotatedPositions.forEach(position => {
           position.candidates.forEach(candidate => {
             if (candidate.image_url) {
               // Add cache busting to prevent stale images
@@ -240,21 +282,13 @@ export default function VotePage({ params }) {
   const getCandidateProjectDescription = (candidate) => {
     if (!isSymposiumElection || !candidate) return '';
 
+    if (candidate.projectDescriptionComputed) {
+      return candidate.projectDescriptionComputed;
+    }
+
     const detailsKey = candidateKey(candidate.id);
     const detailedCandidate = candidateDetailsMap[detailsKey];
-    const sourceCandidate = detailedCandidate || candidate;
-
-    const description =
-      sourceCandidate.project_description ??
-      sourceCandidate.projectDescription ??
-      sourceCandidate.description ??
-      sourceCandidate.projectDetails ??
-      sourceCandidate.projectDetail ??
-      sourceCandidate.platform ??
-      sourceCandidate.slogan ??
-      '';
-
-    return typeof description === 'string' ? description : '';
+    return extractProjectDescription(detailedCandidate || candidate);
   };
 
   const renderProjectDescription = (candidate, className = 'text-sm text-black mt-1') => {
