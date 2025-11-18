@@ -13,7 +13,7 @@ import {
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import toast from 'react-hot-toast';
 import { BASE_URL } from '@/config';
 import { generatePdfReport } from '../../../../utils/pdfGenerator';
@@ -931,6 +931,22 @@ export default function ElectionDetailsPage() {
     if (currentCandidatesPage > 0) {
       setCurrentCandidatesPage(prev => prev - 1);
     }
+  };
+
+  const renderResultDot = (props) => {
+    const { cx, cy, payload } = props;
+    if (isNaN(cx) || isNaN(cy)) return null;
+    const color = payload?.color || '#2563eb';
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={5}
+        fill={color}
+        stroke="#ffffff"
+        strokeWidth={2}
+      />
+    );
   };
 
   const toggleBulletinFullScreen = async () => {
@@ -2050,10 +2066,16 @@ export default function ElectionDetailsPage() {
                   {/* Results chart */}
                   <div className="h-72 mb-6">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
+                      <AreaChart
                         data={position.chartData}
                         margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                       >
+                        <defs>
+                          <linearGradient id="resultAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35}/>
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+                          </linearGradient>
+                        </defs>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="name" 
@@ -2087,25 +2109,27 @@ export default function ElectionDetailsPage() {
                           }}
                         />
                         <Legend />
-                        <Bar 
-                          dataKey="votes" 
-                          name="Vote Count" 
-                          fill="#3b82f6" 
-                          isAnimationActive={true}
-                          radius={[4, 4, 0, 0]}
+                        <Area 
+                          type="monotone"
+                          dataKey="votes"
+                          name="Vote Count"
+                          stroke="#1d4ed8"
+                          strokeWidth={3}
+                          fill="url(#resultAreaGradient)"
+                          dot={renderResultDot}
+                          activeDot={{ r: 7, stroke: '#0f172a', strokeWidth: 2, fill: '#fff' }}
                         >
+                          <LabelList 
+                            dataKey="votes" 
+                            position="top" 
+                            style={{ fontSize: '12px', fontWeight: 'bold', fill: '#000000' }}
+                            formatter={(value) => value.toLocaleString()}
+                          />
                           {position.chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color}>
-                              <LabelList 
-                                dataKey="votes" 
-                                position="top" 
-                                style={{ fontSize: '12px', fontWeight: 'bold', fill: '#000000' }}
-                                formatter={(value) => value.toLocaleString()}
-                              />
-                            </Cell>
+                            <Cell key={`cell-${index}`} stroke={entry.color} fill={entry.color} />
                           ))}
-                        </Bar>
-                      </BarChart>
+                        </Area>
+                      </AreaChart>
                     </ResponsiveContainer>
                   </div>
                   

@@ -12,7 +12,7 @@ import {
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import toast from 'react-hot-toast';
 import { BASE_URL } from '@/config';
 import { generatePdfReport } from '../../../../utils/pdfGenerator';
@@ -1490,6 +1490,22 @@ export default function ElectionDetailsPage() {
     }
   };
 
+  const renderResultDot = (props) => {
+    const { cx, cy, payload } = props;
+    if (isNaN(cx) || isNaN(cy)) return null;
+    const color = payload?.color || '#2563eb';
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={5}
+        fill={color}
+        stroke="#ffffff"
+        strokeWidth={2}
+      />
+    );
+  };
+
   const toggleBulletinFullScreen = async () => {
     if (!document.fullscreenElement) {
       try {
@@ -2244,66 +2260,74 @@ export default function ElectionDetailsPage() {
                   )}
                   
                   {/* Results chart */}
-                  <div className="h-72 mb-6">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={position.chartData}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                <div className="h-72 mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={position.chartData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                      <defs>
+                        <linearGradient id="resultAreaGradientAdmin" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        fontSize={12}
+                      />
+                      <YAxis 
+                        domain={calculateYAxisDomain(position.chartData)}
+                        allowDecimals={false}
+                        tickFormatter={(value) => value.toLocaleString()}
+                        tickCount={Math.min(10, Math.max(3, Math.ceil(Math.max(...position.chartData.map(d => d.votes)) / 2)))}
+                      />
+                      <Tooltip 
+                        formatter={(value, name) => [`${value} votes (${election.voter_count ? ((value / election.voter_count) * 100).toFixed(2) : '0.00'}% `, 'Votes']}
+                        labelFormatter={(name) => `${name}`}
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                          color: '#000000'
+                        }}
+                        labelStyle={{
+                          color: '#000000',
+                          fontWeight: 'bold'
+                        }}
+                        itemStyle={{
+                          color: '#000000'
+                        }}
+                      />
+                      <Legend />
+                      <Area 
+                        type="monotone"
+                        dataKey="votes"
+                        name="Vote Count"
+                        stroke="#1d4ed8"
+                        strokeWidth={3}
+                        fill="url(#resultAreaGradientAdmin)"
+                        dot={renderResultDot}
+                        activeDot={{ r: 7, stroke: '#0f172a', strokeWidth: 2, fill: '#fff' }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="name" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={60}
-                          fontSize={12}
-                        />
-                        <YAxis 
-                          domain={calculateYAxisDomain(position.chartData)}
-                          allowDecimals={false}
-                          tickFormatter={(value) => value.toLocaleString()}
-                          tickCount={Math.min(10, Math.max(3, Math.ceil(Math.max(...position.chartData.map(d => d.votes)) / 2)))}
-                        />
-                        <Tooltip 
-                          formatter={(value, name) => [`${value} votes (${election.voter_count ? ((value / election.voter_count) * 100).toFixed(2) : '0.00'}% `, 'Votes']}
-                          labelFormatter={(name) => `${name}`}
-                          contentStyle={{
-                            backgroundColor: 'white',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '8px',
-                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                            color: '#000000'
-                          }}
-                          labelStyle={{
-                            color: '#000000',
-                            fontWeight: 'bold'
-                          }}
-                          itemStyle={{
-                            color: '#000000'
-                          }}
-                        />
-                        <Legend />
-                        <Bar 
+                        <LabelList 
                           dataKey="votes" 
-                          name="Vote Count" 
-                          fill="#3b82f6" 
-                          isAnimationActive={true}
-                          radius={[4, 4, 0, 0]}
-                        >
-                          {position.chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color}>
-                              <LabelList 
-                                dataKey="votes" 
-                                position="top" 
-                                style={{ fontSize: '12px', fontWeight: 'bold', fill: '#000000' }}
-                                formatter={(value) => value.toLocaleString()}
-                              />
-                            </Cell>
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                          position="top" 
+                          style={{ fontSize: '12px', fontWeight: 'bold', fill: '#000000' }}
+                          formatter={(value) => value.toLocaleString()}
+                        />
+                        {position.chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} stroke={entry.color} fill={entry.color} />
+                        ))}
+                      </Area>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
                   
                   {/* Candidates sorted by votes */}
                   <div className="space-y-3">
