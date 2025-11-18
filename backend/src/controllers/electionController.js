@@ -1005,8 +1005,12 @@ exports.getBallotForStudent = async (req, res) => {
           jsonb_build_object(
             'id', c.id,
             'name', c.first_name || ' ' || c.last_name,
+            'first_name', c.first_name,
+            'last_name', c.last_name,
             'party', COALESCE(c.party, ''),
-            'image_url', c.image_url
+            'image_url', c.image_url,
+            'platform', COALESCE(c.platform, ''),
+            'slogan', COALESCE(c.slogan, '')
           ) ORDER BY c.last_name, c.first_name
         ) as candidates
       FROM positions p

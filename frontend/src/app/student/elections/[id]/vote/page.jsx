@@ -124,40 +124,43 @@ export default function VotePage({ params }) {
   const [encryptionStatus, setEncryptionStatus] = useState('idle'); 
   const [candidateDetailsMap, setCandidateDetailsMap] = useState({});
 
+  const normalizeBallotPositions = (positions = []) =>
+    positions.map((position) => ({
+      position_id: position.position_id || position.id,
+      position_name: position.position_name || position.name,
+      max_choices: position.max_choices,
+      candidates: position.candidates || []
+    }));
+
   const fetchDetailedSymposiumPositions = async (token) => {
     try {
-      const [ballotResponse, detailsResponse] = await Promise.all([
-        axios.get(`${API_BASE}/elections/${electionId}/ballot`, {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true
-        }),
-        axios.get(`${API_BASE}/elections/${electionId}/details`, {
+      const detailsResponse = await axios.get(`${API_BASE}/elections/${electionId}/details`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true
-        }).catch((detailsError) => {
-          console.error('Error fetching election details for symposium ballot:', detailsError);
-          return null;
-        })
-      ]);
+      });
 
-      if (detailsResponse?.data?.election?.positions && Array.isArray(detailsResponse.data.election.positions)) {
-        return detailsResponse.data.election.positions.map((position) => ({
-          position_id: position.id,
-          position_name: position.name,
-          max_choices: position.max_choices,
-          candidates: position.candidates || []
-        }));
+      if (Array.isArray(detailsResponse?.data?.election?.positions)) {
+        return normalizeBallotPositions(detailsResponse.data.election.positions);
+      }
+    } catch (detailsError) {
+      console.error('Error fetching election details for symposium ballot:', detailsError);
+    }
+
+    try {
+      const ballotResponse = await axios.get(`${API_BASE}/elections/${electionId}/ballot`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
+      });
+
+      if (Array.isArray(ballotResponse?.data?.positions)) {
+        return normalizeBallotPositions(ballotResponse.data.positions);
       }
 
-      if (Array.isArray(ballotResponse?.data?.positions) && ballotResponse.data.positions.length > 0) {
-        return ballotResponse.data.positions;
+      if (Array.isArray(ballotResponse?.data?.ballot?.positions)) {
+        return normalizeBallotPositions(ballotResponse.data.ballot.positions);
       }
-
-      if (Array.isArray(ballotResponse?.data?.ballot?.positions) && ballotResponse.data.ballot.positions.length > 0) {
-        return ballotResponse.data.ballot.positions;
-      }
-    } catch (detailError) {
-      console.error('Error fetching detailed ballot data for symposium election:', detailError);
+    } catch (ballotError) {
+      console.error('Error fetching ballot data for symposium election:', ballotError);
     }
 
     return [];
