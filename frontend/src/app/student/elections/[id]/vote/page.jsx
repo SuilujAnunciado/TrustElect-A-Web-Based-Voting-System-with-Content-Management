@@ -151,6 +151,17 @@ export default function VotePage({ params }) {
     return typeof description === 'string' ? description : '';
   };
 
+  const renderProjectDescription = (candidate, className = 'text-sm text-black mt-1') => {
+    if (!isSymposiumElection) return null;
+    const description = getCandidateProjectDescription(candidate);
+    if (!description) return null;
+    return (
+      <p className={className}>
+        <span className="font-medium">Project Description:</span> {description}
+      </p>
+    );
+  };
+
   const handleCandidateSelect = (positionId, candidateId, maxChoices) => {
     setSelectedCandidates(prev => {
       const currentSelections = [...prev[positionId]];
@@ -582,11 +593,7 @@ export default function VotePage({ params }) {
                               <h3 className="font-medium text-gray-800 text-lg">
                                 Project Name: {getCandidateDisplayName(candidate)}
                               </h3>
-                              {getCandidateProjectDescription(candidate) && (
-                                <p className="text-sm text-gray-600">
-                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
-                                </p>
-                              )}
+                              {renderProjectDescription(candidate)}
                             </>
                           ) : (
                             <h3 className="font-medium text-gray-800 text-lg">
@@ -693,18 +700,14 @@ export default function VotePage({ params }) {
                                 {isSymposiumElection ? 'Project Name:' : ''}
                                 {isSymposiumElection ? ` ${getCandidateDisplayName(candidate)}` : getCandidateDisplayName(candidate)}
                               </h3>
-                              {getCandidateProjectDescription(candidate) && (
-                                <p className="text-sm text-gray-600 mt-1">
-                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
-                                </p>
-                              )}
+                              {renderProjectDescription(candidate)}
                               {candidate.party && (
                                 <div className="mt-1">
                                   <span className="text-xs font-medium text-gray-500">Party:</span>
                                   <p className="text-sm text-gray-600">{candidate.party}</p>
                                 </div>
                               )}
-                              {candidate.slogan && (
+                              {candidate.slogan && !isSymposiumElection && (
                                 <div className="mt-1">
                                   <span className="text-xs font-medium text-gray-500">Slogan:</span>
                                   <p className="text-sm text-gray-600 italic">"{candidate.slogan}"</p>
