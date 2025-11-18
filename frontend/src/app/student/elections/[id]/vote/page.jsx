@@ -101,17 +101,35 @@ export default function VotePage({ params }) {
 
   const fetchDetailedSymposiumPositions = async (token) => {
     try {
-      const { data } = await axios.get(`${API_BASE}/elections/${electionId}/ballot`, {
+      const [ballotResponse, detailsResponse] = await Promise.all([
+        axios.get(`${API_BASE}/elections/${electionId}/ballot`, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
+        }),
+        axios.get(`${API_BASE}/elections/${electionId}/details`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true
-      });
+        }).catch((detailsError) => {
+          console.error('Error fetching election details for symposium ballot:', detailsError);
+          return null;
+        })
+      ]);
 
-      if (Array.isArray(data?.positions)) {
-        return data.positions;
+      if (detailsResponse?.data?.election?.positions && Array.isArray(detailsResponse.data.election.positions)) {
+        return detailsResponse.data.election.positions.map((position) => ({
+          position_id: position.id,
+          position_name: position.name,
+          max_choices: position.max_choices,
+          candidates: position.candidates || []
+        }));
       }
 
-      if (Array.isArray(data?.ballot?.positions)) {
-        return data.ballot.positions;
+      if (Array.isArray(ballotResponse?.data?.positions) && ballotResponse.data.positions.length > 0) {
+        return ballotResponse.data.positions;
+      }
+
+      if (Array.isArray(ballotResponse?.data?.ballot?.positions) && ballotResponse.data.ballot.positions.length > 0) {
+        return ballotResponse.data.ballot.positions;
       }
     } catch (detailError) {
       console.error('Error fetching detailed ballot data for symposium election:', detailError);
