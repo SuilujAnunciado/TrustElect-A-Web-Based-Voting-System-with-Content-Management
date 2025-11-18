@@ -137,31 +137,40 @@ export default function VotePage({ params }) {
     return formatNameSimple(candidate.last_name, candidate.first_name, candidate.name);
   };
 
-  const getCandidateProjectDescription = (candidate) => {
+  const getCandidateProjectDescription = async (candidate) => {
     if (!isSymposiumElection || !candidate) return '';
     
-    // Debug: Log candidate data to understand structure
-    console.log('Candidate data for project description:', candidate);
-    console.log('isSymposiumElection:', isSymposiumElection);
-    console.log('Election type:', election?.election_type);
-    
-    const description =
-      candidate.project_description ??
-      candidate.projectDescription ??
-      candidate.description ??
-      candidate.projectDetails ??
-      candidate.projectDetail ??
-      candidate.platform ??
-      candidate.slogan ??
-      '';
-    
-    console.log('Found project description:', description);
-    return typeof description === 'string' ? description : '';
+    // For symposium elections, we need to fetch the full candidate data
+    // since the student-ballot endpoint returns simplified data
+    try {
+      const token = Cookies.get('token');
+      const response = await axios.get(`${API_BASE}/ballots/candidates/${candidate.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
+      });
+      
+      const fullCandidate = response.data.candidate || response.data;
+      
+      const description =
+        fullCandidate.project_description ??
+        fullCandidate.projectDescription ??
+        fullCandidate.description ??
+        fullCandidate.projectDetails ??
+        fullCandidate.projectDetail ??
+        fullCandidate.platform ??
+        fullCandidate.slogan ??
+        '';
+      
+      return typeof description === 'string' ? description : '';
+    } catch (error) {
+      console.error('Error fetching candidate details:', error);
+      return '';
+    }
   };
 
-  const renderProjectDescription = (candidate, className = 'text-sm text-black mt-1') => {
+  const renderProjectDescription = async (candidate, className = 'text-sm text-black mt-1') => {
     if (!isSymposiumElection) return null;
-    const description = getCandidateProjectDescription(candidate);
+    const description = await getCandidateProjectDescription(candidate);
     if (!description) return null;
     return (
       <p className={className}>
@@ -601,11 +610,7 @@ export default function VotePage({ params }) {
                               <h3 className="font-medium text-gray-800 text-lg">
                                 Project Name: {getCandidateDisplayName(candidate)}
                               </h3>
-                              {getCandidateProjectDescription(candidate) && (
-                                <p className="text-sm text-black mt-1">
-                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
-                                </p>
-                              )}
+                              {renderProjectDescription(candidate)}
                             </>
                           ) : (
                             <h3 className="font-medium text-gray-800 text-lg">
@@ -712,11 +717,7 @@ export default function VotePage({ params }) {
                                 {isSymposiumElection ? 'Project Name:' : ''}
                                 {isSymposiumElection ? ` ${getCandidateDisplayName(candidate)}` : getCandidateDisplayName(candidate)}
                               </h3>
-                              {getCandidateProjectDescription(candidate) && (
-                                <p className="text-sm text-black mt-1">
-                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
-                                </p>
-                              )}
+                              {renderProjectDescription(candidate)}
                               {candidate.party && (
                                 <div className="mt-1">
                                   <span className="text-xs font-medium text-gray-500">Party:</span>
