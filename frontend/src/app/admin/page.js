@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Cookies from 'js-cookie';
 import usePermissions, { ensureUserIdFromToken } from '../../hooks/usePermissions.js';
 import axios from "axios";
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, ReferenceLine } from 'recharts';
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, ReferenceLine, AreaChart, Area } from 'recharts';
 import { generatePdfReport } from '@/utils/pdfGenerator';
 import toast from 'react-hot-toast';
 
@@ -1890,58 +1890,61 @@ export default function AdminDashboard() {
                               <span>Peak: {formatTime(chartConfig.login.peak.hour)} ({Math.round(chartConfig.login.peak.count).toLocaleString()} logins)</span>
                             </div>
                           </div>
-                          <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <RechartsBarChart data={chartConfig.login.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                <defs>
-                                  <linearGradient id={chartConfig.login.gradient.id} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={chartConfig.login.gradient.color} stopOpacity={0.9}/>
-                                    <stop offset="95%" stopColor={chartConfig.login.gradient.color} stopOpacity={0.3}/>
-                                  </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                <XAxis 
-                                  dataKey="hour" 
-                                  tickFormatter={(hour, index) => {
-                                    const dataPoint = chartConfig.login.data[index];
-                                    return formatTimeForChart(hour, dataPoint?.date);
-                                  }}
-                                  stroke="#374151"
-                                  tick={{ fill: '#374151', fontSize: 11 }}
-                                  axisLine={{ stroke: '#d1d5db' }}
-                                />
-                                <YAxis 
-                                  stroke="#374151"
-                                  tick={{ fill: '#374151', fontSize: 11 }}
-                                  tickFormatter={(value) => Math.round(value).toLocaleString()}
-                                  axisLine={{ stroke: '#d1d5db' }}
-                                />
-                                <Tooltip 
-                                  content={<CustomTooltip />}
-                                  cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
-                                />
-                                <ReferenceLine 
-                                  y={chartConfig.login.average} 
-                                  label={{ 
-                                    value: `Avg: ${Math.round(chartConfig.login.average).toLocaleString()}`,
-                                    position: 'right',
-                                    fill: '#6b7280',
-                                    fontSize: 11,
-                                    fontWeight: 500
-                                  }} 
-                                  stroke="#6b7280" 
-                                  strokeDasharray="5 5" 
-                                />
-                                <Bar 
-                                  dataKey="count" 
-                                  name="Logins" 
-                                  fill={`url(#${chartConfig.login.gradient.id})`}
-                                  radius={[6, 6, 0, 0]}
-                                  animationDuration={2000}
-                                />
-                              </RechartsBarChart>
-                            </ResponsiveContainer>
-                          </div>
+                      <div className="h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={chartConfig.login.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <defs>
+                              <linearGradient id={chartConfig.login.gradient.id} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={chartConfig.login.gradient.color} stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor={chartConfig.login.gradient.color} stopOpacity={0.1}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis 
+                              dataKey="hour" 
+                              tickFormatter={(hour, index) => {
+                                const dataPoint = chartConfig.login.data[index];
+                                return formatTimeForChart(hour, dataPoint?.date);
+                              }}
+                              stroke="#374151"
+                              tick={{ fill: '#374151', fontSize: 11 }}
+                              axisLine={{ stroke: '#d1d5db' }}
+                            />
+                            <YAxis 
+                              stroke="#374151"
+                              tick={{ fill: '#374151', fontSize: 11 }}
+                              tickFormatter={(value) => Math.round(value).toLocaleString()}
+                              axisLine={{ stroke: '#d1d5db' }}
+                            />
+                            <Tooltip 
+                              content={<CustomTooltip />}
+                              cursor={{ stroke: chartConfig.login.gradient.color, strokeOpacity: 0.2 }}
+                            />
+                            <ReferenceLine 
+                              y={chartConfig.login.average} 
+                              label={{ 
+                                value: `Avg: ${Math.round(chartConfig.login.average).toLocaleString()}`,
+                                position: 'right',
+                                fill: '#6b7280',
+                                fontSize: 11,
+                                fontWeight: 500
+                              }} 
+                              stroke="#6b7280" 
+                              strokeDasharray="5 5" 
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="count"
+                              name="Logins"
+                              stroke={chartConfig.login.gradient.color}
+                              strokeWidth={3}
+                              fill={`url(#${chartConfig.login.gradient.id})`}
+                              dot={{ r: 3, strokeWidth: 1, stroke: chartConfig.login.gradient.color, fill: '#fff' }}
+                              activeDot={{ r: 5 }}
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
                         </>
                       )}
                     </div>
@@ -1971,58 +1974,61 @@ export default function AdminDashboard() {
                               <span>Peak: {formatTime(chartConfig.voting.peak.hour)} ({Math.round(chartConfig.voting.peak.count).toLocaleString()} votes)</span>
                             </div>
                           </div>
-                          <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <RechartsBarChart data={chartConfig.voting.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                <defs>
-                                  <linearGradient id={chartConfig.voting.gradient.id} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={chartConfig.voting.gradient.color} stopOpacity={0.9}/>
-                                    <stop offset="95%" stopColor={chartConfig.voting.gradient.color} stopOpacity={0.3}/>
-                                  </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                <XAxis 
-                                  dataKey="hour" 
-                                  tickFormatter={(hour, index) => {
-                                    const dataPoint = chartConfig.voting.data[index];
-                                    return formatTimeForChart(hour, dataPoint?.date);
-                                  }}
-                                  stroke="#374151"
-                                  tick={{ fill: '#374151', fontSize: 11 }}
-                                  axisLine={{ stroke: '#d1d5db' }}
-                                />
-                                <YAxis 
-                                  stroke="#374151"
-                                  tick={{ fill: '#374151', fontSize: 11 }}
-                                  tickFormatter={(value) => Math.round(value).toLocaleString()}
-                                  axisLine={{ stroke: '#d1d5db' }}
-                                />
-                                <Tooltip 
-                                  content={<CustomTooltip />}
-                                  cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
-                                />
-                                <ReferenceLine 
-                                  y={chartConfig.voting.average} 
-                                  label={{ 
-                                    value: `Avg: ${Math.round(chartConfig.voting.average).toLocaleString()}`,
-                                    position: 'right',
-                                    fill: '#6b7280',
-                                    fontSize: 11,
-                                    fontWeight: 500
-                                  }} 
-                                  stroke="#6b7280" 
-                                  strokeDasharray="5 5" 
-                                />
-                                <Bar 
-                                  dataKey="count" 
-                                  name="Votes" 
-                                  fill={`url(#${chartConfig.voting.gradient.id})`}
-                                  radius={[6, 6, 0, 0]}
-                                  animationDuration={2000}
-                                />
-                              </RechartsBarChart>
-                            </ResponsiveContainer>
-                          </div>
+                      <div className="h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={chartConfig.voting.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <defs>
+                              <linearGradient id={chartConfig.voting.gradient.id} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={chartConfig.voting.gradient.color} stopOpacity={0.85}/>
+                                <stop offset="95%" stopColor={chartConfig.voting.gradient.color} stopOpacity={0.15}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis 
+                              dataKey="hour" 
+                              tickFormatter={(hour, index) => {
+                                const dataPoint = chartConfig.voting.data[index];
+                                return formatTimeForChart(hour, dataPoint?.date);
+                              }}
+                              stroke="#374151"
+                              tick={{ fill: '#374151', fontSize: 11 }}
+                              axisLine={{ stroke: '#d1d5db' }}
+                            />
+                            <YAxis 
+                              stroke="#374151"
+                              tick={{ fill: '#374151', fontSize: 11 }}
+                              tickFormatter={(value) => Math.round(value).toLocaleString()}
+                              axisLine={{ stroke: '#d1d5db' }}
+                            />
+                            <Tooltip 
+                              content={<CustomTooltip />}
+                              cursor={{ stroke: chartConfig.voting.gradient.color, strokeOpacity: 0.2 }}
+                            />
+                            <ReferenceLine 
+                              y={chartConfig.voting.average} 
+                              label={{ 
+                                value: `Avg: ${Math.round(chartConfig.voting.average).toLocaleString()}`,
+                                position: 'right',
+                                fill: '#6b7280',
+                                fontSize: 11,
+                                fontWeight: 500
+                              }} 
+                              stroke="#6b7280" 
+                              strokeDasharray="5 5" 
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="count"
+                              name="Votes"
+                              stroke={chartConfig.voting.gradient.color}
+                              strokeWidth={3}
+                              fill={`url(#${chartConfig.voting.gradient.id})`}
+                              dot={{ r: 3, strokeWidth: 1, stroke: chartConfig.voting.gradient.color, fill: '#fff' }}
+                              activeDot={{ r: 5 }}
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
                         </>
                       )}
                     </div>
