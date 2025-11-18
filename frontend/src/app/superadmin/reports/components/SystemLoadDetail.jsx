@@ -5,8 +5,8 @@ import { Download, X, Clock, Users, Activity, BarChart2, RefreshCw, AlertTriangl
 import { generatePdfReport } from '@/utils/pdfGenerator';
 import toast from 'react-hot-toast';
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -786,11 +786,11 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
               </div>
               <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartConfig.login.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <AreaChart data={chartConfig.login.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <defs>
                       <linearGradient id={chartConfig.login.gradient.id} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={chartConfig.login.gradient.color} stopOpacity={0.9}/>
-                        <stop offset="95%" stopColor={chartConfig.login.gradient.color} stopOpacity={0.3}/>
+                        <stop offset="5%" stopColor={chartConfig.login.gradient.color} stopOpacity={0.85}/>
+                        <stop offset="95%" stopColor={chartConfig.login.gradient.color} stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -800,7 +800,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                         const dataPoint = chartConfig.login.data[index];
                         if (!dataPoint) return '';
                         
-                        // Format based on timeframe
                         if (selectedTimeframe === '24h') {
                           const dateObj = new Date(dataPoint.timestamp);
                           return dateObj.toLocaleTimeString('en-US', { 
@@ -839,10 +838,11 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                       tick={{ fill: '#374151', fontSize: 11 }}
                       tickFormatter={(value) => Math.round(value).toLocaleString()}
                       axisLine={{ stroke: '#d1d5db' }}
+                      allowDecimals={false}
                     />
                     <Tooltip 
                       content={<CustomTooltip />}
-                      cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+                      cursor={{ stroke: chartConfig.login.gradient.color, strokeOpacity: 0.2 }}
                     />
                     <ReferenceLine 
                       y={chartConfig.login.average} 
@@ -856,14 +856,17 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                       stroke="#6b7280" 
                       strokeDasharray="5 5" 
                     />
-                    <Bar 
-                      dataKey="count" 
-                      name="Logins" 
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      name="Logins"
+                      stroke={chartConfig.login.gradient.color}
+                      strokeWidth={3}
                       fill={`url(#${chartConfig.login.gradient.id})`}
-                      radius={[6, 6, 0, 0]}
-                      animationDuration={2000}
+                      dot={{ r: 3, strokeWidth: 1, stroke: chartConfig.login.gradient.color, fill: '#fff' }}
+                      activeDot={{ r: 5 }}
                     />
-                  </BarChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
                 </>
@@ -900,11 +903,11 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
               </div>
               <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartConfig.voting.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <AreaChart data={chartConfig.voting.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <defs>
                       <linearGradient id={chartConfig.voting.gradient.id} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={chartConfig.voting.gradient.color} stopOpacity={0.9}/>
-                        <stop offset="95%" stopColor={chartConfig.voting.gradient.color} stopOpacity={0.3}/>
+                        <stop offset="5%" stopColor={chartConfig.voting.gradient.color} stopOpacity={0.85}/>
+                        <stop offset="95%" stopColor={chartConfig.voting.gradient.color} stopOpacity={0.15}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -914,7 +917,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                         const dataPoint = chartConfig.voting.data[index];
                         if (!dataPoint) return '';
                         
-                        // Format based on timeframe
                         if (selectedTimeframe === '24h') {
                           const dateObj = new Date(dataPoint.timestamp);
                           return dateObj.toLocaleTimeString('en-US', { 
@@ -954,10 +956,11 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                       tickFormatter={(value) => Math.round(value).toLocaleString()}
                       axisLine={{ stroke: '#d1d5db' }}
                       label={{ value: 'Distinct Voters', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151' } }}
+                      allowDecimals={false}
                     />
                     <Tooltip 
                       content={<CustomTooltip />}
-                      cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
+                      cursor={{ stroke: chartConfig.voting.gradient.color, strokeOpacity: 0.2 }}
                     />
                     <ReferenceLine 
                       y={chartConfig.voting.average} 
@@ -971,14 +974,17 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                       stroke="#6b7280" 
                       strokeDasharray="5 5" 
                     />
-                    <Bar 
-                      dataKey="count" 
-                      name="Distinct Voters" 
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      name="Distinct Voters"
+                      stroke={chartConfig.voting.gradient.color}
+                      strokeWidth={3}
                       fill={`url(#${chartConfig.voting.gradient.id})`}
-                      radius={[6, 6, 0, 0]}
-                      animationDuration={2000}
+                      dot={{ r: 3, strokeWidth: 1, stroke: chartConfig.voting.gradient.color, fill: '#fff' }}
+                      activeDot={{ r: 5 }}
                     />
-                  </BarChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
                 </>

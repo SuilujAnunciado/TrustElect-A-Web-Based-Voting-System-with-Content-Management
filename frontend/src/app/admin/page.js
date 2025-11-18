@@ -1915,6 +1915,7 @@ export default function AdminDashboard() {
                               tick={{ fill: '#374151', fontSize: 11 }}
                               tickFormatter={(value) => Math.round(value).toLocaleString()}
                               axisLine={{ stroke: '#d1d5db' }}
+                              allowDecimals={false}
                             />
                             <Tooltip 
                               content={<CustomTooltip />}
@@ -1999,6 +2000,7 @@ export default function AdminDashboard() {
                               tick={{ fill: '#374151', fontSize: 11 }}
                               tickFormatter={(value) => Math.round(value).toLocaleString()}
                               axisLine={{ stroke: '#d1d5db' }}
+                              allowDecimals={false}
                             />
                             <Tooltip 
                               content={<CustomTooltip />}
