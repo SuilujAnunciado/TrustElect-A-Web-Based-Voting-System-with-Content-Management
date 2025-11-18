@@ -24,6 +24,18 @@ export default function StudentsListPage() {
   const [studentsPerPage, setStudentsPerPage] = useState(25); 
   const [totalPages, setTotalPages] = useState(1);
 
+  const [academicTerms, setAcademicTerms] = useState([]);
+  const [selectedTermId, setSelectedTermId] = useState(null);
+  const [selectedTerm, setSelectedTerm] = useState(null);
+  const [termsLoading, setTermsLoading] = useState(true);
+  const [termModalOpen, setTermModalOpen] = useState(false);
+  const [termForm, setTermForm] = useState({
+    schoolYear: "",
+    term: "",
+    isCurrent: false
+  });
+  const [termSubmitting, setTermSubmitting] = useState(false);
+
   const [courses, setCourses] = useState([]);
   const [yearLevels, setYearLevels] = useState([]);
 
@@ -163,9 +175,17 @@ export default function StudentsListPage() {
         return;
       }
 
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('createdBy', adminId);
+    if (!selectedTermId) {
+      toast.error("Please select an academic term before uploading students.");
+      setUploadStatus('error');
+      setUploadProgress(0);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('createdBy', adminId);
+    formData.append('academicTermId', selectedTermId);
   
       // Use admin endpoint for admins with permissions
       const endpoint = userRole === 'Super Admin' ? '/api/students/batch' : '/api/admin/students/batch';
@@ -210,43 +230,158 @@ export default function StudentsListPage() {
     }
   };
 
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async (termId = selectedTermId) => {
+    if (!termId) {
+      setStudents([]);
+      setFilteredStudents([]);
+      setFilteredCount(0);
+      return;
+    }
+
     try {
       setLoading(true);
       const token = Cookies.get("token");
-      
-      // Try the original endpoint that works for admins
       const res = await axios.get("/api/students", {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
+        params: { academicTermId: termId }
       });
 
-      // Handle different response structures
-      let studentsData;
-      if (res.data && res.data.students && Array.isArray(res.data.students)) {
-        studentsData = res.data.students;
-      } else if (Array.isArray(res.data)) {
-        studentsData = res.data;
-      } else {
-        throw new Error("Unexpected response format");
-      }
+      const studentsData = Array.isArray(res.data)
+        ? res.data
+        : res.data.students || [];
 
-      const activeStudents = studentsData.filter((student) => student.is_active);
-      setStudents(activeStudents);
- 
-      applyFilters(activeStudents);
-      setLoading(false);
+      setStudents(studentsData);
+
+      if (res.data?.academicTerm) {
+        setSelectedTerm(res.data.academicTerm);
+      } else {
+        const fallbackTerm = academicTerms.find(term => term.id === termId);
+        if (fallbackTerm) {
+          setSelectedTerm(fallbackTerm);
+        }
+      }
     } catch (error) {
       console.error("Error fetching students:", error);
       setError("Failed to load students.");
+    } finally {
       setLoading(false);
+    }
+  }, [selectedTermId, academicTerms]);
+
+  const loadAcademicTerms = useCallback(async () => {
+    try {
+      setTermsLoading(true);
+      const token = Cookies.get("token");
+      const res = await axios.get("/api/students/terms", {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
+      });
+
+      const terms = res.data?.terms || [];
+      setAcademicTerms(terms);
+
+      let nextTermId = selectedTermId;
+      if (!nextTermId || !terms.some(term => term.id === nextTermId)) {
+        nextTermId = terms.find(term => term.is_current)?.id || terms[0]?.id || null;
+      }
+
+      setSelectedTermId(nextTermId);
+      setSelectedTerm(nextTermId ? terms.find(term => term.id === nextTermId) || null : null);
+    } catch (error) {
+      console.error("Error fetching academic terms:", error);
+      toast.error(error.response?.data?.message || "Failed to load academic terms.");
+      setAcademicTerms([]);
+      setSelectedTermId(null);
+      setSelectedTerm(null);
+    } finally {
+      setTermsLoading(false);
+    }
+  }, [selectedTermId]);
+
+  const handleTermSelectChange = (event) => {
+    const value = event.target.value;
+    if (!value) {
+      setSelectedTermId(null);
+      setSelectedTerm(null);
+      return;
+    }
+
+    const parsed = parseInt(value, 10);
+    if (!isNaN(parsed)) {
+      setSelectedTermId(parsed);
+      const termMatch = academicTerms.find(term => term.id === parsed);
+      if (termMatch) {
+        setSelectedTerm(termMatch);
+      }
+    }
+  };
+
+  const handleCreateTerm = async () => {
+    if (!termForm.schoolYear.trim() || !termForm.term.trim()) {
+      toast.error("School year and term are required.");
+      return;
+    }
+
+    try {
+      setTermSubmitting(true);
+      const token = Cookies.get("token");
+      await axios.post("/api/students/terms", {
+        schoolYear: termForm.schoolYear.trim(),
+        term: termForm.term.trim(),
+        isCurrent: termForm.isCurrent
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
+      });
+
+      toast.success("Academic term saved.");
+      setTermForm({ schoolYear: "", term: "", isCurrent: false });
+      setTermModalOpen(false);
+      loadAcademicTerms();
+    } catch (error) {
+      console.error("Error creating academic term:", error);
+      toast.error(error.response?.data?.message || "Failed to create academic term.");
+    } finally {
+      setTermSubmitting(false);
+    }
+  };
+
+  const handleSetCurrentTerm = async () => {
+    if (!selectedTermId) return;
+    try {
+      setTermSubmitting(true);
+      const token = Cookies.get("token");
+      await axios.patch(`/api/students/terms/${selectedTermId}`, {
+        isCurrent: true
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
+      });
+      toast.success("Academic term set as current.");
+      loadAcademicTerms();
+    } catch (error) {
+      console.error("Error updating academic term:", error);
+      toast.error(error.response?.data?.message || "Failed to update academic term.");
+    } finally {
+      setTermSubmitting(false);
     }
   };
 
   useEffect(() => {
-    fetchStudents();
+    loadAcademicTerms();
     fetchCoursesAndYearLevels();
-  }, []);
+  }, [loadAcademicTerms]);
+
+  useEffect(() => {
+    if (selectedTermId) {
+      fetchStudents(selectedTermId);
+    } else if (!termsLoading) {
+      setStudents([]);
+      setFilteredStudents([]);
+      setFilteredCount(undefined);
+    }
+  }, [selectedTermId, termsLoading, fetchStudents]);
 
   const applyFilters = (studentsList) => {
     let filtered = [...studentsList];
@@ -306,6 +441,9 @@ export default function StudentsListPage() {
     if (students.length > 0) {
       const filteredCount = applyFilters(students);
       setFilteredCount(filteredCount);
+    } else {
+      setFilteredStudents([]);
+      setFilteredCount(0);
     }
   }, [searchQuery, selectedCourse, selectedYearLevel, currentPage, students, sortBy, studentsPerPage]);
 
@@ -556,10 +694,58 @@ export default function StudentsListPage() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4 text-black">Student Management</h1>
-      <p className="text-black font-bold mb-4">
-      School Year: 2025-2026
-      </p> 
       {error && <p className="text-red-500">{error}</p>}
+
+      <div className="bg-white/90 p-4 rounded-lg shadow mb-6">
+        <div className="flex flex-wrap items-center gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Active School Year &amp; Term</p>
+            <p className="text-xl font-semibold text-black">
+              {termsLoading
+                ? "Loading..."
+                : selectedTerm
+                  ? `${selectedTerm.school_year} • ${selectedTerm.term}`
+                  : "No academic term configured"}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={selectedTermId ?? ""}
+              onChange={handleTermSelectChange}
+              disabled={termsLoading || academicTerms.length === 0}
+              className="border p-2 rounded text-black min-w-[200px]"
+            >
+              {academicTerms.length === 0 ? (
+                <option value="">No academic terms available</option>
+              ) : (
+                academicTerms.map((term) => (
+                  <option key={term.id} value={term.id}>
+                    {term.school_year} - {term.term}{term.is_current ? " (Current)" : ""}
+                  </option>
+                ))
+              )}
+            </select>
+            {hasPermission('users', 'create') && (
+              <button
+                onClick={() => setTermModalOpen(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Add Term
+              </button>
+            )}
+            <button
+              onClick={handleSetCurrentTerm}
+              disabled={!selectedTermId || selectedTerm?.is_current || termSubmitting}
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 disabled:opacity-50"
+            >
+              {selectedTerm?.is_current ? "Current Term" : "Set as Current"}
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Changing the selection will display the student roster for that school year and term.
+        </p>
+      </div>
 
       <div className="flex flex-wrap justify-between items-center mb-4">
         <div className="flex flex-wrap gap-4">
@@ -671,7 +857,11 @@ export default function StudentsListPage() {
 
       <div className="flex gap-4 mb-4">
         {hasPermission('users', 'create') && (
-          <button onClick={() => setShowAddModal(true)} className="bg-[#01579B] text-white px-4 py-2 rounded">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-[#01579B] text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!selectedTermId || termsLoading}
+          >
             Add New Student
           </button>
         )}
@@ -680,7 +870,8 @@ export default function StudentsListPage() {
         {hasPermission('users', 'create') && (
           <button 
             onClick={() => setShowBatchModal(true)} 
-            className="bg-green-600 text-white px-4 py-2 rounded"
+            className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!selectedTermId || termsLoading}
           >
             Batch Upload
           </button>
@@ -736,7 +927,70 @@ export default function StudentsListPage() {
         </button>
       </div>
 
-      {showAddModal && <AddStudentModal onClose={() => setShowAddModal(false)} />}
+      {showAddModal && (
+        <AddStudentModal
+          onClose={() => setShowAddModal(false)}
+          academicTermId={selectedTermId}
+          selectedTermLabel={selectedTerm ? `${selectedTerm.school_year} - ${selectedTerm.term}` : ""}
+        />
+      )}
+
+      {termModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 px-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-black mb-4">New Academic Term</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-black">School Year</label>
+                <input
+                  type="text"
+                  value={termForm.schoolYear}
+                  onChange={(e) => setTermForm((prev) => ({ ...prev, schoolYear: e.target.value }))}
+                  placeholder="e.g. 2025-2026"
+                  className="border w-full p-2 rounded text-black"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-black">Term</label>
+                <input
+                  type="text"
+                  value={termForm.term}
+                  onChange={(e) => setTermForm((prev) => ({ ...prev, term: e.target.value }))}
+                  placeholder="e.g. Term 1"
+                  className="border w-full p-2 rounded text-black"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-black">
+                <input
+                  type="checkbox"
+                  checked={termForm.isCurrent}
+                  onChange={(e) => setTermForm((prev) => ({ ...prev, isCurrent: e.target.checked }))}
+                />
+                Mark as current term
+              </label>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => {
+                  setTermModalOpen(false);
+                  setTermForm({ schoolYear: "", term: "", isCurrent: false });
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                disabled={termSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateTerm}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                disabled={termSubmitting}
+              >
+                {termSubmitting ? "Saving..." : "Save Term"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full bg-white shadow-md rounded-lg overflow-hidden text-black">

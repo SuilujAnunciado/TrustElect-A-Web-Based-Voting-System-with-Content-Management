@@ -5,6 +5,13 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 const pool = require("../config/db");
+const {
+  getAcademicTerms: fetchAcademicTerms,
+  createAcademicTerm: insertAcademicTerm,
+  updateAcademicTerm: modifyAcademicTerm,
+  ensureAcademicTermId,
+  getAcademicTermById
+} = require("../models/academicTermModel");
 
 const buildAbsoluteUrl = (req, relativePath) => {
   if (!relativePath) return null;
@@ -55,7 +62,7 @@ exports.registerStudent = async (req, res) => {
   }
 
   try {
-    const { firstName, middleName, lastName, email, studentNumber, courseName, courseId, yearLevel, gender, birthdate, password, createdBy } = req.body;
+    const { firstName, middleName, lastName, email, studentNumber, courseName, courseId, yearLevel, gender, birthdate, password, createdBy, academicTermId: rawAcademicTermId } = req.body;
 
     const studentExists = await checkStudentNumberExists(studentNumber);
     if (studentExists) {
@@ -98,6 +105,17 @@ exports.registerStudent = async (req, res) => {
       studentEmail = `${normalizedLastName}.${lastSixDigits}@novaliches.sti.edu.ph`;
     }
 
+    let academicTermId = null;
+    if (rawAcademicTermId !== undefined && rawAcademicTermId !== null && rawAcademicTermId !== '') {
+      const parsedTermId = parseInt(rawAcademicTermId, 10);
+      if (isNaN(parsedTermId)) {
+        return res.status(400).json({ message: "Invalid academicTermId provided." });
+      }
+      academicTermId = await ensureAcademicTermId(parsedTermId);
+    } else {
+      academicTermId = await ensureAcademicTermId(null);
+    }
+
     const student = await registerStudent(
       firstName,
       processedMiddleName,
@@ -111,7 +129,8 @@ exports.registerStudent = async (req, res) => {
       gender,
       processedBirthdate,
       createdBy,
-      courseId
+      courseId,
+      academicTermId
     );
 
     res.status(201).json({
@@ -137,11 +156,29 @@ exports.registerStudent = async (req, res) => {
 
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await getAllStudents();
-    res.status(200).json({ students });
+    const { academicTermId: rawTermId, includeInactive } = req.query;
+    let parsedTermId = null;
+
+    if (rawTermId !== undefined && rawTermId !== null && rawTermId !== '') {
+      parsedTermId = parseInt(rawTermId, 10);
+      if (isNaN(parsedTermId)) {
+        return res.status(400).json({ message: "Invalid academicTermId value." });
+      }
+    }
+
+    const resolvedTermId = await ensureAcademicTermId(parsedTermId);
+    const [students, term] = await Promise.all([
+      getAllStudents({
+        academicTermId: resolvedTermId,
+        includeInactive: includeInactive === "true"
+      }),
+      getAcademicTermById(resolvedTermId)
+    ]);
+
+    res.status(200).json({ students, academicTerm: term });
   } catch (error) {
     console.error("Error fetching students:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: error.message || "Internal Server Error" });
   }
 };
 
@@ -279,6 +316,18 @@ exports.uploadStudentsBatch = async (req, res) => {
     }
     if (!req.body.createdBy) {
       return res.status(400).json({ message: 'Super Admin ID is required' });
+    }
+
+    const rawTermId = req.body.academicTermId;
+    let academicTermId = null;
+    if (rawTermId !== undefined && rawTermId !== null && rawTermId !== '') {
+      const parsedTermId = parseInt(rawTermId, 10);
+      if (isNaN(parsedTermId)) {
+        return res.status(400).json({ message: 'Invalid academicTermId value.' });
+      }
+      academicTermId = await ensureAcademicTermId(parsedTermId);
+    } else {
+      academicTermId = await ensureAcademicTermId(null);
     }
 
     const filePath = path.resolve(req.file.path);
@@ -597,7 +646,7 @@ exports.uploadStudentsBatch = async (req, res) => {
       }
     }
 
-    const result = await processBatchStudents(validatedData, req.body.createdBy);
+    const result = await processBatchStudents(validatedData, req.body.createdBy, academicTermId);
 
     try {
       fs.unlinkSync(filePath);
@@ -1081,6 +1130,66 @@ exports.changePassword = async (req, res) => {
       message: "Error changing password",
       error: error.message 
     });
+  }
+};
+
+exports.listAcademicTerms = async (req, res) => {
+  try {
+    const terms = await fetchAcademicTerms();
+    res.status(200).json({ terms });
+  } catch (error) {
+    console.error("Error fetching academic terms:", error);
+    res.status(500).json({ message: error.message || "Failed to fetch academic terms." });
+  }
+};
+
+exports.createAcademicTermEntry = async (req, res) => {
+  try {
+    const { schoolYear, term, isCurrent } = req.body;
+
+    if (!schoolYear || !term) {
+      return res.status(400).json({ message: "School year and term are required." });
+    }
+
+    const newTerm = await insertAcademicTerm({
+      schoolYear: String(schoolYear).trim(),
+      term: String(term).trim(),
+      isCurrent: Boolean(isCurrent)
+    });
+
+    res.status(201).json({ term: newTerm, message: "Academic term created successfully." });
+  } catch (error) {
+    console.error("Error creating academic term:", error);
+    res.status(400).json({ message: error.message || "Failed to create academic term." });
+  }
+};
+
+exports.updateAcademicTermEntry = async (req, res) => {
+  try {
+    const termId = parseInt(req.params.id, 10);
+    if (isNaN(termId)) {
+      return res.status(400).json({ message: "Invalid academic term ID." });
+    }
+
+    const payload = {};
+    if (req.body.schoolYear !== undefined) {
+      payload.schoolYear = String(req.body.schoolYear).trim();
+    }
+    if (req.body.term !== undefined) {
+      payload.term = String(req.body.term).trim();
+    }
+    if (req.body.isCurrent !== undefined) {
+      payload.isCurrent = Boolean(req.body.isCurrent);
+    }
+    if (req.body.isActive !== undefined) {
+      payload.isActive = Boolean(req.body.isActive);
+    }
+
+    const updatedTerm = await modifyAcademicTerm(termId, payload);
+    res.status(200).json({ term: updatedTerm, message: "Academic term updated successfully." });
+  } catch (error) {
+    console.error("Error updating academic term:", error);
+    res.status(400).json({ message: error.message || "Failed to update academic term." });
   }
 };
 
