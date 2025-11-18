@@ -2,41 +2,15 @@ const pool = require("../config/db");
 
 const getAllLaboratoryPrecincts = async () => {
   const result = await pool.query(`
-    WITH ip_data AS (
-      SELECT
-        laboratory_precinct_id,
-        COUNT(*) FILTER (WHERE is_active = TRUE) AS active_ip_count,
-        ARRAY_AGG(
-          CASE 
-            WHEN ip_type = 'range' THEN ip_range_start || ' - ' || ip_range_end
-            WHEN ip_type = 'subnet' THEN subnet_mask
-            ELSE ip_address
-          END
-        ) FILTER (WHERE is_active = TRUE) AS active_ips
-      FROM laboratory_ip_addresses
-      GROUP BY laboratory_precinct_id
-    ),
-    active_laboratories AS (
-      SELECT
-        elp.laboratory_precinct_id,
-        COUNT(DISTINCT e.id) AS active_election_count,
-        ARRAY_AGG(DISTINCT e.title) AS active_election_titles
-      FROM election_laboratory_precincts elp
-      JOIN elections e ON e.id = elp.election_id
-      WHERE e.status = 'ongoing'
-      GROUP BY elp.laboratory_precinct_id
-    )
     SELECT 
       p.id,
       p.name,
       p.name as description,
-      COALESCE(ip_data.active_ip_count, 0) as ip_count,
-      COALESCE(ip_data.active_ips, ARRAY[]::text[]) as active_ips,
-      COALESCE(active_laboratories.active_election_count, 0) as active_election_count,
-      COALESCE(active_laboratories.active_election_titles, ARRAY[]::text[]) as active_election_titles
+      COUNT(lia.id) as ip_count,
+      ARRAY_AGG(lia.ip_address) FILTER (WHERE lia.is_active = TRUE) as active_ips
     FROM precincts p
-    LEFT JOIN ip_data ON ip_data.laboratory_precinct_id = p.id
-    LEFT JOIN active_laboratories ON active_laboratories.laboratory_precinct_id = p.id
+    LEFT JOIN laboratory_ip_addresses lia ON p.id = lia.laboratory_precinct_id AND lia.is_active = TRUE
+    GROUP BY p.id, p.name
     ORDER BY p.name
   `);
   return result.rows;

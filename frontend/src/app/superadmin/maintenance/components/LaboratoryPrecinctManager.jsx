@@ -23,48 +23,45 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
   const [showIPs, setShowIPs] = useState({});
 
   useEffect(() => {
-    if (!precincts || precincts.length === 0) {
-      setLaboratoryPrecincts([]);
-      return;
-    }
-
-    const placeholderLabs = precincts.map(precinct => ({
+    // Convert precincts to laboratory precincts format
+    const labPrecincts = precincts.map(precinct => ({
       id: precinct.id,
       name: precinct.name,
       description: `Laboratory ${precinct.name}`,
-      ip_count: 0,
-      active_ips: [],
-      active_election_count: 0,
-      active_election_titles: []
+      ip_count: 0
     }));
-    setLaboratoryPrecincts(placeholderLabs);
-
-    fetchIPDataForPrecincts(precincts);
+    setLaboratoryPrecincts(labPrecincts);
+    
+    // Also fetch IP data for each precinct
+    fetchIPDataForPrecincts(labPrecincts);
   }, [precincts]);
 
-  const fetchIPDataForPrecincts = async (basePrecincts = []) => {
+  const fetchIPDataForPrecincts = async (precincts) => {
     try {
       const token = Cookies.get('token');
-      const response = await axios.get('/api/laboratory-precincts', {
-        headers: { Authorization: `Bearer ${token}` }
+      
+      // Fetch IP data for all precincts
+      const ipPromises = precincts.map(async (precinct) => {
+        try {
+          const response = await axios.get(`/api/laboratory-precincts/${precinct.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          return {
+            ...precinct,
+            ip_count: response.data.data?.length || 0,
+            active_ips: response.data.data?.filter(ip => ip.ip_active).map(ip => 
+              ip.ip_type === 'single' ? ip.ip_address :
+              ip.ip_type === 'range' ? `${ip.ip_range_start}-${ip.ip_range_end}` :
+              ip.ip_type === 'subnet' ? ip.subnet_mask : ip.ip_address
+            ) || []
+          };
+        } catch (error) {
+          console.error(`Error fetching IPs for ${precinct.name}:`, error);
+          return precinct;
+        }
       });
-
-      const allowedIds = new Set(
-        (basePrecincts || []).map(precinct => precinct.id || precinct)
-      );
-
-      const precinctsWithIPs = (response.data.data || [])
-        .filter(lab => allowedIds.size === 0 || allowedIds.has(lab.id))
-        .map(lab => ({
-          id: lab.id,
-          name: lab.name,
-          description: lab.description || `Laboratory ${lab.name}`,
-          ip_count: lab.ip_count || 0,
-          active_ips: lab.active_ips || [],
-          active_election_count: lab.active_election_count || 0,
-          active_election_titles: lab.active_election_titles || []
-        }));
-
+      
+      const precinctsWithIPs = await Promise.all(ipPromises);
       setLaboratoryPrecincts(precinctsWithIPs);
     } catch (error) {
       console.error('Error fetching IP data for precincts:', error);
@@ -158,7 +155,7 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       
       // Refresh both the detailed IP list and the precinct overview
       fetchIPAddresses(selectedLab.id);
-      fetchIPDataForPrecincts(precincts);
+      fetchIPDataForPrecincts(laboratoryPrecincts);
       
       setNewIP({
         ip_address: '',
@@ -200,7 +197,7 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       
       // Refresh both the detailed IP list and the precinct overview
       fetchIPAddresses(selectedLab.id);
-      fetchIPDataForPrecincts(precincts);
+      fetchIPDataForPrecincts(laboratoryPrecincts);
       
       setBulkIPs('');
       setShowBulkAdd(false);
@@ -223,7 +220,7 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       
       // Refresh both the detailed IP list and the precinct overview
       fetchIPAddresses(selectedLab.id);
-      fetchIPDataForPrecincts(precincts);
+      fetchIPDataForPrecincts(laboratoryPrecincts);
     } catch (error) {
       console.error('Error deleting IP address:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to delete IP address';
@@ -244,7 +241,7 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       
       // Refresh both the detailed IP list and the precinct overview
       fetchIPAddresses(selectedLab.id);
-      fetchIPDataForPrecincts(precincts);
+      fetchIPDataForPrecincts(laboratoryPrecincts);
     } catch (error) {
       console.error('Error updating IP status:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to update IP status';
@@ -275,21 +272,7 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
             className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="flex justify-between items-start mb-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-lg text-black">{lab.name}</h3>
-                  {lab.active_election_count > 0 && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800">
-                      Active ({lab.active_election_count})
-                    </span>
-                  )}
-                </div>
-                {lab.active_election_count > 0 && lab.active_election_titles?.length > 0 && (
-                  <p className="text-xs text-green-700 mt-1">
-                    In use for: {lab.active_election_titles.join(', ')}
-                  </p>
-                )}
-              </div>
+              <h3 className="font-semibold text-lg text-black">{lab.name}</h3>
               <button
                 onClick={() => toggleShowIPs(lab.id)}
                 className="text-xs px-2 py-1 bg-gray-100 text-black rounded hover:bg-gray-200"
