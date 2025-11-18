@@ -1139,7 +1139,17 @@ exports.listAcademicTerms = async (req, res) => {
     res.status(200).json({ terms });
   } catch (error) {
     console.error("Error fetching academic terms:", error);
-    res.status(500).json({ message: error.message || "Failed to fetch academic terms." });
+    const errorMessage = error.message || "Failed to fetch academic terms.";
+    
+    // Provide helpful message if table doesn't exist
+    if (errorMessage.includes('does not exist') || errorMessage.includes('permission denied') || errorMessage.includes('migration')) {
+      return res.status(500).json({ 
+        message: "Academic terms table not found. Please run the database migration: node src/migrations/apply_academic_terms.js",
+        error: errorMessage
+      });
+    }
+    
+    res.status(500).json({ message: errorMessage });
   }
 };
 

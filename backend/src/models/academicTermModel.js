@@ -1,27 +1,34 @@
 const pool = require("../config/db");
 
 const getAcademicTerms = async () => {
-  const query = `
-    SELECT 
-      at.id,
-      at.school_year,
-      at.term,
-      at.is_current,
-      at.is_active,
-      at.created_at,
-      at.updated_at,
-      COALESCE(stats.total_students, 0) AS student_count
-    FROM academic_terms at
-    LEFT JOIN (
-      SELECT academic_term_id, COUNT(*) AS total_students
-      FROM students
-      WHERE is_active = TRUE
-      GROUP BY academic_term_id
-    ) stats ON stats.academic_term_id = at.id
-    ORDER BY at.is_current DESC, at.school_year DESC, at.term ASC, at.created_at DESC
-  `;
-  const { rows } = await pool.query(query);
-  return rows;
+  try {
+    const query = `
+      SELECT 
+        at.id,
+        at.school_year,
+        at.term,
+        at.is_current,
+        at.is_active,
+        at.created_at,
+        at.updated_at,
+        COALESCE(stats.total_students, 0) AS student_count
+      FROM academic_terms at
+      LEFT JOIN (
+        SELECT academic_term_id, COUNT(*) AS total_students
+        FROM students
+        WHERE is_active = TRUE
+        GROUP BY academic_term_id
+      ) stats ON stats.academic_term_id = at.id
+      ORDER BY at.is_current DESC, at.school_year DESC, at.term ASC, at.created_at DESC
+    `;
+    const { rows } = await pool.query(query);
+    return rows;
+  } catch (error) {
+    if (error.message.includes('does not exist') || error.message.includes('permission denied')) {
+      throw new Error('Academic terms table does not exist. Please run the migration: node src/migrations/apply_academic_terms.js');
+    }
+    throw error;
+  }
 };
 
 const getAcademicTermById = async (id) => {
@@ -33,30 +40,37 @@ const getAcademicTermById = async (id) => {
 };
 
 const getCurrentAcademicTerm = async () => {
-  const current = await pool.query(
-    `
-      SELECT * 
-      FROM academic_terms 
-      WHERE is_current = TRUE
-      ORDER BY updated_at DESC
-      LIMIT 1
-    `
-  );
+  try {
+    const current = await pool.query(
+      `
+        SELECT * 
+        FROM academic_terms 
+        WHERE is_current = TRUE
+        ORDER BY updated_at DESC
+        LIMIT 1
+      `
+    );
 
-  if (current.rows.length > 0) {
-    return current.rows[0];
+    if (current.rows.length > 0) {
+      return current.rows[0];
+    }
+
+    const fallback = await pool.query(
+      `
+        SELECT * 
+        FROM academic_terms 
+        ORDER BY created_at DESC
+        LIMIT 1
+      `
+    );
+
+    return fallback.rows[0] || null;
+  } catch (error) {
+    if (error.message.includes('does not exist') || error.message.includes('permission denied')) {
+      throw new Error('Academic terms table does not exist. Please run the migration: node src/migrations/apply_academic_terms.js');
+    }
+    throw error;
   }
-
-  const fallback = await pool.query(
-    `
-      SELECT * 
-      FROM academic_terms 
-      ORDER BY created_at DESC
-      LIMIT 1
-    `
-  );
-
-  return fallback.rows[0] || null;
 };
 
 const ensureAcademicTermId = async (academicTermId) => {
