@@ -139,6 +139,12 @@ export default function VotePage({ params }) {
 
   const getCandidateProjectDescription = (candidate) => {
     if (!isSymposiumElection || !candidate) return '';
+    
+    // Debug: Log candidate data to understand structure
+    console.log('Candidate data for project description:', candidate);
+    console.log('isSymposiumElection:', isSymposiumElection);
+    console.log('Election type:', election?.election_type);
+    
     const description =
       candidate.project_description ??
       candidate.projectDescription ??
@@ -148,6 +154,8 @@ export default function VotePage({ params }) {
       candidate.platform ??
       candidate.slogan ??
       '';
+    
+    console.log('Found project description:', description);
     return typeof description === 'string' ? description : '';
   };
 
