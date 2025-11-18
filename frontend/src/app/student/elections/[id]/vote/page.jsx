@@ -97,6 +97,7 @@ export default function VotePage({ params }) {
   const [submitError, setSubmitError] = useState(null);
   const [submissionError, setSubmissionError] = useState(null);
   const [encryptionStatus, setEncryptionStatus] = useState('idle'); 
+  const [candidateDetailsMap, setCandidateDetailsMap] = useState({});
 
   const fetchDetailedSymposiumPositions = async (token) => {
     try {
@@ -147,7 +148,19 @@ export default function VotePage({ params }) {
           const detailedPositions = await fetchDetailedSymposiumPositions(token);
           if (Array.isArray(detailedPositions) && detailedPositions.length > 0) {
             enhancedPositions = mergePositionsWithDetails(response.data.positions, detailedPositions);
+
+            const detailsMap = {};
+            detailedPositions.forEach((position) => {
+              (position.candidates || []).forEach((candidate) => {
+                detailsMap[candidateKey(candidate.id)] = candidate;
+              });
+            });
+            setCandidateDetailsMap(detailsMap);
+          } else {
+            setCandidateDetailsMap({});
           }
+        } else {
+          setCandidateDetailsMap({});
         }
         
         setPositions(enhancedPositions);
@@ -208,19 +221,22 @@ export default function VotePage({ params }) {
 
   const getCandidateProjectDescription = (candidate) => {
     if (!isSymposiumElection || !candidate) return '';
-    
-    // With enhanced data fetching, we should have all the project details
+
+    const detailsKey = candidateKey(candidate.id);
+    const detailedCandidate = candidateDetailsMap[detailsKey];
+    const sourceCandidate = detailedCandidate || candidate;
+
     const description =
-      candidate.project_description ??
-      candidate.projectDescription ??
-      candidate.description ??
-      candidate.projectDetails ??
-      candidate.projectDetail ??
-      candidate.platform ??
-      candidate.slogan ??
+      sourceCandidate.project_description ??
+      sourceCandidate.projectDescription ??
+      sourceCandidate.description ??
+      sourceCandidate.projectDetails ??
+      sourceCandidate.projectDetail ??
+      sourceCandidate.platform ??
+      sourceCandidate.slogan ??
       '';
-    
-      return typeof description === 'string' ? description : '';
+
+    return typeof description === 'string' ? description : '';
   };
 
   const renderProjectDescription = (candidate, className = 'text-sm text-black mt-1') => {
