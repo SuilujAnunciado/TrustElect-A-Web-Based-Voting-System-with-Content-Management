@@ -50,6 +50,35 @@ const getImageUrl = (imageUrl) => {
   return `${BASE_URL}${imageUrl}`;
 };
 
+const candidateKey = (candidateId) => 
+  candidateId === undefined || candidateId === null ? '' : String(candidateId);
+
+const mergePositionsWithDetails = (basePositions = [], detailedPositions = []) => {
+  if (!Array.isArray(basePositions) || !Array.isArray(detailedPositions) || detailedPositions.length === 0) {
+    return basePositions;
+  }
+
+  const detailMap = new Map();
+
+  detailedPositions.forEach((position) => {
+    (position.candidates || []).forEach((candidate) => {
+      detailMap.set(candidateKey(candidate.id), candidate);
+    });
+  });
+
+  return basePositions.map((position) => {
+    const mergedCandidates = (position.candidates || []).map((candidate) => {
+      const detail = detailMap.get(candidateKey(candidate.id));
+      return detail ? { ...candidate, ...detail } : candidate;
+    });
+
+    return {
+      ...position,
+      candidates: mergedCandidates
+    };
+  });
+};
+
 export default function VotePage({ params }) {
   const resolvedParams = use(params);
   const { id: electionId } = resolvedParams;
@@ -68,6 +97,27 @@ export default function VotePage({ params }) {
   const [submitError, setSubmitError] = useState(null);
   const [submissionError, setSubmissionError] = useState(null);
   const [encryptionStatus, setEncryptionStatus] = useState('idle'); 
+
+  const fetchDetailedSymposiumPositions = async (token) => {
+    try {
+      const { data } = await axios.get(`${API_BASE}/elections/${electionId}/ballot`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
+      });
+
+      if (Array.isArray(data?.positions)) {
+        return data.positions;
+      }
+
+      if (Array.isArray(data?.ballot?.positions)) {
+        return data.ballot.positions;
+      }
+    } catch (detailError) {
+      console.error('Error fetching detailed ballot data for symposium election:', detailError);
+    }
+
+    return [];
+  };
 
   useEffect(() => {
     const fetchBallot = async () => {
@@ -90,36 +140,14 @@ export default function VotePage({ params }) {
         // For symposium elections, we need to fetch full candidate details
         // since the student-ballot endpoint returns simplified data
         let enhancedPositions = response.data.positions;
-        
-        if (response.data.election?.election_type && 
-            (response.data.election.election_type.includes('symposium') || 
-             response.data.election.election_type.includes('symphosium'))) {
-          
-          enhancedPositions = await Promise.all(
-            response.data.positions.map(async (position) => {
-              const enhancedCandidates = await Promise.all(
-                position.candidates.map(async (candidate) => {
-                  try {
-                    const candidateResponse = await axios.get(
-                      `${API_BASE}/ballots/candidates/${candidate.id}`,
-                      {
-                        headers: { Authorization: `Bearer ${token}` },
-                        withCredentials: true
-                      }
-                    );
-                    
-                    const fullCandidate = candidateResponse.data.candidate || candidateResponse.data;
-                    return { ...candidate, ...fullCandidate };
-                  } catch (error) {
-                    console.error(`Error fetching details for candidate ${candidate.id}:`, error);
-                    return candidate; // Return original candidate if fetch fails
-                  }
-                })
-              );
-              
-              return { ...position, candidates: enhancedCandidates };
-            })
-          );
+        const electionTypeValue = (response.data.election?.election_type || '').toLowerCase();
+        const shouldEnhanceCandidates = electionTypeValue.includes('symposium') || electionTypeValue.includes('symphosium');
+
+        if (shouldEnhanceCandidates) {
+          const detailedPositions = await fetchDetailedSymposiumPositions(token);
+          if (Array.isArray(detailedPositions) && detailedPositions.length > 0) {
+            enhancedPositions = mergePositionsWithDetails(response.data.positions, detailedPositions);
+          }
         }
         
         setPositions(enhancedPositions);
@@ -165,12 +193,17 @@ export default function VotePage({ params }) {
   const electionType = (election?.election_type || '').toLowerCase();
   const isSymposiumElection = electionType.includes('symposium') || electionType.includes('symphosium');
 
-  const getCandidateDisplayName = (candidate) => {
+  const getCandidateDisplayName = (candidate, fallbackName) => {
     if (!candidate) return 'No Name';
+    const firstName = candidate.first_name ?? candidate.firstName;
+    const lastName = candidate.last_name ?? candidate.lastName;
+    const displayName = candidate.name;
+
     if (isSymposiumElection) {
-      return candidate.first_name || candidate.name || 'Project';
+      return firstName || displayName || fallbackName || 'Project';
     }
-    return formatNameSimple(candidate.last_name, candidate.first_name, candidate.name);
+
+    return formatNameSimple(lastName, firstName, fallbackName || displayName);
   };
 
   const getCandidateProjectDescription = (candidate) => {
@@ -187,7 +220,7 @@ export default function VotePage({ params }) {
       candidate.slogan ??
       '';
     
-    return typeof description === 'string' ? description : '';
+      return typeof description === 'string' ? description : '';
   };
 
   const renderProjectDescription = (candidate, className = 'text-sm text-black mt-1') => {
@@ -421,8 +454,11 @@ export default function VotePage({ params }) {
   };
 
   const getCandidateById = (candidateId) => {
+    const desiredKey = candidateKey(candidateId);
     for (const position of positions) {
-      const candidate = position.candidates.find(c => c.id === candidateId);
+      const candidate = (position.candidates || []).find(
+        (c) => candidateKey(c.id) === desiredKey
+      );
       if (candidate) return candidate;
     }
     return null;
