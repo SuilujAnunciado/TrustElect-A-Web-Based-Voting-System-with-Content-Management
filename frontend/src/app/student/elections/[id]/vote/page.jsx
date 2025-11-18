@@ -154,19 +154,6 @@ export default function VotePage({ params }) {
   const renderProjectDescription = (candidate, className = 'text-sm text-black mt-1') => {
     if (!isSymposiumElection) return null;
     const description = getCandidateProjectDescription(candidate);
-    
-    // Debug: Log candidate data to understand structure
-    if (isSymposiumElection && candidate) {
-      console.log('Candidate data:', candidate);
-      console.log('Project description found:', description);
-      console.log('Available fields:', Object.keys(candidate).filter(key => 
-        key.toLowerCase().includes('project') || 
-        key.toLowerCase().includes('description') ||
-        key.toLowerCase().includes('platform') ||
-        key.toLowerCase().includes('slogan')
-      ));
-    }
-    
     if (!description) return null;
     return (
       <p className={className}>
@@ -606,11 +593,9 @@ export default function VotePage({ params }) {
                               <h3 className="font-medium text-gray-800 text-lg">
                                 Project Name: {getCandidateDisplayName(candidate)}
                               </h3>
-                              {renderProjectDescription(candidate)}
-                              {/* Fallback display for project description */}
-                              {isSymposiumElection && !renderProjectDescription(candidate) && candidate.description && (
+                              {getCandidateProjectDescription(candidate) && (
                                 <p className="text-sm text-black mt-1">
-                                  <span className="font-medium">Project Description:</span> {candidate.description}
+                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
                                 </p>
                               )}
                             </>
@@ -719,7 +704,11 @@ export default function VotePage({ params }) {
                                 {isSymposiumElection ? 'Project Name:' : ''}
                                 {isSymposiumElection ? ` ${getCandidateDisplayName(candidate)}` : getCandidateDisplayName(candidate)}
                               </h3>
-                              {renderProjectDescription(candidate)}
+                              {getCandidateProjectDescription(candidate) && (
+                                <p className="text-sm text-black mt-1">
+                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
+                                </p>
+                              )}
                               {candidate.party && (
                                 <div className="mt-1">
                                   <span className="text-xs font-medium text-gray-500">Party:</span>
