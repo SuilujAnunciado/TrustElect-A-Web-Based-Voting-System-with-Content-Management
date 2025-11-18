@@ -86,17 +86,53 @@ export default function VotePage({ params }) {
         });
         
         setElection(response.data.election);
-        setPositions(response.data.positions);
+        
+        // For symposium elections, we need to fetch full candidate details
+        // since the student-ballot endpoint returns simplified data
+        let enhancedPositions = response.data.positions;
+        
+        if (response.data.election?.election_type && 
+            (response.data.election.election_type.includes('symposium') || 
+             response.data.election.election_type.includes('symphosium'))) {
+          
+          enhancedPositions = await Promise.all(
+            response.data.positions.map(async (position) => {
+              const enhancedCandidates = await Promise.all(
+                position.candidates.map(async (candidate) => {
+                  try {
+                    const candidateResponse = await axios.get(
+                      `${API_BASE}/ballots/candidates/${candidate.id}`,
+                      {
+                        headers: { Authorization: `Bearer ${token}` },
+                        withCredentials: true
+                      }
+                    );
+                    
+                    const fullCandidate = candidateResponse.data.candidate || candidateResponse.data;
+                    return { ...candidate, ...fullCandidate };
+                  } catch (error) {
+                    console.error(`Error fetching details for candidate ${candidate.id}:`, error);
+                    return candidate; // Return original candidate if fetch fails
+                  }
+                })
+              );
+              
+              return { ...position, candidates: enhancedCandidates };
+            })
+          );
+        }
+        
+        setPositions(enhancedPositions);
 
         const initialSelections = {};
-        response.data.positions.forEach(position => {
+        enhancedPositions.forEach(position => {
           initialSelections[position.position_id] = [];
         });
         setSelectedCandidates(initialSelections);
 
         const newImageCache = {};
         
-        response.data.positions.forEach(position => {
+        enhancedPositions.forEach(position => {
           position.candidates.forEach(candidate => {
             if (candidate.image_url) {
               // Add cache busting to prevent stale images
@@ -140,11 +176,7 @@ export default function VotePage({ params }) {
   const getCandidateProjectDescription = (candidate) => {
     if (!isSymposiumElection || !candidate) return '';
     
-    // Debug: Log candidate data to understand structure
-    console.log('Candidate data for project description:', candidate);
-    console.log('isSymposiumElection:', isSymposiumElection);
-    console.log('Election type:', election?.election_type);
-    
+    // With enhanced data fetching, we should have all the project details
     const description =
       candidate.project_description ??
       candidate.projectDescription ??
@@ -155,7 +187,6 @@ export default function VotePage({ params }) {
       candidate.slogan ??
       '';
     
-    console.log('Found project description:', description);
     return typeof description === 'string' ? description : '';
   };
 
