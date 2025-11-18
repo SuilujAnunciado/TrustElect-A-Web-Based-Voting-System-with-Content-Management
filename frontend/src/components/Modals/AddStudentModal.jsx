@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 
-export default function AddStudentModal({ onClose, academicTermId, selectedTermLabel = "" }) {
+export default function AddStudentModal({ onClose }) {
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -556,11 +556,6 @@ export default function AddStudentModal({ onClose, academicTermId, selectedTermL
         formattedBirthdate = `${month}/${day}/${year}`;
       }
 
-      if (!academicTermId) {
-        alert("Please select an academic term before adding students.");
-        return;
-      }
-
       const studentData = {
         firstName: formData.firstName,
         middleName: formData.middleName,
@@ -573,8 +568,7 @@ export default function AddStudentModal({ onClose, academicTermId, selectedTermL
         gender: formData.gender,
         birthdate: formattedBirthdate,
         password: generatedPassword,
-        createdBy: superAdminId,
-        academicTermId
+        createdBy: superAdminId
       };
 
       const res = await axios.post("/api/superadmin/students", studentData, {
@@ -604,17 +598,6 @@ export default function AddStudentModal({ onClose, academicTermId, selectedTermL
       <div className="fixed inset-0 flex items-center justify-center  text-black">
         <div className="bg-white p-6 rounded-lg shadow-lg w-120">
           <h2 className="text-xl font-bold mb-4 text-center">Add New Student</h2>
-          
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-black">
-            {selectedTermLabel ? (
-              <p>
-                Students added here will be assigned to{" "}
-                <span className="font-semibold">{selectedTermLabel}</span>.
-              </p>
-            ) : (
-              <p>Students will be added to the currently active academic term.</p>
-            )}
-          </div>
           
           {errors.courseWarning && (
             <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 mb-4 text-sm">

@@ -19,28 +19,9 @@ const getStudentByEmail = async (email) => {
 };
 
 
-const registerStudent = async (
-  firstName,
-  middleName,
-  lastName,
-  email,
-  username,
-  hashedPassword,
-  studentNumber,
-  courseName,
-  yearLevel,
-  gender,
-  birthdate,
-  createdBy,
-  courseId,
-  academicTermId
-) => {
+const registerStudent = async (firstName, middleName, lastName, email, username, hashedPassword, studentNumber, courseName, yearLevel, gender, birthdate, createdBy, courseId) => {
   const client = await pool.connect();
   try {
-    if (!academicTermId) {
-      throw new Error("Academic term is required for student registration.");
-    }
-
     await client.query("BEGIN");
     const userQuery = `
       INSERT INTO users (first_name, last_name, email, username, password_hash, role_id, created_by, is_email_verified, is_first_login, is_active)
@@ -82,39 +63,10 @@ const registerStudent = async (
     }
 
     const studentQuery = `
-      INSERT INTO students (
-        user_id,
-        first_name,
-        middle_name,
-        last_name,
-        email,
-        username,
-        student_number,
-        course_name,
-        year_level,
-        gender,
-        birthdate,
-        registered_by,
-        academic_term_id,
-        is_active
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, TRUE);
+      INSERT INTO students (user_id, first_name, middle_name, last_name, email, username, student_number, course_name, year_level, gender, birthdate, registered_by, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, TRUE);
     `;
-    const studentValues = [
-      userId,
-      firstName,
-      middleName,
-      lastName,
-      email,
-      username,
-      studentNumber,
-      courseName,
-      yearLevel,
-      gender,
-      birthdate,
-      createdBy,
-      academicTermId
-    ];
+    const studentValues = [userId, firstName, middleName, lastName, email, username, studentNumber, courseName, yearLevel, gender, birthdate, createdBy];
     await client.query(studentQuery, studentValues);
 
     
@@ -130,21 +82,7 @@ const registerStudent = async (
 };
 
 
-const getAllStudents = async ({ academicTermId, includeInactive = false } = {}) => {
-  const filters = [];
-  const params = [];
-
-  if (!includeInactive) {
-    filters.push("s.is_active = TRUE");
-  }
-
-  if (academicTermId) {
-    params.push(academicTermId);
-    filters.push(`s.academic_term_id = $${params.length}`);
-  }
-
-  const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
-
+const getAllStudents = async () => {
   const query = `
     SELECT 
       s.id, 
@@ -158,18 +96,13 @@ const getAllStudents = async ({ academicTermId, includeInactive = false } = {}) 
       s.gender,
       s.birthdate, 
       s.is_active,
-      s.academic_term_id,
-      at.school_year,
-      at.term,
       u.is_locked,
       u.locked_until
     FROM students s
     JOIN users u ON s.user_id = u.id
-    LEFT JOIN academic_terms at ON s.academic_term_id = at.id
-    ${whereClause}
-    ORDER BY at.school_year DESC NULLS LAST, at.term ASC NULLS LAST, s.last_name ASC;
+    ORDER BY last_name ASC;
   `;
-  const result = await pool.query(query, params);
+  const result = await pool.query(query);
   return result.rows;
 };
 
@@ -187,14 +120,10 @@ const getStudentById = async (studentId) => {
       s.gender,
       s.birthdate, 
       s.is_active,
-      s.academic_term_id,
-      at.school_year,
-      at.term,
       u.is_locked,
       u.locked_until
     FROM students s
     JOIN users u ON s.user_id = u.id
-    LEFT JOIN academic_terms at ON s.academic_term_id = at.id
     WHERE s.id = $1;
   `;
   const result = await pool.query(query, [studentId]);
@@ -512,7 +441,7 @@ const generateStudentPassword = (lastName, studentNumber) => {
   return `${formattedLastName}${lastThreeDigits}${specialCharacter}`;
 }
 
-const processBatchStudents = async (students, createdBy, academicTermId) => {
+const processBatchStudents = async (students, createdBy) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -522,10 +451,6 @@ const processBatchStudents = async (students, createdBy, academicTermId) => {
       failed: 0,
       errors: []
     };
-
-    if (!academicTermId) {
-      throw new Error("Academic term is required for batch uploads.");
-    }
 
     for (const student of students) {
       try {
@@ -649,9 +574,7 @@ const processBatchStudents = async (students, createdBy, academicTermId) => {
           yearLevel,
           student.gender,
           parsedBirthdate,
-          createdBy,
-          student.courseId,
-          academicTermId
+          createdBy
         );
 
         results.success++;

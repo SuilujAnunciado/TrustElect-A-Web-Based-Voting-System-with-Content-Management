@@ -32,11 +32,18 @@ const getAcademicTerms = async () => {
 };
 
 const getAcademicTermById = async (id) => {
-  const { rows } = await pool.query(
-    `SELECT * FROM academic_terms WHERE id = $1`,
-    [id]
-  );
-  return rows[0] || null;
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM academic_terms WHERE id = $1`,
+      [id]
+    );
+    return rows[0] || null;
+  } catch (error) {
+    if (error.message.includes('does not exist') || error.message.includes('permission denied')) {
+      throw new Error('Academic terms table does not exist or access denied. Please check database permissions.');
+    }
+    throw error;
+  }
 };
 
 const getCurrentAcademicTerm = async () => {

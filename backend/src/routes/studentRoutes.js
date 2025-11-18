@@ -1,6 +1,6 @@
 const express = require("express");
 const { check } = require("express-validator");
-const { registerStudent, getAllStudents, getStudentById, editStudent, deleteStudent, restoreStudent, resetStudentPassword, permanentDeleteStudent, unlockStudentAccount, uploadStudentsBatch, getStudentElections, getStudentProfile, uploadProfilePicture, getAvailableCriteria, getStudentsByCourses, validateStudentByNumber, searchStudents, changePassword, bulkDeleteStudentsByCourse, bulkPermanentDeleteStudentsByCourse, bulkDeleteArchivedStudentsByCourse, deleteAllStudents, permanentDeleteAllStudents, listAcademicTerms, createAcademicTermEntry, updateAcademicTermEntry } = require("../controllers/studentController");
+const { registerStudent, getAllStudents, getStudentById, editStudent, deleteStudent, restoreStudent, resetStudentPassword, permanentDeleteStudent, unlockStudentAccount, uploadStudentsBatch, getStudentElections, getStudentProfile, uploadProfilePicture, getAvailableCriteria, getStudentsByCourses, validateStudentByNumber, searchStudents, changePassword, bulkDeleteStudentsByCourse, bulkPermanentDeleteStudentsByCourse, bulkDeleteArchivedStudentsByCourse, deleteAllStudents, permanentDeleteAllStudents } = require("../controllers/studentController");
 const { verifyToken, isStudent, isSuperAdmin, allowRoles } = require("../middlewares/authMiddleware");
 const router = express.Router();
 const upload = require('../middlewares/uploadMiddleware');
@@ -16,27 +16,6 @@ router.get("/students/search", searchStudents);
 router.get("/students/elections", verifyToken, isStudent, getStudentElections);
 router.get("/students/profile", verifyToken, isStudent, getStudentProfile);
 router.post("/students/upload", verifyToken, isStudent, profileUpload.single('profilePic'), uploadProfilePicture);
-
-router.get(
-  "/students/terms",
-  verifyToken,
-  allowRoles("Super Admin", "Admin"),
-  listAcademicTerms
-);
-
-router.post(
-  "/students/terms",
-  verifyToken,
-  allowRoles("Super Admin", "Admin"),
-  createAcademicTermEntry
-);
-
-router.patch(
-  "/students/terms/:id",
-  verifyToken,
-  allowRoles("Super Admin", "Admin"),
-  updateAcademicTermEntry
-);
 
 // Add a new route to proxy candidate images with proper CORS headers
 router.get("/images/candidates/:filename", (req, res) => {
