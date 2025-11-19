@@ -1852,7 +1852,7 @@ export default function ElectionDetailsPage() {
                               <div className="font-bold text-black text-lg">
                                 {Number(candidate.vote_count || 0).toLocaleString()}
                               </div>
-                              <div className="text-sm text-gray-600">
+                              <div className="text-sm text-black">
                                 {election.voter_count ? ((candidate.vote_count / election.voter_count) * 100).toFixed(2) : '0.00'}%
                               </div>
                             </div>
@@ -3529,7 +3529,7 @@ export default function ElectionDetailsPage() {
                 value={tieBreakerMessage}
                 onChange={(e) => setTieBreakerMessage(e.target.value)}
                 placeholder="e.g., This candidate wins by toss coin"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
               />
               <p className="text-xs text-black mt-1">
@@ -3544,7 +3544,7 @@ export default function ElectionDetailsPage() {
                   setTieBreakerMessage('');
                   setSelectedTieBreakerWinner(null);
                 }}
-                className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300"
+                className="px-4 py-2 text-black bg-gray-200 rounded hover:bg-gray-300"
                 disabled={isSavingTieBreaker}
               >
                 Cancel
