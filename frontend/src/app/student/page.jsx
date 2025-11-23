@@ -87,7 +87,7 @@ const ElectionCard = ({ election, onClick }) => {
       
       // Create date object in local timezone (Philippines)
       // This ensures we don't have timezone conversion issues
-      const dateObj = new Date(year, month - 1, day, hours, minutes);
+      const dateObj = new Date(year, month - 1, day + 1, hours, minutes);
       
       if (isNaN(dateObj.getTime())) return 'Invalid date';
       

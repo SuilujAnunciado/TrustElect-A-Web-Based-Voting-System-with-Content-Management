@@ -554,7 +554,7 @@ const sendElectionNotification = async (userId, email, electionData) => {
         const hours = parseInt(timeParts[0], 10);
         const minutes = parseInt(timeParts[1], 10);
         
-        const dateObj = new Date(year, month - 1, day, hours, minutes);
+        const dateObj = new Date(year, month - 1, day + 1, hours, minutes);
         
         if (isNaN(dateObj.getTime())) {
           console.error('Invalid date object created:', { year, month, day, hours, minutes });
