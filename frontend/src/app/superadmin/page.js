@@ -1421,7 +1421,7 @@ export default function SuperAdminDashboard() {
           <div className="overflow-x-auto bg-white rounded-lg shadow-inner">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gray-100 border-b-2 border-gray-200">
+                <tr className="bg-gray-100 border-b border-gray-200">
                   <th className="p-4 text-left text-sm font-bold text-black">Election Name</th>
                   <th className="p-4 text-left text-sm font-bold text-black">Type</th>
                   <th className="p-4 text-left text-sm font-bold text-black">Eligible Voters</th>
@@ -1433,7 +1433,7 @@ export default function SuperAdminDashboard() {
               </thead>
               <tbody>
                 {liveVoteData.live_elections && liveVoteData.live_elections.map((election) => (
-                  <tr key={election.id} className="border-b hover:bg-gray-50 transition-colors duration-150">
+                  <tr key={election.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
                     <td className="p-4 text-sm font-medium text-black">{election.title}</td>
                     <td className="p-4 text-sm text-black">{election.election_type}</td>
                     <td className="p-4 text-sm font-medium text-black">{election.eligible_voters.toLocaleString()}</td>
@@ -1710,15 +1710,15 @@ export default function SuperAdminDashboard() {
                                     const dataPoint = chartConfig.login.data[index];
                                     return formatTimeForChart(hour, dataPoint?.date);
                                   }}
-                                  stroke="#374151"
-                                  tick={{ fill: '#374151', fontSize: 11 }}
-                                  axisLine={{ stroke: '#d1d5db' }}
+                                  stroke="transparent"
+                                  tick={{ fill: '#6b7280', fontSize: 11 }}
+                                  axisLine={false}
                                 />
                                 <YAxis 
-                                  stroke="#374151"
-                                  tick={{ fill: '#374151', fontSize: 11 }}
+                                  stroke="transparent"
+                                  tick={{ fill: '#6b7280', fontSize: 11 }}
                                   tickFormatter={(value) => Math.round(value).toLocaleString()}
-                                  axisLine={{ stroke: '#d1d5db' }}
+                                  axisLine={false}
                                   allowDecimals={false}
                                 />
                                 <Tooltip 
@@ -1795,15 +1795,15 @@ export default function SuperAdminDashboard() {
                                     const dataPoint = chartConfig.voting.data[index];
                                     return formatTimeForChart(hour, dataPoint?.date);
                                   }}
-                                  stroke="#374151"
-                                  tick={{ fill: '#374151', fontSize: 11 }}
-                                  axisLine={{ stroke: '#d1d5db' }}
+                                  stroke="transparent"
+                                  tick={{ fill: '#6b7280', fontSize: 11 }}
+                                  axisLine={false}
                                 />
                                 <YAxis 
-                                  stroke="#374151"
-                                  tick={{ fill: '#374151', fontSize: 11 }}
+                                  stroke="transparent"
+                                  tick={{ fill: '#6b7280', fontSize: 11 }}
                                   tickFormatter={(value) => Math.round(value).toLocaleString()}
-                                  axisLine={{ stroke: '#d1d5db' }}
+                                  axisLine={false}
                                   allowDecimals={false}
                                 />
                                 <Tooltip 
@@ -2050,14 +2050,14 @@ export default function SuperAdminDashboard() {
                           angle={-45} 
                           textAnchor="end" 
                           height={80} 
-                          tick={{ fill: '#374151', fontSize: 12, fontWeight: '500' }}
-                          axisLine={{ stroke: '#D1D5DB' }}
-                          tickLine={{ stroke: '#D1D5DB' }}
+                          tick={{ fill: '#6b7280', fontSize: 12, fontWeight: '500' }}
+                          axisLine={false}
+                          tickLine={false}
                         />
                         <YAxis 
-                          tick={{ fill: '#374151', fontSize: 12 }}
-                          axisLine={{ stroke: '#D1D5DB' }}
-                          tickLine={{ stroke: '#D1D5DB' }}
+                          tick={{ fill: '#6b7280', fontSize: 12 }}
+                          axisLine={false}
+                          tickLine={false}
                           label={{ 
                             value: 'Number of Votes', 
                             angle: -90, 
@@ -2118,19 +2118,19 @@ export default function SuperAdminDashboard() {
                           angle={-45} 
                           textAnchor="end" 
                           height={80} 
-                          tick={{ fill: '#374151', fontSize: 12, fontWeight: '500' }}
-                          axisLine={{ stroke: '#D1D5DB' }}
-                          tickLine={{ stroke: '#D1D5DB' }}
+                          tick={{ fill: '#6b7280', fontSize: 12, fontWeight: '500' }}
+                          axisLine={false}
+                          tickLine={false}
                         />
                         <YAxis 
-                          tick={{ fill: '#374151', fontSize: 12 }}
-                          axisLine={{ stroke: '#D1D5DB' }}
-                          tickLine={{ stroke: '#D1D5DB' }}
+                          tick={{ fill: '#6b7280', fontSize: 12 }}
+                          axisLine={false}
+                          tickLine={false}
                           label={{ 
                             value: 'Votes Cast', 
                             angle: -90, 
                             position: 'insideLeft', 
-                            style: { textAnchor: 'middle', fill: '#374151', fontSize: '14px', fontWeight: '600' } 
+                            style: { textAnchor: 'middle', fill: '#6b7280', fontSize: '14px', fontWeight: '600' } 
                           }}
                         />
                         <Tooltip 

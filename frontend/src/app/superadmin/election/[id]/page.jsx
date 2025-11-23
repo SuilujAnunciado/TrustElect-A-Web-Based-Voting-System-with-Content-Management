@@ -1698,16 +1698,7 @@ export default function ElectionDetailsPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold text-black">Ballot Details</h2>
-                
-                {(election.needs_approval || election.status === 'upcoming') && (isSystemAdminCreator || isCurrentUserSuperAdmin) && (
-                  <Link
-                    href={`/superadmin/election/${election.id}/ballot`}
-                    className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                  >
-                    <Edit className="w-4 h-4 mr-1" />
-                    Edit Ballot
-                  </Link>
-                )}
+
               </div>
               
           <div className="space-y-6">
