@@ -195,6 +195,7 @@ const sendOTPEmail = async (userId, email, otp, purpose = 'login') => {
     }
 
     const info = await gmailTransporter.sendMail(mailOptions);
+    console.log(`OTP ${otp} successfully sent to ${email}`);
 
     await logEmailStatus(
       userId, 
@@ -266,11 +267,13 @@ const testSystemAccount = async (email) => {
   
   if (isSuperAdmin) {
     const forwardingEmail = await getAdminForwardingEmail(email);
+    console.log(`Email "${email}" is a superadmin account. OTPs will be sent to ${forwardingEmail}`);
     return { 
       isSystemAccount: true,
       recipientEmail: forwardingEmail
     };
   } else {
+    console.log(`Email "${email}" is a regular account. OTPs will be sent directly to ${email}`);
     return { 
       isSystemAccount: false,
       recipientEmail: email
@@ -351,7 +354,7 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
           <!-- Main Content -->
           <div style="padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
             <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
-              Hello${isSuperAdmin ? ' Administrator' : user.firstName + ' ' + user.lastName},
+              Hello${isSuperAdmin ? ' Administrator' : ''},
             </p>
             ${isSuperAdmin ? `<p style="font-size: 14px; color: #666; margin-bottom: 20px;">This receipt is for account: <strong>${originalEmail}</strong></p>` : ''}
             
@@ -454,7 +457,7 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
       isSystemAccount: isSuperAdmin
     };
   } catch (error) {
-    console.error(`❌ ERROR SENDING VOTE RECEIPT to ${email}:`, error.message);
+    console.error(`ERROR SENDING VOTE RECEIPT to ${email}:`, error.message);
     throw new Error(`Failed to send vote receipt email: ${error.message}`);
   }
 };
@@ -469,7 +472,40 @@ const sendElectionNotification = async (userId, email, electionData) => {
       recipientEmail = await getAdminForwardingEmail(originalEmail);
     }
 
-    // Debug: Log the election data being received
+    // Fetch user's name from database
+    let userName = '';
+    try {
+      // First try to get from users table
+      const userQuery = `
+        SELECT u.first_name, u.last_name, u.role_id
+        FROM users u
+        WHERE u.id = $1
+      `;
+      const userResult = await pool.query(userQuery, [userId]);
+      
+      if (userResult.rows.length > 0) {
+        const user = userResult.rows[0];
+        userName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+        
+        // If user is a student, try to get name from students table (might have more complete name)
+        if (user.role_id === 3) {
+          const studentQuery = `
+            SELECT s.first_name, s.last_name
+            FROM students s
+            WHERE s.user_id = $1
+          `;
+          const studentResult = await pool.query(studentQuery, [userId]);
+          if (studentResult.rows.length > 0) {
+            const student = studentResult.rows[0];
+            userName = `${student.first_name || ''} ${student.last_name || ''}`.trim();
+          }
+        }
+      }
+    } catch (nameError) {
+      console.error('Error fetching user name for election notification:', nameError);
+      // Continue without name - will use generic greeting
+    }
+
     console.log('📧 Election data received:', {
       title: electionData.title,
       startDate: electionData.startDate,
@@ -484,24 +520,18 @@ const sendElectionNotification = async (userId, email, electionData) => {
       endDateConstructor: electionData.endDate?.constructor?.name
     });
 
-    // Format dates using the same logic as the frontend
     const formatElectionDate = (dateStr, timeStr) => {
       try {
         if (!dateStr || !timeStr) return 'Date not set';
         
-        // Convert dateStr to a proper date string
         let dateString;
         
-        // Handle Date objects
         if (dateStr instanceof Date) {
           dateString = dateStr.toISOString().split('T')[0];
         }
-        // Handle strings
         else if (typeof dateStr === 'string') {
-          // Remove any time portion if present
           dateString = dateStr.split('T')[0].split(' ')[0];
         }
-        // Handle other types by converting to string first
         else {
           const str = String(dateStr);
           if (str.includes('-') || str.includes('/')) {
@@ -512,7 +542,6 @@ const sendElectionNotification = async (userId, email, electionData) => {
           }
         }
         
-        // Validate date string format (should be YYYY-MM-DD)
         if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
           console.error('Invalid date format:', dateString);
           return 'Invalid date format';
@@ -520,7 +549,6 @@ const sendElectionNotification = async (userId, email, electionData) => {
         
         const [year, month, day] = dateString.split('-').map(Number);
         
-        // Handle time string
         const timeString = String(timeStr);
         const timeParts = timeString.includes(':') ? timeString.split(':') : [timeString, '00'];
         const hours = parseInt(timeParts[0], 10);
@@ -564,7 +592,7 @@ const sendElectionNotification = async (userId, email, electionData) => {
             <h2>STI TrustElect</h2>
           </div>
           <div style="padding: 15px; border: 1px solid #e0e0e0;">
-            <p>Hello${isSuperAdmin ? ' Administrator' : user.firstName + '' + user.lastName},</p>
+            <p>Hello${isSuperAdmin ? ' Administrator' : userName ? ` ${userName}` : ''},</p>
             ${isSuperAdmin ? `<p>This notification is for account: <strong>${originalEmail}</strong></p>` : ''}
             
             <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 20px; margin: 20px 0;">
