@@ -1920,7 +1920,7 @@ export default function ElectionDetailsPage() {
                 )}
               </div>
               <div>
-                <h3 className="font-medium text-black mb-1">Semesters</h3>
+                <h3 className="font-medium text-black mb-1">Semester</h3>
                 {eligibilityCriteria.semesters && eligibilityCriteria.semesters.filter(Boolean).length > 0 ? (
                   <ul className="list-disc list-inside text-black">
                     {eligibilityCriteria.semesters.filter(Boolean).map(semester => (
