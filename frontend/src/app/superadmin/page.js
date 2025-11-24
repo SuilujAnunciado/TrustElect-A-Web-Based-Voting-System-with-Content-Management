@@ -1703,7 +1703,6 @@ export default function SuperAdminDashboard() {
                                     <stop offset="95%" stopColor={chartConfig.login.gradient.color} stopOpacity={0.1}/>
                                   </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                 <XAxis 
                                   dataKey="hour" 
                                   tickFormatter={(hour, index) => {
@@ -1776,7 +1775,6 @@ export default function SuperAdminDashboard() {
                                     <stop offset="95%" stopColor={chartConfig.voting.gradient.color} stopOpacity={0.15}/>
                                   </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                 <XAxis 
                                   dataKey="hour" 
                                   tickFormatter={(hour, index) => {
