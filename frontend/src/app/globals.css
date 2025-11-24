@@ -25,6 +25,12 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Hide Recharts grid lines globally to avoid stray diagonal lines */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: transparent !important;
+}
+
 /* Hide all browser default password reveal buttons */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {

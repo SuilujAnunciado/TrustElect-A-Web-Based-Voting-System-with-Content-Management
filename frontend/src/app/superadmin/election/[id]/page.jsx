@@ -2067,7 +2067,6 @@ export default function ElectionDetailsPage() {
                             <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="name" 
                           angle={-45}
