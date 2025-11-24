@@ -2062,27 +2062,24 @@ export default function ElectionDetailsPage() {
                         margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                       >
                         <defs>
-                          <linearGradient id={`resultAreaGradient-${position.id}`} x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient id="resultAreaGradient" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35}/>
                             <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
                           </linearGradient>
                         </defs>
+                        <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="name" 
                           angle={-45}
                           textAnchor="end"
                           height={60}
                           fontSize={12}
-                          axisLine={false}
-                          tickLine={false}
                         />
                         <YAxis 
                           domain={calculateYAxisDomain(position.chartData)}
                           allowDecimals={false}
                           tickFormatter={(value) => value.toLocaleString()}
                           tickCount={Math.min(10, Math.max(3, Math.ceil(Math.max(...position.chartData.map(d => d.votes)) / 2)))}
-                          axisLine={false}
-                          tickLine={false}
                         />
                         <Tooltip 
                           formatter={(value, name) => [`${value} votes (${election.voter_count ? ((value / election.voter_count) * 100).toFixed(2) : '0.00'}% `, 'Votes']}
@@ -2109,7 +2106,7 @@ export default function ElectionDetailsPage() {
                           name="Vote Count"
                           stroke="#1d4ed8"
                           strokeWidth={3}
-                          fill={`url(#resultAreaGradient-${position.id})`}
+                          fill="url(#resultAreaGradient)"
                           dot={renderResultDot}
                           activeDot={{ r: 7, stroke: '#0f172a', strokeWidth: 2, fill: '#fff' }}
                         >
