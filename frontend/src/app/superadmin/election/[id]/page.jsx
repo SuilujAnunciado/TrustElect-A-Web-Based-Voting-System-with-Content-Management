@@ -2062,7 +2062,7 @@ export default function ElectionDetailsPage() {
                         margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                       >
                         <defs>
-                          <linearGradient id="resultAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient id={`resultAreaGradient-${position.id}`} x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35}/>
                             <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
                           </linearGradient>
@@ -2105,7 +2105,7 @@ export default function ElectionDetailsPage() {
                           name="Vote Count"
                           stroke="#1d4ed8"
                           strokeWidth={3}
-                          fill="url(#resultAreaGradient)"
+                          fill={`url(#resultAreaGradient-${position.id})`}
                           dot={renderResultDot}
                           activeDot={{ r: 7, stroke: '#0f172a', strokeWidth: 2, fill: '#fff' }}
                         >
