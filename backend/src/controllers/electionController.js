@@ -915,13 +915,14 @@ exports.getBallotForStudent = async (req, res) => {
       });
     }
 
-    const ipValidation = await validateClientIP(pool, req, studentId, electionId);
-    if (!ipValidation.allowed) {
-      return res.status(403).json({
-        success: false,
-        message: ipValidation.message
-      });
-    }
+    // IP-based restriction for student voting - DISABLED FOR NOW
+    // const ipValidation = await validateClientIP(pool, req, studentId, electionId);
+    // if (!ipValidation.allowed) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: ipValidation.message
+    //   });
+    // }
 
     const electionCheck = await pool.query(
       `SELECT e.needs_approval, e.status, 
@@ -1082,14 +1083,15 @@ exports.submitVote = async (req, res) => {
     
     const { votes } = req.body;
 
-    const ipValidation = await validateClientIP(client, req, studentId, electionId);
-    if (!ipValidation.allowed) {
-      await client.query('ROLLBACK');
-      return res.status(403).json({
-        success: false,
-        message: ipValidation.message
-      });
-    }
+    // IP-based restriction for student voting - DISABLED FOR NOW
+    // const ipValidation = await validateClientIP(client, req, studentId, electionId);
+    // if (!ipValidation.allowed) {
+    //   await client.query('ROLLBACK');
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: ipValidation.message
+    //   });
+    // }
 
     const electionCheck = await client.query(
       `SELECT e.needs_approval, e.status, 
