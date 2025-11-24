@@ -42,8 +42,6 @@ const {
     getBallotByElection
 } = require("../controllers/ballotController");
 const { verifyToken, isSuperAdmin, isAdmin, isStudent, verifyStudentRecord, canApproveElections } = require("../middlewares/authMiddleware");
-// IP-based restriction middleware for student voting - DISABLED FOR NOW
-// const { validateVotingIP } = require("../middlewares/ipValidationMiddleware");
 const electionStatusService = require('../services/electionStatusService');
 const router = express.Router();
 
@@ -216,8 +214,6 @@ router.post("/:id/send-result-notifications", verifyToken, (req, res, next) => {
 
 router.get("/:id/student-eligible", verifyToken, isStudent, verifyStudentRecord, checkStudentEligibility);
 router.get("/:id/student-ballot", verifyToken, isStudent, getBallotForStudent);
-// IP-based restriction for student voting - DISABLED FOR NOW
-// router.post("/:id/vote", verifyToken, isStudent, validateVotingIP, submitVote);
 router.post("/:id/vote", verifyToken, isStudent, submitVote);
 router.get("/:id/vote-receipt", verifyToken, isStudent, getVoteReceipt);
 router.get("/:id/vote-token", verifyToken, isStudent, getVoteToken);
