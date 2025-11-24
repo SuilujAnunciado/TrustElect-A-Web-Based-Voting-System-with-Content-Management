@@ -2073,12 +2073,16 @@ export default function ElectionDetailsPage() {
                           textAnchor="end"
                           height={60}
                           fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
                         />
                         <YAxis 
                           domain={calculateYAxisDomain(position.chartData)}
                           allowDecimals={false}
                           tickFormatter={(value) => value.toLocaleString()}
                           tickCount={Math.min(10, Math.max(3, Math.ceil(Math.max(...position.chartData.map(d => d.votes)) / 2)))}
+                          axisLine={false}
+                          tickLine={false}
                         />
                         <Tooltip 
                           formatter={(value, name) => [`${value} votes (${election.voter_count ? ((value / election.voter_count) * 100).toFixed(2) : '0.00'}% `, 'Votes']}
