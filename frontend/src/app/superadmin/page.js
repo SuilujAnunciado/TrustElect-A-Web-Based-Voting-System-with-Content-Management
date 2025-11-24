@@ -1580,20 +1580,39 @@ export default function SuperAdminDashboard() {
               const loginPeak = findPeakHour(processedLoginData);
               const votingPeak = findPeakHour(processedVotingData);
 
+              const getYAxisTicks = (data) => {
+                const maxValue = data.reduce((max, item) => {
+                  const count = typeof item.count === 'number' ? item.count : 0;
+                  return count > max ? count : max;
+                }, 0);
+                
+                const step = maxValue > 50 ? 10 : 5;
+                const upperBound = Math.max(step, Math.ceil(maxValue / step) * step);
+                
+                const ticks = [];
+                for (let value = 0; value <= upperBound; value += step) {
+                  ticks.push(value);
+                }
+                
+                return ticks.length > 0 ? ticks : [0, step];
+              };
+
               const chartConfig = {
                 login: {
                   gradient: { id: 'loginGradient', color: '#3B82F6' },
                   data: processedLoginData,
                   average: calculateAverage(processedLoginData),
                   peak: loginPeak,
-                  total: totalLogins
+                  total: totalLogins,
+                  ticks: getYAxisTicks(processedLoginData)
                 },
                 voting: {
                   gradient: { id: 'votingGradient', color: '#10B981' },
                   data: processedVotingData,
                   average: calculateAverage(processedVotingData),
                   peak: votingPeak,
-                  total: totalDistinctVoters
+                  total: totalDistinctVoters,
+                  ticks: getYAxisTicks(processedVotingData)
                 }
               };
 
@@ -1719,6 +1738,7 @@ export default function SuperAdminDashboard() {
                                   tick={{ fill: '#6b7280', fontSize: 11 }}
                                   tickFormatter={(value) => Math.round(value).toLocaleString()}
                                   axisLine={false}
+                                  ticks={chartConfig.login.ticks}
                                   allowDecimals={false}
                                 />
                                 <Tooltip 
@@ -1792,6 +1812,7 @@ export default function SuperAdminDashboard() {
                                   tick={{ fill: '#6b7280', fontSize: 11 }}
                                   tickFormatter={(value) => Math.round(value).toLocaleString()}
                                   axisLine={false}
+                                  ticks={chartConfig.voting.ticks}
                                   allowDecimals={false}
                                 />
                                 <Tooltip 

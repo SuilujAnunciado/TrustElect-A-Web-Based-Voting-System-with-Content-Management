@@ -1776,20 +1776,43 @@ export default function AdminDashboard() {
               const loginPeak = findPeakHour(processedLoginData);
               const votingPeak = findPeakHour(processedVotingData);
 
+              const getYAxisTicks = (data) => {
+                if (!Array.isArray(data) || data.length === 0) {
+                  return [0, 5];
+                }
+                
+                const maxValue = data.reduce((max, item) => {
+                  const count = typeof item.count === 'number' ? item.count : 0;
+                  return count > max ? count : max;
+                }, 0);
+                
+                const step = maxValue > 50 ? 10 : 5;
+                const upperBound = Math.max(step, Math.ceil(maxValue / step) * step);
+                
+                const ticks = [];
+                for (let value = 0; value <= upperBound; value += step) {
+                  ticks.push(value);
+                }
+                
+                return ticks.length > 0 ? ticks : [0, step];
+              };
+
               const chartConfig = {
                 login: {
                   gradient: { id: 'loginGradient', color: '#3B82F6' },
                   data: processedLoginData,
                   average: calculateAverage(processedLoginData),
                   peak: loginPeak,
-                  total: totalLogins
+                  total: totalLogins,
+                  ticks: getYAxisTicks(processedLoginData)
                 },
                 voting: {
                   gradient: { id: 'votingGradient', color: '#10B981' },
                   data: processedVotingData,
                   average: calculateAverage(processedVotingData),
                   peak: votingPeak,
-                  total: totalDistinctVoters
+                  total: totalDistinctVoters,
+                  ticks: getYAxisTicks(processedVotingData)
                 }
               };
 
@@ -1915,6 +1938,7 @@ export default function AdminDashboard() {
                               tick={{ fill: '#374151', fontSize: 11 }}
                               tickFormatter={(value) => Math.round(value).toLocaleString()}
                               axisLine={{ stroke: '#d1d5db' }}
+                              ticks={chartConfig.login.ticks}
                               allowDecimals={false}
                             />
                             <Tooltip 
@@ -2000,6 +2024,7 @@ export default function AdminDashboard() {
                               tick={{ fill: '#374151', fontSize: 11 }}
                               tickFormatter={(value) => Math.round(value).toLocaleString()}
                               axisLine={{ stroke: '#d1d5db' }}
+                              ticks={chartConfig.voting.ticks}
                               allowDecimals={false}
                             />
                             <Tooltip 
