@@ -121,23 +121,11 @@ export default function LoginForm({ onClose }) {
         // Determine which action to take based on current step and resetStep
         if (step === 1) {
           handleLogin();
-        } else if (step === 2) {
-          if (useSmsOtp) {
-            if (smsOtp.length === 6) {
-              handleSmsOtpVerification();
-            } else {
-              handleSendSmsOtp();
-            }
-          } else {
-            handleOtpVerification();
-          }
         } else if (step === 3) {
           handlePasswordChange();
         } else if (step === 4) {
           if (resetStep === 1) {
             handleForgotPassword();
-          } else if (resetStep === 2) {
-            handleVerifyResetOTP();
           } else if (resetStep === 3) {
             handleResetPassword();
           }
@@ -152,9 +140,8 @@ export default function LoginForm({ onClose }) {
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, [step, resetStep, loading, email, password, otp, newPassword, confirmPassword, 
-      forgotEmail, resetOtp, resetPassword, confirmResetPassword, useSmsOtp, 
-      phoneNumber, smsOtp]);
+  }, [step, resetStep, loading, email, password, newPassword, confirmPassword, 
+      forgotEmail, resetPassword, confirmResetPassword]);
   
   // Cooldown timer effect
   useEffect(() => {
@@ -237,21 +224,32 @@ export default function LoginForm({ onClose }) {
       localStorage.setItem("email", email);
       localStorage.setItem("userId", user_id);
 
-      // Updated: same-origin path + credentials
-      const otpResponse = await axios.post(
-        `/api/auth/request-otp`,
-        { userId: user_id, email },
-        { withCredentials: true }
-      );
-
-      if (otpResponse.data.devMode && otpResponse.data.otp) {
-        setDevOtp(otpResponse.data.otp);
+      // Check if this is first login (skip OTP verification)
+      if (role !== "Super Admin") {
+        try {
+          const firstLoginCheckResponse = await axios.get(
+            `/api/auth/check-first-login`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              },
+              withCredentials: true
+            }
+          );
+          
+          if (firstLoginCheckResponse.data.isFirstLogin) {
+            setIsFirstLogin(true);
+            setStep(3);
+            setLoading(false);
+            return;
+          }
+        } catch (firstLoginCheckError) {
+          console.error("Error checking first login status:", firstLoginCheckError);
+        }
       }
 
-      setCooldownActive(true);
-      setCooldownTime(COOLDOWN_SECONDS);
-      
-      setStep(2); 
+      // If not first login, navigate directly to dashboard
+      navigateToDashboard(role);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         
@@ -519,21 +517,21 @@ export default function LoginForm({ onClose }) {
     
     setLoading(true);
     try {
-      // Updated: same-origin path
+      // Updated: same-origin path - skip OTP, generate reset token directly
       const response = await axios.post(
         `/api/auth/forgot-password`,
         { email: forgotEmail },
         { withCredentials: true }
       );
 
-      if (response.data.devMode && response.data.otp) {
-        setDevOtp(response.data.otp);
+      // Get reset token from response
+      if (response.data.resetToken) {
+        setResetToken(response.data.resetToken);
+        // Skip OTP step, go directly to password reset
+        setResetStep(3);
+      } else {
+        setError("Failed to generate reset token. Please try again.");
       }
- 
-      setResetStep(2);
- 
-      setCooldownActive(true);
-      setCooldownTime(COOLDOWN_SECONDS);
     } catch (err) {
       console.error("Forgot password error:", err);
       setError(err.response?.data?.message || "Failed to process request. Please try again.");
@@ -857,12 +855,10 @@ export default function LoginForm({ onClose }) {
   return (
     <Card className="relative w-96 p-6 bg-white shadow-2xl rounded-lg">
       
-      {(step === 2 || step === 3 || step === 4) && (
+      {(step === 3 || step === 4) && (
         <button
           onClick={() => {
             if (step === 3) {
-              setStep(2); 
-            } else if (step === 2) {
               setStep(1); 
             } else if (step === 4) {
               if (resetStep > 1) {
@@ -899,7 +895,6 @@ export default function LoginForm({ onClose }) {
       <CardContent>
         <h1 className="text-2xl font-bold text-center text-[#01579B] mb-4">
           {step === 1 ? "Login" : 
-           step === 2 ? "Verify OTP" : 
            step === 3 ? "Change Password" : 
            "Reset Password"}
         </h1>
@@ -972,195 +967,6 @@ export default function LoginForm({ onClose }) {
           </form>
         )}
 
-        {step === 2 && !useSmsOtp && (
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handleOtpVerification();
-          }}>
-            <h2 className="text-[#01579B] font-semibold mb-2">Enter OTP</h2>
-            <p className="text-sm text-gray-700 mb-2">
-              A verification code has been sent to your email.
-            </p>
-            <div className="relative">
-              <Input
-                type={showOtp ? "text" : "password"}
-                placeholder="Enter 6-digit OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                onKeyDown={handleOtpKeyDown}
-                required
-                className="pr-16"
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10"
-                onClick={() => setShowOtp(!showOtp)}
-              >
-                {showOtp ? "Hide" : "Show"}
-              </button>
-            </div>
-
-            {devOtp && (
-              <div className="mt-2 p-2 bg-gray-100 rounded text-center">
-                <p className="text-xs text-gray-500">Development OTP:</p>
-                <p className="font-mono text-sm">{devOtp}</p>
-              </div>
-            )}
-            
-            <Button
-              type="submit"
-              className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
-              disabled={loading}
-            >
-              {loading ? "Verifying..." : "Verify"}
-            </Button>
-            
-
-            <div className="mt-4 text-center">
-              <button 
-                type="button"
-                onClick={handleResendOTP}
-                disabled={resendLoading || cooldownActive}
-                className={`text-sm ${cooldownActive ? 'text-gray-400 cursor-not-allowed' : 'text-[#01579B] hover:underline'}`}
-              >
-                {resendLoading ? "Sending..." : 
-                 cooldownActive ? `Resend available in ${cooldownTime}s` : 
-                 "Resend verification code"}
-              </button>
-              {resendMessage && (
-                <p className="text-xs mt-1 text-gray-600">{resendMessage}</p>
-              )}
-            </div>
-
-            {/* SMS OTP Option */}
-            <div className="mt-4 text-center">
-              <button 
-                type="button"
-                onClick={handleSmsOtpRequest}
-                className="text-sm text-[#01579B] hover:underline"
-              >
-                Use SMS OTP instead if email OTP is not working
-              </button>
-            </div>
-          </form>
-        )}
-
-        {step === 2 && useSmsOtp && (
-          <div>
-            <h2 className="text-[#01579B] font-semibold mb-2">SMS OTP Verification</h2>
-            {phoneNumber ? (
-              <>
-                <p className="text-sm text-gray-700 mb-2">
-                  {smsResendMessage || "Enter the 6-digit code sent to your registered phone number."}
-                </p>
-                <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                  <p className="text-sm text-gray-600">Phone Number:</p>
-                  <p className="text-sm font-semibold text-gray-800">{phoneNumber}</p>
-                </div>
-              </>
-            ) : (
-              <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
-                <p className="text-sm text-yellow-800 font-semibold mb-2">Phone Number Not Registered</p>
-                <p className="text-xs text-yellow-700">
-                  Please use email OTP first, then change your password and register your phone number for future SMS OTP use.
-                </p>
-                <button 
-                  type="button"
-                  onClick={handleBackToEmailOtp}
-                  className="mt-2 text-xs text-[#01579B] hover:underline"
-                >
-                  Back to Email OTP
-                </button>
-              </div>
-            )}
-            
-            {phoneNumber && (
-              <>
-                <Button
-                  onClick={handleSendSmsOtp}
-                  className="cursor-pointer mb-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
-                  disabled={loading}
-                >
-                  {loading ? "Sending..." : smsCooldownActive ? `Send SMS OTP (${smsCooldownTime}s)` : "Send SMS OTP"}
-                </Button>
-
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSmsOtpVerification();
-                }}>
-                  <h3 className="text-[#01579B] font-semibold mb-2">Enter Verification Code</h3>
-                  <p className="text-sm text-gray-700 mb-2">
-                    Enter the 6-digit code sent to your phone.
-                  </p>
-                  <div className="relative">
-                    <Input
-                      type={showSmsOtp ? "text" : "password"}
-                      placeholder="Enter 6-digit SMS OTP"
-                      value={smsOtp}
-                      onChange={(e) => {
-                        
-                        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                        setSmsOtp(value);
-                      }}
-                      onKeyDown={handleSmsOtpKeyDown}
-                      maxLength={6}
-                      pattern="[0-9]{6}"
-                      required
-                      className="pr-16"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10"
-                      onClick={() => setShowSmsOtp(!showSmsOtp)}
-                    >
-                      {showSmsOtp ? "Hide" : "Show"}
-                    </button>
-                  </div>
-
-                  {smsDevOtp && (
-                    <div className="mt-2 p-2 bg-gray-100 rounded text-center">
-                      <p className="text-xs text-black">Testing OTP:</p>
-                      <p className="font-mono text-sm text-black">{smsDevOtp}</p>
-                    </div>
-                  )}
-                  
-                  <Button
-                    type="submit"
-                    className="cursor-pointer mt-4 w-full bg-[#FFDF00] hover:bg-[#00FF00] text-black"
-                    disabled={loading || smsOtp.length !== 6}
-                  >
-                    {loading ? "Verifying..." : "Verify SMS OTP"}
-                  </Button>
-                  
-
-                  <div className="mt-4 text-center">
-                    <button 
-                      type="button"
-                      onClick={handleResendSmsOtp}
-                      disabled={smsResendLoading || smsCooldownActive}
-                      className={`text-sm ${smsCooldownActive ? 'text-gray-400 cursor-not-allowed' : 'text-[#01579B] hover:underline'}`}
-                    >
-                      {smsResendLoading ? "Sending..." : 
-                       smsCooldownActive ? `Resend available in ${smsCooldownTime}s` : 
-                       "Resend verification code"}
-                    </button>
-                  </div>
-
-                  <div className="mt-2 text-center">
-                    <button 
-                      type="button"
-                      onClick={handleBackToEmailOtp}
-                      className="text-sm text-[#01579B] hover:underline"
-                    >
-                      Back to Email OTP
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-          </div>
-        )}
-        
         {step === 3 && (
           <div>
             <p className="text-sm text-gray-700 mb-4">
@@ -1247,7 +1053,7 @@ export default function LoginForm({ onClose }) {
                 handleForgotPassword();
               }}>
                 <p className="text-sm text-gray-700 mb-3">
-                  Enter your STI email address to receive a password reset code.
+                  Enter your STI email address to reset your password.
                 </p>
                 <Input
                   type="email"
@@ -1264,7 +1070,7 @@ export default function LoginForm({ onClose }) {
                   className="w-full bg-[#003399] hover:bg-blue-800 text-white"
                   disabled={loading}
                 >
-                  {loading ? "Sending..." : "Request Reset Code"}
+                  {loading ? "Processing..." : "Reset Password"}
                 </Button>
                 
                 <div className="mt-4 text-center">
@@ -1274,64 +1080,6 @@ export default function LoginForm({ onClose }) {
                     className="text-sm text-[#01579B] hover:underline"
                   >
                     Back to Login
-                  </button>
-                </div>
-              </form>
-            )}
-            
-            {resetStep === 2 && (
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                handleVerifyResetOTP();
-              }}>
-                <p className="text-sm text-gray-700 mb-3">
-                  Enter the 6-digit verification code sent to your email.
-                </p>
-                <div className="relative">
-                  <Input
-                    type={showResetOtp ? "text" : "password"}
-                    placeholder="Enter 6-digit code"
-                    value={resetOtp}
-                    onChange={(e) => setResetOtp(e.target.value)}
-                    onKeyDown={handleResetOtpKeyDown}
-                    required
-                    className="mb-3 pr-16"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-3 text-sm text-[#01579B] hover:underline z-10 top-0"
-                    onClick={() => setShowResetOtp(!showResetOtp)}
-                  >
-                    {showResetOtp ? "Hide" : "Show"}
-                  </button>
-                </div>
-                
-                {devOtp && (
-                  <div className="mt-2 p-2 bg-gray-100 rounded text-center mb-3">
-                    <p className="text-xs text-gray-500">Code:</p>
-                    <p className="font-mono text-sm">{devOtp}</p>
-                  </div>
-                )}
-                
-                <Button
-                  type="submit"
-                  className="w-full bg-[#003399] hover:bg-blue-800 text-white"
-                  disabled={loading}
-                >
-                  {loading ? "Verifying..." : "Verify Code"}
-                </Button>
-                
-                {/* Resend OTP button with cooldown */}
-                <div className="mt-4 text-center">
-                  <button 
-                    type="button"
-                    onClick={handleResendResetOTP}
-                    disabled={resendLoading || cooldownActive}
-                    className={`text-sm ${cooldownActive ? 'text-gray-400 cursor-not-allowed' : 'text-[#01579B] hover:underline'}`}
-                  >
-                    {resendLoading ? "Sending..." : 
-                     cooldownActive ? `Resend in ${cooldownTime}s` : 
-                     "Resend code"}
                   </button>
                 </div>
               </form>
