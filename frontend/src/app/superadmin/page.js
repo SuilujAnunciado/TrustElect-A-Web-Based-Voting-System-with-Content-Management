@@ -1725,18 +1725,6 @@ export default function SuperAdminDashboard() {
                                   content={<CustomTooltip />}
                                   cursor={{ stroke: chartConfig.login.gradient.color, strokeOpacity: 0.2 }}
                                 />
-                                <ReferenceLine 
-                                  y={chartConfig.login.average} 
-                                  label={{ 
-                                    value: `Avg: ${Math.round(chartConfig.login.average).toLocaleString()}`,
-                                    position: 'right',
-                                    fill: '#6b7280',
-                                    fontSize: 11,
-                                    fontWeight: 500
-                                  }} 
-                                  stroke="#6b7280" 
-                                  strokeDasharray="5 5" 
-                                />
                                 <Area
                                   type="monotone"
                                   dataKey="count"
@@ -1809,18 +1797,6 @@ export default function SuperAdminDashboard() {
                                 <Tooltip 
                                   content={<CustomTooltip />}
                                   cursor={{ stroke: chartConfig.voting.gradient.color, strokeOpacity: 0.2 }}
-                                />
-                                <ReferenceLine 
-                                  y={chartConfig.voting.average} 
-                                  label={{ 
-                                    value: `Avg: ${Math.round(chartConfig.voting.average).toLocaleString()}`,
-                                    position: 'right',
-                                    fill: '#6b7280',
-                                    fontSize: 11,
-                                    fontWeight: 500
-                                  }} 
-                                  stroke="#6b7280" 
-                                  strokeDasharray="5 5" 
                                 />
                                 <Area
                                   type="monotone"
