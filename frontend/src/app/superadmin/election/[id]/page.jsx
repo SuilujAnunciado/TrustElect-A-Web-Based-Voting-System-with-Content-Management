@@ -2061,6 +2061,13 @@ export default function ElectionDetailsPage() {
                         data={position.chartData}
                         margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                       >
+                        <defs>
+                          <linearGradient id="resultAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35}/>
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="name" 
                           angle={-45}
@@ -2099,7 +2106,7 @@ export default function ElectionDetailsPage() {
                           name="Vote Count"
                           stroke="#1d4ed8"
                           strokeWidth={3}
-                          fill="none"
+                          fill="url(#resultAreaGradient)"
                           dot={renderResultDot}
                           activeDot={{ r: 7, stroke: '#0f172a', strokeWidth: 2, fill: '#fff' }}
                         >
@@ -2109,6 +2116,9 @@ export default function ElectionDetailsPage() {
                             style={{ fontSize: '12px', fontWeight: 'bold', fill: '#000000' }}
                             formatter={(value) => value.toLocaleString()}
                           />
+                          {position.chartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} stroke={entry.color} fill={entry.color} />
+                          ))}
                         </Area>
                       </AreaChart>
                     </ResponsiveContainer>
