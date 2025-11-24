@@ -14,8 +14,8 @@ if (!fs.existsSync(KEY_DIR)) {
 }
 
 /**
- * Generates a random encryption key
- * @returns {Buffer} A random 256-bit key
+ * 
+ * @returns {Buffer} 
  */
 const generateEncryptionKey = () => {
   return crypto.randomBytes(KEY_LENGTH);
