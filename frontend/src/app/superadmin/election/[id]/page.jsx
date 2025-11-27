@@ -3094,13 +3094,20 @@ export default function ElectionDetailsPage() {
                     )}
                   </div>
                   
-                  {election?.positions && election.positions[currentCandidatesPage] ? (
-                    <div className="bg-white rounded-lg p-4">
-                      <h4 className={`font-medium text-black mb-4 ${isBulletinFullScreen ? 'text-xl' : ''}`}>
-                        {election.positions[currentCandidatesPage].name}
+                  {election?.positions && election.positions[currentCandidatesPage] ? (() => {
+                    const currentPosition = election.positions[currentCandidatesPage];
+                    const positionVoteData = bulletinData.candidateVotes
+                      ?.find(pos => pos.id === currentPosition.id);
+                    return (
+                      <div className="bg-white rounded-lg p-4">
+                        <h4 className={`font-medium text-black mb-4 ${isBulletinFullScreen ? 'text-xl' : ''}`}>
+                          {currentPosition.name}
                       </h4>
                       <div className="space-y-4">
-                        {election.positions[currentCandidatesPage].candidates?.map((candidate) => (
+                        {currentPosition.candidates?.map((candidate) => {
+                          const candidateVoteData = positionVoteData?.candidates?.find(c => c.id === candidate.id);
+                          const candidateVoters = candidateVoteData?.voters || [];
+                          return (
                           <div key={candidate.id} className="border rounded-lg p-4 bg-gray-50">
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center">
@@ -3139,16 +3146,10 @@ export default function ElectionDetailsPage() {
                             {/* Voter Codes for this candidate */}
                             <div className="mt-3">
                               <h5 className="text-sm font-medium text-gray-700 mb-2">
-                                Voter Codes ({bulletinData.candidateVotes
-                                  .find(pos => pos.id === election.positions[currentCandidatesPage].id)
-                                  ?.candidates?.find(c => c.id === candidate.id)
-                                  ?.voters?.length || 0}):
+                                Voter Codes ({candidateVoters.length}):
                               </h5>
                               <div className="grid grid-cols-6 gap-1">
-                                {bulletinData.candidateVotes
-                                  .find(pos => pos.id === election.positions[currentCandidatesPage].id)
-                                  ?.candidates?.find(c => c.id === candidate.id)
-                                  ?.voters?.slice(0, 50).map((voter, voterIndex) => (
+                                {candidateVoters.length > 0 ? candidateVoters.map((voter, voterIndex) => (
                                     <div key={voterIndex} className="bg-white rounded border text-center hover:shadow-md transition-shadow flex flex-col items-center justify-center p-1">
                                       <span className="font-mono text-lg bg-blue-100 text-black px-2 py-1 rounded mb-1 whitespace-nowrap font-bold">
                                         {voter.verificationCode}
@@ -3157,14 +3158,19 @@ export default function ElectionDetailsPage() {
                                         {new Date(voter.voteDate || voter.vote_date).toLocaleDateString()}
                                       </span>
                                     </div>
-                                  )) || []}
+                                  )) : (
+                                    <div className="col-span-6 text-center text-gray-500 py-2">
+                                      No votes recorded yet
+                                    </div>
+                                  )}
                               </div>
                             </div>
                           </div>
-                        ))}
+                        )})}
                       </div>
                     </div>
-                  ) : (
+                    );
+                  })() : (
                     <div className="text-center py-8">
                       <User className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                       <p className="text-gray-500">No positions found</p>
