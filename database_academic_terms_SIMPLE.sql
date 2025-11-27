@@ -5,15 +5,15 @@
 -- ============================================================================
 
 -- 1. Create academic_terms table
-CREATE TABLE academic_terms (
-  id SERIAL PRIMARY KEY,
-  school_year VARCHAR(25) NOT NULL,
-  term VARCHAR(25) NOT NULL,
-  is_current BOOLEAN NOT NULL DEFAULT FALSE,
-  is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+    CREATE TABLE academic_terms (
+    id SERIAL PRIMARY KEY,
+    school_year VARCHAR(25) NOT NULL,
+    term VARCHAR(25) NOT NULL,
+    is_current BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
 
 -- 2. Create unique index for school_year + term
 CREATE UNIQUE INDEX academic_terms_unique_idx

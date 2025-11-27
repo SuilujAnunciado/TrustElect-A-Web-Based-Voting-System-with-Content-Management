@@ -144,6 +144,12 @@ export default function StudentsListPage() {
   const handleBatchUpload = async () => {
     if (!selectedFile) return;
   
+    // Check if academic term is selected
+    if (!selectedAcademicTermId) {
+      toast.error("Please select an academic term first");
+      return;
+    }
+
     try {
       setUploadStatus('uploading');
       setUploadProgress(0);
@@ -169,6 +175,7 @@ export default function StudentsListPage() {
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('createdBy', adminId);
+      formData.append('academicTermId', selectedAcademicTermId); // Add selected term
   
       // Use admin endpoint for admins with permissions
       const endpoint = userRole === 'Super Admin' ? '/api/students/batch' : '/api/admin/students/batch';
@@ -193,6 +200,7 @@ export default function StudentsListPage() {
      
       if (res.data.success > 0) {
         fetchStudents(); 
+        toast.success(`${res.data.success} students uploaded to selected term`);
       }  
       setSelectedFile(null); 
     } catch (error) {
@@ -573,7 +581,10 @@ export default function StudentsListPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4 text-black">Student Management</h1>
       
-      <CurrentAcademicTerm />
+      <CurrentAcademicTerm 
+        selectedTermId={selectedAcademicTermId}
+        studentCount={filteredCount !== undefined ? filteredCount : students.length}
+      />
       
       {error && <p className="text-red-500">{error}</p>}
 

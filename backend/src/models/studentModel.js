@@ -463,10 +463,22 @@ const generateStudentPassword = (lastName, studentNumber) => {
   return `${formattedLastName}${lastThreeDigits}${specialCharacter}`;
 }
 
-const processBatchStudents = async (students, createdBy) => {
+const processBatchStudents = async (students, createdBy, academicTermId = null) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    
+    // Get current academic term if not provided
+    if (!academicTermId) {
+      const currentTermQuery = `SELECT id FROM academic_terms WHERE is_current = TRUE LIMIT 1`;
+      const currentTermResult = await client.query(currentTermQuery);
+      
+      if (currentTermResult.rows.length > 0) {
+        academicTermId = currentTermResult.rows[0].id;
+      } else {
+        throw new Error('No current academic term set and no term specified. Please set a current academic term first.');
+      }
+    }
     
     const results = {
       success: 0,
@@ -480,8 +492,14 @@ const processBatchStudents = async (students, createdBy) => {
           throw new Error('Invalid student number format');
         }
 
-        if (await checkStudentNumberExists(student.studentNumber)) {
-          throw new Error('Student number already exists');
+        // Check if student already exists in THIS specific academic term
+        const duplicateCheck = await client.query(
+          'SELECT id FROM students WHERE student_number = $1 AND academic_term_id = $2',
+          [student.studentNumber, academicTermId]
+        );
+        
+        if (duplicateCheck.rows.length > 0) {
+          throw new Error(`Student number already exists in this academic term`);
         }
 
         let email = student.email;
@@ -498,7 +516,20 @@ const processBatchStudents = async (students, createdBy) => {
           
           normalizedLastName = normalizedLastName.replace(/[áéíóúüñçàèìòù]/g, match => charMap[match] || match);
           
+          // Base email format
           email = `${normalizedLastName}.${lastSixDigits}@novaliches.sti.edu.ph`;
+          
+          // Check if email already exists (for re-enrollment in different term)
+          const emailCheck = await client.query(
+            'SELECT id FROM users WHERE email = $1',
+            [email]
+          );
+          
+          // If email exists, append term ID to make it unique for different terms
+          if (emailCheck.rows.length > 0) {
+            email = `${normalizedLastName}.${lastSixDigits}.t${academicTermId}@novaliches.sti.edu.ph`;
+          }
+          
           console.log(`Generated email for ${student.firstName} ${student.lastName}: ${email}`);
         }
 
@@ -596,7 +627,9 @@ const processBatchStudents = async (students, createdBy) => {
           yearLevel,
           student.gender,
           parsedBirthdate,
-          createdBy
+          createdBy,
+          null, // courseId
+          academicTermId // Pass the academic term ID
         );
 
         results.success++;

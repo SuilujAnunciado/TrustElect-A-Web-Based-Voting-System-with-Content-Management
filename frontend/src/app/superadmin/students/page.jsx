@@ -124,6 +124,12 @@ export default function ManageStudents() {
   const handleBatchUpload = async () => {
     if (!selectedFile) return;
   
+    // Check if academic term is selected
+    if (!selectedAcademicTermId) {
+      toast.error("Please select an academic term first");
+      return;
+    }
+
     try {
       setUploadStatus('uploading');
       setUploadProgress(0);
@@ -139,6 +145,7 @@ export default function ManageStudents() {
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('createdBy', superAdminId);
+      formData.append('academicTermId', selectedAcademicTermId); // Add selected term
   
       const res = await axios.post('/api/superadmin/students/batch', formData, {
         headers: {
@@ -159,6 +166,7 @@ export default function ManageStudents() {
      
       if (res.data.success > 0) {
         fetchStudents(); 
+        toast.success(`${res.data.success} students uploaded to selected term`);
       }
       setSelectedFile(null); 
     } catch (error) {
@@ -571,7 +579,10 @@ export default function ManageStudents() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4 text-black">Student Management</h1>
       
-      <CurrentAcademicTerm />
+      <CurrentAcademicTerm 
+        selectedTermId={selectedAcademicTermId}
+        studentCount={filteredCount !== undefined ? filteredCount : students.length}
+      />
       
       {error && <p className="text-red-500">{error}</p>}
 

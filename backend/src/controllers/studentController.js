@@ -600,7 +600,10 @@ exports.uploadStudentsBatch = async (req, res) => {
       }
     }
 
-    const result = await processBatchStudents(validatedData, req.body.createdBy);
+    // Get academic term ID from request body or use current term
+    const academicTermId = req.body.academicTermId ? parseInt(req.body.academicTermId) : null;
+    
+    const result = await processBatchStudents(validatedData, req.body.createdBy, academicTermId);
 
     try {
       fs.unlinkSync(filePath);
