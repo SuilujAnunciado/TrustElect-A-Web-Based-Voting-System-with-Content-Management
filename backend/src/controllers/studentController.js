@@ -137,7 +137,10 @@ exports.registerStudent = async (req, res) => {
 
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await getAllStudents();
+    // Get academic_term_id from query parameter if provided
+    const academicTermId = req.query.academic_term_id ? parseInt(req.query.academic_term_id) : null;
+    
+    const students = await getAllStudents(academicTermId);
     res.status(200).json({ students });
   } catch (error) {
     console.error("Error fetching students:", error);

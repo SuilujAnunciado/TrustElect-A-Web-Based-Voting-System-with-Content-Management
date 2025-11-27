@@ -19,10 +19,23 @@ const getStudentByEmail = async (email) => {
 };
 
 
-const registerStudent = async (firstName, middleName, lastName, email, username, hashedPassword, studentNumber, courseName, yearLevel, gender, birthdate, createdBy, courseId) => {
+const registerStudent = async (firstName, middleName, lastName, email, username, hashedPassword, studentNumber, courseName, yearLevel, gender, birthdate, createdBy, courseId, academicTermId = null) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+    
+    // Get current academic term if not provided
+    if (!academicTermId) {
+      const currentTermQuery = `SELECT id FROM academic_terms WHERE is_current = TRUE LIMIT 1`;
+      const currentTermResult = await client.query(currentTermQuery);
+      
+      if (currentTermResult.rows.length > 0) {
+        academicTermId = currentTermResult.rows[0].id;
+      } else {
+        throw new Error('No current academic term set. Please set a current academic term first.');
+      }
+    }
+    
     const userQuery = `
       INSERT INTO users (first_name, last_name, email, username, password_hash, role_id, created_by, is_email_verified, is_first_login, is_active)
       VALUES ($1, $2, $3, $4, $5, 3, $6, FALSE, TRUE, TRUE) RETURNING id;
@@ -63,15 +76,15 @@ const registerStudent = async (firstName, middleName, lastName, email, username,
     }
 
     const studentQuery = `
-      INSERT INTO students (user_id, first_name, middle_name, last_name, email, username, student_number, course_name, year_level, gender, birthdate, registered_by, is_active)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, TRUE);
+      INSERT INTO students (user_id, first_name, middle_name, last_name, email, username, student_number, course_name, year_level, gender, birthdate, registered_by, academic_term_id, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, TRUE);
     `;
-    const studentValues = [userId, firstName, middleName, lastName, email, username, studentNumber, courseName, yearLevel, gender, birthdate, createdBy];
+    const studentValues = [userId, firstName, middleName, lastName, email, username, studentNumber, courseName, yearLevel, gender, birthdate, createdBy, academicTermId];
     await client.query(studentQuery, studentValues);
 
     
     await client.query("COMMIT");
-    return { id: userId, firstName, middleName, lastName, email, username, role: "Student", courseName, yearLevel, studentNumber, gender, birthdate };
+    return { id: userId, firstName, middleName, lastName, email, username, role: "Student", courseName, yearLevel, studentNumber, gender, birthdate, academicTermId };
   } catch (error) {
     await client.query("ROLLBACK");
     console.error("Database Error:", error);
@@ -82,8 +95,8 @@ const registerStudent = async (firstName, middleName, lastName, email, username,
 };
 
 
-const getAllStudents = async () => {
-  const query = `
+const getAllStudents = async (academicTermId = null) => {
+  let query = `
     SELECT 
       s.id, 
       s.first_name, 
@@ -96,13 +109,22 @@ const getAllStudents = async () => {
       s.gender,
       s.birthdate, 
       s.is_active,
+      s.academic_term_id,
       u.is_locked,
       u.locked_until
     FROM students s
     JOIN users u ON s.user_id = u.id
-    ORDER BY last_name ASC;
   `;
-  const result = await pool.query(query);
+  
+  const values = [];
+  if (academicTermId) {
+    query += ` WHERE s.academic_term_id = $1`;
+    values.push(academicTermId);
+  }
+  
+  query += ` ORDER BY last_name ASC;`;
+  
+  const result = await pool.query(query, values);
   return result.rows;
 };
 

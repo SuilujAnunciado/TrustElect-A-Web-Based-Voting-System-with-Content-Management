@@ -40,6 +40,7 @@ const adminActivityRoutes = require('./routes/adminActivityRoutes');
 const checkEmailRoutes = require('./routes/checkEmailRoutes');
 const superAdminCheckEmailRoutes = require('./routes/superAdminCheckEmailRoutes');
 const laboratoryPrecinctRoutes = require('./routes/laboratoryPrecinctRoutes');
+const academicTermRoutes = require('./routes/academicTermRoutes');
 require('./cron/cron');
 app.use(cookieParser());
 app.use(helmet());
@@ -296,6 +297,7 @@ app.use("/api/reports/admin-activity", adminActivityRoutes);  // Updated path fo
 app.use("/api", studentRoutes);
 app.use("/api/ballots", ballotRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/academic-terms", academicTermRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/audit-logs", auditLogRoutes);

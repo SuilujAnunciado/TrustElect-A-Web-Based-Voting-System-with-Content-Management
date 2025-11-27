@@ -9,6 +9,8 @@ import EditStudentModal from "@/components/Modals/EditStudentModal";
 import ResetStudentPasswordModal from "@/components/Modals/ResetStudentPasswordModal";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 import BatchActionModal from "@/components/Modals/BatchActionModal";
+import AcademicTermSelector from "@/components/AcademicTermSelector";
+import CurrentAcademicTerm from "@/components/CurrentAcademicTerm";
 import { useDropzone } from 'react-dropzone';
 import { debounce } from 'lodash';
 import { toast } from "react-hot-toast";
@@ -32,6 +34,7 @@ export default function ManageStudents() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedYearLevel, setSelectedYearLevel] = useState("");
+  const [selectedAcademicTermId, setSelectedAcademicTermId] = useState(null);
   const [showStatsPanel, setShowStatsPanel] = useState(false);
   const [sortBy, setSortBy] = useState("name-asc"); // "name-asc", "name-desc", "student-number-asc", "student-number-desc"
 
@@ -58,6 +61,13 @@ export default function ManageStudents() {
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [deleteAllType, setDeleteAllType] = useState("archive"); // "archive" or "permanent"
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+
+  // Academic term management states
+  const [showAddTermModal, setShowAddTermModal] = useState(false);
+  const [newSchoolYear, setNewSchoolYear] = useState("");
+  const [newTerm, setNewTerm] = useState("");
+  const [setAsCurrentTerm, setSetAsCurrentTerm] = useState(false);
+  const [isCreatingTerm, setIsCreatingTerm] = useState(false);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -173,11 +183,17 @@ export default function ManageStudents() {
     try {
       setLoading(true);
       const token = Cookies.get("token");
-      const res = await axios.get("/api/superadmin/students", {
+      
+      // Add academic_term_id to query if selected
+      let url = "/api/superadmin/students";
+      if (selectedAcademicTermId) {
+        url += `?academic_term_id=${selectedAcademicTermId}`;
+      }
+      
+      const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
-
 
       const activeStudents = res.data.students.filter((student) => student.is_active);
       setStudents(activeStudents);
@@ -256,6 +272,13 @@ export default function ManageStudents() {
       setFilteredCount(filteredCount);
     }
   }, [searchQuery, selectedCourse, selectedYearLevel, currentPage, students, sortBy]);
+
+  // Fetch students when academic term changes
+  useEffect(() => {
+    if (selectedAcademicTermId !== null) {
+      fetchStudents();
+    }
+  }, [selectedAcademicTermId]);
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -415,6 +438,49 @@ export default function ManageStudents() {
 
   const stats = calculateStats();
 
+  // Handle creating new academic term
+  const handleCreateAcademicTerm = async () => {
+    if (!newSchoolYear || !newTerm) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setIsCreatingTerm(true);
+    try {
+      const token = Cookies.get("token");
+      const response = await axios.post(
+        "/api/academic-terms",
+        {
+          school_year: newSchoolYear,
+          term: newTerm,
+          is_current: setAsCurrentTerm,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Academic term created successfully");
+        setShowAddTermModal(false);
+        setNewSchoolYear("");
+        setNewTerm("");
+        setSetAsCurrentTerm(false);
+        
+        // Refresh students if this was set as current
+        if (setAsCurrentTerm) {
+          fetchStudents();
+        }
+      }
+    } catch (error) {
+      console.error("Error creating academic term:", error);
+      toast.error(error.response?.data?.message || "Failed to create academic term");
+    } finally {
+      setIsCreatingTerm(false);
+    }
+  };
+
   const Pagination = () => {
     const maxPageButtons = 5;
     let pageButtons = [];
@@ -504,13 +570,28 @@ export default function ManageStudents() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4 text-black">Student Management</h1>
-      <p className="text-black font-bold mb-4">
-      School Year: 2025-2026
-      </p> 
+      
+      <CurrentAcademicTerm />
+      
       {error && <p className="text-red-500">{error}</p>}
 
       <div className="flex flex-wrap justify-between items-center mb-4">
         <div className="flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <AcademicTermSelector 
+              selectedTermId={selectedAcademicTermId}
+              onTermChange={setSelectedAcademicTermId}
+              showLabel={true}
+            />
+            <button
+              onClick={() => setShowAddTermModal(true)}
+              className="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 flex items-center gap-1"
+              title="Add New Academic Term"
+            >
+              <span className="text-lg">+</span> New Term
+            </button>
+          </div>
+          
           <input
             type="text"
             placeholder="Search by name or student #"
@@ -1023,6 +1104,85 @@ export default function ManageStudents() {
         type="warning"
         isLoading={false}
       />
+
+      {/* Add New Academic Term Modal */}
+      {showAddTermModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-black">Add New Academic Term</h2>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                School Year *
+              </label>
+              <input
+                type="text"
+                value={newSchoolYear}
+                onChange={(e) => setNewSchoolYear(e.target.value)}
+                placeholder="e.g., 2025-2026"
+                className="w-full border p-2 rounded text-black"
+              />
+              <p className="text-xs text-gray-500 mt-1">Format: YYYY-YYYY</p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Term/Semester *
+              </label>
+              <select
+                value={newTerm}
+                onChange={(e) => setNewTerm(e.target.value)}
+                className="w-full border p-2 rounded text-black"
+              >
+                <option value="">Select term...</option>
+                <option value="1st Semester">1st Semester</option>
+                <option value="2nd Semester">2nd Semester</option>
+                <option value="Summer">Summer</option>
+                <option value="Term 1">Term 1</option>
+                <option value="Term 2">Term 2</option>
+                <option value="Term 3">Term 3</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Or type your own in the field above</p>
+            </div>
+
+            <div className="mb-6">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={setAsCurrentTerm}
+                  onChange={(e) => setSetAsCurrentTerm(e.target.checked)}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-700">
+                  Set as current term (students will be uploaded to this term)
+                </span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowAddTermModal(false);
+                  setNewSchoolYear("");
+                  setNewTerm("");
+                  setSetAsCurrentTerm(false);
+                }}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                disabled={isCreatingTerm}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateAcademicTerm}
+                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+                disabled={isCreatingTerm}
+              >
+                {isCreatingTerm ? "Creating..." : "Create Term"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

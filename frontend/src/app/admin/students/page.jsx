@@ -9,6 +9,8 @@ import EditStudentModal from "@/components/Modals/EditStudentModal";
 import ResetStudentPasswordModal from "@/components/Modals/ResetStudentPasswordModal";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 import BatchActionModal from "@/components/Modals/BatchActionModal";
+import AcademicTermSelector from "@/components/AcademicTermSelector";
+import CurrentAcademicTerm from "@/components/CurrentAcademicTerm";
 import { useDropzone } from 'react-dropzone';
 import { debounce } from 'lodash';
 import { toast } from "react-hot-toast";
@@ -33,6 +35,7 @@ export default function StudentsListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedYearLevel, setSelectedYearLevel] = useState("");
+  const [selectedAcademicTermId, setSelectedAcademicTermId] = useState(null);
   const [showStatsPanel, setShowStatsPanel] = useState(false);
   const [sortBy, setSortBy] = useState("name-asc"); // "name-asc", "name-desc", "student-number-asc", "student-number-desc"
 
@@ -215,8 +218,14 @@ export default function StudentsListPage() {
       setLoading(true);
       const token = Cookies.get("token");
       
+      // Add academic_term_id to query if selected
+      let url = "/api/students";
+      if (selectedAcademicTermId) {
+        url += `?academic_term_id=${selectedAcademicTermId}`;
+      }
+      
       // Try the original endpoint that works for admins
-      const res = await axios.get("/api/students", {
+      const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
@@ -308,6 +317,13 @@ export default function StudentsListPage() {
       setFilteredCount(filteredCount);
     }
   }, [searchQuery, selectedCourse, selectedYearLevel, currentPage, students, sortBy, studentsPerPage]);
+
+  // Fetch students when academic term changes
+  useEffect(() => {
+    if (selectedAcademicTermId !== null) {
+      fetchStudents();
+    }
+  }, [selectedAcademicTermId]);
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -556,13 +572,19 @@ export default function StudentsListPage() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4 text-black">Student Management</h1>
-      <p className="text-black font-bold mb-4">
-      School Year: 2025-2026
-      </p> 
+      
+      <CurrentAcademicTerm />
+      
       {error && <p className="text-red-500">{error}</p>}
 
       <div className="flex flex-wrap justify-between items-center mb-4">
         <div className="flex flex-wrap gap-4">
+          <AcademicTermSelector 
+            selectedTermId={selectedAcademicTermId}
+            onTermChange={setSelectedAcademicTermId}
+            showLabel={true}
+          />
+          
           <input
             type="text"
             placeholder="Search by name or student #"
