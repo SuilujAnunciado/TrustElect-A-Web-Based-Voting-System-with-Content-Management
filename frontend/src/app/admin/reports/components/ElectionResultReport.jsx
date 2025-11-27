@@ -492,7 +492,7 @@ const ElectionResultReport = () => {
           className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
             selectedElectionId 
               ? 'bg-[#01579B] text-white hover:bg-[#01416E]' 
-              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              : 'bg-gray-200 text-black cursor-not-allowed'
           }`}
         >
           <Download className="w-4 h-4" />
@@ -626,20 +626,20 @@ const ElectionResultReport = () => {
                           {formatNameSimple(candidate.last_name, candidate.first_name, position.position_name, candidate)}
                         </h6>
                         {candidate.partylist_name && candidate.partylist_name !== '-' && (
-                          <p className="text-sm text-gray-600">{candidate.partylist_name}</p>
+                          <p className="text-sm text-black">{candidate.partylist_name}</p>
                         )}
                       </div>
                     </div>
                     
                     <div className="flex items-center space-x-6">
                       <div className="text-center">
-                        <p className="text-sm text-gray-600">Votes</p>
+                        <p className="text-sm text-black">Votes</p>
                         <p className="font-bold text-lg text-black">
                           {Number(candidate.vote_count || 0).toLocaleString()}
                         </p>
                       </div>
                       <div className="text-center">
-                        <p className="text-sm text-gray-600">Percentage</p>
+                        <p className="text-sm text-black">Percentage</p>
                         <p className="font-bold text-lg text-[#01579B]">
                           {candidate.vote_percentage?.toFixed(2) || '0.00'}%
                         </p>
@@ -651,7 +651,7 @@ const ElectionResultReport = () => {
                             Winner
                           </span>
                         ) : candidateIndex === 1 ? (
-                          <span className="flex items-center px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
+                          <span className="flex items-center px-3 py-1 bg-gray-100 text-black rounded-full text-sm font-medium">
                             <Medal className="w-4 h-4 mr-1" />
                             2nd Place
                           </span>
@@ -661,7 +661,7 @@ const ElectionResultReport = () => {
                             3rd Place
                           </span>
                         ) : (
-                          <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
+                          <span className="px-3 py-1 bg-gray-100 text-black rounded-full text-sm">
                             {candidateIndex + 1}th Place
                           </span>
                         )}
@@ -686,19 +686,19 @@ const ElectionResultReport = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-[#01579B]">{data.groupedPositions.length}</div>
-              <div className="text-sm text-gray-600">Positions</div>
+              <div className="text-sm text-black">Positions</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-[#01579B]">
                 {data.groupedPositions.reduce((total, pos) => total + (Array.isArray(pos.sortedCandidates) ? pos.sortedCandidates.length : 0), 0)}
               </div>
-              <div className="text-sm text-gray-600">Total Candidates</div>
+              <div className="text-sm text-black">Total Candidates</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-[#01579B]">
                 {getTotalVotesCast(data.selectedElection)}
               </div>
-              <div className="text-sm text-gray-600">Total Votes Cast</div>
+              <div className="text-sm text-black">Total Votes Cast</div>
             </div>
           </div>
         </div>
