@@ -47,6 +47,13 @@ export default function AcademicTermSelector({ selectedTermId, onTermChange, sho
     fetchAcademicTerms();
   }, []);
 
+  // Make sure to update parent when current term is loaded
+  useEffect(() => {
+    if (currentTerm && !selectedTermId) {
+      onTermChange(currentTerm.id);
+    }
+  }, [currentTerm]);
+
   const formatTermDisplay = (term) => {
     const currentLabel = term.is_current ? '(Current)' : '';
     return `${term.school_year} ${term.term} ${currentLabel}`.trim();

@@ -261,7 +261,7 @@ export default function StudentsListPage() {
   };
 
   useEffect(() => {
-    fetchStudents();
+    // Don't fetch students on mount - wait for academic term to be set
     fetchCoursesAndYearLevels();
   }, []);
 
