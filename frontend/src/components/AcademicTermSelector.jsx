@@ -48,8 +48,12 @@ export default function AcademicTermSelector({ selectedTermId, onTermChange, sho
   }, []);
 
   const formatTermDisplay = (term) => {
-    return `${term.school_year} ${term.term} ${term.is_current ? '(Current)' : ''}`;
+    const currentLabel = term.is_current ? '(Current)' : '';
+    return `${term.school_year} ${term.term} ${currentLabel}`.trim();
   };
+
+  // Allow parent to trigger refresh
+  window.refreshAcademicTerms = fetchAcademicTerms;
 
   if (loading) {
     return (

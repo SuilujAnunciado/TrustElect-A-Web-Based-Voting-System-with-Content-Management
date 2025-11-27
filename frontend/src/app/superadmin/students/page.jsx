@@ -590,6 +590,42 @@ export default function ManageStudents() {
               onTermChange={setSelectedAcademicTermId}
               showLabel={true}
             />
+            {selectedAcademicTermId && (
+              <button
+                onClick={async () => {
+                  if (confirm("Set this term as the current active term?")) {
+                    try {
+                      const token = Cookies.get("token");
+                      const response = await axios.patch(
+                        `/api/academic-terms/${selectedAcademicTermId}/set-current`,
+                        {},
+                        {
+                          headers: { Authorization: `Bearer ${token}` },
+                          withCredentials: true,
+                        }
+                      );
+
+                      if (response.data.success) {
+                        toast.success("Current term updated successfully");
+                        // Refresh the term selector to update (Current) labels
+                        if (window.refreshAcademicTerms) {
+                          window.refreshAcademicTerms();
+                        }
+                        // Refresh students list
+                        setTimeout(() => fetchStudents(), 500);
+                      }
+                    } catch (error) {
+                      console.error("Error setting current term:", error);
+                      toast.error(error.response?.data?.message || "Failed to set current term");
+                    }
+                  }
+                }}
+                className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 flex items-center gap-1"
+                title="Set this term as current"
+              >
+                ✓ Set as Current
+              </button>
+            )}
             <button
               onClick={() => setShowAddTermModal(true)}
               className="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 flex items-center gap-1"
