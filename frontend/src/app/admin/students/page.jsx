@@ -320,17 +320,13 @@ export default function StudentsListPage() {
   };
 
   useEffect(() => {
-    if (students.length > 0) {
-      const filteredCount = applyFilters(students);
-      setFilteredCount(filteredCount);
-    }
+    const filteredCount = applyFilters(students);
+    setFilteredCount(filteredCount);
   }, [searchQuery, selectedCourse, selectedYearLevel, currentPage, students, sortBy, studentsPerPage]);
 
   // Fetch students when academic term changes
   useEffect(() => {
-    if (selectedAcademicTermId !== null) {
-      fetchStudents();
-    }
+    fetchStudents();
   }, [selectedAcademicTermId]);
 
   const resetFilters = () => {

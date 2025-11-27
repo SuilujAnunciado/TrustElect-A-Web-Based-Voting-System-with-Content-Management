@@ -275,17 +275,13 @@ export default function ManageStudents() {
   }, []);
 
   useEffect(() => {
-    if (students.length > 0) {
-      const filteredCount = applyFilters(students);
-      setFilteredCount(filteredCount);
-    }
-  }, [searchQuery, selectedCourse, selectedYearLevel, currentPage, students, sortBy]);
+    const filteredCount = applyFilters(students);
+    setFilteredCount(filteredCount);
+  }, [searchQuery, selectedCourse, selectedYearLevel, currentPage, students, sortBy, studentsPerPage]);
 
   // Fetch students when academic term changes
   useEffect(() => {
-    if (selectedAcademicTermId !== null) {
-      fetchStudents();
-    }
+    fetchStudents();
   }, [selectedAcademicTermId]);
 
   const resetFilters = () => {
@@ -1156,17 +1152,22 @@ export default function ManageStudents() {
               <p className="text-xs text-gray-500 mt-1">Or type your own in the field above</p>
             </div>
 
-            <div className="mb-6">
-              <label className="flex items-center">
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
                   checked={setAsCurrentTerm}
                   onChange={(e) => setSetAsCurrentTerm(e.target.checked)}
-                  className="mr-2"
+                  className="mr-3 w-4 h-4 cursor-pointer"
                 />
-                <span className="text-sm text-gray-700">
-                  Set as current term (students will be uploaded to this term)
-                </span>
+                <div>
+                  <span className="text-sm font-medium text-gray-900 block">
+                    Set as current term
+                  </span>
+                  <span className="text-xs text-gray-600">
+                    If checked, this will become the active term for new student registrations
+                  </span>
+                </div>
               </label>
             </div>
 
