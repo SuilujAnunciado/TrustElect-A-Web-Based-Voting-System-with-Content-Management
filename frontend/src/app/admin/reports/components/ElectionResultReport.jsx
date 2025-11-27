@@ -109,6 +109,19 @@ const formatNameSimple = (lastName, firstName, positionName, candidate = null) =
   return `${actualFirstName.trim()} ${actualLastName.trim()}`.trim();
 };
 
+const getTotalVotesCast = (election) => {
+  if (!election) return 0;
+  return Number(
+    election.total_votes ??
+    election.total_votes_cast ??
+    election.vote_count ??
+    election.totalVotes ??
+    election.totalVotesCast ??
+    election.voteCount ??
+    0
+  );
+};
+
 const ElectionResultReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -329,7 +342,7 @@ const ElectionResultReport = () => {
           title: data.selectedElection.title,
           type: data.selectedElection.election_type || 'General Election',
           status: data.selectedElection.status,
-          total_votes: data.selectedElection.total_votes || 0,
+          total_votes: getTotalVotesCast(data.selectedElection),
           total_eligible_voters: data.selectedElection.total_eligible_voters || 0,
           voter_turnout_percentage: data.selectedElection.voter_turnout_percentage || 0,
           date: new Date(data.selectedElection.date_to).toLocaleDateString(),
@@ -355,7 +368,7 @@ const ElectionResultReport = () => {
         summary: {
           total_positions: data.groupedPositions.length,
           total_candidates: data.groupedPositions.reduce((total, pos) => total + pos.sortedCandidates.length, 0),
-          total_votes_cast: data.selectedElection.total_votes || 0,
+          total_votes_cast: getTotalVotesCast(data.selectedElection),
           voter_turnout: data.selectedElection.voter_turnout_percentage || 0
         }
       };
@@ -443,7 +456,7 @@ const ElectionResultReport = () => {
               <p><span className="font-medium">Type:</span> {data.selectedElection.election_type}</p>
             </div>
             <div>
-              <p><span className="font-medium">Total Votes Cast:</span> {data.selectedElection.total_votes}</p>
+              <p><span className="font-medium">Total Votes Cast:</span> {getTotalVotesCast(data.selectedElection)}</p>
               <p><span className="font-medium">Status:</span> {data.selectedElection.status}</p>
             </div>
           </div>
@@ -630,7 +643,7 @@ const ElectionResultReport = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-[#01579B]">
-                {data.selectedElection?.total_votes || 0}
+                {getTotalVotesCast(data.selectedElection)}
               </div>
               <div className="text-sm text-gray-600">Total Votes Cast</div>
             </div>

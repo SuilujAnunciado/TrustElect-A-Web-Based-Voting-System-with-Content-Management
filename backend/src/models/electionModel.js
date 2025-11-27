@@ -162,7 +162,6 @@ const createElection = async (electionData, userId, needsApproval = false) => {
   try {
       await client.query("BEGIN");
 
-      // Check if user is superadmin
       const userCheck = await client.query(
           `SELECT role_id FROM users WHERE id = $1`,
           [userId]
@@ -170,7 +169,6 @@ const createElection = async (electionData, userId, needsApproval = false) => {
 
       const isSuperAdmin = userCheck.rows[0]?.role_id === 1;
       
-      // Override needsApproval for superadmin and set status to approved
       if (isSuperAdmin) {
           needsApproval = false;
       }
@@ -604,9 +602,7 @@ const restoreArchivedElection = async (id, userId) => {
   return { message: "Election restored successfully", election: result.rows[0] };
 };
 
-// Soft delete election - using admin system approach
 const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
-  // First check if election exists
   const checkResult = await pool.query(
     `SELECT id, is_active, is_deleted FROM elections WHERE id = $1`,
     [id]
@@ -618,7 +614,6 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   
   const election = checkResult.rows[0];
   
-  // Check if already deleted
   if (election.is_deleted === true) {
     throw new Error("Election is already deleted");
   }
@@ -1275,9 +1270,7 @@ const createElectionLaboratoryPrecincts = async (electionId, laboratoryPrecincts
       'DELETE FROM election_laboratory_precincts WHERE election_id = $1',
       [electionId]
     );
-    
-    // Insert new laboratory precincts
-    for (const labPrecinct of laboratoryPrecincts) {
+        for (const labPrecinct of laboratoryPrecincts) {
       if (labPrecinct.assignedCourses && labPrecinct.assignedCourses.length > 0) {
         await client.query(
           `INSERT INTO election_laboratory_precincts 
@@ -1312,7 +1305,6 @@ const assignStudentsToLaboratoryPrecincts = async (electionId, laboratoryPrecinc
     for (const voter of eligibleVoters.rows) {
       for (const labPrecinct of laboratoryPrecincts) {
         if (labPrecinct.assignedCourses.includes(voter.course_name)) {
-          // Get the election_laboratory_precinct_id
           const elpResult = await client.query(
             'SELECT id FROM election_laboratory_precincts WHERE election_id = $1 AND laboratory_precinct_id = $2',
             [electionId, labPrecinct.laboratoryPrecinctId]
