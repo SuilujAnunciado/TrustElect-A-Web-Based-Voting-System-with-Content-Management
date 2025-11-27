@@ -122,6 +122,47 @@ const getTotalVotesCast = (election) => {
   );
 };
 
+const getTotalEligibleVoters = (election) => {
+  if (!election) return 0;
+  return Number(
+    election.total_eligible_voters ??
+    election.voter_count ??
+    election.totalEligibleVoters ??
+    election.eligible_voters ??
+    election.eligibleVoters ??
+    0
+  );
+};
+
+const normalizeElectionTotals = (election) => {
+  if (!election) {
+    return {
+      total_votes_cast: 0,
+      total_votes: 0,
+      vote_count: 0,
+      total_eligible_voters: 0,
+      voter_count: 0,
+      voter_turnout_percentage: 0
+    };
+  }
+
+  const totalVotesCast = getTotalVotesCast(election);
+  const totalEligibleVoters = getTotalEligibleVoters(election);
+  const turnout = totalEligibleVoters > 0
+    ? Number(((totalVotesCast / totalEligibleVoters) * 100).toFixed(2))
+    : (election.voter_turnout_percentage ?? 0);
+
+  return {
+    ...election,
+    total_votes_cast: totalVotesCast,
+    total_votes: totalVotesCast,
+    vote_count: totalVotesCast,
+    total_eligible_voters: totalEligibleVoters,
+    voter_count: totalEligibleVoters,
+    voter_turnout_percentage: turnout
+  };
+};
+
 const ElectionResultReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -281,9 +322,11 @@ const ElectionResultReport = () => {
         });
       }
 
+      const normalizedElection = normalizeElectionTotals(election);
+
       setData(prev => ({
         ...prev,
-        selectedElection: election,
+        selectedElection: normalizedElection,
         positions: results,
         groupedPositions: groupedPositions,
         pagination: {
