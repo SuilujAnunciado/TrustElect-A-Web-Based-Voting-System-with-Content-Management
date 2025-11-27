@@ -505,12 +505,12 @@ const ElectionResultReport = () => {
           <h2 className="text-xl font-semibold text-black mb-2">{data.selectedElection.title}</h2>
           <div className="grid grid-cols-2 gap-4 text-sm text-black mb-4">
             <div>
-              <p><span className="font-medium">Date:</span> {new Date(data.selectedElection.date_to).toLocaleDateString()}</p>
+              <p><span className="font-medium text-lg">Date:</span> {new Date(data.selectedElection.date_to).toLocaleDateString()}</p>
               <p><span className="font-medium">Type:</span> {data.selectedElection.election_type}</p>
             </div>
             <div>
-              <p><span className="font-medium">Total Votes Cast:</span> {getTotalVotesCast(data.selectedElection)}</p>
-              <p><span className="font-medium">Status:</span> {data.selectedElection.status}</p>
+              <p><span className="font-medium text-lg">Total Votes Cast:</span> {getTotalVotesCast(data.selectedElection)}</p>
+              <p><span className="font-medium text-lg">Status:</span> {data.selectedElection.status}</p>
             </div>
           </div>
         </div>
