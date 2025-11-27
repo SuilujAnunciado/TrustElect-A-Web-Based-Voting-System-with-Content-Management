@@ -803,7 +803,12 @@ export default function StudentsListPage() {
         </button>
       </div>
 
-      {showAddModal && <AddStudentModal onClose={() => setShowAddModal(false)} />}
+      {showAddModal && (
+        <AddStudentModal 
+          onClose={() => setShowAddModal(false)} 
+          selectedAcademicTermId={selectedAcademicTermId}
+        />
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full bg-white shadow-md rounded-lg overflow-hidden text-black">

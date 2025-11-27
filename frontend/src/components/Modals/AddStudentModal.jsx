@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 
-export default function AddStudentModal({ onClose }) {
+export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -362,7 +362,7 @@ export default function AddStudentModal({ onClose }) {
 
     setEmailValidationStatus({
       isValid: null,
-      message: "Checking email availability...",
+      message: "Checking email...",
       isChecking: true
     });
 
@@ -375,23 +375,24 @@ export default function AddStudentModal({ onClose }) {
       const emailExists = response.data.exists || false;
       
       if (emailExists) {
+        // Email exists - this is OK for re-enrollment in different terms
         setEmailValidationStatus({
-          isValid: false,
-          message: "This email is already registered",
+          isValid: true, // Changed to true - allow re-enrollment
+          message: "Email exists (student will be re-enrolled in this term)",
           isChecking: false
         });
       } else {
         setEmailValidationStatus({
           isValid: true,
-          message: "Email is available",
+          message: "Email is available (new student)",
           isChecking: false
         });
       }
     } catch (error) {
       console.error("Error checking email:", error);
       setEmailValidationStatus({
-        isValid: null,
-        message: "Unable to verify email",
+        isValid: true, // Allow to proceed even if check fails
+        message: "Unable to verify email - will validate during registration",
         isChecking: false
       });
     }
@@ -465,17 +466,13 @@ export default function AddStudentModal({ onClose }) {
       newErrors.email = "*Email is required.";
     } else if (!formData.email.endsWith("@novaliches.sti.edu.ph") && !formData.email.endsWith("@novaliches.sti.edu")) {
       newErrors.email = "Invalid STI email. Must end with @novaliches.sti.edu.ph or @novaliches.sti.edu";
-    } else if (emailValidationStatus.isValid === false) {
+    } else if (emailValidationStatus.isValid === false && emailValidationStatus.message.includes("Invalid STI email")) {
+      // Only block if email format is invalid, not if it exists
       newErrors.email = emailValidationStatus.message;
     } else if (emailValidationStatus.isChecking) {
-      newErrors.email = "Please wait  verifying the email...";
-    } else if (emailValidationStatus.isValid === null && formData.email.includes('@')) {
-      // If real-time validation hasn't completed yet, do a final check
-      const emailExists = await checkEmailExists(formData.email);
-      if (emailExists) {
-        newErrors.email = "This email is already registered. Please use a different email.";
-      }
+      newErrors.email = "Please wait - verifying the email...";
     }
+    // Remove the check that blocks existing emails - backend will handle re-enrollment
     
     // Student number validations
     if (!formData.studentNumber.trim()) {
@@ -529,6 +526,12 @@ export default function AddStudentModal({ onClose }) {
   
   const confirmRegistration = async () => {
     try {
+      // Check if academic term is selected
+      if (!selectedAcademicTermId) {
+        alert("Please select an academic term first before adding students");
+        return;
+      }
+
       const token = Cookies.get("token");
       const superAdminId = Cookies.get("userId") || localStorage.getItem("userId");
 
@@ -568,7 +571,8 @@ export default function AddStudentModal({ onClose }) {
         gender: formData.gender,
         birthdate: formattedBirthdate,
         password: generatedPassword,
-        createdBy: superAdminId
+        createdBy: superAdminId,
+        academicTermId: selectedAcademicTermId // Pass the selected term
       };
 
       const res = await axios.post("/api/superadmin/students", studentData, {
@@ -772,12 +776,11 @@ export default function AddStudentModal({ onClose }) {
           <button 
             onClick={handleRegister} 
             className="bg-blue-600 text-white px-4 py-2 rounded w-full mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            disabled={isLoading || emailChecking || emailValidationStatus.isChecking || emailValidationStatus.isValid === false}
+            disabled={isLoading || emailChecking || emailValidationStatus.isChecking || (emailValidationStatus.isValid === false && emailValidationStatus.message.includes("Invalid STI email"))}
           >
             {isLoading ? "Loading..." : 
              emailChecking ? "Checking Email..." : 
              emailValidationStatus.isChecking ? "Validating Email..." :
-             emailValidationStatus.isValid === false ? "Email Not Available" :
              "Generate Password & Register"}
           </button>
           <button onClick={handleCancel} className="text-red-500 w-full text-center mt-3">Cancel</button>

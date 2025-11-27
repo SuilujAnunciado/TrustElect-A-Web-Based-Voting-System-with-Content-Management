@@ -55,12 +55,12 @@ exports.registerStudent = async (req, res) => {
   }
 
   try {
-    const { firstName, middleName, lastName, email, studentNumber, courseName, courseId, yearLevel, gender, birthdate, password, createdBy } = req.body;
+    const { firstName, middleName, lastName, email, studentNumber, courseName, courseId, yearLevel, gender, birthdate, password, createdBy, academicTermId } = req.body;
 
-    const studentExists = await checkStudentNumberExists(studentNumber);
-    if (studentExists) {
-      return res.status(400).json({ message: "Student number already exists" });
-    }
+    // Get academic term ID from request or use current term
+    let termId = academicTermId ? parseInt(academicTermId) : null;
+    
+    // Don't check for duplicate student number here - backend model will check per term
 
     let hashedPassword;
     if (password) {
@@ -111,7 +111,8 @@ exports.registerStudent = async (req, res) => {
       gender,
       processedBirthdate,
       createdBy,
-      courseId
+      courseId,
+      termId // Pass academic term ID
     );
 
     res.status(201).json({
