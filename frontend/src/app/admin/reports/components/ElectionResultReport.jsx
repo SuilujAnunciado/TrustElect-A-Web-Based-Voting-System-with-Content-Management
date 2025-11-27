@@ -324,17 +324,27 @@ const ElectionResultReport = () => {
 
       const normalizedElection = normalizeElectionTotals(election);
 
-      setData(prev => ({
-        ...prev,
-        selectedElection: normalizedElection,
-        positions: results,
-        groupedPositions: groupedPositions,
-        pagination: {
-          ...prev.pagination,
-          total: results.length,
-          total_pages: Math.ceil(results.length / prev.pagination.limit)
-        }
-      }));
+      setData(prev => {
+        const baseElection = prev.elections.find(e => `${e.id}` === `${electionId}`);
+        const normalizedBase = baseElection ? normalizeElectionTotals(baseElection) : null;
+
+        const mergedElection = normalizeElectionTotals({
+          ...normalizedElection,
+          ...(normalizedBase || {})
+        });
+
+        return {
+          ...prev,
+          selectedElection: mergedElection,
+          positions: results,
+          groupedPositions: groupedPositions,
+          pagination: {
+            ...prev.pagination,
+            total: results.length,
+            total_pages: Math.ceil(results.length / prev.pagination.limit)
+          }
+        };
+      });
       setError(null);
     } catch (err) {
       console.error('Error fetching election results:', err);
