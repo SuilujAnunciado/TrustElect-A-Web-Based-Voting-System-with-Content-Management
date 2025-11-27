@@ -185,14 +185,18 @@ const createSummaryTable = (doc, data, columns, startY) => {
     theme: 'grid',
     styles: {
       fontSize: 10,
-      cellPadding: 5
+      cellPadding: 5,
+      textColor: [0, 0, 0]
+    },
+    bodyStyles: {
+      textColor: [0, 0, 0]
     },
     headStyles: {
       fillColor: [1, 87, 155],
       textColor: 255,
       fontStyle: 'bold'
     },
-    margin: { top: 10 }
+    margin: { top: 10, bottom: 30, left: 14, right: 14 }
   });
   
   return doc.lastAutoTable.finalY + 10; // Return the Y position after the table

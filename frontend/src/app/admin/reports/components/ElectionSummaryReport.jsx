@@ -272,7 +272,7 @@ export default function ElectionSummaryReport() {
   if (!summaryData) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">No election data available</p>
+        <p className="text-black">No election data available</p>
       </div>
     );
   }
@@ -288,13 +288,13 @@ export default function ElectionSummaryReport() {
 
       <div className="flex border-b mb-4">
         <button
-          className={`px-4 py-2 font-medium ${activeTab === "summary" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600"}`}
+          className={`px-4 py-2 font-medium ${activeTab === "summary" ? "text-blue-600 border-b-2 border-blue-600" : "text-black"}`}
           onClick={() => setActiveTab("summary")}
         >
           Summary
         </button>
         <button
-          className={`px-4 py-2 font-medium ${activeTab === "details" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600"}`}
+          className={`px-4 py-2 font-medium ${activeTab === "details" ? "text-blue-600 border-b-2 border-blue-600" : "text-black"}`}
           onClick={() => setActiveTab("details")}
         >
           Details
@@ -343,7 +343,7 @@ export default function ElectionSummaryReport() {
             <div className="border rounded-lg p-4">
               <h3 className="text-sm font-medium text-black mb-1">Total Votes Cast</h3>
               <p className="text-2xl font-bold text-black">{formatNumber(summaryData.summary.total_votes_cast)}</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-black">
                 {formatPercentage(summaryData.summary.voter_turnout_percentage)} turnout
               </p>
             </div>
@@ -377,7 +377,7 @@ export default function ElectionSummaryReport() {
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         election.status === "ongoing" ? "bg-blue-100 text-blue-800" :
                         election.status === "completed" ? "bg-green-100 text-green-800" :
-                        "bg-gray-100 text-gray-800"
+                        "bg-gray-100 text-black"
                       }`}>
                         {election.status}
                       </span>
@@ -391,7 +391,7 @@ export default function ElectionSummaryReport() {
                 )) : []}
                 {Array.isArray(summaryData.recent_elections) && summaryData.recent_elections.length === 0 && (
                   <tr>
-                    <td colSpan="8" className="p-3 text-center text-gray-500">No election data available</td>
+                    <td colSpan="8" className="p-3 text-center text-black">No election data available</td>
                   </tr>
                 )}
               </tbody>
@@ -412,7 +412,7 @@ export default function ElectionSummaryReport() {
                 </button>
                 <div>
                   <h2 className="text-2xl font-bold text-black mb-2">{electionDetails.title}</h2>
-                  <div className="text-sm text-gray-600 space-y-1">
+                  <div className="text-sm text-black space-y-1">
                     <p>Start: {formatDateTime(electionDetails.date_from || electionDetails.start_date, electionDetails.start_time)}</p>
                     <p>End: {formatDateTime(electionDetails.date_to || electionDetails.end_date, electionDetails.end_time)}</p>
                     <p className="mt-2">Status: <span className={`inline-block px-2 py-1 rounded-full text-xs ${electionDetails.status === 'ongoing' ? 'bg-blue-100 text-blue-800' : electionDetails.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{electionDetails.status?.toUpperCase()}</span></p>
@@ -435,17 +435,17 @@ export default function ElectionSummaryReport() {
                 <h3 className="text-lg font-semibold mb-4 text-black">Election Summary</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-blue-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-600">Total Eligible Voters</p>
+                    <p className="text-sm text-black">Total Eligible Voters</p>
                     <p className="text-2xl font-bold text-blue-600">{formatNumber(electionDetails.voter_count || 0)}</p>
                   </div>
                   <div className="bg-green-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-600">Total Votes Cast</p>
+                    <p className="text-sm text-black">Total Votes Cast</p>
                     <p className="text-2xl font-bold text-green-600">
                       {formatNumber(electionDetails.vote_count !== undefined ? electionDetails.vote_count : 0)}
                     </p>
                   </div>
                   <div className="bg-purple-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-600">Voter Turnout</p>
+                    <p className="text-sm text-black">Voter Turnout</p>
                     <p className="text-2xl font-bold text-purple-600">
                       {formatPercentage(calculateTurnout(
                         electionDetails.vote_count !== undefined ? electionDetails.vote_count : 0, 
@@ -463,7 +463,7 @@ export default function ElectionSummaryReport() {
                     <div className="flex justify-between items-center mb-6">
                       <div>
                         <h3 className="text-xl font-semibold text-black">{position.name}</h3>
-                        <p className="text-sm text-gray-600 mt-1">Maximum choices: {position.max_choices || 1}</p>
+                        <p className="text-sm text-black mt-1">Maximum choices: {position.max_choices || 1}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -488,7 +488,7 @@ export default function ElectionSummaryReport() {
                             </h4>
                             {candidate.party && (
                               <div className="flex items-center mt-1">
-                                <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{candidate.party}</span>
+                                <span className="text-sm text-black bg-gray-100 px-2 py-1 rounded-full">{candidate.party}</span>
                               </div>
                             )}
                             {electionDetails.status !== 'upcoming' && (
@@ -497,7 +497,7 @@ export default function ElectionSummaryReport() {
                                   Total Votes: {formatNumber(candidate.vote_count || 0)}
                                 </p>
                                 {parseInt(electionDetails.vote_count || 0) > 0 && (
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-black">
                                     {formatPercentage((parseInt(candidate.vote_count || 0) / parseInt(electionDetails.vote_count || 1)) * 100)} of total votes
                                   </p>
                                 )}
