@@ -63,6 +63,13 @@ export default function StudentsListPage() {
   const [deleteAllType, setDeleteAllType] = useState("archive"); // "archive" or "permanent"
   const [isDeletingAll, setIsDeletingAll] = useState(false);
 
+  // Add new academic term states
+  const [showAddTermModal, setShowAddTermModal] = useState(false);
+  const [newSchoolYear, setNewSchoolYear] = useState("");
+  const [newTerm, setNewTerm] = useState("");
+  const [setAsCurrentTerm, setSetAsCurrentTerm] = useState(false);
+  const [isCreatingTerm, setIsCreatingTerm] = useState(false);
+
   const { hasPermission, loading: permissionsLoading, refreshPermissions } = usePermissions();
   const [userRole, setUserRole] = useState(null);
 
@@ -471,6 +478,54 @@ export default function StudentsListPage() {
     }
   };
 
+  // Handle creating new academic term
+  const handleCreateAcademicTerm = async () => {
+    if (!newSchoolYear || !newTerm) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setIsCreatingTerm(true);
+    try {
+      const token = Cookies.get("token");
+      const response = await axios.post(
+        "/api/academic-terms",
+        {
+          school_year: newSchoolYear,
+          term: newTerm,
+          is_current: setAsCurrentTerm,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Academic term created successfully");
+        setShowAddTermModal(false);
+        setNewSchoolYear("");
+        setNewTerm("");
+        setSetAsCurrentTerm(false);
+        
+        // Refresh the term selector
+        if (window.refreshAcademicTerms) {
+          window.refreshAcademicTerms();
+        }
+        
+        // Refresh students if this was set as current
+        if (setAsCurrentTerm) {
+          fetchStudents();
+        }
+      }
+    } catch (error) {
+      console.error("Error creating academic term:", error);
+      toast.error(error.response?.data?.message || "Failed to create academic term");
+    } finally {
+      setIsCreatingTerm(false);
+    }
+  };
+
   const calculateStats = () => {
     const courseStats = {};
     courses.forEach(course => {
@@ -592,41 +647,52 @@ export default function StudentsListPage() {
               onTermChange={setSelectedAcademicTermId}
               showLabel={true}
             />
-            {selectedAcademicTermId && userRole === 'Super Admin' && (
-              <button
-                onClick={async () => {
-                  if (confirm("Set this term as the current active term?")) {
-                    try {
-                      const token = Cookies.get("token");
-                      const response = await axios.patch(
-                        `/api/academic-terms/${selectedAcademicTermId}/set-current`,
-                        {},
-                        {
-                          headers: { Authorization: `Bearer ${token}` },
-                          withCredentials: true,
-                        }
-                      );
+            {(userRole === 'Super Admin' || (hasPermission('users', 'create') && hasPermission('users', 'edit') && hasPermission('users', 'delete'))) && (
+              <>
+                <button
+                  onClick={() => setShowAddTermModal(true)}
+                  className="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 flex items-center gap-1"
+                  title="Add new academic term"
+                >
+                  + Add New Term
+                </button>
+                {selectedAcademicTermId && (
+                  <button
+                    onClick={async () => {
+                      if (confirm("Set this term as the current active term?")) {
+                        try {
+                          const token = Cookies.get("token");
+                          const response = await axios.patch(
+                            `/api/academic-terms/${selectedAcademicTermId}/set-current`,
+                            {},
+                            {
+                              headers: { Authorization: `Bearer ${token}` },
+                              withCredentials: true,
+                            }
+                          );
 
-                      if (response.data.success) {
-                        toast.success("Current term updated successfully");
-                        // Refresh the term selector to update (Current) labels
-                        if (window.refreshAcademicTerms) {
-                          window.refreshAcademicTerms();
+                          if (response.data.success) {
+                            toast.success("Current term updated successfully");
+                            // Refresh the term selector to update (Current) labels
+                            if (window.refreshAcademicTerms) {
+                              window.refreshAcademicTerms();
+                            }
+                            // Refresh students list
+                            setTimeout(() => fetchStudents(), 500);
+                          }
+                        } catch (error) {
+                          console.error("Error setting current term:", error);
+                          toast.error(error.response?.data?.message || "Failed to set current term");
                         }
-                        // Refresh students list
-                        setTimeout(() => fetchStudents(), 500);
                       }
-                    } catch (error) {
-                      console.error("Error setting current term:", error);
-                      toast.error(error.response?.data?.message || "Failed to set current term");
-                    }
-                  }
-                }}
-                className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 flex items-center gap-1"
-                title="Set this term as current"
-              >
-                ✓ Set as Current
-              </button>
+                    }}
+                    className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 flex items-center gap-1"
+                    title="Set this term as current"
+                  >
+                    ✓ Set as Current
+                  </button>
+                )}
+              </>
             )}
           </div>
           
@@ -1160,6 +1226,90 @@ export default function StudentsListPage() {
         type="warning"
         isLoading={false}
       />
+
+      {/* Add New Academic Term Modal */}
+      {showAddTermModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-black">Add New Academic Term</h2>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                School Year *
+              </label>
+              <input
+                type="text"
+                value={newSchoolYear}
+                onChange={(e) => setNewSchoolYear(e.target.value)}
+                placeholder="e.g., 2025-2026"
+                className="w-full border p-2 rounded text-black"
+              />
+              <p className="text-xs text-gray-500 mt-1">Format: YYYY-YYYY</p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Term/Semester *
+              </label>
+              <select
+                value={newTerm}
+                onChange={(e) => setNewTerm(e.target.value)}
+                className="w-full border p-2 rounded text-black"
+              >
+                <option value="">Select term...</option>
+                <option value="1st Semester">1st Semester</option>
+                <option value="2nd Semester">2nd Semester</option>
+                <option value="Summer">Summer</option>
+                <option value="Term 1">Term 1</option>
+                <option value="Term 2">Term 2</option>
+                <option value="Term 3">Term 3</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Or type your own in the field above</p>
+            </div>
+
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={setAsCurrentTerm}
+                  onChange={(e) => setSetAsCurrentTerm(e.target.checked)}
+                  className="mr-3 w-4 h-4 cursor-pointer mt-0.5"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900 block">
+                    Set as current term
+                  </span>
+                  <span className="text-xs text-gray-600">
+                    If checked, this will become the active term for new student registrations
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowAddTermModal(false);
+                  setNewSchoolYear("");
+                  setNewTerm("");
+                  setSetAsCurrentTerm(false);
+                }}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                disabled={isCreatingTerm}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateAcademicTerm}
+                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+                disabled={isCreatingTerm}
+              >
+                {isCreatingTerm ? "Creating..." : "Create Term"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
   );
 } 

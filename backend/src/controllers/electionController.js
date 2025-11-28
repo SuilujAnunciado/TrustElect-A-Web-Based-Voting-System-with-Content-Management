@@ -516,8 +516,7 @@ exports.getElectionsByStatus = async (req, res) => {
         message: "Invalid pagination parameters. Page must be >= 1 and limit must be between 1 and 50."
       });
     }
-    
-    console.log(`Fetching ${status} elections - page ${page}, limit ${limit}`);
+
     const elections = await getElectionsByStatus(status, page, limit);
         const countQuery = `
       SELECT COUNT(*) as total
@@ -1193,13 +1192,7 @@ exports.submitVote = async (req, res) => {
           }))
         };
 
-        sendVoteReceiptEmail(student.user_id, student.email, receiptData)
-          .then(result => {
-            console.log(` Vote receipt email sent successfully to ${student.email}`);
-          })
-          .catch(error => {
-            console.error(`Failed to send vote receipt email to ${student.email}:`, error.message);
-          });
+      
       }
     } catch (emailError) {
       console.error('Error sending vote receipt email:', emailError);
@@ -2107,7 +2100,6 @@ exports.getVotesPerCandidate = async (req, res) => {
     `;
 
     const positionsResult = await pool.query(positionsQuery, [electionId]);
-    console.log('Positions query result:', positionsResult.rows.length, 'rows');
 
     const votesQuery = `
       SELECT 
@@ -2124,7 +2116,6 @@ exports.getVotesPerCandidate = async (req, res) => {
     `;
 
     const votesResult = await pool.query(votesQuery, [electionId]);
-    console.log('Votes query result:', votesResult.rows.length, 'rows');
 
     const votesByCandidate = {};
     votesResult.rows.forEach(vote => {
