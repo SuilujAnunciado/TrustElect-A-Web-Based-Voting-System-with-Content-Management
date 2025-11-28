@@ -122,6 +122,14 @@ router.post(
   uploadStudentsBatch
 );
 
+// Admin reset student password route with permission check
+router.post(
+  '/admin/students/reset-password',
+  verifyToken,
+  checkPermission('users', 'edit'),
+  resetStudentPassword
+);
+
 router.get("/by-courses", verifyToken, getStudentsByCourses);
 
 // Admin student management routes with permission checks

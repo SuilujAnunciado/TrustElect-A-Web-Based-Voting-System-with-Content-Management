@@ -1,22 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 
 export default function ResetStudentPasswordModal({ student, onClose }) {
   const [newPassword, setNewPassword] = useState("");
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    // Get user role from token
+    const token = Cookies.get('token');
+    if (token) {
+      try {
+        const tokenData = JSON.parse(atob(token.split('.')[1]));
+        setUserRole(tokenData.role);
+      } catch (error) {
+        console.error("Error parsing token:", error);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = Cookies.get("token");
       
+      // Determine the correct endpoint based on user role
+      // Super Admins can use superadmin endpoint, admins use admin endpoint
+      const endpoint = userRole === 'Super Admin' 
+        ? "/api/superadmin/students/reset-password"
+        : "/api/admin/students/reset-password";
+      
       const res = await axios.post(
-        "/api/superadmin/students/reset-password", 
+        endpoint, 
         { studentId: student.id, newPassword },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
+        }
       );
   
       toast.success(res.data.message || "Student password reset successfully");
