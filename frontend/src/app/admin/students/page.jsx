@@ -649,13 +649,6 @@ export default function StudentsListPage() {
             />
             {(userRole === 'Super Admin' || (hasPermission('users', 'create') && hasPermission('users', 'edit') && hasPermission('users', 'delete'))) && (
               <>
-                <button
-                  onClick={() => setShowAddTermModal(true)}
-                  className="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 flex items-center gap-1"
-                  title="Add new academic term"
-                >
-                  + Add New Term
-                </button>
                 {selectedAcademicTermId && (
                   <button
                     onClick={async () => {
@@ -689,9 +682,16 @@ export default function StudentsListPage() {
                     className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 flex items-center gap-1"
                     title="Set this term as current"
                   >
-                    ✓ Set as Current
+                    Set as Current
                   </button>
                 )}
+
+                <button className="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 flex items-center gap-1"
+                  onClick={() => setShowAddTermModal(true)}
+                  title="Add new academic term"
+                >
+                  Add New Term
+                </button>
               </>
             )}
           </div>

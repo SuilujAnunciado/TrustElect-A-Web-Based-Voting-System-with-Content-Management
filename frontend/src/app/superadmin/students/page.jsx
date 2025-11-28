@@ -623,7 +623,7 @@ export default function ManageStudents() {
                 className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 flex items-center gap-1"
                 title="Set this term as current"
               >
-                ✓ Set as Current
+                Set as Current
               </button>
             )}
             <button
@@ -631,7 +631,7 @@ export default function ManageStudents() {
               className="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 flex items-center gap-1"
               title="Add New Academic Term"
             >
-              <span className="text-lg">+</span> New Term
+             Add New Term
             </button>
           </div>
           
