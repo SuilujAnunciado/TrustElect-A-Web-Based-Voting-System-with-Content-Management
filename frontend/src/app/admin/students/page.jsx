@@ -1241,7 +1241,7 @@ export default function StudentsListPage() {
                 type="text"
                 value={newSchoolYear}
                 onChange={(e) => setNewSchoolYear(e.target.value)}
-                placeholder="e.g., 2025-2026"
+                placeholder="2025-2026"
                 className="w-full border p-2 rounded text-black"
               />
             </div>
