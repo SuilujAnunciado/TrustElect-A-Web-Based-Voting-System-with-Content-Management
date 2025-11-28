@@ -1155,12 +1155,12 @@ export default function ManageStudents() {
 
       {/* Add New Academic Term Modal */}
       {showAddTermModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-black">Add New Academic Term</h2>
             
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 School Year *
               </label>
               <input
@@ -1170,11 +1170,10 @@ export default function ManageStudents() {
                 placeholder="e.g., 2025-2026"
                 className="w-full border p-2 rounded text-black"
               />
-              <p className="text-xs text-gray-500 mt-1">Format: YYYY-YYYY</p>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Term/Semester *
               </label>
               <select
@@ -1182,15 +1181,13 @@ export default function ManageStudents() {
                 onChange={(e) => setNewTerm(e.target.value)}
                 className="w-full border p-2 rounded text-black"
               >
-                <option value="">Select term...</option>
                 <option value="1st Semester">1st Semester</option>
                 <option value="2nd Semester">2nd Semester</option>
                 <option value="Summer">Summer</option>
                 <option value="Term 1">Term 1</option>
                 <option value="Term 2">Term 2</option>
-                <option value="Term 3">Term 3</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">Or type your own in the field above</p>
+{/*               <p className="text-xs text-gray-500 mt-1">Or type your own in the field above</p>*/}
             </div>
 
             <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
@@ -1202,11 +1199,8 @@ export default function ManageStudents() {
                   className="mr-3 w-4 h-4 cursor-pointer"
                 />
                 <div>
-                  <span className="text-sm font-medium text-gray-900 block">
+                  <span className="text-sm font-medium text-black block">
                     Set as current term
-                  </span>
-                  <span className="text-xs text-gray-600">
-                    If checked, this will become the active term for new student registrations
                   </span>
                 </div>
               </label>
