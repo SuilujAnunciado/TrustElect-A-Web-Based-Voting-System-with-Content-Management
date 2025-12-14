@@ -11,6 +11,7 @@ const MrMsSTIPositionSelector = ({ value, onChange, usedPositions = [] }) => {
     position => !usedPositions.includes(position)
   );
 
+  
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {

@@ -16,6 +16,7 @@ async function fetchWithAuth(url, options = {}) {
     throw new Error('Authentication required. Please log in again.');
   }
   
+  
   try {
     const response = await fetch(`${API_BASE}${url}`, {
       ...options,

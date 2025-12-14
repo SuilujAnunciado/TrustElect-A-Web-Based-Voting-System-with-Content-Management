@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
 require("dotenv").config();
 
+
 const verifyToken = async (req, res, next) => {
 
   let token = req.header("Authorization")?.replace("Bearer ", "") || req.cookies?.token;

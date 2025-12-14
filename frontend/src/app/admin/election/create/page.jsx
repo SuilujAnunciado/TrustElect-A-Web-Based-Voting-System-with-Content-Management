@@ -15,6 +15,7 @@ const formatTime = (time24h) => {
   return `${hour12}:${minutes} ${period}`;
 };
 
+
 const PreviewModal = ({ 
   electionData, 
   eligibleCount, 

@@ -15,6 +15,7 @@ const router = express.Router();
 
 router.use(verifyToken);
 
+
 router.get("/", getNotifications);
 
 router.get("/unread-count", getUnreadCount);

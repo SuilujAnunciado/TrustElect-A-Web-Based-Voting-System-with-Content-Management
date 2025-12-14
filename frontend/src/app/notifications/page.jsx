@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
+
 export default function NotificationsPage() {
   const router = useRouter();
   const {

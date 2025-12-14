@@ -2,7 +2,6 @@
 import axios from 'axios';
 
 /**
-
  * @param {string} apiUrl 
  * @param {Function} setContent 
  * @param {Function} setInitialContent 

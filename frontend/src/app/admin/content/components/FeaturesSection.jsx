@@ -12,6 +12,7 @@ const FeaturesSection = ({
   deleteFeatureCard,
   showPreview,
   handleFeatureCard1Upload
+  
 }) => {
   return (
     <div className="space-y-4">

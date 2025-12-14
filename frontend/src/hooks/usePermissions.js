@@ -12,6 +12,7 @@ export const updateGlobalPermissionsTimestamp = () => {
   }
 };
 
+
 export const ensureUserIdFromToken = () => {
   try {
     const userId = Cookies.get('userId');

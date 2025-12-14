@@ -9,6 +9,7 @@ export default function ResetStudentPasswordModal({ student, onClose }) {
   const [newPassword, setNewPassword] = useState("");
   const [userRole, setUserRole] = useState(null);
 
+  
   useEffect(() => {
     const token = Cookies.get('token');
     if (token) {

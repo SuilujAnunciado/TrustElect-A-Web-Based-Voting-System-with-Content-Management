@@ -3,6 +3,7 @@ const { updateElectionStatuses, getElectionById } = require('../models/electionM
 const pool = require('../config/db');
 const notificationService = require('../services/notificationService');
 
+
 cron.schedule('* * * * *', async () => {
   try {
    

@@ -1,6 +1,5 @@
 const pool = require("../config/db");
 
-
 exports.getVotingTimeData = async (req, res) => {
   try {
     const { page = 1, limit = 100, status } = req.query;

@@ -1,5 +1,6 @@
 const { hasPermission } = require("../models/adminPermissionModel");
 
+
 /**
  * @param {string} module 
  * @param {string} action 

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useMemo, useEffect } from 'react';
 import { X, Download, Users, ArrowUpRight, ArrowDownRight, Activity, ChevronLeft, ChevronRight, ArrowUp } from 'lucide-react';
 import { generatePdfReport } from '@/utils/pdfGenerator';

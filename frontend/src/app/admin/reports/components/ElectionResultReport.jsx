@@ -19,6 +19,7 @@ const getImageUrl = (imageUrl) => {
     cleanImageUrl = cleanImageUrl.substring(1);
   }
 
+  
   if (cleanImageUrl.startsWith('uploads/')) {
     return `${API_BASE}/${cleanImageUrl}`;
   }

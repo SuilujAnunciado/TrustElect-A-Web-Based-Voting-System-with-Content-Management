@@ -1,7 +1,6 @@
 const pool = require("../config/db");
 const bcrypt = require("bcryptjs"); 
 
-
 const checkEmployeeNumberExists = async (employeeNumber, excludeAdminId = null) => {
   try {
     let query = "SELECT user_id FROM admins WHERE employee_number = $1";

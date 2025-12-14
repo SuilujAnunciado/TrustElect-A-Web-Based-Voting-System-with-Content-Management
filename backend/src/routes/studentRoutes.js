@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const { checkPermission } = require('../middlewares/permissionMiddleware');
 
+
 router.get("/students/validate", validateStudentByNumber);
 
 router.get("/students/search", searchStudents);

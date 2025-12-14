@@ -7,7 +7,6 @@ const { addElectionNotificationToQueue } = require('./emailQueueService');
 const pool = require('../config/db');
 
 /**
-
  * @param {string} role 
  * @returns {string} 
  */
@@ -30,7 +29,6 @@ const normalizeRole = (role) => {
 
   return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
 };
-
 
 const NOTIFICATION_TYPES = {
   INFO: 'info',

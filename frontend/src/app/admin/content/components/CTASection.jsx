@@ -9,6 +9,7 @@ const CTASection = ({
   handleFileUpload,
   removeImage,
   showPreview
+  
 }) => {
   return (
     <div className="space-y-4">

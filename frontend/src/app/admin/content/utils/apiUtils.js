@@ -1,6 +1,5 @@
  "use client"
 import axios from 'axios';
-
 /**
 
  * @param {string} apiUrl 

@@ -1,7 +1,6 @@
 const auditLogModel = require('../models/auditLogModel');
 
 /**
-
  * @param {Object} req 
  * @param {Object} res 
  */

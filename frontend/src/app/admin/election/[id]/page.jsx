@@ -20,6 +20,7 @@ import usePermissions from '@/hooks/usePermissions';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+
 const CHART_COLORS = [
   '#3b82f6', 
   '#ef4444', 

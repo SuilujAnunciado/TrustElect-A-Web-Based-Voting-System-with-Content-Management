@@ -1,6 +1,5 @@
 const pool = require('../config/db');
 
-
 const createPartylist = async (partylistData) => {
   const client = await pool.connect();
   try {

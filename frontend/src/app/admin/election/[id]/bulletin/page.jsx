@@ -13,6 +13,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || '';
 const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '/default-candidate.png';
   
+  
   if (imageUrl.startsWith('http')) {
     return imageUrl;
   }

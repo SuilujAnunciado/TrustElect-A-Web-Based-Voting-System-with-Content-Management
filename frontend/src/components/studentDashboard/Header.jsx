@@ -14,6 +14,7 @@ export default function Header() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
   const { logoUrl, isLoading: logoLoading } = useLogo();
 
+  
   const handleLogout = async () => {
     try {
       const token = Cookies.get("token");

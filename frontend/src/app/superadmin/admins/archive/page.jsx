@@ -17,6 +17,7 @@ export default function ArchivedAdminsPage() {
    const [selectedAdminId, setSelectedAdminId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   
+  
   const fetchArchivedAdmins = async () => {
     try {
       const token = Cookies.get("token");

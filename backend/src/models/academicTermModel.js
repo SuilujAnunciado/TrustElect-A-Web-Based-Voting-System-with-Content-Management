@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 const getAllAcademicTerms = async () => {
   const query = `
     SELECT 

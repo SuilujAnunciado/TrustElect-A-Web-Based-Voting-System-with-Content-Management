@@ -20,6 +20,7 @@ async function updateElectionStatuses() {
     const newlyCompletedElections = [];
     const newlyOngoingElections = [];
 
+
     for (const election of elections) {
       const startDateTime = DateTime.fromISO(election.date_from)
         .setZone(MANILA_TIMEZONE)
@@ -28,6 +29,7 @@ async function updateElectionStatuses() {
           minute: election.start_time ? parseInt(election.start_time.split(':')[1]) : 0
         });
 
+        
       const endDateTime = DateTime.fromISO(election.date_to)
         .setZone(MANILA_TIMEZONE)
         .set({

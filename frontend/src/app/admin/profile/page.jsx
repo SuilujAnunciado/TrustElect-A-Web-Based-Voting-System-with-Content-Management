@@ -6,6 +6,7 @@ import { ArrowLeft, Upload, Save } from "lucide-react";
 import axios from "axios";
 import Cookies from "js-cookie";
 
+
 export default function AdminProfilePage() {
   const router = useRouter();
   const [profilePic, setProfilePic] = useState("https://via.placeholder.com/100");

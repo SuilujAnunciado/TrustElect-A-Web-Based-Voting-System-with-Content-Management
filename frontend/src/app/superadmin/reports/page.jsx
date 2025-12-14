@@ -20,6 +20,7 @@ import { fetchCurrentUserName, buildSignatureFooter } from "@/utils/userIdentity
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

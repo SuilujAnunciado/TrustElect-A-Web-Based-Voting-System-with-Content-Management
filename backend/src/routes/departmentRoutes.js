@@ -17,6 +17,7 @@ const isAdminOrSuperAdmin = (req, res, next) => {
   }
 };
 
+
 router.get("/departments", verifyToken, (req, res, next) => {
   next();
 }, isAdminOrSuperAdmin, departmentController.getAllDepartments);

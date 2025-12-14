@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
+
 export default function DepartmentsPage() {
   const router = useRouter();
   const [departments, setDepartments] = useState([]);

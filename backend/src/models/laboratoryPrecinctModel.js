@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 const getAllLaboratoryPrecincts = async () => {
   const result = await pool.query(`
     SELECT 

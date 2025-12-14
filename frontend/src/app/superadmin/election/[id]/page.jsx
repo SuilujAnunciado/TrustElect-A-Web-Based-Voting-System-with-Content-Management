@@ -20,6 +20,7 @@ import { generatePdfReport } from '../../../../utils/pdfGenerator';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+
 const CHART_COLORS = [
   '#3b82f6', 
   '#ef4444', 

@@ -5,6 +5,7 @@ const { checkPermission } = require('../middlewares/permissionMiddleware');
 
 const router = express.Router();
 
+
 router.use(verifyToken);
 
 router.get(

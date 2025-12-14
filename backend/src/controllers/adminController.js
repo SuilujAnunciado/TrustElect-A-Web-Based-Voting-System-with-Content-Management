@@ -377,6 +377,7 @@ exports.uploadAdminProfilePicture = async (req, res) => {
       return res.status(500).json({ message: "Failed to update profile picture" });
     }
 
+    
     return res.status(200).json({ 
       message: "Profile picture uploaded successfully", 
       filePath: filePath,

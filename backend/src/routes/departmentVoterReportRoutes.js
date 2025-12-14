@@ -6,4 +6,5 @@ const router = express.Router();
 
 router.get('/department-voter', verifyToken, isAdmin, getDepartmentVoterReport);
 
+
 module.exports = router; 

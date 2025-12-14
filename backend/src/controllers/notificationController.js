@@ -15,6 +15,7 @@ const notificationService = require('../services/notificationService');
   @param {Object} req 
   @param {Object} res 
  */
+
 exports.getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;

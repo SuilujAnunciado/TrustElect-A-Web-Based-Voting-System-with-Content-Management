@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Download, Search, X, User } from 'lucide-react';
 import { generatePdfReport } from '@/utils/pdfGenerator';
@@ -256,7 +257,7 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
                                   className="w-16 h-16 object-cover rounded border border-gray-200"
                                   onError={() => handleImageError(candidate.id)}
                                   onLoad={() => {
-                                    
+
                                     setImageErrors(prev => {
                                       const newSet = new Set(prev);
                                       newSet.delete(candidate.id);

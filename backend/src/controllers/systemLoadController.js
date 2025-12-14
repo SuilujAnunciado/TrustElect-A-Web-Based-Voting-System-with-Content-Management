@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 
+
 const getSystemLoad = async (req, res) => {
   try {
     const { timeframe = '24h' } = req.query;

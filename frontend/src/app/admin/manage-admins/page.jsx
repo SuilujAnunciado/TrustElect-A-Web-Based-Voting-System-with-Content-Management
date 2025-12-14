@@ -12,6 +12,7 @@ import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 import { toast } from "react-hot-toast";
 import usePermissions from "@/hooks/usePermissions";
 
+
 export default function ManageAdminsPage() {
   const router = useRouter();
   const { hasPermission, permissions, permissionsLoading } = usePermissions();

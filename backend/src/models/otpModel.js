@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 const storeOtp = async (userId, otp) => {
   const query = `
     INSERT INTO otps (user_id, otp_hash, expires_at)

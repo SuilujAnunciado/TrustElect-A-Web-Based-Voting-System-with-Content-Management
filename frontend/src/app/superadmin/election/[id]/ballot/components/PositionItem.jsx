@@ -15,7 +15,8 @@ export default function PositionItem({
   handleAddCandidate,
   handleEditCandidate,
   handleDeleteCandidate
-}) {
+})
+ {
   return (
     <div className="border p-4 mb-4 rounded-lg shadow">
       <div className="flex justify-between items-center mb-4">

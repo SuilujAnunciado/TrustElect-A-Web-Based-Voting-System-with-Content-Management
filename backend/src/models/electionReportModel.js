@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 const getElectionSummary = async () => {
   const result = await pool.query(`
     WITH election_stats AS (

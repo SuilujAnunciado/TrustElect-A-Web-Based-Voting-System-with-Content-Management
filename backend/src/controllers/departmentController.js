@@ -14,6 +14,7 @@ exports.createDepartment = async (req, res) => {
       });
     }
     
+    
     if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,

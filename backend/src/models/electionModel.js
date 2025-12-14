@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 const getElectionStatus = (date_from, date_to, start_time, end_time, needs_approval = false) => {
 
   if (needs_approval === true) {

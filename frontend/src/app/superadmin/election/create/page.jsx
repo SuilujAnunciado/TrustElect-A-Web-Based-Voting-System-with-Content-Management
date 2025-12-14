@@ -8,6 +8,7 @@ import axios from "axios";
 
 const CURRENT_SEMESTER_KEY = "trustElect_currentSemester";
 
+
 const sortPrecincts = (a, b) => {
   const extractNumber = (str) => parseInt(str.match(/\d+/)?.[0] || '0');
   const aNum = extractNumber(a);

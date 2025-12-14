@@ -7,6 +7,7 @@ const {
   updateAcademicTerm,
   setCurrentTerm,
   deleteAcademicTerm
+  
 } = require('../controllers/academicTermController');
 const { verifyToken, isSuperAdmin } = require('../middlewares/authMiddleware');
 const { checkPermission } = require('../middlewares/permissionMiddleware');

@@ -6,6 +6,7 @@ export const useLogo = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  
   const formatImageUrl = (url) => {
     if (!url) return null; 
     try {

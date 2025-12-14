@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 
+
 class FailedLoginModel {
   static async getFailedLoginSummary() {
     try {

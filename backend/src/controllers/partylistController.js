@@ -10,7 +10,8 @@ if (!fs.existsSync(uploadDir)) {
 
 const createPartylist = async (req, res) => {
   try {
-    
+  
+  
     const { name, slogan, advocacy } = req.body;
     const logoFile = req.file;
 

@@ -16,6 +16,7 @@ const ElectionServices = {
     }
   },
 
+  
   async getElections() {
     try {
       const response = await axios.get(API_BASE, {

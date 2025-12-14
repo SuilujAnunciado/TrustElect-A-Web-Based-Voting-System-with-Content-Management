@@ -18,6 +18,7 @@ export default function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const router = useRouter();
 
+  
   useEffect(() => {
     const storedToken = Cookies.get("token");
     const storedRole = Cookies.get("role");

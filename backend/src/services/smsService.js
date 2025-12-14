@@ -15,7 +15,6 @@ const formatPhoneNumber = (phoneNumber) => {
     cleaned = '0' + cleaned.substring(3);
   }
   
-  
   if (cleaned.startsWith('63') && !cleaned.startsWith('09')) {
     cleaned = '0' + cleaned.substring(2);
   }

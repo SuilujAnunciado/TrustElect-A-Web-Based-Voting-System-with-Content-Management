@@ -43,9 +43,8 @@ const getImageUrl = (imageUrl) => {
     return `${BASE_URL}/uploads/candidates/${imageUrl}`;
   }
 
-  return `${BASE_URL}${imageUrl}`;
+ return `${BASE_URL}${imageUrl}`;
 };
-
 const candidateKey = (candidateId) => 
   candidateId === undefined || candidateId === null ? '' : String(candidateId);
 

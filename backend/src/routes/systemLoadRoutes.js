@@ -10,6 +10,7 @@ router.get('/system-load', verifyToken, isAdminOrSuperAdmin, getSystemLoad);
 
 router.post('/system-load/reset', verifyToken, isSuperAdmin, resetSystemLoadData);
 
+
 router.get('/system-load/status', verifyToken, isSuperAdmin, getResetStatus);
 
 module.exports = router; 

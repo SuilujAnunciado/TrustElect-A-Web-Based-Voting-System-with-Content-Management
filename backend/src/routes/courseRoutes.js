@@ -16,6 +16,7 @@ router.get("/", verifyToken, async (req, res) => {
     const existingCourseNames = new Set(dbResult.rows.map(course => course.course_name));
     
     const courses = [...dbResult.rows];
+   
     
     let needsSync = false;
     for (const programName of programNames) {

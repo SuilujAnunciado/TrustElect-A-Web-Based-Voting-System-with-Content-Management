@@ -8,6 +8,7 @@ const {
   getStudentLaboratoryAssignment
 } = require("../models/laboratoryPrecinctModel");
 
+
 const handleResponse = (res, promise) => {
   promise
     .then(data => {

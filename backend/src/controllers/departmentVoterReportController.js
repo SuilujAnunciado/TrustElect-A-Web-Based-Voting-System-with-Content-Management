@@ -12,7 +12,6 @@ exports.getDepartmentVoterReport = async (req, res) => {
       queryParams.push(department);
       whereClause += ` AND s.course_name = $${queryParams.length}`;
     }
-    
     if (search) {
       queryParams.push(`%${search}%`);
       whereClause += ` AND (LOWER(s.first_name) LIKE LOWER($${queryParams.length}) OR LOWER(s.last_name) LIKE LOWER($${queryParams.length}) OR s.student_number LIKE $${queryParams.length})`;

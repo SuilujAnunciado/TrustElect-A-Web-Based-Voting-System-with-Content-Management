@@ -8,6 +8,7 @@ const multer = require("multer");
 const db = require("../config/db");
 require("dotenv").config();
 
+
 exports.registerSuperAdmin = async (req, res) => {
   try {
     const errors = validationResult(req);

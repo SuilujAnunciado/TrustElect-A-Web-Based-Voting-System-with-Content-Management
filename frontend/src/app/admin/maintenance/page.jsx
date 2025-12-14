@@ -12,6 +12,7 @@ import PartylistDetails from "../../superadmin/maintenance/components/PartylistD
 import PositionManager from "../../superadmin/maintenance/components/PositionManager";
 import LaboratoryPrecinctManager from "./components/LaboratoryPrecinctManager";
 
+
 const API_ENDPOINTS = {
   programs: "programs",
   electionTypes: "election-types",

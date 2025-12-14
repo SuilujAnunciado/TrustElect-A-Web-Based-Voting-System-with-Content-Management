@@ -4,6 +4,7 @@ const roleBasedUserReportController = require('../controllers/roleBasedUserRepor
 const { verifyToken, isSuperAdmin } = require('../middlewares/authMiddleware');
 
 
+
 router.get('/summary', 
 verifyToken,
 isSuperAdmin,

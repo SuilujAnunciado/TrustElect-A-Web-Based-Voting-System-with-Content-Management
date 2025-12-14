@@ -16,6 +16,7 @@ const gmailTransporter = nodemailer.createTransport({
   }
 });
 
+
 const hostingerTransporter = nodemailer.createTransport({
   host: process.env.HOSTINGER_EMAIL_HOST,
   port: parseInt(process.env.HOSTINGER_EMAIL_PORT),

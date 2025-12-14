@@ -39,8 +39,7 @@ export default function ElectionResultsPage({ params }) {
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/default-candidate.png';
-
-    
+ 
     if (imageUrl.startsWith('http')) {
       return imageUrl;
     }

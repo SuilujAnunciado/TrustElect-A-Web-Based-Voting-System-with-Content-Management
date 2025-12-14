@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 const getRoleBasedUserSummary = async () => {
   const result = await pool.query(`
     WITH user_stats AS (

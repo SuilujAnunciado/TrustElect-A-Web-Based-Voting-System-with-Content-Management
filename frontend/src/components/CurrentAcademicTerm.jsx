@@ -18,6 +18,7 @@ export default function CurrentAcademicTerm({ selectedTermId, studentCount }) {
           withCredentials: true,
         });
 
+        
         if (response.data.success) {
           setTermInfo(response.data.data);
         }

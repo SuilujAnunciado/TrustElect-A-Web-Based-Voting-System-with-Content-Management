@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 const getPositionsForElectionType = async (electionTypeId) => {
 
   const typeId = parseInt(electionTypeId);

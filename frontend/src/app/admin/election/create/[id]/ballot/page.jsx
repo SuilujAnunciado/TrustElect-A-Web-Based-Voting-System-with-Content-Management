@@ -11,6 +11,7 @@ import MrMsSTIPositionSelector from './components/MrMsSTIPositionSelector';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+
 const studentCouncilPositionOrder = {
   "President": 1,
   "Vice President": 2,

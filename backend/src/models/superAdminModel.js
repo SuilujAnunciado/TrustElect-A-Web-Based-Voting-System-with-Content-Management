@@ -1,6 +1,5 @@
 const pool = require("../config/db");
 
-
 const checkSuperAdminExists = async () => {
   try {
     const result = await pool.query("SELECT COUNT(*) FROM users WHERE role_id = 1");

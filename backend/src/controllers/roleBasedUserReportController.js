@@ -3,6 +3,7 @@ const RoleBasedUserReport = require('../models/roleBasedUserReportModel');
 const getRoleBasedUserSummary = async (req, res) => {
   try {
     const summary = await RoleBasedUserReport.getRoleBasedUserSummary();
+
     
     const allUsers = summary.reduce((acc, role) => {
       if (role.users) {

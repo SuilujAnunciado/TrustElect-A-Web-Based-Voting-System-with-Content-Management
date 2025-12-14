@@ -38,6 +38,7 @@ export default function DeletedDepartmentsPage() {
         success = true;
       } catch (firstError) {
         console.warn("Error on superadmin endpoint, trying fallback:", firstError.message);
+    
         
         try {
           const res = await axios.get("/api/admin/departments", {

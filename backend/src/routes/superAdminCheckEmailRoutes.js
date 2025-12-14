@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 
+
 router.get('/check-email', async (req, res) => {
   try {
     const { email } = req.query;

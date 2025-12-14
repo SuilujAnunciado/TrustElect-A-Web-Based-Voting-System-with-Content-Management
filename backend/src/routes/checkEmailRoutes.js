@@ -13,6 +13,7 @@ router.get('/check-email', async (req, res) => {
       });
     }
 
+    
     const userQuery = 'SELECT id FROM users WHERE email = $1 AND is_active = true';
     const userResult = await pool.query(userQuery, [email]);
 

@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 const addCandidate = async (partylistId, candidateData) => {
   const { studentId, firstName, lastName, studentNumber, course, position, isRepresentative, imageUrl } = candidateData;
   

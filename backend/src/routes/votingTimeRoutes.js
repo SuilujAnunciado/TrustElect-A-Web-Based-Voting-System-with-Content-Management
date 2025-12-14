@@ -9,4 +9,5 @@ router.get('/voting-time', verifyToken, isAdmin, votingTimeController.getVotingT
 
 router.get('/voting-time/:electionId', verifyToken, isAdmin, votingTimeController.getVotingTimeDataByElection);
 
+
 module.exports = router; 

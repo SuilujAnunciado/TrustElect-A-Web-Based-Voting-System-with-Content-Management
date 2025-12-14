@@ -17,6 +17,7 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
     maintenance: { canView: false, canCreate: false, canEdit: false, canDelete: false }
   };
   
+  
   const { refreshPermissions, triggerGlobalPermissionsRefresh, hasPermission } = usePermissions();
   const [permissions, setPermissions] = useState(defaultPermissions);
   const [loading, setLoading] = useState(true);

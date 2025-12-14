@@ -13,6 +13,7 @@ export default function AddAdminModal({ onClose }) {
     department: "",
   });
 
+  
   const [permissions, setPermissions] = useState({
     users: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     elections: { canView: false, canCreate: false, canEdit: false, canDelete: false },

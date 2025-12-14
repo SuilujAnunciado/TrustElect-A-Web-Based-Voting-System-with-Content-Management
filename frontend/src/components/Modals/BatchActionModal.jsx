@@ -18,6 +18,7 @@ const BatchActionModal = ({
 }) => {
   if (!isOpen) return null;
 
+  
   const getColors = () => {
     switch (type) {
       case "danger":

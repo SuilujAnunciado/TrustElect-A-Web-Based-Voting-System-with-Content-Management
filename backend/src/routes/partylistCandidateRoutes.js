@@ -12,6 +12,7 @@ const { checkPermission } = require("../middlewares/permissionMiddleware");
 const { candidateUploadMiddleware } = require("../middlewares/candidateUploadMiddleware");
 const router = express.Router();
 
+
 router.get("/:partylistId/candidates", getPartylistCandidates);
 
 router.post("/:partylistId/candidates", verifyToken, (req, res, next) => {

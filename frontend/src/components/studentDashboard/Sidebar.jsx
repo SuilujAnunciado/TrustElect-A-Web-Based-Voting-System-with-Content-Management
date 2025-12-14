@@ -19,6 +19,7 @@ export default function Sidebar() {
     return pathname.startsWith(route);
   };
 
+  
   const fetchProfile = async () => {
     try {
       const token = Cookies.get("token");

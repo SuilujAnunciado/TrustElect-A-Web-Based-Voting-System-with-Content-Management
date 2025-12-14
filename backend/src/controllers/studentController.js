@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const pool = require("../config/db");
 
+
 const buildAbsoluteUrl = (req, relativePath) => {
   if (!relativePath) return null;
   let basePath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;

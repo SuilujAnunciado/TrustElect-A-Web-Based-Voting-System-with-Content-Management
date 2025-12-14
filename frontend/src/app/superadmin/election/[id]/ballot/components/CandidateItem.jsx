@@ -7,7 +7,8 @@ export default function CandidateItem({
   imagePreviews,
   handleEditCandidate,
   handleDeleteCandidate
-}) {
+}) 
+{
   return (
     <div className="mt-4 border p-3 rounded-lg shadow flex">
       <div className="mr-4">

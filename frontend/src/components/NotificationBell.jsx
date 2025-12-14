@@ -22,6 +22,7 @@ const normalizeRole = (role) => {
   } else if (lowercaseRole === 'student') {
     return 'student';
   }
+ 
   
   return lowercaseRole;
 };

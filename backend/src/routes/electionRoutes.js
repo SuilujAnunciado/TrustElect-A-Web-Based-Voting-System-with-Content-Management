@@ -46,6 +46,7 @@ const router = express.Router();
 
 router.get("/public/status/:status", getElectionsByStatus);
 
+
 router.post("/", verifyToken, createElection);
 router.post("/preview-voters", verifyToken, previewEligibleVoters);
 router.get("/", verifyToken, getElections);

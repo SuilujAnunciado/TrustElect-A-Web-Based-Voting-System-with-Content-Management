@@ -17,7 +17,7 @@ const createOTP = async (userId, email, purpose = 'login') => {
       'DELETE FROM otps WHERE user_id = $1 AND verified = FALSE',
       [userId]
     );
- 
+
     await pool.query(
       'INSERT INTO otps (user_id, otp, expires_at, purpose) VALUES ($1, $2, $3, $4)',
       [userId, otp, expiryTime, purpose]

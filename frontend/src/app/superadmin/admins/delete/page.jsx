@@ -18,6 +18,7 @@ export default function DeletedAdminsPage() {
   const [autoDeleteEnabled, setAutoDeleteEnabled] = useState(false);
   const [autoDeleteDays, setAutoDeleteDays] = useState(7);
 
+  
   const fetchDeletedAdmins = async () => {
     try {
       const token = Cookies.get("token");

@@ -3,6 +3,7 @@ const router = express.Router();
 const { verifyToken, isSuperAdmin, isAdmin } = require('../middlewares/authMiddleware');
 const { getPermissions, updatePermissions, checkPermissions } = require('../controllers/adminPermissionController');
 
+
 router.get('/:adminId', verifyToken, (req, res, next) => {
   const user = req.user;
   

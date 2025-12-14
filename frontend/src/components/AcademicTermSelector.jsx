@@ -15,6 +15,7 @@ export default function AcademicTermSelector({ selectedTermId, onTermChange, sho
       setLoading(true);
       const token = Cookies.get("token");
 
+      
       const response = await axios.get("/api/academic-terms", {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,

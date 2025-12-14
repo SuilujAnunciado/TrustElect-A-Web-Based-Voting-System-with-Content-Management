@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 
+
 /**
  * @returns {Promise<Array>} 
  */

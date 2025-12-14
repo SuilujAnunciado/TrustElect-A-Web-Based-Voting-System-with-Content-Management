@@ -1,5 +1,6 @@
 const pool = require('../config/db.js');
 
+
 class StudentUIModel {
   static async getConfig() {
     try {

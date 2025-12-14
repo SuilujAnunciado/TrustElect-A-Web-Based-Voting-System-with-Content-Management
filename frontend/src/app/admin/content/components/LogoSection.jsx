@@ -9,6 +9,7 @@ const LogoSection = ({
   handleFileUpload, 
   removeImage, 
   showPreview 
+  
 }) => {
   const [currentLogo, setCurrentLogo] = useState(null);
 

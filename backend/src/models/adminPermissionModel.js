@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+
 /**
  * @param {number} adminId 
  * @returns {Array} 

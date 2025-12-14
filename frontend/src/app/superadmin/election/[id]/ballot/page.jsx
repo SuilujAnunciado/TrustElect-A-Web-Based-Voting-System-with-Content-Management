@@ -13,6 +13,7 @@ import React from 'react';
 import CandidateFormModal from './components/CandidateFormModal';
 import PositionItem from './components/PositionItem';
 
+
 const fetchWithAuth = async (endpoint, options = {}) => {
   const token = Cookies.get('token');
   const apiUrl = BASE_URL || '';

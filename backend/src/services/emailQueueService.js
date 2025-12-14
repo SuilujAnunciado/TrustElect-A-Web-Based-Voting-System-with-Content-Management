@@ -10,6 +10,7 @@ class EmailQueue {
     this.maxRetries = 3; 
   }
 
+  
   addToQueue(emailData) {
     this.queue.push(emailData);
     

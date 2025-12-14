@@ -180,6 +180,7 @@ exports.deleteAcademicTerm = async (req, res) => {
       success: true,
       message: 'Academic term deleted successfully'
     });
+    
   } catch (error) {
     console.error('Error deleting academic term:', error);
     res.status(500).json({

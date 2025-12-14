@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 class Department {
   static async create({ department_name, department_type, admin_id, created_by }) {
 

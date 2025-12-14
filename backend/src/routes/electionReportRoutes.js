@@ -10,6 +10,7 @@ router.get('/summary',
   electionReportController.getElectionSummary
 );
 
+
 router.get('/admin/summary', 
   verifyToken, 
   isAdmin, 

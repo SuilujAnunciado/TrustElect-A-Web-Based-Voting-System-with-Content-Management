@@ -18,6 +18,7 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     birthdate: "",
   });
 
+  
   const [courses, setCourses] = useState([]);
   const [yearLevels, setYearLevels] = useState([]);
   const [allYearLevels, setAllYearLevels] = useState([]);

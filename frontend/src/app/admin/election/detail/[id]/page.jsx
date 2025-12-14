@@ -11,6 +11,7 @@ const ElectionDetailPage = () => {
   const params = useParams();
   const electionId = params.id;
   
+  
   useEffect(() => {
     const markRelatedNotificationsAsRead = async () => {
       try {

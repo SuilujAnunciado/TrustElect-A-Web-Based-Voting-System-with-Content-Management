@@ -14,6 +14,7 @@ async function fetchWithAuth(url, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  
   const response = await fetch(`${API_BASE}${url}`, {
     ...options,
     headers,

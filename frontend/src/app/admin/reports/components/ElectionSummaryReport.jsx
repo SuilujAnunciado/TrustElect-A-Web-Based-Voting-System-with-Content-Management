@@ -11,6 +11,7 @@ import Image from 'next/image';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+
 const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '/images/default-avatar.png';
   if (imageUrl.startsWith('http')) return imageUrl;

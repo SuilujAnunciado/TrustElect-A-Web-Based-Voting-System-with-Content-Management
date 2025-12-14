@@ -17,7 +17,6 @@ const {
   getAllElectionsWithCreator,
   createElectionLaboratoryPrecincts,
   assignStudentsToLaboratoryPrecincts,
-  // Archive and Delete functionality
   archiveElection,
   restoreArchivedElection,
   softDeleteElection,

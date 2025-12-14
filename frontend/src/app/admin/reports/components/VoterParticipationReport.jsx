@@ -20,6 +20,7 @@ import {
   Cell
 } from 'recharts';
 
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const VOTERS_PER_PAGE = 10;
 

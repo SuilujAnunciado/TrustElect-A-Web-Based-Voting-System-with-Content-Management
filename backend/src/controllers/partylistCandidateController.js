@@ -9,7 +9,6 @@ exports.uploadCandidateImage = async (req, res) => {
         message: "No image file provided" 
       });
     }
-
     const filePath = `/uploads/candidates/${req.file.filename}`;
 
     res.status(200).json({

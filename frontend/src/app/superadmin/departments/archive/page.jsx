@@ -37,8 +37,7 @@ s
             'Content-Type': 'application/json'
           },
           withCredentials: true
-        });
-        
+        });   
         departmentsArray = res.data.departments || res.data || [];
         success = true;
       } catch (firstError) {

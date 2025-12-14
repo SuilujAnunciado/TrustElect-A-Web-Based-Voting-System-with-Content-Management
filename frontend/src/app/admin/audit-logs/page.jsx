@@ -8,6 +8,7 @@ import { Toaster, toast } from "react-hot-toast";
 import { Calendar, Filter, RefreshCw, Users, Shield, Download } from "lucide-react";
 import usePermissions from "../../../hooks/usePermissions";
 
+
 export default function AuditLogsPage() {
   const router = useRouter();
   const [logs, setLogs] = useState([]);

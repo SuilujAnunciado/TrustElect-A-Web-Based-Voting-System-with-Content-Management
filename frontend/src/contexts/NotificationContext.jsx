@@ -5,12 +5,9 @@ import Cookies from 'js-cookie';
 
 const normalizeRole = (role) => {
   if (!role) return '';
-  
-  
- 
+
   const lowercaseRole = typeof role === 'string' ? role.toLowerCase() : '';
   
- 
   if (lowercaseRole.includes('super') && lowercaseRole.includes('admin')) {
     return 'superadmin';
   } 

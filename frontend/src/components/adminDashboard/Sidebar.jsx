@@ -14,6 +14,7 @@ export default function Sidebar() {
   const [showImageModal, setShowImageModal] = useState(false);
   const { hasPermission, permissionsLoading } = usePermissions();
 
+  
   const isActiveRoute = (route) => {
     if (route === "/admin") {
       return pathname === "/admin";

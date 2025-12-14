@@ -15,6 +15,7 @@ Object.values(uploadDir).forEach(dir => {
   }
 });
 
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let uploadDir;

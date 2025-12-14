@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import usePermissions from "@/hooks/usePermissions";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
+
 export default function ArchivedDepartmentsPage() {
   const router = useRouter();
   const [archivedDepartments, setArchivedDepartments] = useState([]);

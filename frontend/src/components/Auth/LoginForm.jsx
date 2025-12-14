@@ -11,7 +11,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import stiLogo from "../../assets/sti_nova_logo.png";
 
-
 export default function LoginForm({ onClose }) {
   const API_URL = '';
   const [step, setStep] = useState(1);

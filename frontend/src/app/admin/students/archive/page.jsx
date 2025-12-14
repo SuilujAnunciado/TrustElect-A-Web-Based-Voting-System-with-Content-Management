@@ -8,6 +8,7 @@ import usePermissions from "@/hooks/usePermissions";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 import { toast } from "react-hot-toast";
 
+
 export default function ArchivedStudents() {
   const router = useRouter();
   const [students, setStudents] = useState([]);

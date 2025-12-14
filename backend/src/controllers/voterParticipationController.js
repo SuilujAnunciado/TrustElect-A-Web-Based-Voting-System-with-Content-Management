@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 exports.getVoterParticipation = async (req, res) => {
   try {
     const electionsQuery = `

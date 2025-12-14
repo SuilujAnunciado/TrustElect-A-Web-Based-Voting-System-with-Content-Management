@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+
 async function fetchWithAuth(url, options = {}) {
   const token = Cookies.get('token');
   const response = await fetch(`/api${url}`, {
@@ -25,6 +26,7 @@ async function fetchWithAuth(url, options = {}) {
   if (!response.ok) throw new Error('Request failed');
   return response.json();
 }
+
 
 const statusTabs = [
   { id: 'ongoing', name: 'Ongoing Elections', icon: <Clock className="w-4 h-4" /> },

@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+
 const RestoreConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isRestoring }) => {
   if (!isOpen) return null;
 

@@ -11,6 +11,7 @@ import PartylistDetails from "./components/PartylistDetails";
 import PositionManager from "./components/PositionManager";
 import LaboratoryPrecinctManager from "./components/LaboratoryPrecinctManager";
 
+
 const API_ENDPOINTS = {
   programs: "programs",
   electionTypes: "election-types",

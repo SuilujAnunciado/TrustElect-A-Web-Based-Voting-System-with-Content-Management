@@ -50,4 +50,5 @@ router.post(
 router.put("/candidates/:candidateId", verifyToken, updateCandidate);
 router.delete("/candidates/:candidateId", verifyToken,deleteCandidate);
 
+
 module.exports = router;

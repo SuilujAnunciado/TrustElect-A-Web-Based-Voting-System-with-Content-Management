@@ -20,7 +20,6 @@ const getElectionSummary = async (req, res) => {
       GROUP BY e.id
       ORDER BY e.created_at DESC
     `);
-
     const elections = result.rows;
 
     const totalStudentsResult = await pool.query(`

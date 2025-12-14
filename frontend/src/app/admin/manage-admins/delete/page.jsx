@@ -37,6 +37,7 @@ export default function DeletedAdminsPage() {
     }
   };
 
+  
   const enableAutoDelete = () => {
     if (!confirm(`Are you sure you want to enable auto-deletion? All deleted admins will be permanently deleted after ${autoDeleteDays} days.`)) return;
     

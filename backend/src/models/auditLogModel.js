@@ -1,5 +1,4 @@
 const pool = require('../config/db');
-
 /**
 
  * @param {Object} logData

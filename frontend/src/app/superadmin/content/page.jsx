@@ -21,6 +21,7 @@ const cacheLandingContent = (content) => {
   }
 };
 
+
 const getCachedLandingContent = (maxAgeMinutes = 30) => {
   try {
     const cachedData = localStorage.getItem('cachedLandingContent');

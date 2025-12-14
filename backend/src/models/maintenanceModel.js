@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 const getAllItems = async (tableName) => {
   const result = await pool.query(
     `SELECT id, name FROM ${tableName} ORDER BY name`

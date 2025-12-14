@@ -12,8 +12,6 @@ const mrMsSTIPositionOrder = {
   "Ms. STI 2nd Runner-up": 6
 };
 
-
-
 export const useMrMsSTIPositions = () => {
   const [mrMsSTIPositions, setMrMsSTIPositions] = useState([]);
   const [loading, setLoading] = useState(false);

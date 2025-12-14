@@ -9,6 +9,7 @@ import { generatePdfReport } from '@/utils/pdfGenerator';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+
 export default function VotingTimeReport() {
   const [votingData, setVotingData] = useState([]);
   const [loading, setLoading] = useState(true);

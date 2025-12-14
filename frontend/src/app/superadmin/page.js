@@ -9,6 +9,7 @@ import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
 import { generatePdfReport } from '@/utils/pdfGenerator';
 import toast from 'react-hot-toast';
 
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 async function fetchWithAuth(url, options = {}) {

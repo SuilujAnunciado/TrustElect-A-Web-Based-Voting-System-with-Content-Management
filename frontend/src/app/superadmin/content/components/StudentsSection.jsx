@@ -4,6 +4,7 @@ import Image from 'next/image';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+
 export default function StudentsSection({ 
   landingContent, 
   updateStudentUI, 

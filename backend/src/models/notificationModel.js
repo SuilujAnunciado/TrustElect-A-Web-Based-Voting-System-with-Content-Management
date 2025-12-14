@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 /**
  * @param {Object} notification 
  * @returns {Promise<Object>} 

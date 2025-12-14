@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || '';
 
+
 const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '/default-candidate.png';
   

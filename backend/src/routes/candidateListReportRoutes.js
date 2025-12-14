@@ -7,4 +7,5 @@ router.get('/', verifyToken, isSuperAdmin, getCandidateList);
 
 router.get('/admin/candidate-list', verifyToken, isAdmin, getCandidateList);
 
+
 module.exports = router; 

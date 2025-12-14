@@ -9,6 +9,7 @@ import { toast } from "react-hot-toast";
 import usePermissions from "@/hooks/usePermissions";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
+
 export default function AdminDepartmentsPage() {
   const router = useRouter();
   const [departments, setDepartments] = useState([]);

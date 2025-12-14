@@ -6,6 +6,7 @@ import { generatePdfReport } from '@/utils/pdfGenerator';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+
 const AdminActivityReport = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('all');
   const [selectedAction, setSelectedAction] = useState('all');

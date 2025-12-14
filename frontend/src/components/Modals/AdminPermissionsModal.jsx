@@ -18,6 +18,7 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  
   useEffect(() => {
     if (admin) {
       fetchPermissions();

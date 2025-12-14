@@ -1,7 +1,6 @@
 "use client"
 
 /**
-
  * @param {string} colorKey 
  * @param {string} colorValue 
  * @param {Object} newTheme -

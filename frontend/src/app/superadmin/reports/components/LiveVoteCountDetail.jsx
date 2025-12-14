@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { Download, X, Calendar, Filter, Users, BarChart2, RefreshCw } from "lucide-react";
 import { generatePdfReport } from '@/utils/pdfGenerator';

@@ -8,6 +8,7 @@ import { Trash } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
+
 export default function DeletedDepartmentsPage() {
   const router = useRouter();
   const [deletedDepartments, setDeletedDepartments] = useState([]);

@@ -12,6 +12,7 @@ export default function Sidebar() {
   const [superAdminName, setSuperAdminName] = useState("Super Admin");
   const [showImageModal, setShowImageModal] = useState(false);
 
+  
   const isActiveRoute = (route) => {
     if (route === "/superadmin") {
       return pathname === "/superadmin";

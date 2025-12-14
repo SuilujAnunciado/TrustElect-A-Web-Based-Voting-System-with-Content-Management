@@ -4,6 +4,7 @@ const { upload } = require('../middlewares/partylistUploadMiddleware');
 const partylistController = require('../controllers/partylistController');
 const { verifyToken, isSuperAdmin, isAdmin } = require('../middlewares/authMiddleware');
 
+
 router.post('/',
   verifyToken, (req, res, next) => {
     if (req.user.role_id === 1 || req.user.role_id === 2) {

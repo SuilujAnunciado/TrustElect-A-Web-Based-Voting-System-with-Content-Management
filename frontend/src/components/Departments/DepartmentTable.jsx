@@ -14,6 +14,7 @@ function DepartmentTable({ departments, fetchDepartments }) {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this department?")) return;
     

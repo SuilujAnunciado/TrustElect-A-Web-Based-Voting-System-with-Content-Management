@@ -7,6 +7,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 
+
 export default function StudentProfilePage() {
   const router = useRouter();
   const [profilePic, setProfilePic] = useState("https://via.placeholder.com/100");

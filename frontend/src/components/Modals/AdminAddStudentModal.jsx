@@ -25,6 +25,7 @@ export default function AdminAddStudentModal({ onClose, onSuccess, departmentCou
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  
   useEffect(() => {
     if (departmentCourses && departmentCourses.length > 0) {
       setCourses(departmentCourses);

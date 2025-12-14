@@ -7,6 +7,7 @@ import Cookies from 'js-cookie';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+
 async function fetchWithAuth(url, options = {}) {
   const token = Cookies.get('token');
   

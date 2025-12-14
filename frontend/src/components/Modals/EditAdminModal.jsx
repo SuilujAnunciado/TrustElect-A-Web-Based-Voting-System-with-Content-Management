@@ -21,6 +21,7 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     setErrors({});
   }, []);
 
+  
   const [departments, setDepartments] = useState([]);
   const [errors, setErrors] = useState({});
   const [loadingDepartments, setLoadingDepartments] = useState(true);

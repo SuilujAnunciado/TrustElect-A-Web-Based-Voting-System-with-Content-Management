@@ -5,6 +5,7 @@ import { Upload, X, Image as ImageIcon, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Cookies from "js-cookie";
 
+
 const PageBackgroundSection = ({ 
   landingContent, 
   setLandingContent, 

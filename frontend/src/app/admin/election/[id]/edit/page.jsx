@@ -13,6 +13,7 @@ export default function EditElectionPage() {
   const params = useParams();
   const electionId = params.id;
 
+  
   const [loading, setLoading] = useState({
     initial: true,
     saving: false,

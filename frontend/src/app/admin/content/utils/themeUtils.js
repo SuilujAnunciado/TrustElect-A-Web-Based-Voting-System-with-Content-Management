@@ -1,5 +1,4 @@
  "use client"
-
 /**
  * @param {string} colorKey 
  * @param {string} colorValue 

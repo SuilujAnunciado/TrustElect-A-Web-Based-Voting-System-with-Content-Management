@@ -11,6 +11,7 @@ import EditAdminPermissionsModal from "@/components/Modals/EditAdminPermissionsM
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 import { toast } from "react-hot-toast";
 
+
 export default function AdminsPage() {
   const router = useRouter();
   const [admins, setAdmins] = useState([]);

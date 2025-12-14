@@ -16,6 +16,7 @@ export default function AuditLogsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   
+  
   const [filters, setFilters] = useState({
     activityType: "all",
     userRole: "all",

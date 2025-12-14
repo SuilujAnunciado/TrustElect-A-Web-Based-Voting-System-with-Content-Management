@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 
 let html2canvas = null;
 
+
 if (typeof window !== 'undefined') {
   import('html2canvas').then(module => {
     html2canvas = module.default;
