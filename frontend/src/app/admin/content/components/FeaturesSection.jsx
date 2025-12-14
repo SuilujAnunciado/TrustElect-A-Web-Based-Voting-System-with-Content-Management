@@ -135,7 +135,6 @@ const FeaturesSection = ({
               )}
             </div>
             
-            {/* Feature preview - only shown if content has changed or preview is toggled */}
             {showPreview && (
               <div className="border rounded-md overflow-hidden">
                 <div className="bg-gray-100 px-3 py-1 border-b flex justify-between items-center">

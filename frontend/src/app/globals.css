@@ -26,7 +26,6 @@ body {
 }
 
 
-/* Hide all browser default password reveal buttons */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none !important;

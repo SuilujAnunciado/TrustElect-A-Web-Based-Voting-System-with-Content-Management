@@ -91,13 +91,10 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Student-ID,X-Vote-Token,Accept,Origin,X-Requested-With');
-    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+    res.header('Access-Control-Max-Age', '86400'); 
     
-  } else {
-    console.log(`Origin not allowed: ${origin}`);
-  }
-  
-  // Handle preflight OPTIONS requests immediately
+  } 
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -124,7 +121,6 @@ app.use(cors({
 app.use(express.json({ limit: '200mb' })); 
 app.use(express.urlencoded({ extended: true, limit: '200mb' }));
 
-// Request logging middleware - log all incoming requests
 app.use((req, res, next) => {
   next();
 });
@@ -145,7 +141,6 @@ app.get('/api/direct/positions', async (req, res) => {
     if (electionTypeId && electionTypeId !== 'undefined' && !isNaN(parseInt(electionTypeId))) {
       positions = await getPositionsForElectionType(parseInt(electionTypeId));
     } else {
-      console.log("Invalid or missing electionTypeId, returning all positions");
       positions = await getAllPositions();
     }
     
@@ -240,7 +235,6 @@ app.delete('/api/direct/positions/:id', async (req, res) => {
   }
 });
 
-// Define direct routes for student validation and search
 app.get('/api/students/validate', (req, res) => {
   const { validateStudentByNumber } = require('./controllers/studentController');
   validateStudentByNumber(req, res);
@@ -251,7 +245,6 @@ app.get('/api/students/search', (req, res) => {
   searchStudents(req, res);
 });
 
-// Define direct routes for partylist candidates
 app.get('/api/partylists/:partylistId/candidates', (req, res) => {
   const { getPartylistCandidates } = require('./controllers/partylistCandidateController');
   getPartylistCandidates(req, res);
@@ -284,16 +277,16 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/elections", electionRoutes);
 app.use("/api/reports", electionReportRoutes);
 app.use("/api/reports/role-based", roleBasedUserReportRoutes);
-app.use("/api/reports", failedLoginRoutes);  // Changed from /api/reports/failed-logins
+app.use("/api/reports", failedLoginRoutes);  
 app.use("/api/reports/summary", electionReportRoutes);
 app.use("/api/reports/upcoming-elections", electionReportRoutes);
 app.use("/api/reports/live-vote-count", electionReportRoutes);
-app.use("/api/reports", systemLoadRoutes);  // Changed from /api/reports/system-load
-app.use("/api/reports", voterParticipationRoutes);  // Changed from /api/reports/voter-participation
-app.use("/api/reports", votingTimeRoutes);  // Added voting time routes
-app.use("/api/reports", departmentVoterReportRoutes);  // Added department voter report routes
+app.use("/api/reports", systemLoadRoutes); 
+app.use("/api/reports", voterParticipationRoutes); 
+app.use("/api/reports", votingTimeRoutes); 
+app.use("/api/reports", departmentVoterReportRoutes); 
 app.use("/api/reports/candidate-list", candidateListReportRoutes);
-app.use("/api/reports/admin-activity", adminActivityRoutes);  // Updated path for admin activity routes
+app.use("/api/reports/admin-activity", adminActivityRoutes);  
 app.use("/api", studentRoutes);
 app.use("/api/ballots", ballotRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
@@ -305,7 +298,6 @@ app.use('/api/admin-permissions', adminPermissionRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/partylists', partylistRoutes);
 app.use('/api/partylist-candidates', partylistCandidateRoutes);
-// Serve static files from uploads directory - MUST come before API routes
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
   setHeaders: (res, filePath) => {
     console.log('Serving static file:', filePath);
@@ -331,9 +323,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
     res.set('Expires', '0');
   }
 }));
-console.log('Static files served from:', path.join(__dirname, '../uploads'));
 
-// Also expose uploads under /api/uploads for reverse proxy setups that only route /api
 app.use('/api/uploads', express.static(path.join(__dirname, '../uploads'), {
   setHeaders: (res, filePath) => {
     res.set('Cross-Origin-Resource-Policy', 'cross-origin');
@@ -372,7 +362,6 @@ app.get("/api/healthcheck", (req, res) => {
   });
 });
 
-// Debug endpoint to check uploaded files
 app.get("/api/debug/files", (req, res) => {
   try {
     const uploadsDir = path.join(__dirname, '../uploads');
@@ -398,22 +387,17 @@ app.get("/api/debug/files", (req, res) => {
   }
 });
 
-// Specific route to handle image requests with better error handling
 app.get('/uploads/images/:filename', (req, res) => {
   try {
     const filename = req.params.filename;
     const imagePath = path.join(__dirname, '../uploads/images', filename);
-    
-    console.log('Requested image:', filename);
-    console.log('Full path:', imagePath);
-    console.log('File exists:', fs.existsSync(imagePath));
+
     
     if (!fs.existsSync(imagePath)) {
       console.log('Image not found:', imagePath);
       return res.status(404).json({ error: 'Image not found' });
     }
-    
-    // Set appropriate content type
+
     const ext = path.extname(filename).toLowerCase();
     let contentType = 'application/octet-stream';
     
@@ -441,22 +425,16 @@ app.get('/uploads/images/:filename', (req, res) => {
   }
 });
 
-// Specific route to handle profile image requests
 app.get('/uploads/profiles/:filename', (req, res) => {
   try {
     const filename = req.params.filename;
     const imagePath = path.join(__dirname, '../uploads/profiles', filename);
-    
-    console.log('Requested profile image:', filename);
-    console.log('Full path:', imagePath);
-    console.log('File exists:', fs.existsSync(imagePath));
+
     
     if (!fs.existsSync(imagePath)) {
-      console.log('Profile image not found:', imagePath);
       return res.status(404).json({ error: 'Profile image not found' });
     }
     
-    // Set appropriate content type
     const ext = path.extname(filename).toLowerCase();
     let contentType = 'application/octet-stream';
     
@@ -484,22 +462,17 @@ app.get('/uploads/profiles/:filename', (req, res) => {
   }
 });
 
-// Specific route to handle partylist image requests
 app.get('/uploads/partylists/:filename', (req, res) => {
   try {
     const filename = req.params.filename;
     const imagePath = path.join(__dirname, '../uploads/partylists', filename);
-    
-    console.log('Requested partylist image:', filename);
-    console.log('Full path:', imagePath);
-    console.log('File exists:', fs.existsSync(imagePath));
+
     
     if (!fs.existsSync(imagePath)) {
       console.log('Partylist image not found:', imagePath);
       return res.status(404).json({ error: 'Partylist image not found' });
     }
-    
-    // Set appropriate content type
+
     const ext = path.extname(filename).toLowerCase();
     let contentType = 'application/octet-stream';
     
@@ -527,7 +500,6 @@ app.get('/uploads/partylists/:filename', (req, res) => {
   }
 });
 
-// Test endpoint to check if a specific image exists
 app.get('/api/test-image/:filename', (req, res) => {
   try {
     const filename = req.params.filename;

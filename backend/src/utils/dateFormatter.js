@@ -14,7 +14,6 @@ const formatElectionDate = (dateStr, timeStr) => {
       return { display: 'Invalid date' };
     }
 
-    // Format for display
     const display = date.toLocaleString('en-PH', {
       timeZone: 'Asia/Manila',
       year: 'numeric',

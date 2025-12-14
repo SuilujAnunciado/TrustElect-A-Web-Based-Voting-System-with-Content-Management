@@ -151,7 +151,6 @@ export default function NotificationsPage() {
         </div>
         
         <div className="bg-white rounded-lg shadow">
-          {/* Header */}
           <div className="px-6 py-4 border-b flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-800">Notifications</h1>
             <div className="flex items-center gap-4">
@@ -174,7 +173,6 @@ export default function NotificationsPage() {
             </div>
           </div>
           
-          {/* Filters */}
           <div className="px-6 py-3 bg-gray-50 border-b">
             <div className="flex space-x-4">
               <button
@@ -215,7 +213,6 @@ export default function NotificationsPage() {
             </div>
           </div>
           
-          {/* Notification List */}
           <div className="divide-y divide-gray-100">
             {loading && page === 1 ? (
               <div className="p-10 text-center">
@@ -296,7 +293,6 @@ export default function NotificationsPage() {
                   </div>
                 ))}
                 
-                {/* Load More Button */}
                 {hasMore && (
                   <div className="p-4 text-center">
                     <button

@@ -17,6 +17,7 @@ const {
   getAllElectionsWithCreator,
   createElectionLaboratoryPrecincts,
   assignStudentsToLaboratoryPrecincts,
+  // Archive and Delete functionality
   archiveElection,
   restoreArchivedElection,
   softDeleteElection,
@@ -33,9 +34,175 @@ const bcrypt = require("bcryptjs");
 const notificationService = require('../services/notificationService');
 const cryptoService = require('../utils/cryptoService');
 const electionModel = require("../models/electionModel");
+const { validateStudentVotingIP } = require('../models/laboratoryPrecinctModel');
 const { sendVoteReceiptEmail } = require('../services/emailService');
 const { generateUniqueCode } = require('../utils/verificationCodeGenerator');
 
+// Enhanced IP validation function that supports both private and public IPs
+const validateClientIP = async (client, req, studentId, electionId) => {
+  try {
+    const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                     req.headers['x-real-ip'] ||
+                     req.headers['cf-connecting-ip'] ||
+                     req.headers['x-client-ip'] ||
+                     req.headers['x-forwarded'] ||
+                     req.headers['forwarded-for'] ||
+                     req.headers['forwarded'] ||
+                     req.connection.remoteAddress ||
+                     req.socket.remoteAddress ||
+                     req.ip ||
+                     req.ips?.[0];
+    
+    let cleanIP = clientIP;
+    if (cleanIP && cleanIP.startsWith('::ffff:')) {
+      cleanIP = cleanIP.substring(7);
+    }
+    if (cleanIP === '::1') {
+      cleanIP = '127.0.0.1';
+    }
+
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'election_precinct_programs'
+      ) as table_exists
+    `);
+    
+    if (!tableCheck.rows[0].table_exists) {
+      return { allowed: true };
+    }
+    
+    const assignmentCount = await client.query('SELECT COUNT(*) as count FROM election_precinct_programs');
+    
+    if (assignmentCount.rows[0].count === 0) {
+      return { allowed: true };
+    }
+
+    const studentAssignment = await client.query(`
+      SELECT 
+        s.course_name,
+        epp.precinct,
+        p.id as precinct_id,
+        p.name as precinct_name
+      FROM students s
+      JOIN election_precinct_programs epp ON epp.programs @> ARRAY[s.course_name::text]
+      JOIN precincts p ON p.name = epp.precinct
+      WHERE s.id = $1 AND epp.election_id = $2
+    `, [studentId, electionId]);
+    
+    // If no assignment found, deny access
+    if (studentAssignment.rows.length === 0) {
+      return { 
+        allowed: false, 
+        message: 'Access denied. You are not assigned to any laboratory for this election. Please contact your election administrator.' 
+      };
+    }
+    
+    // Build list of assigned precincts
+    const assignedPrecincts = studentAssignment.rows.map(r => ({ id: r.precinct_id, name: r.precinct_name }));
+    const assignedPrecinctIds = assignedPrecincts.map(p => p.id);
+    const assignedNames = assignedPrecincts.map(p => p.name);
+    
+    // Check if client IP is registered for ANY of the assigned precincts
+    const ipCheck = await client.query(`
+      SELECT laboratory_precinct_id, ip_address, ip_type
+      FROM laboratory_ip_addresses 
+      WHERE laboratory_precinct_id = ANY($1::int[])
+      AND is_active = true
+    `, [assignedPrecinctIds]);
+    
+    if (ipCheck.rows.length === 0) {
+      return { 
+        allowed: false, 
+        message: `Access denied. No IP addresses are registered for your assigned laboratories: ${assignedNames.join(', ')}. Please contact your administrator.` 
+      };
+    }
+    
+
+    const possibleIPs = [
+      clientIP,
+      cleanIP,
+      req.ip,
+      req.connection.remoteAddress,
+      req.socket.remoteAddress,
+      req.headers['x-forwarded-for']?.split(',')[0]?.trim(),
+      req.headers['x-real-ip'],
+      req.headers['cf-connecting-ip'],
+      req.headers['x-client-ip'],
+      req.headers['x-forwarded'],
+      req.headers['forwarded-for'],
+      req.headers['forwarded']
+    ].filter(ip => ip && ip !== '::1' && ip !== 'undefined' && ip !== 'null');
+    
+    // Add debugging for IP detection
+    console.log('IP Validation Debug:', {
+      studentId,
+      electionId,
+      clientIP,
+      cleanIP,
+      possibleIPs,
+      registeredIPs: ipCheck.rows.map(r => r.ip_address),
+      headers: {
+        'x-forwarded-for': req.headers['x-forwarded-for'],
+        'x-real-ip': req.headers['x-real-ip'],
+        'cf-connecting-ip': req.headers['cf-connecting-ip'],
+        'x-client-ip': req.headers['x-client-ip']
+      }
+    });
+    
+    // Clean all possible IPs
+    const cleanedIPs = possibleIPs.map(ip => {
+      let cleaned = ip;
+      if (cleaned && cleaned.startsWith('::ffff:')) {
+        cleaned = cleaned.substring(7);
+      }
+      if (cleaned === '::1') {
+        cleaned = '127.0.0.1';
+      }
+      return cleaned;
+    }).filter(ip => ip && ip !== '::1');
+    
+    // Check for IP match - supports both private and public IPs
+    let ipMatch = false;
+    for (const ipRecord of ipCheck.rows) {
+      const registeredIP = ipRecord.ip_address;
+      
+      for (const testIP of cleanedIPs) {
+        // Exact match (works for both private and public IPs)
+        if (registeredIP === testIP) {
+          ipMatch = true;
+          break;
+        }
+        
+        // Special handling for localhost variations
+        const isLocalhost = (ip) => ip === '127.0.0.1' || ip === '::1';
+        if (isLocalhost(registeredIP) && isLocalhost(testIP)) {
+          ipMatch = true;
+          break;
+        }
+      }
+      
+      if (ipMatch) break;
+    }
+    
+    if (!ipMatch) {
+      return { 
+        allowed: false, 
+        message: `Access denied. You can only vote from your assigned laboratories: ${assignedNames.join(', ')}. Please go to any of the designated laboratories to cast your vote.` 
+      };
+    }
+    
+    return { allowed: true };
+    
+  } catch (error) {
+    console.error('IP validation error:', error);
+    return { 
+      allowed: false, 
+      message: 'IP validation error. Please contact your election administrator.' 
+    };
+  }
+};
 
 exports.createElection = async (req, res) => {
   try {
@@ -53,15 +220,17 @@ exports.createElection = async (req, res) => {
       needsApproval
     );
 
+    // Handle laboratory precincts if provided
     if (laboratoryPrecincts && laboratoryPrecincts.length > 0) {
       try {
-
+        // Create election laboratory precincts
         await createElectionLaboratoryPrecincts(result.election.id, laboratoryPrecincts);
-
+        
+        // Assign students to laboratory precincts
         await assignStudentsToLaboratoryPrecincts(result.election.id, laboratoryPrecincts);
       } catch (error) {
         console.error("Error creating laboratory precincts:", error);
-
+        // Don't fail the election creation, just log the error
       }
     }
 
@@ -94,9 +263,10 @@ exports.createElection = async (req, res) => {
             );
           }
         } else if (isSuperAdmin) {
-
+          // For superadmin-created elections, send notifications to other superadmins and admins
           const { createNotificationForUsers } = require('../models/notificationModel');
-
+          
+          // Notify other superadmins (excluding the creator)
           const { rows: otherSuperadminDetails } = await pool.query(
             `SELECT id, email, active FROM users WHERE role_id = 1 AND id != $1`,
             [req.user.id]
@@ -115,7 +285,8 @@ exports.createElection = async (req, res) => {
               electionWithCreator.id
             );
           }
-
+          
+          // Notify all admins about the new election
           const { rows: adminDetails } = await pool.query(
             `SELECT u.id, u.email, u.active FROM users u 
              JOIN admins a ON u.email = a.email 
@@ -135,12 +306,13 @@ exports.createElection = async (req, res) => {
               electionWithCreator.id
             );
           }
-
+          
+          // Notify eligible students immediately
           await notificationService.notifyStudentsAboutElection(electionWithCreator);
         }
       } catch (notifError) {
         console.error('Failed to send notifications:', notifError);
-
+        // Don't rethrow - we still want to return success response
       }
     }
     
@@ -348,6 +520,7 @@ exports.deleteElection = async (req, res) => {
   }
 };
 
+// Archive election
 exports.archiveElection = async (req, res) => {
   try {
     const { id } = req.params;
@@ -369,6 +542,7 @@ exports.archiveElection = async (req, res) => {
   }
 };
 
+// Restore archived election
 exports.restoreArchivedElection = async (req, res) => {
   try {
     const { id } = req.params;
@@ -389,6 +563,7 @@ exports.restoreArchivedElection = async (req, res) => {
   }
 };
 
+// Soft delete election
 exports.softDeleteElection = async (req, res) => {
   try {
     const { id } = req.params;
@@ -410,6 +585,7 @@ exports.softDeleteElection = async (req, res) => {
   }
 };
 
+// Restore soft deleted election
 exports.restoreDeletedElection = async (req, res) => {
   try {
     const { id } = req.params;
@@ -430,6 +606,7 @@ exports.restoreDeletedElection = async (req, res) => {
   }
 };
 
+// Permanent delete election
 exports.permanentDeleteElection = async (req, res) => {
   try {
     const { id } = req.params;
@@ -448,9 +625,11 @@ exports.permanentDeleteElection = async (req, res) => {
   }
 };
 
+// Get archived elections
 exports.getArchivedElections = async (req, res) => {
   try {
-
+    // SuperAdmin (role_id = 1) can see all archived elections
+    // Admin (role_id = 2) can see all archived elections (same as SuperAdmin)
     const userId = (req.user.role_id === 1 || req.user.role_id === 2) ? null : req.user.id;
     const elections = await getArchivedElections(userId);
     
@@ -468,9 +647,10 @@ exports.getArchivedElections = async (req, res) => {
   }
 };
 
+// Get deleted elections
 exports.getDeletedElections = async (req, res) => {
   try {
-    const userId = (req.user.role_id === 1 || req.user.role_id === 2) ? null : req.user.id; 
+    const userId = (req.user.role_id === 1 || req.user.role_id === 2) ? null : req.user.id; // SuperAdmin and Admin can see all, others see only their own
     
     const elections = await getDeletedElections(userId);
     res.status(200).json({
@@ -510,15 +690,19 @@ exports.getElectionsByStatus = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     
+    // Validate pagination parameters
     if (page < 1 || limit < 1 || limit > 50) {
       return res.status(400).json({ 
         success: false,
         message: "Invalid pagination parameters. Page must be >= 1 and limit must be between 1 and 50."
       });
     }
-
+    
+    console.log(`Fetching ${status} elections - page ${page}, limit ${limit}`);
     const elections = await getElectionsByStatus(status, page, limit);
-        const countQuery = `
+    
+    // Get total count for pagination metadata
+    const countQuery = `
       SELECT COUNT(*) as total
       FROM elections e
       WHERE e.status = $1 
@@ -732,6 +916,7 @@ exports.checkStudentEligibility = async (req, res) => {
 
     const hasVoted = eligibility.rows[0].has_voted;
 
+    // IP validation is now handled by the middleware, so we don't need to check it here
 
     res.status(200).json({ 
       eligible: true,
@@ -757,6 +942,7 @@ exports.getBallotForStudent = async (req, res) => {
       });
     }
 
+    // IP VALIDATION - Using enhanced function that supports both private and public IPs
     const ipValidation = await validateClientIP(pool, req, studentId, electionId);
     if (!ipValidation.allowed) {
       return res.status(403).json({
@@ -785,12 +971,14 @@ exports.getBallotForStudent = async (req, res) => {
 
     const election = electionCheck.rows[0];
     
+    // Only check needs_approval if not created by superadmin
     if (!election.is_superadmin_created && election.needs_approval) {
       return res.status(403).json({
         message: "This election is not yet available"
       });
     }
 
+    // Check if election is ongoing
     if (election.status !== 'ongoing') {
       return res.status(403).json({
         message: "This election is not currently active"
@@ -920,6 +1108,7 @@ exports.submitVote = async (req, res) => {
     
     const { votes } = req.body;
 
+    // IP VALIDATION - Using enhanced function that supports both private and public IPs
     const ipValidation = await validateClientIP(client, req, studentId, electionId);
     if (!ipValidation.allowed) {
       await client.query('ROLLBACK');
@@ -959,6 +1148,7 @@ exports.submitVote = async (req, res) => {
       });
     }
 
+    // Check if election is ongoing
     if (election.status !== 'ongoing') {
       await client.query('ROLLBACK');
       return res.status(403).json({
@@ -1141,7 +1331,9 @@ exports.submitVote = async (req, res) => {
 
     await client.query('COMMIT');
 
+    // Send vote receipt email
     try {
+      // Get student email and user ID for email sending
       const studentInfo = await client.query(
         `SELECT s.email, u.id as user_id, s.first_name, s.last_name, s.student_number
          FROM students s 
@@ -1153,6 +1345,7 @@ exports.submitVote = async (req, res) => {
       if (studentInfo.rows.length > 0) {
         const student = studentInfo.rows[0];
         
+        // Get election title
         const electionInfo = await client.query(
           `SELECT title FROM elections WHERE id = $1`,
           [electionId]
@@ -1160,6 +1353,7 @@ exports.submitVote = async (req, res) => {
         
         const electionTitle = electionInfo.rows[0]?.title || 'Student Election';
         
+        // Get vote selections for email
         const voteSelections = await client.query(`
           SELECT 
             p.name as position_name,
@@ -1192,7 +1386,13 @@ exports.submitVote = async (req, res) => {
           }))
         };
 
-      
+        sendVoteReceiptEmail(student.user_id, student.email, receiptData)
+          .then(result => {
+            console.log(` Vote receipt email sent successfully to ${student.email}`);
+          })
+          .catch(error => {
+            console.error(`Failed to send vote receipt email to ${student.email}:`, error.message);
+          });
       }
     } catch (emailError) {
       console.error('Error sending vote receipt email:', emailError);
@@ -1536,6 +1736,7 @@ exports.getElectionEligibilityCriteria = async (req, res) => {
       precincts: []
     };
 
+    // Get precinct programs
     const precinctProgramsQuery = `
       SELECT precinct, programs
       FROM election_precinct_programs
@@ -1549,6 +1750,7 @@ exports.getElectionEligibilityCriteria = async (req, res) => {
       precinctPrograms[row.precinct] = row.programs;
     });
 
+    // Add precinct programs to criteria
     criteria.precinctPrograms = precinctPrograms;
     
     return res.status(200).json({
@@ -1799,8 +2001,9 @@ exports.getStudentElectionStatus = async (req, res) => {
 };
 
 /**
- * @param {Object} req 
- * @param {Object} res 
+ * Update eligibility criteria for an election
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
  */
 exports.updateElectionCriteria = async (req, res) => {
   try {
@@ -1829,7 +2032,9 @@ exports.updateElectionCriteria = async (req, res) => {
         message: "Election not found"
       });
     }
-
+    
+    // Allow updating eligibility criteria for all election statuses
+    // Previously this was restricted to only upcoming elections
 
     const eligibleStudents = await electionModel.getEligibleStudentsForCriteria(eligibility);
     
@@ -1861,6 +2066,7 @@ exports.getCompletedElectionResults = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Get election details with actual total votes
     const election = await pool.query(`
       SELECT 
         e.*,
@@ -1883,6 +2089,7 @@ exports.getCompletedElectionResults = async (req, res) => {
       });
     }
 
+    // Get positions with candidates and vote counts
     const results = await pool.query(`
       WITH vote_counts AS (
         SELECT 
@@ -1931,6 +2138,7 @@ exports.getCompletedElectionResults = async (req, res) => {
       ORDER BY p.name, vote_count DESC NULLS LAST, c.last_name, c.first_name
     `, [id]);
 
+    // Format the results by position
     const formattedResults = {};
     results.rows.forEach(row => {
       if (!formattedResults[row.position_id]) {
@@ -1989,6 +2197,7 @@ exports.getVoterVerificationCodes = async (req, res) => {
       });
     }
 
+    // Check if election exists
     const electionCheck = await pool.query(
       'SELECT id, title, status FROM elections WHERE id = $1',
       [electionId]
@@ -2001,6 +2210,7 @@ exports.getVoterVerificationCodes = async (req, res) => {
       });
     }
 
+    // Get all voters who have voted in this election with their vote tokens
     const votersQuery = `
       SELECT DISTINCT ON (v.vote_token)
         v.vote_token,
@@ -2018,6 +2228,7 @@ exports.getVoterVerificationCodes = async (req, res) => {
 
     const votersResult = await pool.query(votersQuery, [electionId]);
 
+    // Generate verification codes for each voter
     const voterCodes = votersResult.rows.map(voter => ({
       voteToken: voter.vote_token,
       verificationCode: generateUniqueCode(voter.vote_token),
@@ -2029,6 +2240,7 @@ exports.getVoterVerificationCodes = async (req, res) => {
       yearLevel: voter.year_level
     }));
 
+    // Sort by vote date (most recent first)
     voterCodes.sort((a, b) => new Date(b.voteDate) - new Date(a.voteDate));
 
     res.json({
@@ -2064,6 +2276,7 @@ exports.getVotesPerCandidate = async (req, res) => {
       });
     }
 
+    // Check if election exists
     const electionCheck = await pool.query(
       'SELECT id, title, status FROM elections WHERE id = $1',
       [electionId]
@@ -2076,6 +2289,7 @@ exports.getVotesPerCandidate = async (req, res) => {
       });
     }
 
+    // Get all positions and their candidates with vote counts and course information
     const positionsQuery = `
       SELECT 
         p.id as position_id,
@@ -2100,7 +2314,9 @@ exports.getVotesPerCandidate = async (req, res) => {
     `;
 
     const positionsResult = await pool.query(positionsQuery, [electionId]);
+    console.log('Positions query result:', positionsResult.rows.length, 'rows');
 
+    // Get all votes with verification codes for each candidate
     const votesQuery = `
       SELECT 
         v.candidate_id,
@@ -2116,7 +2332,9 @@ exports.getVotesPerCandidate = async (req, res) => {
     `;
 
     const votesResult = await pool.query(votesQuery, [electionId]);
+    console.log('Votes query result:', votesResult.rows.length, 'rows');
 
+    // Group votes by candidate
     const votesByCandidate = {};
     votesResult.rows.forEach(vote => {
       if (!votesByCandidate[vote.candidate_id]) {
@@ -2132,6 +2350,7 @@ exports.getVotesPerCandidate = async (req, res) => {
       });
     });
 
+    // Group positions and candidates
     const positions = {};
     positionsResult.rows.forEach(row => {
       if (!positions[row.position_id]) {
@@ -2144,6 +2363,7 @@ exports.getVotesPerCandidate = async (req, res) => {
         };
       }
 
+      // Add candidate if it exists
       positions[row.position_id].candidates.push({
         id: row.candidate_id,
         firstName: row.first_name,
@@ -2158,6 +2378,7 @@ exports.getVotesPerCandidate = async (req, res) => {
 
     const positionsArray = Object.values(positions)
       .sort((a, b) => {
+        // Sort by display_order first, then by position ID
         const orderA = a.displayOrder !== null ? a.displayOrder : 999;
         const orderB = b.displayOrder !== null ? b.displayOrder : 999;
         if (orderA !== orderB) return orderA - orderB;
@@ -2196,6 +2417,7 @@ exports.setTieBreaker = async (req, res) => {
     const { id: electionId } = req.params;
     const { position_id, candidate_id, tie_breaker_message } = req.body;
 
+    // Validate input
     if (!position_id || !candidate_id || !tie_breaker_message || !tie_breaker_message.trim()) {
       return res.status(400).json({
         success: false,
@@ -2203,6 +2425,7 @@ exports.setTieBreaker = async (req, res) => {
       });
     }
 
+    // Verify election exists and is completed
     const electionResult = await pool.query(
       'SELECT id, status FROM elections WHERE id = $1',
       [electionId]
@@ -2223,6 +2446,7 @@ exports.setTieBreaker = async (req, res) => {
       });
     }
 
+    // Verify candidate belongs to the position and election
     const candidateResult = await pool.query(`
       SELECT c.id, c.position_id, p.ballot_id, b.election_id
       FROM candidates c
@@ -2238,14 +2462,18 @@ exports.setTieBreaker = async (req, res) => {
       });
     }
 
+    // Check if tie_breaker_message column exists, if not, add it
     try {
       await pool.query(`
         ALTER TABLE candidates 
         ADD COLUMN IF NOT EXISTS tie_breaker_message TEXT
       `);
     } catch (alterError) {
+      // Column might already exist, ignore error
+      console.log('Column check:', alterError.message);
     }
 
+    // Update candidate with tie-breaker message
     const updateResult = await pool.query(`
       UPDATE candidates
       SET tie_breaker_message = $1, updated_at = NOW()

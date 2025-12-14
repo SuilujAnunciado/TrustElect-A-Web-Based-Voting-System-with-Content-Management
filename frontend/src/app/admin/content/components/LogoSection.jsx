@@ -13,7 +13,6 @@ const LogoSection = ({
   const [currentLogo, setCurrentLogo] = useState(null);
 
   useEffect(() => {
-    // Check if there's a logo in the landing content
     if (landingContent?.logo?.imageUrl) {
       setCurrentLogo(formatImageUrl(landingContent.logo.imageUrl));
     } else {
@@ -38,7 +37,6 @@ const LogoSection = ({
   };
 
   const handleRemoveLogo = () => {
-    // When removing logo, set back to default STI logo
     const defaultLogo = '/images/sti-logo.png';
     setCurrentLogo(defaultLogo);
     removeImage('logo', 0);
@@ -57,7 +55,6 @@ const LogoSection = ({
       </div>
       
       <div className="grid grid-cols-1 gap-6">
-        {/* Current Logo Display */}
         <div>
           <label className="block text-sm font-medium text-black mb-2">
             Current Logo
@@ -70,7 +67,6 @@ const LogoSection = ({
                   alt="Current Site Logo"
                   className="max-h-full max-w-full object-contain"
                   onError={(e) => {
-                    // If image fails to load, show default STI logo
                     e.target.onerror = null;
                     e.target.src = '/images/sti-logo.png';
                   }}
@@ -80,7 +76,6 @@ const LogoSection = ({
           </div>
         </div>
 
-        {/* Logo Upload Section */}
         <div>
           <label className="block text-sm font-medium text-black mb-2">
             Update Logo

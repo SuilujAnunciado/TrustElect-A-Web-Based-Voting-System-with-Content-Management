@@ -25,12 +25,10 @@ export default function DeletedDepartmentsPage() {
     try {
       const token = Cookies.get("token");
       
-      // Try multiple endpoints to get deleted departments
       let departmentsArray = [];
       let success = false;
 
       try {
-        // First try admin endpoint
         const res = await axios.get("/api/admin/departments", {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
@@ -41,7 +39,6 @@ export default function DeletedDepartmentsPage() {
         console.warn("Error on admin endpoint, trying fallback:", firstError.message);
         
         try {
-          // Try superadmin endpoint as fallback
           const res = await axios.get("/api/superadmin/departments", {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
@@ -55,7 +52,6 @@ export default function DeletedDepartmentsPage() {
       }
 
       if (success) {
-        // Filter for deleted departments (assuming there's an is_deleted field)
         const deletedDepts = departmentsArray.filter(dept => dept.is_deleted);
         setDeletedDepartments(deletedDepts);
         setFilteredDepartments(deletedDepts);
@@ -77,13 +73,11 @@ export default function DeletedDepartmentsPage() {
   const confirmEnableAutoDelete = () => {
     setAutoDeleteEnabled(true);
     toast.success(`Auto-deletion enabled for ${autoDeleteDays} days`);
-    
-    // Set up auto-deletion timer
+
     const timer = setTimeout(() => {
       performAutoDelete();
-    }, autoDeleteDays * 24 * 60 * 60 * 1000); // Convert days to milliseconds
+    }, autoDeleteDays * 24 * 60 * 60 * 1000); 
     
-    // Store timer ID for potential cancellation
     localStorage.setItem('autoDeleteTimer', timer.toString());
     setShowAutoDeleteModal(false);
   };
@@ -106,8 +100,7 @@ export default function DeletedDepartmentsPage() {
   const performAutoDelete = async () => {
     try {
       const token = Cookies.get("token");
-      
-      // Get all deleted departments that are older than the specified days
+
       const now = new Date();
       const cutoffDate = new Date(now.getTime() - (autoDeleteDays * 24 * 60 * 60 * 1000));
       
@@ -122,7 +115,6 @@ export default function DeletedDepartmentsPage() {
         return;
       }
 
-      // Delete each department permanently
       for (const dept of departmentsToDelete) {
         try {
           await axios.delete(`/api/admin/departments/${dept.id}/permanent`, {
@@ -152,13 +144,12 @@ export default function DeletedDepartmentsPage() {
   const permanentlyDeleteDepartment = async () => {
     try {
       const token = Cookies.get("token");
-      
-      // Try multiple endpoints for permanent delete
+
       let success = false;
       let response;
       
       try {
-        // First try admin endpoint
+  
         response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}/permanent`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,

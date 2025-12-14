@@ -47,7 +47,6 @@ const HeroSection = ({
           />
         </div>
 
-        {/* Color pickers for hero section */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-black mb-1">
@@ -89,14 +88,13 @@ const HeroSection = ({
             </div>
           </div>
         </div>
-        
-        {/* Carousel Images Section */}
+
         <div>
           <label className="block text-sm font-medium text-black mb-2">
             Upload 3 - 5 Images for Carousel
           </label>
           <div className="space-y-4">
-            {/* Upload Area */}
+
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
               <input 
                 id="hero-carousel-input"
@@ -121,8 +119,7 @@ const HeroSection = ({
                 </span>
               </label>
             </div>
-            
-            {/* Display uploaded carousel images */}
+
             {landingContent.hero.carouselImages && landingContent.hero.carouselImages.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -133,11 +130,11 @@ const HeroSection = ({
                     <span className="text-xs text-gray-600">
                       Click X to remove
                     </span>
-                    {/* Clear All button - matching superadmin */}
+
                     <button
                       onClick={() => {
                         updateHero('carouselImages', []);
-                        // Clear temporary files
+
                         if (window.carouselFiles) {
                           window.carouselFiles = [];
                         }
@@ -148,8 +145,7 @@ const HeroSection = ({
                     </button>
                   </div>
                 </div>
-                
-                {/* Large Preview Grid */}
+
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {landingContent.hero.carouselImages.map((image, index) => (
                     <div key={index} className="relative group border-2 border-gray-200 rounded-lg overflow-hidden hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-md">
@@ -158,7 +154,7 @@ const HeroSection = ({
                         alt={`Carousel image ${index + 1}`}
                         className="w-full h-24 object-cover"
                       />
-                      {/* Hover delete button */}
+
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center">
                         <button
                           onClick={() => removeImage('heroCarousel', index)}
@@ -168,7 +164,6 @@ const HeroSection = ({
                           ×
                         </button>
                       </div>
-                      {/* Permanent delete button in top-right corner - matching superadmin */}
                       <button
                         onClick={() => removeImage('heroCarousel', index)}
                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow-lg z-10"
@@ -193,13 +188,11 @@ const HeroSection = ({
            
               </div>
             )}
-            
-            {/* Upload Instructions - matching superadmin */}
+
      
           </div>
         </div>
-        
-        {/* Hero Preview - only shown if content has changed or preview is toggled */}
+
         {showPreview && (
           <div className="border rounded overflow-hidden">
             <div className="bg-gray-100 px-3 py-2 border-b flex justify-between items-center">

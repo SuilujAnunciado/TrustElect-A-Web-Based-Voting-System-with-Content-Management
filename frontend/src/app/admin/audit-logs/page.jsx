@@ -113,17 +113,14 @@ export default function AuditLogsPage() {
         const seenLogs = new Set();
         
         res.data.data.forEach(log => {
-          // Filter out SMS_VERIFIED logs
           if (log.action === 'SMS_VERIFIED') {
             return;
           }
-          // Hide Root Admin/System Admin actions from admin views
           const role = (log.user_role || '').toLowerCase();
           if (role === 'systemadmin' || role === 'super admin' || role === 'root admin' || role === 'superadmin') {
             return;
           }
           
-          // Create a more comprehensive unique key
           const logKey = `${log.action}-${log.entity_type}-${log.entity_id}-${log.user_id}-${log.user_email}-${new Date(log.created_at).getTime()}`;
           if (!seenLogs.has(logKey)) {
             seenLogs.add(logKey);
@@ -209,7 +206,7 @@ export default function AuditLogsPage() {
           const userName = log.admin_name || log.user_name || log.student_name || 
                           log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
                           'Unknown User';
-          const description = getActivityDescription(log).replace(/,/g, ';'); // Replace commas to avoid CSV issues
+          const description = getActivityDescription(log).replace(/,/g, ';'); 
           return [
             log.id,
             formatDateTime(log.created_at),
@@ -274,7 +271,7 @@ export default function AuditLogsPage() {
     const isAdministratorDept = deptLc === 'administrator' || deptLc === 'administration' || deptLc === 'system';
     
     if (roleLc === 'admin' && isAdministratorDept) {
-      return 'bg-red-100 text-red-800'; // System Admin color
+      return 'bg-red-100 text-red-800'; 
     }
     
     switch (roleLc) {
@@ -310,14 +307,12 @@ export default function AuditLogsPage() {
 
   const getActivityDescription = (log) => {
     if (!log) return "-";
-    
-    // Extract user information - use full name only (like AdminActivityReport does)
+
     const userFullName = log.admin_name || log.user_name || log.student_name || 
                          log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
                          'Unknown User';
     const timestamp = new Date(log.created_at).toLocaleString();
-    
-    // Extract entity details
+
     const entityId = log.entity_id ? `#${log.entity_id}` : '';
     const electionTitle = log.details?.election_title || log.details?.title || '';
     const candidateName = log.details?.candidate_name || log.details?.name || '';
@@ -544,8 +539,7 @@ export default function AuditLogsPage() {
           </button>
         </div>
       </div>
-      
-      {/* Advanced filter panel */}
+
       {showFilters && (
         <div className="mb-4 bg-white p-4 rounded shadow-sm border border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -662,8 +656,7 @@ export default function AuditLogsPage() {
           </div>
         </div>
       )}
-      
-      {/* Quick filter selector */}
+
       <div className="mb-4 bg-white p-3 rounded shadow-sm flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <select
@@ -705,8 +698,7 @@ export default function AuditLogsPage() {
           Refresh
         </button>
       </div>
-      
-      {/* Loading state */}
+
       {loading ? (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
@@ -725,7 +717,7 @@ export default function AuditLogsPage() {
         </div>
       ) : (
         <>
-          {/* Activity list */}
+
           <div className="bg-white rounded shadow overflow-hidden">
             <table className="w-full">
               <thead>
@@ -776,8 +768,7 @@ export default function AuditLogsPage() {
               </tbody>
             </table>
           </div>
-          
-          {/* Pagination */}
+
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
               <div className="text-sm text-gray-600">

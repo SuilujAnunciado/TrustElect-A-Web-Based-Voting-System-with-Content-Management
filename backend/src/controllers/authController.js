@@ -525,24 +525,33 @@ exports.forgotPassword = async (req, res) => {
     if (userResult.rows.length === 0) {
       return res.status(200).json({
         success: true,
-        message: "If your email is registered, you can reset your password."
+        message: "If your email is registered, you will receive a reset code."
       });
     }
     
     const userId = userResult.rows[0].id;
+ 
+    const result = await otpService.requestOTP(userId, email);
 
-    // Generate reset token directly (skip OTP verification)
-    const resetToken = jwt.sign(
-      { userId, purpose: 'reset' },
-      process.env.JWT_SECRET,
-      { expiresIn: '15m' }
+    await pool.query(
+      "UPDATE otps SET purpose = 'reset' WHERE user_id = $1 AND verified = FALSE",
+      [userId]
     );
+
+    if (process.env.NODE_ENV === 'development' && result.dev) {
+      const maskedEmail = maskEmail(email);
+      return res.status(200).json({
+        success: true,
+        message: `Password reset code for ${maskedEmail}`,
+        devMode: true,
+        otp: result.otp
+      });
+    }
     
     const maskedEmail = maskEmail(email);
     return res.status(200).json({
       success: true,
-      message: `Password reset token generated for ${maskedEmail}`,
-      resetToken
+      message: `Password reset code sent to ${maskedEmail}`
     });
   } catch (error) {
     console.error('Error in forgotPassword:', error);

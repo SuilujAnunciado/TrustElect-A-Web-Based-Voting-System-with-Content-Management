@@ -72,7 +72,6 @@ export default function AdminDepartmentsPage() {
       let adminsArray = [];
       let success = false;
 
-      // Use the superadmin endpoint which now allows both super admins and regular admins
       const res = await axios.get("/api/superadmin/admins", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -85,7 +84,6 @@ export default function AdminDepartmentsPage() {
       success = true;
 
       if (success) {
-        // Filter out inactive admins and super admins (same logic as super admin)
         const filteredAdmins = adminsArray.filter(admin => 
           admin.is_active && 
           !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
@@ -101,7 +99,6 @@ export default function AdminDepartmentsPage() {
     }
   };
 
-  // Fetch admins when departments change
   useEffect(() => {
     if (departments.length > 0) {
       fetchAdmins();
@@ -118,12 +115,10 @@ export default function AdminDepartmentsPage() {
         throw new Error("No authentication token found");
       }
   
-      // Try multiple endpoints to get department data
       let departmentsArray = [];
       let success = false;
 
       try {
-        // First try the admin endpoint
         const res = await axios.get("/api/admin/departments", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -138,7 +133,6 @@ export default function AdminDepartmentsPage() {
         console.warn("Error on admin endpoint, trying fallback:", firstError.message);
         
         try {
-          // Try superadmin endpoint as fallback
           const res = await axios.get("/api/superadmin/departments", {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -152,7 +146,6 @@ export default function AdminDepartmentsPage() {
         } catch (secondError) {
           console.error("Error on superadmin endpoint:", secondError.message);
           
-          // Try getting admin profile as last resort
           try {
             const profileRes = await axios.get("/api/admin/profile", {
               headers: {
@@ -164,9 +157,9 @@ export default function AdminDepartmentsPage() {
   
             if (profileRes.data.department) {
               departmentsArray = [{
-                id: 1, // Use a placeholder ID
+                id: 1, 
                 department_name: profileRes.data.department,
-                department_type: 'Academic', // Default type
+                department_type: 'Academic', 
                 admin_id: profileRes.data.id,
                 admin_name: `${profileRes.data.first_name || ''} ${profileRes.data.last_name || ''}`.trim(),
                 admin_email: profileRes.data.email
@@ -184,9 +177,8 @@ export default function AdminDepartmentsPage() {
       
       if (success) {
         setDepartments(departmentsArray);
-        
-        // Since we have fresh department data, update admin data
-        setTimeout(() => fetchAdmins(), 100); // Small delay to ensure departments are set
+
+        setTimeout(() => fetchAdmins(), 100); 
       }
     } catch (error) {
       console.error("Error fetching departments:", error);
@@ -197,7 +189,6 @@ export default function AdminDepartmentsPage() {
     }
   };
 
-  // Only fetch departments once permissions are loaded and if user has view permission
   useEffect(() => {
     if (!permissionsLoading) {
       if (hasPermission('departments', 'view') || checkRoleBasedPermission('view')) {
@@ -212,7 +203,7 @@ export default function AdminDepartmentsPage() {
   const filteredDepartments = departments.filter(dept => {
     const matchesSearch = dept.department_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === "All" || dept.department_type === filter;
-    // Only show active departments (not archived or deleted)
+
     const isActive = dept.is_active && !dept.is_deleted;
     return matchesSearch && matchesFilter && isActive;
   });
@@ -230,13 +221,11 @@ export default function AdminDepartmentsPage() {
   const confirmArchiveDepartment = async () => {
     try {
       const token = Cookies.get("token");
-      
-      // Try multiple API endpoints
+
       let success = false;
       let response;
       
       try {
-        // First try admin endpoint
         response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -245,7 +234,6 @@ export default function AdminDepartmentsPage() {
         console.warn("Error on first archive endpoint, trying fallback:", firstError.message);
         
         try {
-          // Try generic endpoint
           response = await axios.delete(`/api/departments/${selectedDepartmentId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -253,7 +241,6 @@ export default function AdminDepartmentsPage() {
         } catch (secondError) {
           console.error("Error on generic endpoint:", secondError.message);
           
-          // Try superadmin endpoint as last resort
           response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -283,13 +270,12 @@ export default function AdminDepartmentsPage() {
   const confirmPermanentDeleteDepartment = async () => {
     try {
       const token = Cookies.get("token");
-      
-      // Try multiple API endpoints for delete (move to deleted folder)
+
       let success = false;
       let response;
       
       try {
-        // First try admin endpoint with delete action parameter
+
         response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}?action=delete`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -298,15 +284,14 @@ export default function AdminDepartmentsPage() {
         console.warn("Error on first delete endpoint, trying fallback:", firstError.message);
         
         try {
-          // Try generic endpoint with delete action parameter
+
           response = await axios.delete(`/api/departments/${selectedDepartmentId}?action=delete`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           success = true;
         } catch (secondError) {
           console.error("Error on generic delete endpoint:", secondError.message);
-          
-          // Try superadmin endpoint as last resort with delete action parameter
+ 
           response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}?action=delete`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -328,8 +313,7 @@ export default function AdminDepartmentsPage() {
       toast.error("You don't have permission to manage department admins");
       return;
     }
-    
-    // Check if we have any admins to manage
+
     if (admins.length === 0) {
       toast.error("No admins available to manage. You may not have permission to view other admins.");
       return;
@@ -348,7 +332,6 @@ export default function AdminDepartmentsPage() {
     setShowEditModal(true);
   };
 
-  // Show permission denied message if no departments permission
   if (!permissionsLoading && !hasPermission('departments', 'view') && !checkRoleBasedPermission('view')) {
     return (
       <div className="p-6">
@@ -380,7 +363,6 @@ export default function AdminDepartmentsPage() {
         </div>
       )}
 
-      {/* Display current permission status for debugging */}
       <div className="mb-4 p-2 bg-gray-50 rounded text-xs text-gray-500">
         <strong>Permission status:</strong> 
         {permissionsLoading ? " Loading..." : (
@@ -393,7 +375,6 @@ export default function AdminDepartmentsPage() {
         )}
       </div>
 
-      {/* Search and Filter */}
       <div className="flex flex-wrap gap-4 mb-4">
         <input
           type="text"
@@ -414,7 +395,6 @@ export default function AdminDepartmentsPage() {
         </select>
       </div>
 
-      {/* Add Department Button and Archive Button */}
       <div className="mb-4 flex gap-4">
         {(hasPermission('departments', 'create') || checkRoleBasedPermission('create')) ? (
           <button
@@ -450,7 +430,6 @@ export default function AdminDepartmentsPage() {
         </button>
       </div>
 
-      {/* Departments Table */}
       {loading ? (
         <div className="text-center py-8">Loading departments...</div>
       ) : filteredDepartments.length > 0 ? (
@@ -482,8 +461,7 @@ export default function AdminDepartmentsPage() {
                   const isMatch = departments.some(dept => 
                     dept.toLowerCase() === department.department_name.toLowerCase()
                   );
-                  
-                  // Debug logging for Student Services
+
                   if (department.department_name.toLowerCase().includes('student services')) {
                     console.log('Admin Page - Student Services Debug:', {
                       departmentName: department.department_name,
@@ -642,7 +620,6 @@ export default function AdminDepartmentsPage() {
   );
 }
 
-// Add Department Modal
 function AddDepartmentModal({ onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     department_name: "",
@@ -665,7 +642,6 @@ function AddDepartmentModal({ onClose, onSuccess }) {
       return;
     }
 
-    // Show confirmation modal instead of directly submitting
     setShowConfirmModal(true);
   };
 
@@ -675,13 +651,12 @@ function AddDepartmentModal({ onClose, onSuccess }) {
 
     try {
       const token = Cookies.get("token");
-      
-      // Try both possible API endpoints
+
       let success = false;
       let response;
       
       try {
-        // First try admin endpoint
+
         response = await axios.post(
           "/api/admin/departments",
           formData,
@@ -694,7 +669,7 @@ function AddDepartmentModal({ onClose, onSuccess }) {
         console.warn("Error on first create endpoint, trying fallback:", firstError.message);
         
         try {
-          // Fallback to generic endpoint
+
           response = await axios.post(
             "/api/departments",
             formData,
@@ -705,8 +680,7 @@ function AddDepartmentModal({ onClose, onSuccess }) {
           success = true;
         } catch (secondError) {
           console.error("Error on fallback create endpoint:", secondError.message);
-          
-          // Try superadmin endpoint as last resort
+
           response = await axios.post(
             "/api/superadmin/departments",
             formData,
@@ -785,7 +759,6 @@ function AddDepartmentModal({ onClose, onSuccess }) {
         </form>
       </div>
 
-      {/* Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -831,7 +804,6 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
   const [availableAdmins, setAvailableAdmins] = useState([]);
   const [processingAdminIds, setProcessingAdminIds] = useState([]);
 
-  // Fetch the latest admin data when the modal opens
   useEffect(() => {
     const fetchAdmins = async () => {
       setFetchingAdmins(true);
@@ -840,12 +812,10 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         if (!token) {
           throw new Error("No authentication token found");
         }
-    
-        // Try multiple endpoints to get admin data
+
         let adminsArray = [];
         let success = false;
 
-        // Use the superadmin endpoint which now allows both super admins and regular admins
         const res = await axios.get("/api/superadmin/admins", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -858,15 +828,13 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         success = true;
 
         if (success) {
-          // Filter out inactive admins and super admins
           const filteredAdmins = adminsArray.filter(admin => 
             admin.is_active && 
             !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
           );
 
           setAvailableAdmins(filteredAdmins);
-          
-          // Set selected admins based on current department assignments
+
           const currentAdmins = filteredAdmins.filter(admin => {
             if (!admin.department) return false;
             const departments = admin.department.split(',').map(d => d.trim());
@@ -878,7 +846,6 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         }
       } catch (error) {
         console.error("Error fetching fresh admin data:", error);
-        // Fall back to using the initial admin data
         const available = initialAdmins.filter(admin => 
           admin.is_active && 
           !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
@@ -920,14 +887,12 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
     try {
       const token = Cookies.get("token");
       
-      // Process admins being assigned to this department
       const adminsToAssign = selectedAdmins.map(adminId => {
         const admin = availableAdmins.find(a => a.id === adminId);
         if (!admin) return null;
 
         setProcessingAdminIds(prev => [...prev, adminId]);
         
-        // Get current departments and add the new one if not already present
         const currentDepartments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
         const isAlreadyAssigned = currentDepartments.some(dept => 
           dept.toLowerCase() === department.department_name.toLowerCase()
@@ -935,8 +900,7 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         if (!isAlreadyAssigned) {
           currentDepartments.push(department.department_name);
         }
-        
-        // Use the superadmin endpoint which now allows both super admins and regular admins
+
         return axios.put(
           `/api/superadmin/admins/${adminId}`,
           { 
@@ -954,7 +918,6 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         });
       }).filter(Boolean);
 
-      // Process admins being removed from this department
       const adminsToRemove = availableAdmins.filter(admin => {
         if (!admin.department) return false;
         const departments = admin.department.split(',').map(d => d.trim());
@@ -971,8 +934,7 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         const updatedDepartments = departments.filter(d => 
           d.toLowerCase() !== department.department_name.toLowerCase()
         );
-        
-        // Use the superadmin endpoint which now allows both super admins and regular admins
+
         return axios.put(
           `/api/superadmin/admins/${admin.id}`,
           { 

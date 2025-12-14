@@ -56,8 +56,7 @@ const ThemesSection = ({
           </button>
         </div>
       </div>
-      
-      {/* Existing Themes */}
+
       <div className="space-y-4">
         <h3 className="text-sm font-medium text-black">Available Themes</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -111,7 +110,6 @@ const ThemesSection = ({
                       }
                       const updatedThemes = themes.filter(t => t.id !== theme.id);
                       setThemes(updatedThemes);
-                      // Save to localStorage
                       saveThemes(updatedThemes);
                       setSaveStatus("Theme deleted");
                       setTimeout(() => setSaveStatus(""), 3000);
@@ -192,8 +190,7 @@ const ThemesSection = ({
           ))}
         </div>
       </div>
-      
-      {/* Edit Theme Form (shows only when editing) */}
+
       {editingTheme && (
         <EditThemeForm 
           theme={editingTheme}
@@ -207,8 +204,7 @@ const ThemesSection = ({
           applyThemeColors={applyThemeColors}
         />
       )}
-      
-      {/* Create New Theme Form */}
+
       {!editingTheme && (
         <ThemeCreationForm 
           newTheme={newTheme}
@@ -220,17 +216,14 @@ const ThemesSection = ({
           setSaveStatus={setSaveStatus}
         />
       )}
-      
-      {/* Color Preview Section */}
+
       {!editingTheme && <ColorPreview newTheme={newTheme} />}
-      
-      {/* Theme UI Preview */}
+
       {!editingTheme && <ThemeUIPreview newTheme={newTheme} />}
     </div>
   );
 }
 
-// Theme Creation Form Component
 const ThemeCreationForm = ({ 
   newTheme,
   setNewTheme,
@@ -254,8 +247,7 @@ const ThemeCreationForm = ({
             className="w-full px-3 py-2 border rounded-md text-black"
           />
         </div>
-        
-        {/* Color pickers for theme */}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-3">
           <div className="space-y-3">
             <ColorPickerField 

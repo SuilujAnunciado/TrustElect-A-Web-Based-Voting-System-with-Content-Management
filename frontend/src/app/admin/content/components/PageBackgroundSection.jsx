@@ -19,13 +19,11 @@ const PageBackgroundSection = ({
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select a valid image file');
       return;
     }
 
-    // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image size must be less than 5MB');
       return;
@@ -34,10 +32,8 @@ const PageBackgroundSection = ({
     setIsUploading(true);
 
     try {
-      // Create a local URL for immediate preview
       const localUrl = URL.createObjectURL(file);
-      
-      // Update the landing content with the new background image for preview
+
       setLandingContent(prev => ({
         ...prev,
         [section]: {
@@ -53,7 +49,6 @@ const PageBackgroundSection = ({
       toast.error('Failed to upload background image');
     } finally {
       setIsUploading(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -73,7 +68,6 @@ const PageBackgroundSection = ({
 
   const currentBackground = landingContent[section]?.backgroundImage;
 
-  // For header section, add color pickers
   const isHeader = section === 'header';
 
   const updateHeaderColor = (field, value) => {
@@ -93,7 +87,6 @@ const PageBackgroundSection = ({
       </h3>
       
       <div className="space-y-4">
-        {/* Color pickers for header section */}
         {isHeader && (
           <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b">
             <div>
@@ -139,7 +132,6 @@ const PageBackgroundSection = ({
             </div>
           </div>
         )}
-        {/* Current Background Preview */}
         {currentBackground && (
           <div className="relative">
             <div className="text-sm font-medium text-gray-700 mb-2">Current Background:</div>
@@ -160,7 +152,6 @@ const PageBackgroundSection = ({
           </div>
         )}
 
-        {/* Upload Section */}
         <div 
           className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
           onClick={() => fileInputRef.current?.click()}
@@ -194,14 +185,12 @@ const PageBackgroundSection = ({
           </div>
         </div>
 
-        {/* Simple Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm text-blue-700">
             The uploaded image will automatically cover the entire section while keeping all content visible on top.
           </p>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex justify-between mt-4">
           {currentBackground && (
             <button
