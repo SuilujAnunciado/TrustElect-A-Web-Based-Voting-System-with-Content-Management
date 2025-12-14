@@ -1,0 +1,954 @@
+"use client";
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, CheckCircle, AlertCircle, User, Eye, Edit, Lock, Shield } from 'lucide-react';
+import Cookies from 'js-cookie';
+import axios from 'axios';
+import { use } from 'react';
+import Image from 'next/image';
+import { toast } from 'react-hot-toast';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+function formatNameSimple(lastName, firstName, fallback) {
+  const cap = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+  if ((!lastName && !firstName) && fallback) {
+    const words = fallback.trim().split(/\s+/);
+    if (words.length === 1) {
+      return cap(words[0]);
+    } else {
+      const last = cap(words[words.length - 1]);
+      const first = words.slice(0, -1).map(cap).join(' ');
+      return `${last}, ${first}`;
+    }
+  }
+  if (!lastName && !firstName) return 'No Name';
+  return `${cap(lastName)}, ${cap(firstName)}`;
+}
+
+const getImageUrl = (imageUrl) => {
+  if (!imageUrl) return '/default-candidate.png';
+
+  if (imageUrl.startsWith('http')) {
+    return imageUrl;
+  }
+
+  if (imageUrl.startsWith('/uploads')) {
+    return `${BASE_URL}${imageUrl}`;
+  }
+
+  if (!imageUrl.startsWith('/')) {
+    return `${BASE_URL}/uploads/candidates/${imageUrl}`;
+  }
+
+  return `${BASE_URL}${imageUrl}`;
+};
+
+const candidateKey = (candidateId) => 
+  candidateId === undefined || candidateId === null ? '' : String(candidateId);
+
+const extractProjectDescription = (candidate) => {
+  if (!candidate) return '';
+
+  const description =
+    candidate.project_description ??
+    candidate.projectDescription ??
+    candidate.description ??
+    candidate.projectDetails ??
+    candidate.projectDetail ??
+    candidate.platform ??
+    candidate.slogan ??
+    '';
+
+  return typeof description === 'string' ? description : '';
+};
+
+const mergePositionsWithDetails = (basePositions = [], detailedPositions = []) => {
+  if (!Array.isArray(basePositions) || !Array.isArray(detailedPositions) || detailedPositions.length === 0) {
+    return basePositions;
+  }
+
+  const detailMap = new Map();
+
+  detailedPositions.forEach((position) => {
+    (position.candidates || []).forEach((candidate) => {
+      detailMap.set(candidateKey(candidate.id), candidate);
+    });
+  });
+
+  return basePositions.map((position) => {
+    const mergedCandidates = (position.candidates || []).map((candidate) => {
+      const detail = detailMap.get(candidateKey(candidate.id));
+      return detail ? { ...candidate, ...detail } : candidate;
+    });
+
+    const enrichedCandidates = (position.candidates || []).map((candidate) => {
+      const detail = detailMap.get(candidateKey(candidate.id));
+      const mergedCandidate = detail ? { ...candidate, ...detail } : candidate;
+      return {
+        ...mergedCandidate,
+        projectDescriptionComputed: extractProjectDescription(detail || candidate),
+      };
+    });
+
+    return {
+      ...position,
+      candidates: enrichedCandidates
+    };
+  });
+};
+
+export default function VotePage({ params }) {
+  const resolvedParams = use(params);
+  const { id: electionId } = resolvedParams;
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [election, setElection] = useState(null);
+  const [positions, setPositions] = useState([]);
+  const [selectedCandidates, setSelectedCandidates] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [imageErrors, setImageErrors] = useState({});
+  const [imageCache, setImageCache] = useState({});
+  const [showPreview, setShowPreview] = useState(false);
+  const [submissionConfirmed, setSubmissionConfirmed] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submissionError, setSubmissionError] = useState(null);
+  const [encryptionStatus, setEncryptionStatus] = useState('idle'); 
+  const [candidateDetailsMap, setCandidateDetailsMap] = useState({});
+
+  const normalizeBallotPositions = (positions = []) =>
+    positions.map((position) => ({
+      position_id: position.position_id || position.id,
+      position_name: position.position_name || position.name,
+      max_choices: position.max_choices,
+      candidates: position.candidates || []
+    }));
+
+  const fetchDetailedSymposiumPositions = async (token) => {
+    try {
+      const detailsResponse = await axios.get(`${API_BASE}/elections/${electionId}/details`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
+      });
+
+      if (Array.isArray(detailsResponse?.data?.election?.positions)) {
+        return normalizeBallotPositions(detailsResponse.data.election.positions);
+      }
+    } catch (detailsError) {
+      console.error('Error fetching election details for symposium ballot:', detailsError);
+    }
+
+    try {
+      const ballotResponse = await axios.get(`${API_BASE}/elections/${electionId}/ballot`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true
+      });
+
+      if (Array.isArray(ballotResponse?.data?.positions)) {
+        return normalizeBallotPositions(ballotResponse.data.positions);
+      }
+
+      if (Array.isArray(ballotResponse?.data?.ballot?.positions)) {
+        return normalizeBallotPositions(ballotResponse.data.ballot.positions);
+      }
+    } catch (ballotError) {
+      console.error('Error fetching ballot data for symposium election:', ballotError);
+    }
+
+    return [];
+  };
+
+  useEffect(() => {
+    const fetchBallot = async () => {
+      try {
+        setLoading(true);
+        const token = Cookies.get('token');
+        
+        if (!token) {
+          setError('Authentication required. Please log in again.');
+          return;
+        }
+        
+        const response = await axios.get(`${API_BASE}/elections/${electionId}/student-ballot`, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
+        });
+        
+        setElection(response.data.election);
+
+        let enhancedPositions = response.data.positions;
+        let localDetailsMap = {};
+        const electionTypeValue = (response.data.election?.election_type || '').toLowerCase();
+        const shouldEnhanceCandidates = electionTypeValue.includes('symposium') || electionTypeValue.includes('symphosium');
+
+        if (shouldEnhanceCandidates) {
+          const detailedPositions = await fetchDetailedSymposiumPositions(token);
+          if (Array.isArray(detailedPositions) && detailedPositions.length > 0) {
+            enhancedPositions = mergePositionsWithDetails(response.data.positions, detailedPositions);
+
+            detailedPositions.forEach((position) => {
+              (position.candidates || []).forEach((candidate) => {
+                localDetailsMap[candidateKey(candidate.id)] = candidate;
+              });
+            });
+            setCandidateDetailsMap(localDetailsMap);
+          } else {
+            setCandidateDetailsMap({});
+          }
+        } else {
+          setCandidateDetailsMap({});
+        }
+
+        const annotatedPositions = enhancedPositions.map((position) => {
+          const updatedCandidates = (position.candidates || []).map((candidate) => {
+            const details = localDetailsMap[candidateKey(candidate.id)];
+            return {
+              ...candidate,
+              projectDescriptionComputed:
+                candidate.projectDescriptionComputed ??
+                extractProjectDescription(details || candidate),
+            };
+          });
+
+          return {
+            ...position,
+            candidates: updatedCandidates,
+          };
+        });
+        
+        setPositions(annotatedPositions);
+
+        const initialSelections = {};
+        annotatedPositions.forEach(position => {
+          initialSelections[position.position_id] = [];
+        });
+        setSelectedCandidates(initialSelections);
+
+        const newImageCache = {};
+        
+        annotatedPositions.forEach(position => {
+          position.candidates.forEach(candidate => {
+            if (candidate.image_url) {
+              const processedUrl = getImageUrl(candidate.image_url);
+              const urlWithTimestamp = `${processedUrl}?timestamp=${new Date().getTime()}`;
+              newImageCache[candidate.id] = urlWithTimestamp;
+            }
+          });
+        });
+        
+        setImageCache(newImageCache);
+        
+      } catch (err) {
+        console.error('Error fetching ballot:', err);
+        
+        if (err.response?.status === 403 && err.response?.data?.message?.includes('Access denied')) {
+          setError(err.response.data.message);
+        } else {
+          setError(err.response?.data?.message || 'Failed to load ballot. Please try again later.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchBallot();
+  }, [electionId]);
+
+  const electionType = (election?.election_type || '').toLowerCase();
+  const isSymposiumElection = electionType.includes('symposium') || electionType.includes('symphosium');
+
+  const getCandidateDisplayName = (candidate, fallbackName) => {
+    if (!candidate) return 'No Name';
+    const firstName = candidate.first_name ?? candidate.firstName;
+    const lastName = candidate.last_name ?? candidate.lastName;
+    const displayName = candidate.name;
+
+    if (isSymposiumElection) {
+      return firstName || displayName || fallbackName || 'Project';
+    }
+
+    return formatNameSimple(lastName, firstName, fallbackName || displayName);
+  };
+
+  const getCandidateProjectDescription = (candidate) => {
+    if (!isSymposiumElection || !candidate) return '';
+
+    if (candidate.projectDescriptionComputed) {
+      return candidate.projectDescriptionComputed;
+    }
+
+    const detailsKey = candidateKey(candidate.id);
+    const detailedCandidate = candidateDetailsMap[detailsKey];
+    return extractProjectDescription(detailedCandidate || candidate);
+  };
+
+  const renderProjectDescription = (candidate, className = 'text-sm text-black mt-1') => {
+    if (!isSymposiumElection) return null;
+    const description = getCandidateProjectDescription(candidate);
+    if (!description) return null;
+    return (
+      <p className={className}>
+        <span className="font-medium">Project Description:</span> {description}
+      </p>
+    );
+  };
+
+  const handleCandidateSelect = (positionId, candidateId, maxChoices) => {
+    setSelectedCandidates(prev => {
+      const currentSelections = [...prev[positionId]];
+
+      const index = currentSelections.indexOf(candidateId);
+      
+      if (index === -1) {
+
+        if (currentSelections.length < maxChoices) {
+          return {
+            ...prev,
+            [positionId]: [...currentSelections, candidateId]
+          };
+        }
+      } else {
+
+        currentSelections.splice(index, 1);
+        return {
+          ...prev,
+          [positionId]: currentSelections
+        };
+      }
+      
+      return prev;
+    });
+
+    setValidationErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[positionId];
+      return newErrors;
+    });
+  };
+
+  const validateVotes = () => {
+    const errors = {};
+    let isValid = true;
+    
+    positions.forEach(position => {
+      const selectedCount = selectedCandidates[position.position_id]?.length || 0;
+      
+      if (selectedCount === 0) {
+        errors[position.position_id] = `Please select at least one candidate for ${position.position_name}`;
+        isValid = false;
+      } else if (selectedCount > position.max_choices) {
+        errors[position.position_id] = `You can only select up to ${position.max_choices} candidates for ${position.position_name}`;
+        isValid = false;
+      }
+    });
+    
+    setValidationErrors(errors);
+    return isValid;
+  };
+
+  const handlePreviewVotes = () => {
+    if (!validateVotes()) {
+      return;
+    }
+    setShowPreview(true);
+  };
+
+  const handleEditVotes = () => {
+    setShowPreview(false);
+  };
+
+  const handleSubmitVote = async () => {
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+
+      const token = Cookies.get('token');
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
+      const missingPositions = positions.filter(position => 
+        !selectedCandidates[position.position_id] || selectedCandidates[position.position_id].length === 0
+      );
+      
+      if (missingPositions.length > 0) {
+        const positionNames = missingPositions.map(p => p.position_name).join(', ');
+        throw new Error(`Please select candidates for: ${positionNames}`);
+      }
+
+      const votes = positions.map(position => {
+        const candidateIds = selectedCandidates[position.position_id] || [];
+        return {
+          positionId: parseInt(position.position_id),
+          candidateIds: candidateIds.map(id => parseInt(id))
+        };
+      }).filter(vote => vote.candidateIds.length > 0);
+
+      setEncryptionStatus('encrypting');
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      setEncryptionStatus('encrypted');
+
+
+
+      const response = await axios.post(`${API_BASE}/elections/${electionId}/vote`, 
+        { votes }, 
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        }
+      );
+
+
+      if (response.data.success) {
+
+        if (response.data.voteToken) {
+          localStorage.setItem(`vote_token_${electionId}`, response.data.voteToken);
+        }
+
+        toast.success('Vote submitted successfully! Redirecting to receipt...');
+
+        router.push(`/student/elections/${electionId}/receipt`);
+      } else {
+        setEncryptionStatus('error');
+        throw new Error(response.data.message || "Failed to submit vote");
+      }
+    } catch (error) {
+      setEncryptionStatus('error');
+      console.error('Error submitting vote:', error);
+
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+        console.error('Error response headers:', error.response.headers);
+
+        if (error.response.data && error.response.data.alreadyVoted) {
+          toast.info('You have already voted in this election. Redirecting to your receipt...');
+
+          if (error.response.data && error.response.data.voteToken) {
+            localStorage.setItem(`vote_token_${electionId}`, error.response.data.voteToken);
+          } else {
+
+            fetchExistingVoteToken(electionId, token);
+          }
+
+          router.push(`/student/elections/${electionId}/receipt`);
+          return;
+        }
+
+        if (error.response.status === 403 && error.response.data?.message?.includes('Access denied')) {
+          toast.error(error.response.data.message);
+          setTimeout(() => {
+            router.push('/student/elections');
+          }, 3000);
+        } else if (error.response.data && error.response.data.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error(`Failed to submit vote. Server returned status ${error.response.status}`);
+        }
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+        toast.error('Failed to receive response from server. Please check your network connection.');
+      } else {
+        console.error('Error message:', error.message);
+        toast.error(error.message || 'Failed to submit vote. Please try again.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const fetchExistingVoteToken = async (electionId, token) => {
+    try {
+
+      const response = await axios.get(`${API_BASE}/elections/${electionId}/vote-token`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      });
+      
+      if (response.data && response.data.voteToken) {
+        localStorage.setItem(`vote_token_${electionId}`, response.data.voteToken);
+      }
+    } catch (error) {
+      console.error('Error fetching existing vote token:', error);
+    }
+  };
+
+  const handleImageError = (candidateId, event) => {
+
+    if (!imageErrors[candidateId]) {
+      const candidate = getCandidateById(candidateId);
+      if (candidate && candidate.image_url) {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        const fallbackUrl = `${baseUrl}/api/uploads/candidates/${candidate.image_url}`;
+        event.target.src = fallbackUrl;
+
+        if (event.target.src.includes('/api/uploads/')) {
+          setImageErrors(prev => ({
+            ...prev,
+            [candidateId]: true
+          }));
+        }
+      } else {
+        setImageErrors(prev => ({
+          ...prev,
+          [candidateId]: true
+        }));
+      }
+    }
+  };
+
+  const getCandidateById = (candidateId) => {
+    const desiredKey = candidateKey(candidateId);
+    for (const position of positions) {
+      const candidate = (position.candidates || []).find(
+        (c) => candidateKey(c.id) === desiredKey
+      );
+      if (candidate) return candidate;
+    }
+    return null;
+  };
+
+  const calculateVotingProgress = () => {
+    if (!positions || positions.length === 0) return 0;
+    
+    const totalPositions = positions.length;
+    const filledPositions = Object.keys(selectedCandidates).filter(
+      posId => selectedCandidates[posId].length > 0
+    ).length;
+    
+    return Math.round((filledPositions / totalPositions) * 100);
+  };
+
+  const getNextIncompletePosition = () => {
+    if (!positions) return null;
+    
+    return positions.find(position => 
+      !selectedCandidates[position.position_id] || 
+      selectedCandidates[position.position_id].length === 0
+    );
+  };
+
+  const generateReceiptNumber = () => {
+    const date = new Date();
+    const year = date.getFullYear().toString().substr(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `VOTE-${year}${month}${day}-${random}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <button 
+          onClick={() => router.push('/student')} 
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back
+        </button>
+        
+        <div className={`px-4 py-3 rounded mb-4 ${
+          error.includes('Access denied') 
+            ? 'bg-orange-100 border border-orange-400 text-orange-700' 
+            : 'bg-red-100 border border-red-400 text-red-700'
+        }`}>
+          <p className="font-bold">
+            {error.includes('Access denied') ? 'Voting Location Restriction' : 'Error'}
+          </p>
+          <p>{error}</p>
+          {error.includes('Access denied') && (
+            <div className="mt-3">
+              <p className="text-sm">
+                <strong>Go to your assigned laboratory to cast your vote</strong>
+              </p>
+              {(() => {
+                try {
+                  const match = error.match(/assigned (?:laboratory|laboratories):\s*(.*)$/i);
+                  if (match && match[1]) {
+                    const labs = match[1].split(',').map(s => s.trim()).filter(Boolean);
+                    if (labs.length > 1) {
+                      return (
+                        <ul className="list-disc list-inside text-sm text-orange-700 mt-2">
+                          {labs.map((lab, idx) => (
+                            <li key={idx}>{lab}</li>
+                          ))}
+                        </ul>
+                      );
+                    }
+                  }
+                } catch {}
+                return null;
+              })()}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <button 
+        onClick={() => router.push('/student')} 
+        className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        Back to Dashboard
+      </button>
+      
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">{election?.title}</h1>
+        <p className="text-gray-600 mb-4">{election?.description}</p>
+
+        {!showPreview && (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-black">Voting Progress</span>
+              <span className="text-sm font-medium text-black">{calculateVotingProgress()}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="bg-blue-600 h-2.5 rounded-full" 
+                style={{ width: `${calculateVotingProgress()}%` }}
+              ></div>
+            </div>
+            {calculateVotingProgress() < 100 && (
+              <p className="text-sm text-black mt-2">
+                {getNextIncompletePosition() 
+                  ? `Next: Select candidates for ${getNextIncompletePosition().position_name}`
+                  : 'Complete all positions to proceed'}
+              </p>
+            )}
+          </div>
+        )}
+        
+        
+        
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-blue-500" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">
+                Select or Vote Candidates per position
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {!showPreview ? (
+          <>
+            {positions.map((position) => (
+              <div key={position.position_id} className="mb-8 border rounded-lg p-4">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                  {position.position_name}
+                  <span className="text-sm font-normal text-gray-600 ml-2">
+                    (Select up to {position.max_choices} {position.max_choices === 1 ? 'candidate' : 'candidates'})
+                  </span>
+                </h2>
+                
+                {validationErrors[position.position_id] && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
+                    {validationErrors[position.position_id]}
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {position.candidates.map((candidate) => (
+                    <div 
+                      key={candidate.id}
+                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                        selectedCandidates[position.position_id]?.includes(candidate.id)
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-blue-300'
+                      }`}
+                      onClick={() => handleCandidateSelect(position.position_id, candidate.id, position.max_choices)}
+                    >
+                      <div className="flex flex-col">
+                        {/* Candidate Image */}
+                        <div className="mb-3 w-32 h-32 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto">
+                          {candidate.image_url && !imageErrors[candidate.id] ? (
+                            <img 
+                              src={imageCache[candidate.id] || getImageUrl(candidate.image_url)}
+                              alt={`${getCandidateDisplayName(candidate)}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => handleImageError(candidate.id, e)}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <User className="w-12 h-12 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center mb-2">
+                          <div className="flex-shrink-0 mr-2">
+                            {selectedCandidates[position.position_id]?.includes(candidate.id) ? (
+                              <CheckCircle className="h-5 w-5 text-blue-500" />
+                            ) : (
+                              <div className="h-5 w-5 rounded-full border-2 border-gray-300"></div>
+                            )}
+                          </div>
+                          <span className="text-sm text-black">
+                            {selectedCandidates[position.position_id]?.includes(candidate.id) ? 'Selected' : 'Click to select'}
+                          </span>
+                        </div>
+                        
+                        {/* Candidate Details */}
+                        <div>
+                          {isSymposiumElection ? (
+                            <>
+                              <h3 className="font-medium text-gray-800 text-lg">
+                                Project Name: {getCandidateDisplayName(candidate)}
+                              </h3>
+                              {getCandidateProjectDescription(candidate) && (
+                                <p className="text-sm text-black mt-1">
+                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <h3 className="font-medium text-gray-800 text-lg">
+                              Full Name: {getCandidateDisplayName(candidate)}
+                            </h3>
+                          )}
+                          {candidate.party && (
+                            <div className="mt-1">
+                              <span className="text-md font-medium text-black ">Partylist:</span>
+                              <p className="text-sm text-black">{candidate.party}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={handlePreviewVotes}
+                className="px-4 py-2 rounded-md text-white font-medium bg-blue-600 hover:bg-blue-700 flex items-center"
+              >
+                <Eye className="w-5 h-5 mr-2" />
+                Preview Votes
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="vote-preview">
+            <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-green-500" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-lg font-medium text-green-800">Review Your Votes</h3>
+                  <p className="text-sm text-green-700">
+                    Please review your selections carefully before submitting.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="text-lg font-medium text-blue-800 mb-2">Vote Summary</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Total Positions: <span className="font-medium text-black">{positions.length}</span></p>
+                  <p className="text-sm text-gray-600">Positions Filled: <span className="font-medium text-black">{Object.keys(selectedCandidates).filter(posId => selectedCandidates[posId].length > 0).length}</span></p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total Selections: <span className="font-medium text-black">{Object.values(selectedCandidates).reduce((sum, arr) => sum + arr.length, 0)}</span></p>
+                  <p className="text-sm text-gray-600">Election: <span className="font-medium text-black">{election?.title || 'Student Election'}</span></p>
+                </div>
+              </div>
+            </div>
+
+            {positions.map((position) => (
+              <div key={position.position_id} className="mb-8 border rounded-lg p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    {position.position_name}
+                  </h2>
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium text-gray-600 mr-2">
+                      {selectedCandidates[position.position_id]?.length || 0} of {position.max_choices} selected
+                    </span>
+                    <div className={`w-3 h-3 rounded-full ${selectedCandidates[position.position_id]?.length > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  </div>
+                </div>
+                
+                {selectedCandidates[position.position_id]?.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {selectedCandidates[position.position_id].map(candidateId => {
+                      const candidate = getCandidateById(candidateId);
+                      if (!candidate) return null;
+                      
+                      return (
+                        <div key={candidate.id} className="border border-green-300 rounded-lg p-4 bg-green-50 hover:shadow-md transition-shadow">
+                          <div className="flex flex-col">
+                            {/* Candidate Image */}
+                            <div className="mb-3 w-32 h-32 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto">
+                              {candidate.image_url && !imageErrors[candidate.id] ? (
+                                <img 
+                                  src={imageCache[candidate.id] || getImageUrl(candidate.image_url)}
+                                  alt={`${getCandidateDisplayName(candidate)}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => handleImageError(candidate.id, e)}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <User className="w-12 h-12 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Candidate Details */}
+                            <div>
+                              <h3 className="font-medium text-gray-800 text-lg">
+                                {isSymposiumElection ? 'Project Name:' : ''}
+                                {isSymposiumElection ? ` ${getCandidateDisplayName(candidate)}` : getCandidateDisplayName(candidate)}
+                              </h3>
+                              {getCandidateProjectDescription(candidate) && (
+                                <p className="text-sm text-black mt-1">
+                                  <span className="font-medium">Project Description:</span> {getCandidateProjectDescription(candidate)}
+                                </p>
+                              )}
+                              {candidate.party && (
+                                <div className="mt-1">
+                                  <span className="text-xs font-medium text-gray-500">Party:</span>
+                                  <p className="text-sm text-gray-600">{candidate.party}</p>
+                                </div>
+                              )}
+                              {candidate.slogan && !isSymposiumElection && (
+                                <div className="mt-1">
+                                  <span className="text-xs font-medium text-gray-500">Slogan:</span>
+                                  <p className="text-sm text-gray-600 italic">"{candidate.slogan}"</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                    <p className="text-yellow-700">No candidates selected for this position</p>
+                    <button 
+                      onClick={handleEditVotes}
+                      className="mt-2 text-sm text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Go back and make a selection
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <div className="mt-6 flex justify-between">
+              <button
+                onClick={handleEditVotes}
+                className="px-4 py-2 rounded-md text-white font-medium bg-gray-600 hover:bg-gray-700 flex items-center"
+              >
+                <Edit className="w-5 h-5 mr-2" />
+                Edit Votes
+              </button>
+              
+              <div className="flex items-center space-x-4">
+                {!submissionConfirmed ? (
+                  <button
+                    onClick={() => setSubmissionConfirmed(true)}
+                    className="px-4 py-2 rounded-md text-white font-medium bg-blue-600 hover:bg-blue-700"
+                  >
+                    Confirm and Submit
+                  </button>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-yellow-800 mb-2">Final Confirmation</h3>
+                    <p className="text-yellow-700 mb-4">
+                      Are you sure you want to submit your votes? This action cannot be undone.
+                    </p>
+
+                    {encryptionStatus !== 'idle' && (
+                      <div className={`mb-4 p-3 rounded-md flex items-center
+                        ${encryptionStatus === 'encrypting' ? 'bg-blue-100 text-blue-800' : 
+                          encryptionStatus === 'encrypted' ? 'bg-green-100 text-green-800' : 
+                          'bg-red-100 text-red-800'}`}
+                      >
+                        <Lock className="h-5 w-5 mr-2" />
+                        <span>
+                          {encryptionStatus === 'encrypting' ? 'Encrypting your vote...' :
+                           encryptionStatus === 'encrypted' ? 'Vote encrypted successfully!' :
+                           'Encryption error. Please try again.'}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => setSubmissionConfirmed(false)}
+                        className="px-4 py-2 rounded-md text-white font-medium bg-gray-600 hover:bg-gray-700"
+                        disabled={submitting || encryptionStatus === 'encrypting'}
+                      >
+                        No, Go Back
+                      </button>
+                      <button
+                        onClick={handleSubmitVote}
+                        disabled={submitting || encryptionStatus === 'encrypting'}
+                        className={`px-4 py-2 rounded-md text-white font-medium flex items-center ${
+                          submitting || encryptionStatus === 'encrypting'
+                            ? 'bg-gray-400 cursor-not-allowed' 
+                            : 'bg-green-600 hover:bg-green-700'
+                        }`}
+                      >
+                        {(submitting || encryptionStatus === 'encrypting') ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            {encryptionStatus === 'encrypting' ? 'Encrypting...' : 'Submitting...'}
+                          </>
+                        ) : (
+                          <>
+                            <Lock className="h-5 w-5 mr-2" />
+                            Yes, Submit My Votes
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

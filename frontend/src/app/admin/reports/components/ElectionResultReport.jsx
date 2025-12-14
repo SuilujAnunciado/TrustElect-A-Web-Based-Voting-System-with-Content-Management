@@ -1,0 +1,675 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Cookies from 'js-cookie';
+import Image from 'next/image';
+import { Download, Award, User, Trophy, Medal } from 'lucide-react';
+import { generatePdfReport } from '@/utils/pdfGenerator';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+const getImageUrl = (imageUrl) => {
+  if (!imageUrl) return '/images/default-avatar.png';
+  if (imageUrl.startsWith('http')) return imageUrl;
+  if (imageUrl.startsWith('blob:')) return imageUrl;
+
+  let cleanImageUrl = imageUrl;
+
+  if (cleanImageUrl.startsWith('/')) {
+    cleanImageUrl = cleanImageUrl.substring(1);
+  }
+
+  if (cleanImageUrl.startsWith('uploads/')) {
+    return `${API_BASE}/${cleanImageUrl}`;
+  }
+
+  if (!cleanImageUrl.includes('/')) {
+    return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
+  }
+
+  return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
+};
+
+const formatNameSimple = (lastName, firstName, positionName, candidate = null) => {
+  const isEmpty = (val) => !val || val === null || val === undefined || (typeof val === 'string' && val.trim() === '');
+  
+  let actualFirstName = firstName || '';
+  let actualLastName = lastName || '';
+  
+  if (candidate) {
+    if (isEmpty(actualFirstName) && candidate.firstName) {
+      actualFirstName = candidate.firstName;
+    }
+    if (isEmpty(actualLastName) && candidate.lastName) {
+      actualLastName = candidate.lastName;
+    }
+
+    if (isEmpty(actualFirstName) && candidate.first_name) {
+      actualFirstName = candidate.first_name;
+    }
+    if (isEmpty(actualLastName) && candidate.last_name) {
+      actualLastName = candidate.last_name;
+    }
+  }
+
+  if (!isEmpty(actualFirstName) && isEmpty(actualLastName)) {
+    return actualFirstName.trim();
+  }
+  
+  if (isEmpty(actualFirstName) && isEmpty(actualLastName)) {
+    if (candidate && candidate.name) {
+      return candidate.name;
+    }
+
+    if (candidate && (candidate.partylist_name || candidate.party)) {
+      const partyName = candidate.partylist_name || candidate.party;
+      console.warn('Using party name as fallback for empty candidate names:', { 
+        candidate, 
+        partyName,
+        first_name: candidate.first_name,
+        last_name: candidate.last_name 
+      });
+      return partyName;
+    }
+    
+    console.warn('Missing candidate name data:', { 
+      candidate, 
+      firstName, 
+      lastName, 
+      actualFirstName, 
+      actualLastName,
+      candidateKeys: candidate ? Object.keys(candidate) : []
+    });
+    return 'Unknown Candidate';
+  }
+
+  if (positionName && (positionName.toLowerCase().includes('president') || 
+      positionName.toLowerCase().includes('vice') || 
+      positionName.toLowerCase().includes('secretary') ||
+      positionName.toLowerCase().includes('treasurer'))) {
+    return `${actualLastName.trim()}, ${actualFirstName.trim()}`;
+  }
+
+  return `${actualFirstName.trim()} ${actualLastName.trim()}`.trim();
+};
+
+const getTotalVotesCast = (election) => {
+  if (!election) return 0;
+  return Number(
+    election.total_votes ??
+    election.total_votes_cast ??
+    election.vote_count ??
+    election.totalVotes ??
+    election.totalVotesCast ??
+    election.voteCount ??
+    0
+  );
+};
+
+const getTotalEligibleVoters = (election) => {
+  if (!election) return 0;
+  return Number(
+    election.total_eligible_voters ??
+    election.voter_count ??
+    election.totalEligibleVoters ??
+    election.eligible_voters ??
+    election.eligibleVoters ??
+    0
+  );
+};
+
+const normalizeElectionTotals = (election) => {
+  if (!election) {
+    return {
+      total_votes_cast: 0,
+      total_votes: 0,
+      vote_count: 0,
+      total_eligible_voters: 0,
+      voter_count: 0,
+      voter_turnout_percentage: 0
+    };
+  }
+
+  const totalVotesCast = getTotalVotesCast(election);
+  const totalEligibleVoters = getTotalEligibleVoters(election);
+  const turnout = totalEligibleVoters > 0
+    ? Number(((totalVotesCast / totalEligibleVoters) * 100).toFixed(2))
+    : (election.voter_turnout_percentage ?? 0);
+
+  return {
+    ...election,
+    total_votes_cast: totalVotesCast,
+    total_votes: totalVotesCast,
+    vote_count: totalVotesCast,
+    total_eligible_voters: totalEligibleVoters,
+    voter_count: totalEligibleVoters,
+    voter_turnout_percentage: turnout
+  };
+};
+
+const ElectionResultReport = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [data, setData] = useState({
+    elections: [],
+    selectedElection: null,
+    positions: [],
+    groupedPositions: [],
+    pagination: {
+      total: 0,
+      page: 1,
+      limit: 10,
+      total_pages: 0
+    }
+  });
+  const [selectedElectionId, setSelectedElectionId] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const fetchElections = async () => {
+    try {
+      setLoading(true);
+      const token = Cookies.get('token');
+
+      const endpoints = [
+        '/elections/status/completed',
+        '/elections/completed',
+        '/elections?status=completed',
+        '/elections'
+      ];
+
+      let electionsData = [];
+      let lastError = null;
+
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying endpoint: ${endpoint}`);
+          const response = await axios.get(`${API_BASE}${endpoint}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          console.log(`${endpoint} API response:`, response.data);
+
+          if (response.data) {
+
+            if (Array.isArray(response.data)) {
+              electionsData = response.data.filter(election => 
+                election.status === 'completed' || election.status === 'finished'
+              );
+            } else if (response.data.data && Array.isArray(response.data.data)) {
+              electionsData = response.data.data.filter(election => 
+                election.status === 'completed' || election.status === 'finished'
+              );
+            } else if (response.data.elections && Array.isArray(response.data.elections)) {
+              electionsData = response.data.elections.filter(election => 
+                election.status === 'completed' || election.status === 'finished'
+              );
+            }
+
+            if (electionsData.length > 0) {
+              console.log('Found elections data:', electionsData);
+              break; 
+            }
+          }
+        } catch (endpointError) {
+          console.log(`Endpoint ${endpoint} failed:`, endpointError.message);
+          lastError = endpointError;
+          continue; 
+        }
+      }
+
+      console.log('Final elections data:', electionsData);
+
+      setData(prev => ({
+        ...prev,
+        elections: electionsData
+      }));
+
+      if (electionsData.length === 0) {
+        setError('No completed elections found. Please ensure there are elections with "completed" status.');
+      } else {
+        setError(null);
+      }
+    } catch (err) {
+      console.error('Error fetching elections:', err);
+      console.error('Error details:', err.response?.data);
+      setError(err.response?.data?.message || 'Failed to fetch elections');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchResults = async (electionId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = Cookies.get('token');
+      
+      const response = await axios.get(`${API_BASE}/elections/completed/${electionId}/results`, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 30000 
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to fetch election results');
+      }
+
+      const { election, positions } = response.data.data;
+
+      const groupedPositions = Array.isArray(positions) ? positions.map(position => {
+        const sortedCandidates = Array.isArray(position.candidates) ? [...position.candidates].sort((a, b) => b.vote_count - a.vote_count) : [];
+
+        if (sortedCandidates.length > 0) {
+         
+        }
+        
+        return {
+          ...position,
+          sortedCandidates,
+          winner: sortedCandidates[0] || null
+        };
+      }) : [];
+
+      const results = [];
+      if (Array.isArray(positions)) {
+        positions.forEach(position => {
+          if (Array.isArray(position.candidates)) {
+            position.candidates.forEach(candidate => {
+              results.push({
+                position: position.position_name,
+                candidate_id: candidate.id,
+                candidate_name: `${candidate.first_name} ${candidate.last_name}`,
+                image_url: candidate.image_url,
+                partylist: candidate.partylist_name || '-',
+                vote_count: candidate.vote_count,
+                vote_percentage: candidate.vote_percentage || 0,
+                is_winner: candidate.is_winner
+              });
+            });
+          }
+        });
+      }
+
+      const normalizedElection = normalizeElectionTotals(election);
+
+      setData(prev => {
+        const baseElection = prev.elections.find(e => `${e.id}` === `${electionId}`);
+        const normalizedBase = baseElection ? normalizeElectionTotals(baseElection) : null;
+
+        const mergedElection = normalizeElectionTotals({
+          ...normalizedElection,
+          ...(normalizedBase || {})
+        });
+
+        return {
+          ...prev,
+          selectedElection: mergedElection,
+          positions: results,
+          groupedPositions: groupedPositions,
+          pagination: {
+            ...prev.pagination,
+            total: results.length,
+            total_pages: Math.ceil(results.length / prev.pagination.limit)
+          }
+        };
+      });
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching election results:', err);
+      if (err.code === 'ECONNABORTED') {
+        setError('Request timeout. The election results are taking too long to load. Please try again.');
+      } else {
+        setError(err.response?.data?.message || err.message || 'Failed to fetch election results');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchElections();
+  }, []);
+
+  useEffect(() => {
+    if (selectedElectionId) {
+      fetchResults(selectedElectionId);
+    } else {
+      setData(prev => ({
+        ...prev,
+        selectedElection: null,
+        positions: []
+      }));
+    }
+  }, [selectedElectionId]);
+
+  const handleElectionChange = (event) => {
+    setSelectedElectionId(event.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const handleDownload = async () => {
+    if (!selectedElectionId || !data.selectedElection) return;
+
+    try {
+      const reportData = {
+        title: "Election Result Report",
+        description: "Comprehensive election results including candidates, vote counts, and winners",
+        election_details: {
+          title: data.selectedElection.title,
+          type: data.selectedElection.election_type || 'General Election',
+          status: data.selectedElection.status,
+          total_votes: getTotalVotesCast(data.selectedElection),
+          total_eligible_voters: data.selectedElection.total_eligible_voters || 0,
+          voter_turnout_percentage: data.selectedElection.voter_turnout_percentage || 0,
+          date: new Date(data.selectedElection.date_to).toLocaleDateString(),
+          date_from: new Date(data.selectedElection.date_from).toLocaleDateString(),
+          date_to: new Date(data.selectedElection.date_to).toLocaleDateString()
+        },
+        positions: data.groupedPositions.map(position => ({
+          position_name: position.position_name,
+          max_choices: position.max_choices || 1,
+          total_votes: position.total_votes || 0,
+          candidates: position.sortedCandidates.map((candidate, index) => ({
+            rank: index + 1,
+            name: formatNameSimple(candidate.last_name, candidate.first_name, position.position_name, candidate),
+            first_name: candidate.first_name,
+            last_name: candidate.last_name,
+            party: candidate.partylist_name || 'Independent',
+            vote_count: candidate.vote_count || 0,
+            vote_percentage: candidate.vote_percentage || 0,
+            status: index === 0 ? 'Winner' : index === 1 ? '2nd Place' : index === 2 ? '3rd Place' : `${index + 1}th Place`,
+            is_winner: index === 0
+          }))
+        })),
+        summary: {
+          total_positions: data.groupedPositions.length,
+          total_candidates: data.groupedPositions.reduce((total, pos) => total + pos.sortedCandidates.length, 0),
+          total_votes_cast: getTotalVotesCast(data.selectedElection),
+          voter_turnout: data.selectedElection.voter_turnout_percentage || 0
+        }
+      };
+
+      console.log('Generating PDF with data:', reportData);
+      await generatePdfReport(13, reportData); 
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      setError('Failed to generate PDF report. Please try again.');
+    }
+  };
+  
+  const getPaginatedResults = () => {
+    const startIndex = (currentPage - 1) * data.pagination.limit;
+    const endIndex = startIndex + data.pagination.limit;
+    return data.positions.slice(startIndex, endIndex);
+  };
+
+  if (loading && !data.elections.length) return (
+    <div className="flex items-center justify-center p-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#01579B]"></div>
+    </div>
+  );
+
+  if (error && !data.elections.length) return (
+    <div className="bg-red-50 p-6 rounded-md border border-red-200">
+      <div className="flex items-center mb-2">
+        <h3 className="text-lg font-semibold text-red-800">No Elections Available</h3>
+      </div>
+      <p className="text-red-600 mb-4">{error}</p>
+      <div className="text-sm text-red-700">
+        <p className="mb-2">This could be because:</p>
+        <ul className="list-disc list-inside space-y-1">
+          <li>No elections have been created yet</li>
+          <li>No elections have been marked as "completed"</li>
+          <li>There's an issue with the API connection</li>
+        </ul>
+      </div>
+      <button 
+        onClick={fetchElections}
+        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+      >
+        Retry
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+   
+      <div className="flex justify-between items-center">
+        <select
+          value={selectedElectionId}
+          onChange={handleElectionChange}
+          className="w-64 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#01579B] text-black"
+        >
+          <option value="">Select Election</option>
+          {Array.isArray(data.elections) ? data.elections.map(election => (
+            <option key={election.id} value={election.id}>
+              {election.title} ({new Date(election.date_to).toLocaleDateString()})
+            </option>
+          )) : []}
+        </select>
+        <button
+          onClick={handleDownload}
+          disabled={!selectedElectionId}
+          className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+            selectedElectionId 
+              ? 'bg-[#01579B] text-white hover:bg-[#01416E]' 
+              : 'bg-gray-200 text-black cursor-not-allowed'
+          }`}
+        >
+          <Download className="w-4 h-4" />
+          Download Report
+        </button>
+      </div>
+
+      {data.selectedElection && (
+        <div className="bg-white/50 backdrop-blur-sm rounded-lg p-4 border border-gray-200">
+          <h2 className="text-xl font-semibold text-black mb-2">{data.selectedElection.title}</h2>
+          <div className="grid grid-cols-2 gap-4 text-sm text-black mb-4">
+            <div>
+              <p className="text-lg"><span className="font-medium text-lg">Date:</span> {new Date(data.selectedElection.date_to).toLocaleDateString()}</p>
+              <p className="text-lg"><span className="font-medium">Type:</span> {data.selectedElection.election_type}</p>
+            </div>
+            <div>
+              <p className="text-lg"><span className="font-medium text-lg">Total Votes Cast:</span> {getTotalVotesCast(data.selectedElection)}</p>
+              <p className="text-lg"><span className="font-medium text-lg">Status:</span> {data.selectedElection.status}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedElectionId && loading ? (
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#01579B]"></div>
+        </div>
+      ) : selectedElectionId && error ? (
+        <div className="bg-red-50 p-4 rounded-md">
+          <p className="text-red-600">{error}</p>
+        </div>
+      ) : selectedElectionId && data.groupedPositions.length > 0 ? (
+        <div className="space-y-8">
+          {Array.isArray(data.groupedPositions) ? data.groupedPositions.map((position, positionIndex) => (
+            <div key={position.position_id} className="bg-white/50 backdrop-blur-sm rounded-lg shadow border border-gray-200 p-6">
+              <h3 className="text-xl font-semibold text-black mb-6 flex items-center">
+                <Trophy className="w-6 h-6 mr-2 text-[#01579B]" />
+                {position.position_name}
+              </h3>
+              
+              {/* Winner Banner */}
+              {position.winner && (
+                <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6 shadow-sm">
+                  <h4 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                    <Award className="w-5 h-5 mr-2 text-blue-600" />
+                    Winner for {position.position_name}
+                  </h4>
+                  <div className="flex items-center">
+                    <div className="relative w-20 h-24 mr-6">
+                      {position.winner.image_url ? (
+                        <Image
+                          src={getImageUrl(position.winner.image_url)}
+                          alt={`${position.winner.first_name} ${position.winner.last_name}`}
+                          fill
+                          sizes="80px"
+                          className="object-cover rounded-lg border-2 border-blue-500"
+                          onError={(e) => {
+                            e.target.src = '/images/default-avatar.png';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-20 h-24 rounded-lg bg-blue-200 flex items-center justify-center border-2 border-blue-500">
+                          <User className="w-10 h-10 text-blue-600" />
+                        </div>
+                      )}
+                      <div className="absolute -top-2 -right-2 bg-blue-500 rounded-full p-1">
+                        <Award className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1">
+                      <h4 className="font-bold text-black text-xl mb-2">
+                        {formatNameSimple(position.winner.last_name, position.winner.first_name, position.position_name, position.winner)}
+                      </h4>
+                      {position.winner.partylist_name && position.winner.partylist_name !== '-' && (
+                        <div className="mb-3">
+                          <span className="font-medium text-sm text-black">Partylist:</span>
+                          <span className="ml-2 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium">
+                            {position.winner.partylist_name}
+                          </span>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="font-medium text-sm text-black">Votes:</span>
+                          <span className="ml-2 text-black font-bold text-lg">
+                            {Number(position.winner.vote_count || 0).toLocaleString()}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-sm text-black">Percentage:</span>
+                          <span className="ml-2 text-blue-600 font-bold text-lg">
+                            {position.winner.vote_percentage?.toFixed(2) || '0.00'}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* All Candidates Results */}
+              <div className="space-y-3">
+                <h5 className="text-lg font-medium text-black mb-4">All Candidates Results</h5>
+                {Array.isArray(position.sortedCandidates) ? position.sortedCandidates.map((candidate, candidateIndex) => (
+                  <div 
+                    key={candidate.id} 
+                    className={`flex items-center justify-between p-4 rounded-lg border ${
+                      candidateIndex === 0 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#01579B] text-white font-bold text-sm mr-4">
+                        {candidateIndex + 1}
+                      </div>
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden mr-4">
+                        <Image
+                          src={getImageUrl(candidate.image_url)}
+                          alt={`${candidate.first_name} ${candidate.last_name}`}
+                          fill
+                          className="object-cover"
+                          onError={(e) => {
+                            e.target.src = '/images/default-avatar.png';
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <h6 className="font-semibold text-black">
+                          {formatNameSimple(candidate.last_name, candidate.first_name, position.position_name, candidate)}
+                        </h6>
+                        {candidate.partylist_name && candidate.partylist_name !== '-' && (
+                          <p className="text-sm text-black">{candidate.partylist_name}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-6">
+                      <div className="text-center">
+                        <p className="text-sm text-black">Votes</p>
+                        <p className="font-bold text-lg text-black">
+                          {Number(candidate.vote_count || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-black">Percentage</p>
+                        <p className="font-bold text-lg text-[#01579B]">
+                          {candidate.vote_percentage?.toFixed(2) || '0.00'}%
+                        </p>
+                      </div>
+                      <div className="flex items-center">
+                        {candidateIndex === 0 ? (
+                          <span className="flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                            <Trophy className="w-4 h-4 mr-1" />
+                            Winner
+                          </span>
+                        ) : candidateIndex === 1 ? (
+                          <span className="flex items-center px-3 py-1 bg-gray-100 text-black rounded-full text-sm font-medium">
+                            <Medal className="w-4 h-4 mr-1" />
+                            2nd Place
+                          </span>
+                        ) : candidateIndex === 2 ? (
+                          <span className="flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                            <Medal className="w-4 h-4 mr-1" />
+                            3rd Place
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 bg-gray-100 text-black rounded-full text-sm">
+                            {candidateIndex + 1}th Place
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )) : []}
+              </div>
+            </div>
+          )) : []}
+        </div>
+      ) : selectedElectionId ? (
+        <div className="text-center py-8 text-gray-500">
+          No results available for this election
+        </div>
+      ) : null}
+
+      {/* Summary Stats */}
+      {selectedElectionId && Array.isArray(data.groupedPositions) && data.groupedPositions.length > 0 && (
+        <div className="mt-8 bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-black mb-4">Election Summary</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[#01579B]">{data.groupedPositions.length}</div>
+              <div className="text-sm text-black">Positions</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[#01579B]">
+                {data.groupedPositions.reduce((total, pos) => total + (Array.isArray(pos.sortedCandidates) ? pos.sortedCandidates.length : 0), 0)}
+              </div>
+              <div className="text-sm text-black">Total Candidates</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[#01579B]">
+                {getTotalVotesCast(data.selectedElection)}
+              </div>
+              <div className="text-sm text-black">Total Votes Cast</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ElectionResultReport; 

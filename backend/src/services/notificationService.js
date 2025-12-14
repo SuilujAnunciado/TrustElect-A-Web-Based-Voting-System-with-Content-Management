@@ -1,0 +1,651 @@
+const {
+  createNotification,
+  createNotificationForUsers,
+} = require('../models/notificationModel');
+const emailService = require('./emailService');
+const { addElectionNotificationToQueue } = require('./emailQueueService');
+const pool = require('../config/db');
+
+/**
+
+ * @param {string} role 
+ * @returns {string} 
+ */
+const normalizeRole = (role) => {
+  if (!role) return '';
+  
+  const lowerRole = role.toLowerCase();
+  
+  if (lowerRole === 'superadmin' || lowerRole === 'super admin' || lowerRole === 'super_admin') {
+    return 'Super Admin'; 
+  }
+  
+  if (lowerRole === 'admin') {
+    return 'Admin';
+  }
+  
+  if (lowerRole === 'student') {
+    return 'Student';
+  }
+
+  return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+};
+
+
+const NOTIFICATION_TYPES = {
+  INFO: 'info',
+  SUCCESS: 'success',
+  WARNING: 'warning',
+  ERROR: 'error',
+};
+
+
+const RELATED_ENTITIES = {
+  ELECTION: 'election',
+  BALLOT: 'ballot',
+  VOTE: 'vote',
+  RESULT: 'result',
+};
+
+/**
+ 
+ * @param {Object} election 
+ * @returns {Promise<Array>} 
+ */
+const notifyElectionNeedsApproval = async (election) => {
+  try {
+    if (!election.created_by) {
+      return [];
+    }
+    
+    const { rows: creatorRows } = await pool.query(`
+      SELECT role_id FROM users WHERE id = $1
+    `, [election.created_by]);
+    
+    const isCreatorSuperAdmin = creatorRows.length > 0 && creatorRows[0].role_id === 1;
+    
+    if (isCreatorSuperAdmin) {
+      const promises = [];
+      
+      const { rows: otherSuperadminUsers } = await pool.query(`
+        SELECT id FROM users 
+        WHERE role_id = 1 AND id != $1 AND active = true
+      `, [election.created_by]);
+      
+      if (otherSuperadminUsers.length > 0) {
+        const otherSuperadminIds = otherSuperadminUsers.map(user => user.id);
+        promises.push(
+          createNotificationForUsers(
+            otherSuperadminIds,
+            'Super Admin',
+            'New Election Created',
+            `A new election "${election.title}" has been created by a Super Admin.`,
+            NOTIFICATION_TYPES.INFO,
+            RELATED_ENTITIES.ELECTION,
+            election.id
+          )
+        );
+      }
+
+      const { rows: adminUsers } = await pool.query(`
+        SELECT u.id FROM users u 
+        JOIN admins a ON u.email = a.email 
+        WHERE u.role_id = 2 AND u.active = true
+      `);
+      
+      if (adminUsers.length > 0) {
+        const adminIds = adminUsers.map(user => user.id);
+        promises.push(
+          createNotificationForUsers(
+            adminIds,
+            'Admin',
+            'New Election Created',
+            `A new election "${election.title}" has been created by a Super Admin.`,
+            NOTIFICATION_TYPES.INFO,
+            RELATED_ENTITIES.ELECTION,
+            election.id
+          )
+        );
+      }
+      
+      const results = await Promise.all(promises);
+      return results.flat();
+    } else {
+      const { rows: superadminUsers } = await pool.query(`
+        SELECT id FROM users 
+        WHERE role_id = 1
+        AND active = true
+      `);
+      
+      let superadminIds = superadminUsers.map(user => user.id);
+      
+      if (superadminIds.length === 0) {
+        const { rows: inactiveUsers } = await pool.query(`
+          SELECT id FROM users 
+          WHERE role_id = 1
+        `);
+        superadminIds = inactiveUsers.map(user => user.id);
+      }
+      
+      if (superadminIds.length === 0) {
+        const { rows: joinedUsers } = await pool.query(`
+          SELECT u.id 
+          FROM users u
+          JOIN superadmins s ON u.email = s.email
+          WHERE u.active = true OR u.active IS NULL
+        `);
+        superadminIds = joinedUsers.map(user => user.id);
+      }
+      
+      if (superadminIds.length === 0) {
+        return [];
+      }
+      
+      let adminName = 'An admin';
+      if (election.created_by) {
+        const { rows: userRows } = await pool.query(`
+          SELECT name FROM users WHERE id = $1
+        `, [election.created_by]);
+        
+        if (userRows.length > 0 && userRows[0].name) {
+          adminName = userRows[0].name;
+        }
+      }
+
+      const result = await createNotificationForUsers(
+        superadminIds,
+        'Super Admin',
+        'Election Needs Approval',
+        `${adminName} created "${election.title}" that needs approval.`,
+        NOTIFICATION_TYPES.INFO,
+        RELATED_ENTITIES.ELECTION,
+        election.id
+      );
+      
+      return result;
+    }
+  } catch (error) {
+
+    try {
+      const { rows } = await pool.query(`SELECT id FROM users WHERE role_id = 1 LIMIT 10`);
+      const superIds = rows.map(row => row.id);
+      
+      if (superIds.length > 0) {
+        return await createNotificationForUsers(
+          superIds,
+          'Super Admin',
+          'Election Needs Approval',
+          `An election "${election.title}" needs your approval.`,
+          NOTIFICATION_TYPES.INFO,
+          RELATED_ENTITIES.ELECTION,
+          election.id
+        );
+      }
+    } catch (fallbackError) {
+      return [];
+    }
+    return [];
+  }
+};
+
+/**
+
+ * @param {Object} election 
+ * @param {string} adminId 
+ * @returns {Promise<Array>} 
+ */
+const notifyElectionApproved = async (election, adminId) => {
+  try {
+    if (!adminId) {
+      return [];
+    }
+    
+    let userRole = 'Admin'; 
+    try {
+      const { rows } = await pool.query(`
+        SELECT role_id FROM users WHERE id = $1
+      `, [adminId]);
+      
+      if (rows.length > 0) {
+        const user = rows[0];
+        if (user.role_id === 1) {
+          userRole = 'Super Admin';
+        }
+      }
+    } catch (roleError) {
+      console.error(`Error checking role for user ${adminId}:`, roleError.message);
+
+    }
+    
+    return createNotificationForUsers(
+      [adminId],
+      normalizeRole(userRole),
+      'Election Approved',
+      `Your election "${election.title}" has been approved.`,
+      NOTIFICATION_TYPES.SUCCESS,
+      RELATED_ENTITIES.ELECTION,
+      election.id
+    );
+  } catch (error) {
+    console.error('Error creating election approval notification:', error);
+    throw error;
+  }
+};
+
+/**
+ 
+ * @param {Object} election 
+ * @param {string} adminId 
+ * @param {string} rejectedById 
+ * @returns {Promise<Array>} 
+ */
+const notifyElectionRejected = async (election, adminId, rejectedById) => {
+  try {
+    const promises = [];
+
+    if (adminId) {
+      promises.push(
+        createNotification({
+          user_id: adminId,
+          role: normalizeRole('Admin'),
+          title: 'Election Rejected',
+          message: `Your election "${election.title}" has been rejected.`,
+          type: NOTIFICATION_TYPES.ERROR,
+          related_entity: RELATED_ENTITIES.ELECTION,
+          entity_id: election.id
+        })
+      );
+    }
+    
+    if (rejectedById) {
+      const { rows: superadmins } = await pool.query(`
+        SELECT id FROM superadmins WHERE id != $1
+      `, [rejectedById]);
+      
+      if (superadmins.length > 0) {
+        const superadminIds = superadmins.map(row => row.id);
+        promises.push(
+          createNotificationForUsers(
+            superadminIds,
+            normalizeRole('Super Admin'),
+            'Election Rejected',
+            `Election "${election.title}" was rejected.`,
+            NOTIFICATION_TYPES.INFO,
+            RELATED_ENTITIES.ELECTION,
+            election.id
+          )
+        );
+      }
+    }
+    
+  
+    const results = await Promise.all(promises);
+    return results.flat();
+  } catch (error) {
+    console.error('Error creating election rejection notification:', error);
+    return [];
+  }
+};
+
+/**
+
+ * @param {string} adminId 
+ * @param {Object} election 
+ * @returns {Promise<Array>} 
+ */
+const notifyBallotCreated = async (adminId, election) => {
+  try {
+    const promises = [];
+
+    if (election.created_by && election.created_by !== adminId) {
+      promises.push(
+        createNotification({
+          user_id: election.created_by,
+          role: normalizeRole('Admin'),
+          title: 'Ballot Created',
+          message: `A ballot has been created for your election "${election.title}".`,
+          type: NOTIFICATION_TYPES.INFO,
+          related_entity: RELATED_ENTITIES.BALLOT,
+          entity_id: election.id
+        })
+      );
+    }
+
+    const { rows: admins } = await pool.query(`
+      SELECT id FROM admins WHERE id != $1 AND id != $2
+    `, [adminId || 0, election.created_by || 0]);
+    
+    if (admins.length > 0) {
+      const adminIds = admins.map(row => row.id);
+      promises.push(
+        createNotificationForUsers(
+          adminIds,
+          normalizeRole('Admin'),
+          'Ballot Created',
+          `A ballot has been created for election "${election.title}".`,
+          NOTIFICATION_TYPES.INFO,
+          RELATED_ENTITIES.BALLOT,
+          election.id
+        )
+      );
+    }
+              ``
+    const { rows: superadmins } = await pool.query(`
+      SELECT id FROM superadmins
+    `);
+    
+    if (superadmins.length > 0) {
+      const superadminIds = superadmins.map(row => row.id);
+      promises.push(
+        createNotificationForUsers(
+          superadminIds,
+          normalizeRole('Super Admin'),
+          'Ballot Created',
+          `A ballot has been created for election "${election.title}" by an admin.`,
+          NOTIFICATION_TYPES.INFO,
+          RELATED_ENTITIES.BALLOT,
+          election.id
+        )
+      );
+    }
+
+    const results = await Promise.all(promises);
+    return results.flat();
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ 
+ * @param {Object} election 
+ * @returns {Promise<Array>}
+ */
+const getEligibleStudentIds = async (election) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT DISTINCT student_id 
+      FROM eligible_voters
+      WHERE election_id = $1
+    `, [election.id]);
+    
+    return rows.map(row => row.student_id);
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+
+ * @param {Object} election 
+ * @returns {Promise<Array>} 
+ */
+const notifyStudentsAboutElection = async (election) => {
+  try {
+    if (election.needs_approval) {
+      return [];
+    }
+
+    const studentIds = await getEligibleStudentIds(election);
+    
+    if (studentIds.length === 0) {
+      return [];
+    }
+
+    const studentUserIds = [];
+    const studentRoleMappings = [];
+    const studentEmails = [];
+
+    const batchSize = 50;
+    for (let i = 0; i < studentIds.length; i += batchSize) {
+      const batch = studentIds.slice(i, i + batchSize);
+
+      const { rows } = await pool.query(`
+        SELECT s.id as student_id, u.id as user_id, s.email
+        FROM students s
+        JOIN users u ON s.email = u.email
+        WHERE s.id = ANY($1)
+      `, [batch]);
+
+      rows.forEach(row => {
+        studentUserIds.push(row.user_id);
+        studentEmails.push(row.email);
+  
+        studentRoleMappings.push({
+          userId: row.user_id,
+          studentId: row.student_id
+        });
+      });
+    }
+    
+    if (studentUserIds.length === 0) {
+      return [];
+    }
+
+    const normalizedRole = normalizeRole('Student');
+
+    const notifications = await createNotificationForUsers(
+      studentUserIds,
+      normalizedRole,
+      'New Election Available',
+      `A new election "${election.title}" is now available for you to vote in.`,
+      NOTIFICATION_TYPES.INFO,
+      RELATED_ENTITIES.ELECTION,
+      election.id
+    );
+    
+    for (let i = 0; i < studentEmails.length; i++) {
+      const email = studentEmails[i];
+      const userId = studentUserIds[i];
+      
+      const electionData = {
+        title: election.title,
+        startDate: election.date_from,
+        endDate: election.date_to,
+        startTime: election.start_time,
+        endTime: election.end_time
+      };
+
+      addElectionNotificationToQueue(userId, email, electionData);
+    }
+
+    
+    return notifications;
+  } catch (error) {
+    console.error('Error in notifyStudentsAboutElection:', error);
+    return [];
+  }
+};
+
+/**
+
+ * @param {Object} election 
+ * @param {string} previousStatus 
+ * @returns {Promise<Array>} 
+ */
+const notifyElectionStatusChange = async (election, previousStatus) => {
+  try {
+    const promises = [];
+
+    const { rows: admins } = await pool.query(`
+      SELECT id FROM admins
+    `);
+
+    if (admins.length > 0) {
+      const adminIds = admins.map(row => row.id);
+      let message = '';
+
+      switch (election.status) {
+        case 'ongoing':
+          message = `Election "${election.title}" is now open for voting!`;
+          break;
+        case 'completed': 
+          message = `Election "${election.title}" has ended. Results are now available.`;
+          break;
+        case 'upcoming':
+          message = `Election "${election.title}" has been scheduled to start on ${new Date(election.start_date).toLocaleString()}.`;
+          break;
+        case 'draft':
+          message = `Election "${election.title}" has been changed to draft status.`;
+          break;
+        default:
+          message = `Election "${election.title}" status has changed to ${election.status}.`;
+      }
+      
+      promises.push(
+        createNotificationForUsers(
+          adminIds,
+          normalizeRole('Admin'),
+          'Election Status Change',
+          message,
+          NOTIFICATION_TYPES.INFO,
+          RELATED_ENTITIES.ELECTION,
+          election.id
+        )
+      );
+    }
+
+    const { rows: superadmins } = await pool.query(`
+      SELECT id FROM superadmins
+    `);
+    
+    if (superadmins.length > 0) {
+      const superadminIds = superadmins.map(row => row.id);
+      let message = '';
+      
+      switch (election.status) {
+        case 'ongoing':
+          message = `Election "${election.title}" is now open for voting.`;
+          break;
+        case 'completed':
+          message = `Election "${election.title}" has completed. Results are now available.`;
+          break;
+        default:
+          message = `Election "${election.title}" status has changed from ${previousStatus} to ${election.status}.`;
+      }
+      
+      promises.push(
+        createNotificationForUsers(
+          superadminIds,
+          normalizeRole('Super Admin'),
+          'Election Status Change',
+          message,
+          NOTIFICATION_TYPES.INFO,
+          RELATED_ENTITIES.ELECTION,
+          election.id
+        )
+      );
+    }
+
+    if (election.status === 'ongoing') {
+      promises.push(notifyStudentsAboutElection(election));
+    }
+
+    if (election.status === 'completed') {
+      promises.push(notifyStudentsAboutElectionResults(election));
+    }
+
+    const results = await Promise.all(promises);
+    return results.flat();
+    
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ * @param {Object} election 
+ * @returns {Promise<Array>} 
+ */
+const notifyStudentsAboutElectionResults = async (election) => {
+  try {
+    const studentIds = await getEligibleStudentIds(election);
+    
+    if (studentIds.length === 0) {
+      return [];
+    }
+
+    const { rows: votes } = await pool.query(`
+      SELECT DISTINCT student_id 
+      FROM votes 
+      WHERE election_id = $1
+    `, [election.id]);
+    
+    const votedStudentIds = votes.map(vote => vote.student_id);
+    const nonVotedStudentIds = studentIds.filter(id => !votedStudentIds.includes(id));
+    
+    const promises = [];
+
+    if (votedStudentIds.length > 0) {
+      const { rows: votedUsers } = await pool.query(`
+        SELECT s.id as student_id, u.id as user_id
+        FROM students s
+        JOIN users u ON s.email = u.email
+        WHERE s.id = ANY($1)
+      `, [votedStudentIds]);
+      
+      const votedUserIds = votedUsers.map(row => row.user_id);
+      
+      if (votedUserIds.length > 0) {
+        promises.push(
+          createNotificationForUsers(
+            votedUserIds,
+            normalizeRole('Student'),
+            'Election Results Available',
+            `The results for "${election.title}" are now available. Thank you for voting!`,
+            NOTIFICATION_TYPES.SUCCESS,
+            RELATED_ENTITIES.RESULT,
+            election.id
+          )
+        );
+      }
+    }
+
+    if (nonVotedStudentIds.length > 0) {
+      const { rows: nonVotedUsers } = await pool.query(`
+        SELECT s.id as student_id, u.id as user_id
+        FROM students s
+        JOIN users u ON s.email = u.email
+        WHERE s.id = ANY($1)
+      `, [nonVotedStudentIds]);
+      
+      const nonVotedUserIds = nonVotedUsers.map(row => row.user_id);
+      
+      if (nonVotedUserIds.length > 0) {
+        promises.push(
+          createNotificationForUsers(
+            nonVotedUserIds,
+            normalizeRole('Student'),
+            'Election Results Available',
+            `The results for "${election.title}" are now available. You did not cast a vote in this election.`,
+            NOTIFICATION_TYPES.WARNING,
+            RELATED_ENTITIES.RESULT,
+            election.id
+          )
+        );
+      }
+    }
+
+    const results = await Promise.all(promises);
+    return results.flat();
+    
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ * @returns {Promise<Array>}
+ */
+
+
+module.exports = {
+  normalizeRole,
+  notifyElectionNeedsApproval,
+  notifyElectionApproved,
+  notifyElectionRejected,
+  notifyBallotCreated,
+  notifyStudentsAboutElection,
+  notifyElectionStatusChange,
+  notifyStudentsAboutElectionResults,
+};

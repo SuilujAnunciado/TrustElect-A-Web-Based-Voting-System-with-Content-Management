@@ -1,0 +1,1153 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { PlusCircle, Edit, Trash, UserPlus, Lock, Archive } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import usePermissions from "@/hooks/usePermissions";
+import ConfirmationModal from "@/components/Modals/ConfirmationModal";
+
+export default function AdminDepartmentsPage() {
+  const router = useRouter();
+  const [departments, setDepartments] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState("All");
+  const { hasPermission, loading: permissionsLoading, refreshPermissions } = usePermissions();
+
+  const checkRoleBasedPermission = useCallback((action) => {
+    if (!permissionsLoading && hasPermission('departments', action)) {
+      return true;
+    }
+    
+    const role = Cookies.get('role');
+    if (role === 'Super Admin') {
+      return true;
+    } else if (role === 'Admin') {
+      if (action === 'view' || action === 'create' || action === 'edit') return true;
+ 
+      return false;
+    }
+    
+    return false;
+  }, [permissionsLoading, hasPermission]);
+
+  useEffect(() => {
+    refreshPermissions();
+    
+    try {
+      const userId = Cookies.get('userId');
+      if (userId) {
+        const lastUpdate = localStorage.getItem(`admin_permissions_updated_${userId}`);
+        if (lastUpdate) {
+          localStorage.removeItem(`admin_permissions_updated_${userId}`);
+          refreshPermissions();
+        }
+      }
+    } catch (e) {
+      console.warn("Error checking localStorage:", e);
+    }
+    
+    fetchAdmins();
+  }, [refreshPermissions]);
+
+  const fetchAdmins = async () => {
+    try {
+      const token = Cookies.get("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      let adminsArray = [];
+      let success = false;
+
+      const res = await axios.get("/api/superadmin/admins", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      });
+      
+      adminsArray = res.data.admins || res.data || [];
+      success = true;
+
+      if (success) {
+        const filteredAdmins = adminsArray.filter(admin => 
+          admin.is_active && 
+          !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
+        );
+        
+        filteredAdmins.forEach(admin => {
+        });
+        setAdmins(filteredAdmins);
+      }
+    } catch (error) {
+      console.error("Error fetching admins:", error);
+      toast.error("Failed to load admin data");
+    }
+  };
+
+  useEffect(() => {
+    if (departments.length > 0) {
+      fetchAdmins();
+    }
+  }, [departments]);
+  
+  const fetchDepartments = async () => {
+    setLoading(true);
+    setError("");
+  
+    try {
+      const token = Cookies.get("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+  
+      let departmentsArray = [];
+      let success = false;
+
+      try {
+        const res = await axios.get("/api/admin/departments", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        });
+        
+        departmentsArray = res.data.departments || res.data || [];
+        success = true;
+      } catch (firstError) {
+        console.warn("Error on admin endpoint, trying fallback:", firstError.message);
+        
+        try {
+          const res = await axios.get("/api/superadmin/departments", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            withCredentials: true
+          });
+          
+          departmentsArray = res.data.departments || res.data || [];
+          success = true;
+        } catch (secondError) {
+          console.error("Error on superadmin endpoint:", secondError.message);
+          
+          try {
+            const profileRes = await axios.get("/api/admin/profile", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              withCredentials: true
+            });
+  
+            if (profileRes.data.department) {
+              departmentsArray = [{
+                id: 1, 
+                department_name: profileRes.data.department,
+                department_type: 'Academic', 
+                admin_id: profileRes.data.id,
+                admin_name: `${profileRes.data.first_name || ''} ${profileRes.data.last_name || ''}`.trim(),
+                admin_email: profileRes.data.email
+              }];
+              success = true;
+            } else {
+              throw new Error("Admin does not have a department assigned");
+            }
+          } catch (thirdError) {
+            console.error("All department API endpoints failed:", thirdError.message);
+            throw new Error("Failed to load departments after trying all endpoints");
+          }
+        }
+      }
+      
+      if (success) {
+        setDepartments(departmentsArray);
+
+        setTimeout(() => fetchAdmins(), 100); 
+      }
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+      setError("Failed to load departments. " + (error.response?.data?.message || error.message));
+      setDepartments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!permissionsLoading) {
+      if (hasPermission('departments', 'view') || checkRoleBasedPermission('view')) {
+        fetchDepartments();
+      } else {
+        setLoading(false);
+      }
+    }
+  }, [permissionsLoading, hasPermission, checkRoleBasedPermission]);
+
+
+  const filteredDepartments = departments.filter(dept => {
+    const matchesSearch = dept.department_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filter === "All" || dept.department_type === filter;
+
+    const isActive = dept.is_active && !dept.is_deleted;
+    return matchesSearch && matchesFilter && isActive;
+  });
+
+  const handleArchive = async (id) => {
+    if (!hasPermission('departments', 'delete') && !checkRoleBasedPermission('delete')) {
+      toast.error("You don't have permission to archive departments");
+      return;
+    }
+
+    setSelectedDepartmentId(id);
+    setShowArchiveModal(true);
+  };
+
+  const confirmArchiveDepartment = async () => {
+    try {
+      const token = Cookies.get("token");
+
+      let success = false;
+      let response;
+      
+      try {
+        response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        success = true;
+      } catch (firstError) {
+        console.warn("Error on first archive endpoint, trying fallback:", firstError.message);
+        
+        try {
+          response = await axios.delete(`/api/departments/${selectedDepartmentId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          success = true;
+        } catch (secondError) {
+          console.error("Error on generic endpoint:", secondError.message);
+          
+          response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          success = true;
+        }
+      }
+      
+      toast.success(response.data.message || "Department archived successfully");
+      setShowArchiveModal(false);
+      fetchDepartments();
+    } catch (error) {
+      console.error("Error archiving department:", error);
+      toast.error(error.response?.data?.message || "Failed to archive department");
+    }
+  };
+
+  const handlePermanentDelete = async (id) => {
+    if (!hasPermission('departments', 'delete') && !checkRoleBasedPermission('delete')) {
+      toast.error("You don't have permission to delete departments");
+      return;
+    }
+
+    setSelectedDepartmentId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmPermanentDeleteDepartment = async () => {
+    try {
+      const token = Cookies.get("token");
+
+      let success = false;
+      let response;
+      
+      try {
+
+        response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}?action=delete`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        success = true;
+      } catch (firstError) {
+        console.warn("Error on first delete endpoint, trying fallback:", firstError.message);
+        
+        try {
+
+          response = await axios.delete(`/api/departments/${selectedDepartmentId}?action=delete`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          success = true;
+        } catch (secondError) {
+          console.error("Error on generic delete endpoint:", secondError.message);
+ 
+          response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}?action=delete`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          success = true;
+        }
+      }
+      
+      toast.success(response.data.message || "Department moved to deleted folder");
+      setShowDeleteModal(false);
+      fetchDepartments();
+    } catch (error) {
+      console.error("Error deleting department:", error);
+      toast.error(error.response?.data?.message || "Failed to delete department");
+    }
+  };
+
+  const handleAssignAdmin = (department) => {
+    if (!hasPermission('departments', 'edit') && !checkRoleBasedPermission('edit')) {
+      toast.error("You don't have permission to manage department admins");
+      return;
+    }
+
+    if (admins.length === 0) {
+      toast.error("No admins available to manage. You may not have permission to view other admins.");
+      return;
+    }
+    
+    setSelectedDepartment(department);
+    setShowAssignModal(true);
+  };
+
+  const handleEditDepartment = (department) => {
+    if (!hasPermission('departments', 'edit') && !checkRoleBasedPermission('edit')) {
+      toast.error("You don't have permission to edit departments");
+      return;
+    }
+    setSelectedDepartment(department);
+    setShowEditModal(true);
+  };
+
+  if (!permissionsLoading && !hasPermission('departments', 'view') && !checkRoleBasedPermission('view')) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+          <div className="flex items-center">
+            <Lock className="w-5 h-5 mr-2" />
+            <p>You don't have permission to view departments.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4 text-black">Department Management</h1>
+      
+      {(loading || permissionsLoading) && (
+        <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 flex items-center">
+          <div className="animate-spin h-5 w-5 mr-3 border-t-2 border-blue-700 border-solid rounded-full"></div>
+          <p>Loading {permissionsLoading ? "permissions and " : ""}department data...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+          <p>{error}</p>
+        </div>
+      )}
+
+      <div className="mb-4 p-2 bg-gray-50 rounded text-xs text-gray-500">
+        <strong>Permission status:</strong> 
+        {permissionsLoading ? " Loading..." : (
+          <span>
+            {" "}View: {hasPermission('departments', 'view') ? "✓" : "×"} | 
+            Create: {hasPermission('departments', 'create') ? "✓" : "×"} | 
+            Edit: {hasPermission('departments', 'edit') ? "✓" : "×"} | 
+            Delete: {hasPermission('departments', 'delete') ? "✓" : "×"}
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Search departments..."
+          className="border p-2 rounded flex-grow max-w-md text-black"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <select
+          className="border p-2 rounded text-black"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="All">All Types</option>
+          {Array.from(new Set(departments.map(dept => dept.department_type))).map(type => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4 flex gap-4">
+        {(hasPermission('departments', 'create') || checkRoleBasedPermission('create')) ? (
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center text-white bg-[#01579B] px-4 py-2 rounded hover:bg-[#01416E]"
+          >
+            <PlusCircle className="w-5 h-5 mr-2" />
+            Add Department
+          </button>
+        ) : !permissionsLoading && (
+          <div className="p-2 bg-gray-100 rounded-lg inline-flex items-center text-gray-500">
+            <Lock className="w-4 h-4 mr-2" />
+            <span className="text-sm">You don't have permission to add departments</span>
+          </div>
+        )}
+        
+        <button
+          onClick={() => router.push("/admin/departments/archive")}
+          className="flex items-center text-white bg-gray-600 px-4 py-2 rounded hover:bg-gray-700"
+          title="View Archived Folder"
+        >
+          <Archive className="w-5 h-5 mr-2" />
+          Archived Folder
+        </button>
+        
+        <button
+          onClick={() => router.push("/admin/departments/delete")}
+          className="flex items-center text-white bg-red-600 px-4 py-2 rounded hover:bg-red-700"
+          title="View Deleted Folder"
+        >
+          <Trash className="w-5 h-5 mr-2" />
+          Deleted Folder
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-8">Loading departments...</div>
+      ) : filteredDepartments.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow text-black">
+            <thead className="bg-[#01579B] text-white">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  Department Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  Assigned Admins
+                </th>
+                {(hasPermission('departments', 'delete') || checkRoleBasedPermission('delete')) && (
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                    Actions
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredDepartments.map((department) => {
+                const departmentAdmins = admins.filter(admin => {
+                  if (!admin.department) return false;
+                  const departments = admin.department.split(',').map(d => d.trim());
+                  const isMatch = departments.some(dept => 
+                    dept.toLowerCase() === department.department_name.toLowerCase()
+                  );
+
+                  if (department.department_name.toLowerCase().includes('student services')) {
+                    console.log('Admin Page - Student Services Debug:', {
+                      departmentName: department.department_name,
+                      adminName: admin.first_name + ' ' + admin.last_name,
+                      adminDepartmentRaw: admin.department,
+                      splitAdminDepartments: departments,
+                      isMatch: isMatch
+                    });
+                  }
+                  
+                  return isMatch;
+                });
+                
+                return (
+                  <tr key={department.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium">{department.department_name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        department.department_type === 'Academic' 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : department.department_type === 'Administrative'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {department.department_type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm">
+                        {departmentAdmins.length > 0 ? (
+                          <div className="space-y-1">
+                            {departmentAdmins.map(admin => (
+                              <div key={admin.id} className="flex items-center justify-between">
+                                <span className="font-semibold text-gray-900">
+                                  {admin.first_name} {admin.last_name}
+                                </span>
+                                <div className="flex flex-col items-end">
+                                  <span className="text-gray-500 text-xs">
+                                    {admin.email}
+                                  </span>
+                                  {admin.department && admin.department.split(',').length > 1 && (
+                                    <span className="text-xs text-blue-600">
+                                      Also in: {admin.department.split(',')
+                                        .map(d => d.trim())
+                                        .filter(d => d !== department.department_name)
+                                        .join(', ')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500 italic">No admins assigned</span>
+                        )}
+                      </div>
+                    </td>
+                    {(hasPermission('departments', 'delete') || checkRoleBasedPermission('delete')) && (
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2">
+                          {(hasPermission('departments', 'edit') || checkRoleBasedPermission('edit')) && (
+                            <>
+                              <button
+                                onClick={() => handleEditDepartment(department)}
+                                className="bg-yellow-500 text-white px-3 py-1 rounded text-sm flex items-center"
+                                title="Edit Department"
+                              >
+                                <Edit className="w-4 h-4 mr-1" />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleAssignAdmin(department)}
+                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center"
+                                title="Manage Admins"
+                              >
+                                <UserPlus className="w-4 h-4 mr-1" />
+                                Manage Admins
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => handleArchive(department.id)}
+                            className="bg-orange-500 text-white px-3 py-1 rounded text-sm flex items-center"
+                            title="Move to Archived Folder"
+                          > 
+                            <Archive className="w-4 h-4 mr-1" />
+                            Archive
+                          </button>
+                          <button
+                            onClick={() => handlePermanentDelete(department.id)}
+                            className="bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center"
+                            title="Move to Deleted Folder"
+                          > 
+                            <Trash className="w-4 h-4 mr-1" />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="bg-white p-6 rounded-lg shadow text-black text-center">
+          <p>No departments found matching your criteria.</p>
+        </div>
+      )}
+
+      {showAddModal && <AddDepartmentModal onClose={() => setShowAddModal(false)} onSuccess={fetchDepartments} />}
+      {showAssignModal && 
+        <AssignAdminModal 
+          department={selectedDepartment}
+          admins={admins}
+          onClose={() => setShowAssignModal(false)} 
+          onSuccess={fetchDepartments} 
+        />
+      }
+      {showEditModal && 
+        <EditDepartmentModal 
+          department={selectedDepartment}
+          onClose={() => setShowEditModal(false)} 
+          onSuccess={fetchDepartments} 
+        />
+      }
+
+      <ConfirmationModal
+        isOpen={showArchiveModal}
+        onClose={() => setShowArchiveModal(false)}
+        onConfirm={confirmArchiveDepartment}
+        title="Confirm Archive"
+        message="Are you sure you want to archive this department? The department will be moved to the archived folder."
+        confirmText="Archive"
+        cancelText="Cancel"
+        type="warning"
+        isLoading={false}
+      />
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmPermanentDeleteDepartment}
+        title="Confirm Delete"
+        message="Are you sure you want to delete this department? The department will be moved to the deleted folder."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={false}
+      />
+      </div>
+    </div>
+  );
+}
+
+function AddDepartmentModal({ onClose, onSuccess }) {
+  const [formData, setFormData] = useState({
+    department_name: "",
+    department_type: "Academic"
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!formData.department_name.trim()) {
+      setError("Department name is required");
+      return;
+    }
+
+    setShowConfirmModal(true);
+  };
+
+  const confirmCreateDepartment = async () => {
+    setLoading(true);
+    setShowConfirmModal(false);
+
+    try {
+      const token = Cookies.get("token");
+
+      let success = false;
+      let response;
+      
+      try {
+
+        response = await axios.post(
+          "/api/admin/departments",
+          formData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        success = true;
+      } catch (firstError) {
+        console.warn("Error on first create endpoint, trying fallback:", firstError.message);
+        
+        try {
+
+          response = await axios.post(
+            "/api/departments",
+            formData,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          success = true;
+        } catch (secondError) {
+          console.error("Error on fallback create endpoint:", secondError.message);
+
+          response = await axios.post(
+            "/api/superadmin/departments",
+            formData,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          success = true;
+        }
+      }
+
+      toast.success(response.data.message || "Department created successfully");
+      onClose();
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error("Error creating department:", error);
+      setError(error.response?.data?.message || "Failed to create department");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelCreateDepartment = () => {
+    setShowConfirmModal(false);
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-black">
+        <h2 className="text-xl font-bold mb-4">Add New Department</h2>
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Department Name</label>
+            <input
+              type="text"
+              name="department_name"
+              value={formData.department_name}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Department Type</label>
+            <select
+              name="department_type"
+              value={formData.department_type}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="Academic">Academic</option>
+              <option value="Organization">Organization</option>
+              <option value="Administrative">Administrative</option>
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border rounded hover:bg-gray-100"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? "Creating..." : "Create Department"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-bold text-center mb-4 text-gray-800">Confirm Department Creation</h2>
+            <div className="mb-6">
+              <p className="text-center text-gray-600 mb-2">
+                Are you sure you want to create this department?
+              </p>
+              <div className="bg-gray-50 p-3 rounded border">
+                <p className="text-sm"><strong>Department Name:</strong> {formData.department_name}</p>
+                <p className="text-sm"><strong>Department Type:</strong> {formData.department_type}</p>
+              </div>
+            </div>
+
+            <div className="flex justify-center gap-4">
+              <button 
+                onClick={confirmCreateDepartment} 
+                className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition-colors"
+                disabled={loading}
+              >
+                Yes, Create
+              </button>
+              <button 
+                onClick={cancelCreateDepartment} 
+                className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition-colors"
+                disabled={loading}
+              >
+                No, Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AssignAdminModal({ department, admins: initialAdmins, onClose, onSuccess }) {
+  const [selectedAdmins, setSelectedAdmins] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [fetchingAdmins, setFetchingAdmins] = useState(true);
+  const [error, setError] = useState("");
+  const [availableAdmins, setAvailableAdmins] = useState([]);
+  const [processingAdminIds, setProcessingAdminIds] = useState([]);
+
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      setFetchingAdmins(true);
+      try {
+        const token = Cookies.get("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        let adminsArray = [];
+        let success = false;
+
+        const res = await axios.get("/api/superadmin/admins", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        });
+        
+        adminsArray = res.data.admins || res.data || [];
+        success = true;
+
+        if (success) {
+          const filteredAdmins = adminsArray.filter(admin => 
+            admin.is_active && 
+            !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
+          );
+
+          setAvailableAdmins(filteredAdmins);
+
+          const currentAdmins = filteredAdmins.filter(admin => {
+            if (!admin.department) return false;
+            const departments = admin.department.split(',').map(d => d.trim());
+            return departments.some(dept => 
+              dept.toLowerCase() === department.department_name.toLowerCase()
+            );
+          });
+          setSelectedAdmins(currentAdmins.map(admin => admin.id));
+        }
+      } catch (error) {
+        console.error("Error fetching fresh admin data:", error);
+        const available = initialAdmins.filter(admin => 
+          admin.is_active && 
+          !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
+        );
+        setAvailableAdmins(available);
+        
+        const currentAdmins = available.filter(admin => {
+          if (!admin.department) return false;
+          const departments = admin.department.split(',').map(d => d.trim());
+          return departments.some(dept => 
+            dept.toLowerCase() === department.department_name.toLowerCase()
+          );
+        });
+        setSelectedAdmins(currentAdmins.map(admin => admin.id));
+      } finally {
+        setFetchingAdmins(false);
+      }
+    };
+
+    fetchAdmins();
+  }, [department.department_name, initialAdmins]);
+
+  const handleAdminSelection = (adminId) => {
+    setSelectedAdmins(prev => {
+      if (prev.includes(adminId)) {
+        return prev.filter(id => id !== adminId);
+      } else {
+        return [...prev, adminId];
+      }
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    setProcessingAdminIds([]);
+
+    try {
+      const token = Cookies.get("token");
+      
+      const adminsToAssign = selectedAdmins.map(adminId => {
+        const admin = availableAdmins.find(a => a.id === adminId);
+        if (!admin) return null;
+
+        setProcessingAdminIds(prev => [...prev, adminId]);
+        
+        const currentDepartments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
+        const isAlreadyAssigned = currentDepartments.some(dept => 
+          dept.toLowerCase() === department.department_name.toLowerCase()
+        );
+        if (!isAlreadyAssigned) {
+          currentDepartments.push(department.department_name);
+        }
+
+        return axios.put(
+          `/api/superadmin/admins/${adminId}`,
+          { 
+            department: currentDepartments.join(', '),
+            first_name: admin.first_name,
+            last_name: admin.last_name,
+            email: admin.email
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        ).then(res => {
+          setProcessingAdminIds(prev => prev.filter(id => id !== adminId));
+          return res;
+        });
+      }).filter(Boolean);
+
+      const adminsToRemove = availableAdmins.filter(admin => {
+        if (!admin.department) return false;
+        const departments = admin.department.split(',').map(d => d.trim());
+        const isAssigned = departments.some(dept => 
+          dept.toLowerCase() === department.department_name.toLowerCase()
+        );
+        return isAssigned && !selectedAdmins.includes(admin.id);
+      });
+      
+      const removePromises = adminsToRemove.map(admin => {
+        setProcessingAdminIds(prev => [...prev, admin.id]);
+
+        const departments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
+        const updatedDepartments = departments.filter(d => 
+          d.toLowerCase() !== department.department_name.toLowerCase()
+        );
+
+        return axios.put(
+          `/api/superadmin/admins/${admin.id}`,
+          { 
+            department: updatedDepartments.join(', '),
+            first_name: admin.first_name,
+            last_name: admin.last_name,
+            email: admin.email
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        ).then(res => {
+          setProcessingAdminIds(prev => prev.filter(id => id !== admin.id));
+          return res;
+        }).catch(err => {
+          console.error(`Error updating admin ${admin.id}:`, err);
+          throw new Error(`Failed to update ${admin.first_name} ${admin.last_name}: ${err.response?.data?.message || err.message}`);
+        });
+      });
+
+      await Promise.all([...adminsToAssign, ...removePromises]);
+
+      toast.success("Admins updated successfully");
+      onClose();
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error("Update admins error:", error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to update admins";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+      setProcessingAdminIds([]);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-[600px] text-black max-w-md mx-auto">
+        <h2 className="text-xl font-bold mb-4">Manage Department Admins</h2>
+        <p className="mb-4 text-sm">Department: <strong>{department.department_name}</strong></p>
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4 max-h-[300px] overflow-y-auto">
+            <label className="block text-sm font-medium mb-2">Select Admins</label>
+            {fetchingAdmins ? (
+              <div className="py-4 text-center">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500 mb-2"></div>
+                <p className="text-sm text-gray-500">Loading admins...</p>
+              </div>
+            ) : availableAdmins.length > 0 ? (
+              <div className="space-y-2">
+                {availableAdmins.map(admin => (
+                  <label key={admin.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+                    <input
+                      type="checkbox"
+                      checked={selectedAdmins.includes(admin.id)}
+                      onChange={() => handleAdminSelection(admin.id)}
+                      className="form-checkbox h-5 w-5 text-blue-600"
+                      disabled={loading || processingAdminIds.includes(admin.id)}
+                    />
+                    <div>
+                      <span className="font-medium">{admin.first_name} {admin.last_name}</span>
+                      <span className="text-gray-500 text-sm block">{admin.email}</span>
+                      {admin.department && !admin.department.split(',').map(d => d.trim()).some(dept => 
+                        dept.toLowerCase() === department.department_name.toLowerCase()
+                      ) && (
+                        <span className="text-amber-600 text-xs">
+                          Currently assigned to: {admin.department}
+                        </span>
+                      )}
+                      {processingAdminIds.includes(admin.id) && (
+                        <span className="text-blue-600 text-xs flex items-center mt-1">
+                          <div className="animate-spin h-3 w-3 border-t-2 border-b-2 border-blue-500 rounded-full mr-1"></div>
+                          Updating...
+                        </span>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-amber-600">
+                <p>No available admins found.</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  This might be due to permission restrictions. Only admins you have access to will be shown.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border rounded hover:bg-gray-100 disabled:opacity-50"
+              disabled={loading || fetchingAdmins}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              disabled={loading || fetchingAdmins || availableAdmins.length === 0}
+            >
+              {loading ? (
+                <span className="flex items-center">
+                  <div className="animate-spin h-4 w-4 border-t-2 border-b-2 border-white rounded-full mr-2"></div>
+                  Updating{processingAdminIds.length > 0 ? ` (${processingAdminIds.length} remaining)` : '...'}
+                </span>
+              ) : "Update Admins"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EditDepartmentModal({ department, onClose, onSuccess }) {
+  const [formData, setFormData] = useState({
+    department_name: department.department_name,
+    department_type: department.department_type
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    if (!formData.department_name.trim()) {
+      setError("Department name is required");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const token = Cookies.get("token");
+      const res = await axios.put(
+        `/api/admin/departments/${department.id}`,
+        formData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast.success(res.data.message || "Department updated successfully");
+      onClose();
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to update department");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-black">
+        <h2 className="text-xl font-bold mb-4">Edit Department</h2>
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Department Name</label>
+            <input
+              type="text"
+              name="department_name"
+              value={formData.department_name}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Department Type</label>
+            <select
+              name="department_type"
+              value={formData.department_type}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="Academic">Academic</option>
+              <option value="Organization">Organization</option>
+              <option value="Administrative">Administrative</option>
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border rounded hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? "Updating..." : "Update Department"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+} 

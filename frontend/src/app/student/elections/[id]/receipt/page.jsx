@@ -1,0 +1,422 @@
+"use client";
+
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Download, User, RefreshCw, Image, FileText } from 'lucide-react';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { use } from 'react';
+import { toast } from 'react-hot-toast';
+
+let html2canvas = null;
+
+if (typeof window !== 'undefined') {
+  import('html2canvas').then(module => {
+    html2canvas = module.default;
+  });
+}
+
+const API_BASE = '/api';
+const BASE_URL = '';
+
+function formatNameSimple(lastName, firstName, fallback) {
+  const cap = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+  if ((!lastName && !firstName) && fallback) {
+    const words = fallback.trim().split(/\s+/);
+    if (words.length === 1) {
+      return cap(words[0]);
+    } else {
+      const last = cap(words[words.length - 1]);
+      const first = words.slice(0, -1).map(cap).join(' ');
+      return `${last}, ${first}`;
+    }
+  }
+  if (!lastName && !firstName) return 'No Name';
+  return `${cap(lastName)}, ${cap(firstName)}`;
+}
+
+function generateUniqueCode(receiptId) {
+  if (!receiptId) return 'N/A';
+
+  let hash = 0;
+  for (let i = 0; i < receiptId.length; i++) {
+    const char = receiptId.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; 
+  }
+
+  const absHash = Math.abs(hash);
+  const base36 = absHash.toString(36).toUpperCase();
+
+  let code = base36.substring(0, 6);
+  if (code.length < 6) {
+    const padded = (absHash * 31).toString(36).toUpperCase();
+    code = (code + padded).substring(0, 6);
+  }
+
+  const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  while (code.length < 6) {
+    const randomIndex = Math.abs(hash + code.length) % alphanumeric.length;
+    code += alphanumeric[randomIndex];
+  }
+  
+  const finalCode = code.substring(0, 6);
+  
+  return finalCode;
+}
+
+export default function VoteReceiptPage({ params }) {
+  const resolvedParams = use(params);
+  const { id: electionId } = resolvedParams;
+  const router = useRouter();
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [receipt, setReceipt] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const receiptRef = useRef(null);
+
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return '/default-candidate.png';
+    
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    
+    if (imageUrl.startsWith('/uploads')) {
+      return `${BASE_URL}${imageUrl}`;
+    }
+    
+    if (!imageUrl.startsWith('/')) {
+      return `${BASE_URL}/uploads/candidates/${imageUrl}`;
+    }
+    
+    return `${BASE_URL}${imageUrl}`;
+  };
+
+  const fetchReceipt = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const token = Cookies.get('token');
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
+      const voteToken = localStorage.getItem(`vote_token_${electionId}`);
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      if (!voteToken) {
+        try {
+          const tokenResponse = await axios.get(`${API_BASE}/elections/${electionId}/vote-token`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            withCredentials: true
+          });
+          
+          if (tokenResponse.data && tokenResponse.data.success && tokenResponse.data.voteToken) {
+            const newToken = tokenResponse.data.voteToken;
+            localStorage.setItem(`vote_token_${electionId}`, newToken);
+            headers['X-Vote-Token'] = newToken;
+          }
+        } catch (tokenError) {
+          console.error('Error fetching vote token:', tokenError);
+        }
+      } else {
+        headers['X-Vote-Token'] = voteToken;
+      }
+      
+      try {
+        const response = await axios.get(`${API_BASE}/elections/${electionId}/vote-receipt`, {
+          headers,
+          withCredentials: true
+        });
+
+        setReceipt(response.data);
+      } catch (tokenError) {
+        console.error('Error fetching receipt with token, trying without token:', tokenError);
+
+        const responseWithoutToken = await axios.get(`${API_BASE}/elections/${electionId}/vote-receipt`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        });
+        
+        setReceipt(responseWithoutToken.data);
+      }
+    } catch (err) {
+      console.error('Error fetching receipt:', err);
+
+      if (err.response) {
+        console.error('Error response data:', err.response.data);
+        console.error('Error response status:', err.response.status);
+        
+        if (err.response.status === 404) {
+          setError('No vote found for this election. You may not have voted yet.');
+        } else if (err.response.status === 403) {
+          setError('You are not authorized to view this receipt.');
+        } else {
+          setError(err.response.data?.message || 'Failed to load receipt. Please try again.');
+        }
+      } else if (err.request) {
+
+        if (err.message && err.message.includes('CORS')) {
+          setError('CORS error: The server is not configured to accept this request. Please try again later.');
+        } else {
+          setError('Failed to receive response from server. Please check your network connection.');
+        }
+      } else {
+        setError(err.message || 'An error occurred while loading your receipt.');
+      }
+      
+      if (retryCount < 3) {
+        setRetryCount(prevCount => prevCount + 1);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prevCount => prevCount + 1);
+    fetchReceipt();
+  };
+
+  const downloadReceipt = async () => {
+    if (!receipt) return;
+    
+    try {
+      setIsDownloading(true);
+
+      if (typeof html2canvas !== 'function') {
+        throw new Error('HTML2Canvas is not loaded properly');
+      }
+
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.background = 'white';
+      container.style.padding = '20px';
+      container.style.width = '800px';
+      container.style.fontFamily = 'Arial, sans-serif';
+
+      const header = document.createElement('h1');
+      header.textContent = 'Vote Receipt';
+      header.style.fontSize = '24px';
+      header.style.marginBottom = '20px';
+      header.style.color = '#000';
+      container.appendChild(header);
+
+      const infoSection = document.createElement('div');
+      infoSection.style.border = '1px solid #ddd';
+      infoSection.style.borderRadius = '4px';
+      infoSection.style.padding = '15px';
+      infoSection.style.marginBottom = '20px';
+
+      const electionInfo = document.createElement('div');
+      electionInfo.style.marginBottom = '10px';
+      electionInfo.innerHTML = `
+        <p style="margin: 5px 0; font-size: 14px; color: #000;"><strong>Election:</strong> ${receipt.electionTitle}</p>
+        <p style="margin: 5px 0; font-size: 14px; color: #000;"><strong>Date & Time:</strong> ${new Date(receipt.voteDate).toLocaleString()}</p>
+      `;
+      infoSection.appendChild(electionInfo);
+
+      const tokenInfo = document.createElement('div');
+      const uniqueCode = generateUniqueCode(receipt.voteToken);
+      tokenInfo.innerHTML = `
+        <p style="margin: 5px 0; font-size: 14px; color: #000;"><strong>Receipt ID:</strong> ${receipt.voteToken}</p>
+        <p style="margin: 5px 0; font-size: 16px; color: #2563eb; font-weight: bold; font-family: monospace; letter-spacing: 2px;"><strong>Verification Code:</strong> ${uniqueCode}</p>
+        <p style="margin: 5px 0; font-size: 12px; color: #666;"><em>Generated from Receipt ID</em></p>
+      `;
+      infoSection.appendChild(tokenInfo);
+      
+      container.appendChild(infoSection);
+
+      const footer = document.createElement('div');
+      footer.style.background = '#fff9e6';
+      footer.style.border = '1px solid #ffe69c';
+      footer.style.borderRadius = '4px';
+      footer.style.padding = '15px';
+      footer.style.marginTop = '20px';
+      footer.innerHTML = `
+        <p style="margin: 0 0 8px 0; font-size: 14px; color: #b7791f;">
+          <strong>Note:</strong> Please save your receipt for your records. This serves as proof of your vote submission.
+        </p>
+        <p style="margin: 0 0 8px 0; font-size: 14px; color: #b7791f;">
+          <strong>Verification:</strong> Use the 6-character verification code to confirm your vote was recorded correctly.
+        </p>
+        <p style="margin: 0; font-size: 14px; color: #b7791f;">
+          <strong>Thank you for voting!</strong>
+        </p>
+      `;
+      container.appendChild(footer);
+
+      document.body.appendChild(container);
+      
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        allowTaint: true,
+      });
+      
+      document.body.removeChild(container);
+
+      const imageData = canvas.toDataURL('image/png');
+ 
+      const link = document.createElement('a');
+      link.download = `receipt-id-${receipt.voteToken}.png`;
+      link.href = imageData;
+      document.body.appendChild(link);
+
+      link.click();
+
+      document.body.removeChild(link);
+      
+      toast.success('Receipt downloaded as image!');
+    } catch (error) {
+      console.error('Error generating receipt image:', error);
+      toast.error('Failed to download receipt. Please try again or take a screenshot instead.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReceipt();
+  }, [electionId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <button 
+        onClick={() => router.push('/student')} 
+        className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        Back
+      </button>
+      
+      {error ? (
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <p className="font-bold">Error</p>
+            <p>{error}</p>
+          </div>
+          
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={handleRetry}
+              className="px-4 py-2 rounded-md text-white font-medium bg-blue-600 hover:bg-blue-700 flex items-center"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry
+            </button>
+          </div>
+        </div>
+      ) : receipt ? (
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">Vote Receipt</h1>
+            <div className="flex space-x-2">
+              <button
+                onClick={downloadReceipt}
+                className={`px-4 py-2 rounded-md text-white font-medium bg-blue-600 hover:bg-blue-700 flex items-center ${isDownloading ? 'opacity-75 cursor-not-allowed' : ''}`}
+                disabled={isDownloading}
+              >
+                {isDownloading ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-5 h-5 mr-2" />
+                    Download Receipt
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          
+          <div id="receipt-container" ref={receiptRef} className="bg-white">
+            <div className="border border-gray-200 rounded-lg p-4 mb-6">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-sm text-black">Election</p>
+                  <p className="font-medium text-black">{receipt.electionTitle}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-black">Date & Time</p>
+                  <p className="font-medium text-black">{new Date(receipt.voteDate).toLocaleString()}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-sm text-gray-500 text-black">Receipt ID</p>
+                  <p className="font-medium text-xs break-all text-black">{receipt.voteToken}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 text-black">Verification Code</p>
+                  <p className="font-bold text-lg text-blue-600 font-mono tracking-wider">
+                    {generateUniqueCode(receipt.voteToken)}
+                  </p>
+               
+                </div>
+              </div>
+            </div>
+            
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
+              <p className="text-sm text-yellow-700">
+                <strong>Note:</strong> Please save your receipt for your records. This serves as proof of your vote submission.
+              </p>
+              <p className="text-sm text-yellow-700 mt-2">
+                <strong>Verification:</strong> Use the 6-character verification code to confirm your vote was recorded correctly.
+              </p>
+              <p className="text-sm text-yellow-700 mt-2">
+                <strong>Thank you for voting!</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+            <p className="font-bold">No Receipt Found</p>
+            <p>Could not find a receipt for this election. You may not have voted yet.</p>
+          </div>
+          
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={() => router.push(`/student/elections/${electionId}/vote`)}
+              className="px-4 py-2 rounded-md text-white font-medium bg-blue-600 hover:bg-blue-700"
+            >
+              Go to Voting Page
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+} 
