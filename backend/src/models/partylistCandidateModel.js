@@ -1,6 +1,9 @@
 const pool = require("../config/db");
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const addCandidate = async (partylistId, candidateData) => {
   const { studentId, firstName, lastName, studentNumber, course, position, isRepresentative, imageUrl } = candidateData;
   
@@ -58,6 +61,10 @@ const removeCandidate = async (candidateId) => {
 const updateCandidate = async (candidateId, candidateData) => {
   const { position, isRepresentative, imageUrl } = candidateData;
   
+<<<<<<< HEAD
+=======
+  // Build dynamic query based on provided fields
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   let query = `UPDATE partylist_candidates SET updated_at = CURRENT_TIMESTAMP`;
   const values = [];
   let paramCount = 0;

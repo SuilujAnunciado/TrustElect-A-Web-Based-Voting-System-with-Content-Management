@@ -14,8 +14,13 @@ export default function AcademicTermSelector({ selectedTermId, onTermChange, sho
     try {
       setLoading(true);
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
       
+=======
+      
+      // Fetch all academic terms
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.get("/api/academic-terms", {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
@@ -23,10 +28,19 @@ export default function AcademicTermSelector({ selectedTermId, onTermChange, sho
 
       if (response.data.success) {
         setAcademicTerms(response.data.data);
+<<<<<<< HEAD
 
         const current = response.data.data.find(term => term.is_current);
         if (current) {
           setCurrentTerm(current);
+=======
+        
+        // Find current term
+        const current = response.data.data.find(term => term.is_current);
+        if (current) {
+          setCurrentTerm(current);
+          // If no term is selected, default to current term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (!selectedTermId) {
             onTermChange(current.id);
           }
@@ -45,6 +59,10 @@ export default function AcademicTermSelector({ selectedTermId, onTermChange, sho
     fetchAcademicTerms();
   }, []);
 
+<<<<<<< HEAD
+=======
+  // Make sure to update parent when current term is loaded
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (currentTerm && !selectedTermId) {
       onTermChange(currentTerm.id);
@@ -56,6 +74,10 @@ export default function AcademicTermSelector({ selectedTermId, onTermChange, sho
     return `${term.school_year} ${term.term} ${currentLabel}`.trim();
   };
 
+<<<<<<< HEAD
+=======
+  // Allow parent to trigger refresh
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   window.refreshAcademicTerms = fetchAcademicTerms;
 
   if (loading) {

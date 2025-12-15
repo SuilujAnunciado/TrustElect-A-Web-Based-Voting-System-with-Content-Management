@@ -20,7 +20,10 @@ import { fetchCurrentUserName, buildSignatureFooter } from "@/utils/userIdentity
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -113,7 +116,11 @@ export default function ReportsPage() {
       let transformedData;
 
       switch(reportId) {
+<<<<<<< HEAD
          case 1: //report summary
+=======
+         case 1: 
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
            endpoint = '/reports/summary';
            const electionResponse = await axios.get(`${API_BASE}${endpoint}`, {
              headers: { Authorization: `Bearer ${token}` }
@@ -146,7 +153,11 @@ export default function ReportsPage() {
            };
            break;
 
+<<<<<<< HEAD
         case 2: // Role based user report
+=======
+        case 2: 
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           endpoint = '/reports/role-based/summary';
           const userResponse = await axios.get(`${API_BASE}${endpoint}`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -205,6 +216,10 @@ export default function ReportsPage() {
             }
           });
 
+<<<<<<< HEAD
+=======
+          // Get summary data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const summaryResponse = await axios.get(`${API_BASE}/audit-logs/summary`, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -276,7 +291,11 @@ export default function ReportsPage() {
           };
           break;
 
+<<<<<<< HEAD
         case 7: // System Load Report
+=======
+        case 7:
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           endpoint = '/reports/system-load';
           const loadResponse = await axios.get(`${API_BASE}${endpoint}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -418,6 +437,10 @@ export default function ReportsPage() {
           throw new Error('Report type not implemented');
       }
 
+<<<<<<< HEAD
+=======
+      // Remove the summary number formatting for failed login report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (reportId !== 3 && transformedData.summary) {
         Object.keys(transformedData.summary).forEach(key => {
           if (typeof transformedData.summary[key] === 'number') {
@@ -607,14 +630,25 @@ export default function ReportsPage() {
     }
   };
 
+<<<<<<< HEAD
   const filteredReports = useMemo(() => {
     return staticReports.filter(report => {
+=======
+  // Filter reports based on search term and filters
+  const filteredReports = useMemo(() => {
+    return staticReports.filter(report => {
+      // Search term filter
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const searchMatch = searchTerm === "" || 
         report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.type.toLowerCase().includes(searchTerm.toLowerCase());
 
+<<<<<<< HEAD
 
+=======
+      // Report type filter
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const typeMatch = filters.reportType === "All" || report.type === filters.reportType;
 
       return searchMatch && typeMatch;

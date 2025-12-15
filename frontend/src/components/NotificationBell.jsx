@@ -22,7 +22,10 @@ const normalizeRole = (role) => {
   } else if (lowercaseRole === 'student') {
     return 'student';
   }
+<<<<<<< HEAD
  
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return lowercaseRole;
 };
@@ -44,6 +47,10 @@ const NotificationBell = () => {
   const itemsPerPage = 10;
   const router = useRouter();
 
+<<<<<<< HEAD
+=======
+  // Get user role from cookies
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const role = Cookies.get('role');
     setUserRole(role || '');
@@ -139,7 +146,12 @@ const NotificationBell = () => {
     if (loading || !hasMore) return;
     
     setLoading(true);
+<<<<<<< HEAD
 
+=======
+    
+    // Ensure we're passing numeric values
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const limit = Number(itemsPerPage);
     const offset = Number(page * itemsPerPage);
     
@@ -221,8 +233,15 @@ const NotificationBell = () => {
     };
     
     const baseRoute = baseRoutes[normalizedRole] || '/';
+<<<<<<< HEAD
 
     if (entity_type === 'ELECTION') {
+=======
+    
+    // Handle election-related notifications
+    if (entity_type === 'ELECTION') {
+      // For students
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (normalizedRole === 'student') {
         try {
        
@@ -288,6 +307,10 @@ const NotificationBell = () => {
           }
         } catch (error) {
           console.error('Error determining correct notification link:', error);
+<<<<<<< HEAD
+=======
+          // Fall back to basic routing if there's an error
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         }
       
         if (notification.message.includes('started')) {
@@ -302,7 +325,12 @@ const NotificationBell = () => {
       
         return `${baseRoute}/${entity_id}`;
       }
+<<<<<<< HEAD
 
+=======
+      
+      // For admins
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (normalizedRole === 'admin') {
        
         if (notification.message.includes('approved') || notification.message.includes('rejected')) {
@@ -311,6 +339,7 @@ const NotificationBell = () => {
      
         return `${baseRoute}/${entity_id}`;
       }
+<<<<<<< HEAD
 
       if (normalizedRole === 'superadmin') {
 
@@ -320,6 +349,20 @@ const NotificationBell = () => {
         return `${baseRoute}/${entity_id}`;
       }
 
+=======
+      
+      // For superadmins
+      if (normalizedRole === 'superadmin') {
+        // Approval requests
+        if (notification.message.includes('needs approval')) {
+          return `${baseRoute}/approve/${entity_id}`;
+        }
+        // Default to election details
+        return `${baseRoute}/${entity_id}`;
+      }
+      
+      // Default election link
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return `${baseRoute}/${entity_id}`;
     }
 
@@ -521,6 +564,10 @@ const NotificationBell = () => {
           return;
         } catch (error) {
           console.error('Error handling student notification click:', error);
+<<<<<<< HEAD
+=======
+          // On error, redirect to the student dashboard
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           router.push('/student');
           setIsOpen(false);
           return;
@@ -539,6 +586,10 @@ const NotificationBell = () => {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Handle refresh
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleRefresh = () => {
     setPage(1);
     setHasMore(true);
@@ -613,6 +664,10 @@ const NotificationBell = () => {
       const success = await deleteNotification(notificationId);
       
       if (success) {
+<<<<<<< HEAD
+=======
+        // If successful, remove from local state
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setAllNotifications(prev => 
           prev.filter(notification => notification.id !== notificationId)
         );
@@ -624,6 +679,10 @@ const NotificationBell = () => {
       console.error('Error deleting notification:', error);
       alert('An error occurred while deleting the notification.');
     } finally {
+<<<<<<< HEAD
+=======
+      // Remove from deleting state regardless of outcome
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setDeletingNotificationIds(prev => 
         prev.filter(id => id !== notificationId)
       );
@@ -644,11 +703,19 @@ const NotificationBell = () => {
         )}
       </button>
 
+<<<<<<< HEAD
+=======
+      {/* Notification Panel */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {isOpen && (
         <div 
           ref={modalRef}
           className="absolute right-0 mt-2 bg-white rounded-md shadow-lg z-50 flex flex-col overflow-hidden w-[380px] lg:w-[600px] max-h-[600px]"
         >
+<<<<<<< HEAD
+=======
+          {/* Header */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="px-4 py-3 border-b flex justify-between items-center sticky top-0 bg-white z-10">
             <h3 className="text-lg font-medium text-yellow-500">Notifications</h3>
             <div className="flex items-center gap-2">
@@ -668,7 +735,12 @@ const NotificationBell = () => {
               >
                 <RefreshCw className="h-4 w-4" />
               </button>
+<<<<<<< HEAD
 
+=======
+              
+              {/* Close button */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <button 
                 onClick={() => setIsOpen(false)}
                 className="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100"
@@ -679,6 +751,10 @@ const NotificationBell = () => {
             </div>
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Filters */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="px-4 py-2 bg-gray-50 border-b">
             <div className="flex space-x-4">
               <button
@@ -719,6 +795,10 @@ const NotificationBell = () => {
             </div>
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Notification List */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div 
             ref={notifListRef}
             className="overflow-y-auto flex-grow"
@@ -798,6 +878,10 @@ const NotificationBell = () => {
                   </li>
                 ))}
                 
+<<<<<<< HEAD
+=======
+                {/* Loading indicator at bottom */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 {loading && (
                   <li className="p-3 text-center">
                     <div className="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-500"></div>

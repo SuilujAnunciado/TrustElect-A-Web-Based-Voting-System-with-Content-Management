@@ -12,6 +12,7 @@ const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '/images/default-avatar.png';
   if (imageUrl.startsWith('http')) return imageUrl;
   if (imageUrl.startsWith('blob:')) return imageUrl;
+<<<<<<< HEAD
 
   let cleanImageUrl = imageUrl;
 
@@ -28,23 +29,61 @@ const getImageUrl = (imageUrl) => {
     return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
   }
 
+=======
+  
+  // Handle different image path formats
+  let cleanImageUrl = imageUrl;
+  
+  // Remove leading slashes
+  if (cleanImageUrl.startsWith('/')) {
+    cleanImageUrl = cleanImageUrl.substring(1);
+  }
+  
+  // If it already starts with uploads, use it directly
+  if (cleanImageUrl.startsWith('uploads/')) {
+    return `${API_BASE}/${cleanImageUrl}`;
+  }
+  
+  // If it's just a filename, assume it's in candidates folder
+  if (!cleanImageUrl.includes('/')) {
+    return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
+  }
+  
+  // Default case
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
 };
 
 const formatNameSimple = (lastName, firstName, positionName, candidate = null) => {
+<<<<<<< HEAD
   const isEmpty = (val) => !val || val === null || val === undefined || (typeof val === 'string' && val.trim() === '');
   
+=======
+  // Helper function to check if a value is empty
+  const isEmpty = (val) => !val || val === null || val === undefined || (typeof val === 'string' && val.trim() === '');
+  
+  // Get actual values from candidate object if provided, supporting both snake_case and camelCase
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   let actualFirstName = firstName || '';
   let actualLastName = lastName || '';
   
   if (candidate) {
+<<<<<<< HEAD
+=======
+    // Try camelCase first
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (isEmpty(actualFirstName) && candidate.firstName) {
       actualFirstName = candidate.firstName;
     }
     if (isEmpty(actualLastName) && candidate.lastName) {
       actualLastName = candidate.lastName;
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Try snake_case
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (isEmpty(actualFirstName) && candidate.first_name) {
       actualFirstName = candidate.first_name;
     }
@@ -52,16 +91,33 @@ const formatNameSimple = (lastName, firstName, positionName, candidate = null) =
       actualLastName = candidate.last_name;
     }
   }
+<<<<<<< HEAD
 
   if (!isEmpty(actualFirstName) && isEmpty(actualLastName)) {
     return actualFirstName.trim();
   }
   
+=======
+  
+  // Handle group candidates where name might be entirely in first_name with empty last_name
+  // For group candidates, the full group name is often stored in first_name only
+  if (!isEmpty(actualFirstName) && isEmpty(actualLastName)) {
+    // This is likely a group candidate with full name in first_name
+    return actualFirstName.trim();
+  }
+  
+  // If both are empty or missing, try to get from combined name or party
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (isEmpty(actualFirstName) && isEmpty(actualLastName)) {
     if (candidate && candidate.name) {
       return candidate.name;
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Try party/partylist as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (candidate && (candidate.partylist_name || candidate.party)) {
       const partyName = candidate.partylist_name || candidate.party;
       console.warn('Using party name as fallback for empty candidate names:', { 
@@ -83,14 +139,24 @@ const formatNameSimple = (lastName, firstName, positionName, candidate = null) =
     });
     return 'Unknown Candidate';
   }
+<<<<<<< HEAD
 
+=======
+  
+  // For positions like "President", "Vice President", etc., use "Last, First" format
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (positionName && (positionName.toLowerCase().includes('president') || 
       positionName.toLowerCase().includes('vice') || 
       positionName.toLowerCase().includes('secretary') ||
       positionName.toLowerCase().includes('treasurer'))) {
     return `${actualLastName.trim()}, ${actualFirstName.trim()}`;
   }
+<<<<<<< HEAD
 
+=======
+  
+  // For other positions, use "First Last" format
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return `${actualFirstName.trim()} ${actualLastName.trim()}`.trim();
 };
 
@@ -166,11 +232,20 @@ const ElectionResultReport = () => {
   const [selectedElectionId, setSelectedElectionId] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+<<<<<<< HEAD
+=======
+  // Fetch completed elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const fetchElections = async () => {
     try {
       setLoading(true);
       const token = Cookies.get('token');
+<<<<<<< HEAD
 
+=======
+      
+      // Try multiple endpoints to find completed elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const endpoints = [
         '/elections/status/completed',
         '/elections/completed',
@@ -191,7 +266,11 @@ const ElectionResultReport = () => {
           console.log(`${endpoint} API response:`, response.data);
 
           if (response.data) {
+<<<<<<< HEAD
 
+=======
+            // Handle different response structures
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             if (Array.isArray(response.data)) {
               electionsData = response.data.filter(election => 
                 election.status === 'completed' || election.status === 'finished'
@@ -208,13 +287,21 @@ const ElectionResultReport = () => {
 
             if (electionsData.length > 0) {
               console.log('Found elections data:', electionsData);
+<<<<<<< HEAD
               break; 
+=======
+              break; // Found data, stop trying other endpoints
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             }
           }
         } catch (endpointError) {
           console.log(`Endpoint ${endpoint} failed:`, endpointError.message);
           lastError = endpointError;
+<<<<<<< HEAD
           continue; 
+=======
+          continue; // Try next endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         }
       }
 
@@ -239,6 +326,10 @@ const ElectionResultReport = () => {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Fetch election results
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const fetchResults = async (electionId) => {
     try {
       setLoading(true);
@@ -247,7 +338,11 @@ const ElectionResultReport = () => {
       
       const response = await axios.get(`${API_BASE}/elections/completed/${electionId}/results`, {
         headers: { Authorization: `Bearer ${token}` },
+<<<<<<< HEAD
         timeout: 30000 
+=======
+        timeout: 30000 // 30 second timeout
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       });
 
       if (!response.data.success) {
@@ -255,12 +350,34 @@ const ElectionResultReport = () => {
       }
 
       const { election, positions } = response.data.data;
+<<<<<<< HEAD
 
       const groupedPositions = Array.isArray(positions) ? positions.map(position => {
         const sortedCandidates = Array.isArray(position.candidates) ? [...position.candidates].sort((a, b) => b.vote_count - a.vote_count) : [];
 
         if (sortedCandidates.length > 0) {
          
+=======
+      
+      console.log('Election results data:', { election, positions });
+      console.log('Sample position data:', positions && positions[0]);
+      
+      // Group candidates by position and sort by vote count
+      const groupedPositions = Array.isArray(positions) ? positions.map(position => {
+        const sortedCandidates = Array.isArray(position.candidates) ? [...position.candidates].sort((a, b) => b.vote_count - a.vote_count) : [];
+        
+        // Debug: Log candidate data structure
+        if (sortedCandidates.length > 0) {
+          console.log('Position candidates sample:', {
+            positionName: position.position_name,
+            firstCandidate: sortedCandidates[0],
+            fields: Object.keys(sortedCandidates[0]),
+            hasFirstName: !!sortedCandidates[0].first_name,
+            hasLastName: !!sortedCandidates[0].last_name,
+            firstNameValue: sortedCandidates[0].first_name,
+            lastNameValue: sortedCandidates[0].last_name
+          });
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         }
         
         return {
@@ -270,6 +387,10 @@ const ElectionResultReport = () => {
         };
       }) : [];
 
+<<<<<<< HEAD
+=======
+      // Flatten positions and candidates for table display (for pagination)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const results = [];
       if (Array.isArray(positions)) {
         positions.forEach(position => {
@@ -355,6 +476,10 @@ const ElectionResultReport = () => {
     if (!selectedElectionId || !data.selectedElection) return;
 
     try {
+<<<<<<< HEAD
+=======
+      // Prepare data for PDF generation using the grouped positions structure
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const reportData = {
         title: "Election Result Report",
         description: "Comprehensive election results including candidates, vote counts, and winners",
@@ -394,13 +519,22 @@ const ElectionResultReport = () => {
       };
 
       console.log('Generating PDF with data:', reportData);
+<<<<<<< HEAD
       await generatePdfReport(13, reportData); 
+=======
+      await generatePdfReport(13, reportData); // 13 is the report ID for Election Result Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error downloading report:', error);
       setError('Failed to generate PDF report. Please try again.');
     }
   };
+<<<<<<< HEAD
   
+=======
+
+  // Calculate paginated results
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const getPaginatedResults = () => {
     const startIndex = (currentPage - 1) * data.pagination.limit;
     const endIndex = startIndex + data.pagination.limit;

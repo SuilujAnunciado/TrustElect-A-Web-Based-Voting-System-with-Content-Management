@@ -9,7 +9,10 @@ const {
   getCurrentSemester, setCurrentSemester
 } = require("../models/maintenanceModel");
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const handleResponse = (res, promise) => {
   promise
     .then(data => res.status(200).json({ success: true, data }))
@@ -56,6 +59,10 @@ exports.createPrecinct = (req, res) => handleResponse(res, createPrecinct(req.bo
 exports.updatePrecinct = (req, res) => handleResponse(res, updatePrecinct(req.params.id, req.body.name));
 exports.deletePrecinct = (req, res) => handleResponse(res, deletePrecinct(req.params.id));
 
+<<<<<<< HEAD
+=======
+// Add partylist handlers
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.getPartylists = (req, res) => handleResponse(res, getPartylists());
 exports.createPartylist = (req, res) => handleResponse(res, createPartylist(req.body.name));
 exports.updatePartylist = (req, res) => handleResponse(res, updatePartylist(req.params.id, req.body.name));

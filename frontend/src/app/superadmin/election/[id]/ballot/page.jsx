@@ -13,7 +13,10 @@ import React from 'react';
 import CandidateFormModal from './components/CandidateFormModal';
 import PositionItem from './components/PositionItem';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const fetchWithAuth = async (endpoint, options = {}) => {
   const token = Cookies.get('token');
   const apiUrl = BASE_URL || '';
@@ -932,6 +935,10 @@ export default function BallotPage() {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Handle direct image upload for a candidate
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleImageUpload = async (posId, candId, file) => {
     try {
 
@@ -1078,7 +1085,12 @@ export default function BallotPage() {
       } catch (error) {
         console.error('Error deleting candidate:', error);
         setApiError(`Error deleting candidate: ${error.message}`);
+<<<<<<< HEAD
 
+=======
+        
+        // Clear error after 3 seconds
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setTimeout(() => {
           setApiError(null);
         }, 3000);
@@ -1184,6 +1196,10 @@ export default function BallotPage() {
             body: JSON.stringify(apiData)
           });
       } else {
+<<<<<<< HEAD
+=======
+        // Create new ballot
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           response = await fetchWithAuth('/ballots', {
             method: 'POST',
             body: JSON.stringify(apiData)

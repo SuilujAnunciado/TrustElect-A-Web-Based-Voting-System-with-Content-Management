@@ -11,7 +11,10 @@ export default function ResetPasswordModal({ admin, onClose }) {
   const [showPassword, setShowPassword] = useState(false);
 
   
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const isValidPassword = (password) => {
     return (
       password.length >= 8 &&

@@ -8,7 +8,10 @@ import { toast } from 'react-hot-toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const RestoreConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isRestoring }) => {
   if (!isOpen) return null;
 
@@ -139,14 +142,24 @@ export default function DeletedElectionsPage() {
     try {
       setLoading(true);
       setError("");
+<<<<<<< HEAD
 
+=======
+      
+      // Fetch all elections and filter for deleted ones (like admin system)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const data = await fetchWithAuth('/elections');
       
       if (data.success === false) {
         setError(data.message || "Failed to load elections. Please try again later.");
         return;
       }
+<<<<<<< HEAD
 
+=======
+      
+      // Filter for deleted elections (is_deleted = true)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const deletedElections = (data.data || []).filter(election => 
         election.is_deleted === true
       );
@@ -167,7 +180,11 @@ export default function DeletedElectionsPage() {
 
   useEffect(() => {
     fetchDeletedElections();
+<<<<<<< HEAD
 
+=======
+    // Check existing auto-delete timer
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const existingTimer = localStorage.getItem('electionAutoDeleteTimer:superadmin');
     if (existingTimer) {
       setAutoDeleteEnabled(true);
@@ -179,13 +196,21 @@ export default function DeletedElectionsPage() {
   };
 
   const handleRestoreClick = (election, e) => {
+<<<<<<< HEAD
     e.stopPropagation(); 
+=======
+    e.stopPropagation(); // Prevent row click
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setElectionToRestore(election);
     setRestoreModalOpen(true);
   };
 
   const handleDeleteClick = (election, e) => {
+<<<<<<< HEAD
     e.stopPropagation();
+=======
+    e.stopPropagation(); // Prevent row click
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setElectionToDelete(election);
     setDeleteModalOpen(true);
   };
@@ -199,7 +224,12 @@ export default function DeletedElectionsPage() {
       await fetchWithAuth(`/elections/${electionToRestore.id}/restore-delete`, {
         method: 'POST'
       });
+<<<<<<< HEAD
 
+=======
+      
+      // Update the elections state to remove the restored election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToRestore.id));
       
       toast.success(`Election "${electionToRestore.title}" was successfully restored.`);
@@ -223,7 +253,12 @@ export default function DeletedElectionsPage() {
       await fetchWithAuth(`/elections/${electionToDelete.id}/permanent`, {
         method: 'DELETE'
       });
+<<<<<<< HEAD
 
+=======
+      
+      // Update the elections state to remove the deleted election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       
       toast.success(`Election "${electionToDelete.title}" was permanently deleted.`);
@@ -238,6 +273,10 @@ export default function DeletedElectionsPage() {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Auto-delete flow (mirrors Admin Deleted Admins page behavior)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const enableAutoDelete = () => {
     if (!confirm(`Enable auto-deletion? All deleted elections will be permanently deleted after ${autoDeleteDays} days.`)) return;
     setAutoDeleteEnabled(true);
@@ -353,6 +392,10 @@ export default function DeletedElectionsPage() {
         <h1 className="text-3xl font-bold text-black">Deleted Elections</h1>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Auto-Delete Controls */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
         <div className="flex items-center gap-4 mb-3">
           <h3 className="text-sm font-semibold text-black">Auto-Delete Settings</h3>
@@ -530,6 +573,10 @@ export default function DeletedElectionsPage() {
         </>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Restore Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <RestoreConfirmationModal 
         isOpen={restoreModalOpen}
         election={electionToRestore}
@@ -538,6 +585,10 @@ export default function DeletedElectionsPage() {
         isRestoring={isRestoring}
       />
 
+<<<<<<< HEAD
+=======
+      {/* Permanent Delete Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <PermanentDeleteConfirmationModal 
         isOpen={deleteModalOpen}
         election={electionToDelete}

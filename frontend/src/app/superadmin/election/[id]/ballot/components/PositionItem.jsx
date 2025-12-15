@@ -15,10 +15,17 @@ export default function PositionItem({
   handleAddCandidate,
   handleEditCandidate,
   handleDeleteCandidate
+<<<<<<< HEAD
 })
  {
   return (
     <div className="border p-4 mb-4 rounded-lg shadow">
+=======
+}) {
+  return (
+    <div className="border p-4 mb-4 rounded-lg shadow">
+      {/* Position header */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="flex justify-between items-center mb-4">
         {editingPosition === position.id ? (
           <div className="flex-1 mr-4">

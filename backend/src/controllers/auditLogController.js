@@ -1,8 +1,14 @@
 const auditLogModel = require('../models/auditLogModel');
 
 /**
+<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Create a new audit log entry
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.createAuditLog = async (req, res) => {
   try {
@@ -21,9 +27,15 @@ exports.createAuditLog = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
 
  * @param {Object} data - 
  * @returns {Promise<Object>} 
+=======
+ * Helper function to log system activities
+ * @param {Object} data - Audit log data
+ * @returns {Promise<Object>} Created audit log or null on error
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.logActivity = async (data) => {
   try {
@@ -43,9 +55,15 @@ exports.logActivity = async (data) => {
 };
 
 /**
+<<<<<<< HEAD
  * 
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Get audit logs with pagination and filtering
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.getAuditLogs = async (req, res) => {
   try {
@@ -89,11 +107,19 @@ exports.getAuditLogs = async (req, res) => {
       auditLogModel.getAuditLogsCount(filterOptions)
     ]);
  
+<<<<<<< HEAD
+=======
+    // Get user details for each activity (admins and students)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let logsWithDetails = [];
     try {
       logsWithDetails = await Promise.all(
         logs.map(async (log) => {
           try {
+<<<<<<< HEAD
+=======
+            // First try to get from users table (for admins)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             const userQuery = `
               SELECT u.id, u.email, u.first_name, u.last_name, u.role_id
               FROM users u
@@ -111,7 +137,12 @@ exports.getAuditLogs = async (req, res) => {
                 user_role: user.role_id === 1 ? 'Super Admin' : user.role_id === 2 ? 'Admin' : log.user_role
               };
             }
+<<<<<<< HEAD
 
+=======
+            
+            // If not found in users, try students table
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             const studentQuery = `
               SELECT s.id, s.email, s.first_name, s.last_name
               FROM students s
@@ -129,7 +160,12 @@ exports.getAuditLogs = async (req, res) => {
                 user_role: 'Student'
               };
             }
+<<<<<<< HEAD
   
+=======
+            
+            // If not found in either table, return with original data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             return log;
           } catch (error) {
             console.error('Error getting user details for log:', log.id, error);
@@ -164,9 +200,15 @@ exports.getAuditLogs = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  
  * @param {Object} req
  * @param {Object} res 
+=======
+ * Get audit logs summary by categories
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.getAuditLogsSummary = async (req, res) => {
   try {
@@ -189,9 +231,15 @@ exports.getAuditLogsSummary = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
 
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Get user activity history
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.getUserActivityHistory = async (req, res) => {
   try {
@@ -226,9 +274,15 @@ exports.getUserActivityHistory = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  
  * @param {Object} req
  * @param {Object} res
+=======
+ * Get entity activity history
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.getEntityActivityHistory = async (req, res) => {
   try {
@@ -264,9 +318,15 @@ exports.getEntityActivityHistory = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
 
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Delete audit logs older than the specified date
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.deleteOldAuditLogs = async (req, res) => {
   try {

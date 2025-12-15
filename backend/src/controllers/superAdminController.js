@@ -8,7 +8,10 @@ const multer = require("multer");
 const db = require("../config/db");
 require("dotenv").config();
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.registerSuperAdmin = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -43,7 +46,11 @@ exports.loginSuperAdmin = async (req, res) => {
     }
 
     const token = jwt.sign(
+<<<<<<< HEAD
       { id: superAdmin.id, email: superAdmin.email, role: "Super Admin" }, 
+=======
+      { id: superAdmin.id, email: superAdmin.email, role: "Super Admin" }, // Changed from "SuperAdmin" to "Super Admin"
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -63,7 +70,11 @@ exports.loginSuperAdmin = async (req, res) => {
         lastName: superAdmin.last_name,
         email: superAdmin.email,
         username: superAdmin.username,
+<<<<<<< HEAD
         role: "Super Admin", 
+=======
+        role: "Super Admin", // Changed from "SuperAdmin" to "Super Admin"
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       },
     });
   } catch (error) {
@@ -93,9 +104,15 @@ const upload = multer({ storage });
 const buildAbsoluteUrl = (req, relativePath) => {
   if (!relativePath) return null;
   let basePath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+<<<<<<< HEAD
 
   if (basePath.startsWith('/uploads/')) {
     basePath = `/api${basePath}`; 
+=======
+  // Normalize to /api/uploads if the path starts with /uploads
+  if (basePath.startsWith('/uploads/')) {
+    basePath = `/api${basePath}`; // serve under /api/uploads as well
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   }
   const protocol = req.protocol;
   const host = req.get('host');

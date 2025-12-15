@@ -4,9 +4,15 @@ const { upload } = require('../middlewares/partylistUploadMiddleware');
 const partylistController = require('../controllers/partylistController');
 const { verifyToken, isSuperAdmin, isAdmin } = require('../middlewares/authMiddleware');
 
+<<<<<<< HEAD
 
 router.post('/',
   verifyToken, (req, res, next) => {
+=======
+router.post('/',
+  verifyToken, (req, res, next) => {
+    // Allow both Super Admin and Admin to create partylists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -19,6 +25,10 @@ router.post('/',
 
 router.get('/',
   verifyToken, (req, res, next) => {
+<<<<<<< HEAD
+=======
+    // Allow both Super Admin and Admin to access partylists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -30,6 +40,10 @@ router.get('/',
 
 router.get('/archived',
   verifyToken, (req, res, next) => {
+<<<<<<< HEAD
+=======
+    // Allow both Super Admin and Admin to access archived partylists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -41,6 +55,10 @@ router.get('/archived',
 
 router.get('/:id',
   verifyToken, (req, res, next) => {
+<<<<<<< HEAD
+=======
+    // Allow both Super Admin and Admin to access partylist details
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -52,6 +70,10 @@ router.get('/:id',
 
 router.put('/:id',
   verifyToken, (req, res, next) => {
+<<<<<<< HEAD
+=======
+    // Allow both Super Admin and Admin to update partylists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -64,6 +86,10 @@ router.put('/:id',
 
 router.delete('/:id',
   verifyToken, (req, res, next) => {
+<<<<<<< HEAD
+=======
+    // Allow both Super Admin and Admin to archive partylists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -75,6 +101,10 @@ router.delete('/:id',
 
 router.post('/:id/restore',
   verifyToken, (req, res, next) => {
+<<<<<<< HEAD
+=======
+    // Allow both Super Admin and Admin to restore partylists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -86,6 +116,10 @@ router.post('/:id/restore',
 
 router.delete('/:id/permanent',
   verifyToken, (req, res, next) => {
+<<<<<<< HEAD
+=======
+    // Allow both Super Admin and Admin to permanently delete partylists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -97,6 +131,10 @@ router.delete('/:id/permanent',
 
 router.post('/:partylistId/candidates',
   verifyToken, (req, res, next) => {
+<<<<<<< HEAD
+=======
+    // Allow both Super Admin and Admin to add partylist candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -108,6 +146,10 @@ router.post('/:partylistId/candidates',
 
 router.delete('/:partylistId/candidates/:studentId',
   verifyToken, (req, res, next) => {
+<<<<<<< HEAD
+=======
+    // Allow both Super Admin and Admin to remove partylist candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {

@@ -6,7 +6,10 @@ import { generatePdfReport } from '@/utils/pdfGenerator';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const AdminActivityReport = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('all');
   const [selectedAction, setSelectedAction] = useState('all');
@@ -37,6 +40,10 @@ const AdminActivityReport = () => {
       
       if (response.data.success) {
         const users = response.data.data?.users || [];
+<<<<<<< HEAD
+=======
+        // Filter out users with 'Unknown' name and only include admins and students
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const filteredUsers = users.filter(user => 
           user.first_name && 
           user.last_name && 
@@ -48,6 +55,10 @@ const AdminActivityReport = () => {
       }
     } catch (error) {
       console.error('Error fetching users:', error);
+<<<<<<< HEAD
+=======
+      // Fallback: try to get users from activities if API fails
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setAvailableUsers([]);
     }
   };
@@ -64,7 +75,11 @@ const AdminActivityReport = () => {
           params: {
             timeframe: selectedTimeframe,
             action: selectedAction !== 'all' ? selectedAction : undefined,
+<<<<<<< HEAD
             limit: 1000, 
+=======
+            limit: 1000, // Increased limit to get more data for client-side filtering
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             sort_by: 'created_at',
             sort_order: 'DESC'
           }

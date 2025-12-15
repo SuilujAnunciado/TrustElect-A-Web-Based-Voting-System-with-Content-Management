@@ -1,5 +1,6 @@
 const auditLogModel = require('../models/auditLogModel');
 
+<<<<<<< HEAD
 const recentLogs = new Map();
 const DUPLICATE_PREVENTION_WINDOW = 10000; 
 
@@ -10,6 +11,20 @@ const DUPLICATE_PREVENTION_WINDOW = 10000;
  * @param {Function} next 
  */
 const createAuditLog = (req, res, next) => {
+=======
+// Cache to store recent audit logs to prevent duplicates
+const recentLogs = new Map();
+const DUPLICATE_PREVENTION_WINDOW = 10000; // 10 seconds
+
+/**
+ * Create an audit log for the current request
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @param {Function} next - Next middleware function
+ */
+const createAuditLog = (req, res, next) => {
+  // Skip audit logging for certain routes that don't need it
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const skipRoutes = [
     '/api/audit-logs',
     '/api/notifications',
@@ -25,6 +40,10 @@ const createAuditLog = (req, res, next) => {
 
     res.end(chunk, encoding);
     
+<<<<<<< HEAD
+=======
+    // Skip GET requests and specific routes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.method === 'GET' || skipRoutes.some(route => req.originalUrl.startsWith(route))) {
       return;
     }
@@ -55,6 +74,10 @@ const createAuditLog = (req, res, next) => {
         }
       }
 
+<<<<<<< HEAD
+=======
+      // Determine action based on URL and method
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (req.originalUrl.includes('login')) {
         action = 'LOGIN';
         entity_type = 'auth';
@@ -83,6 +106,10 @@ const createAuditLog = (req, res, next) => {
         action = 'VOTE';
       }
 
+<<<<<<< HEAD
+=======
+      // Skip logging for notification-related endpoints to prevent spam
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (req.originalUrl.includes('notifications') || 
           req.originalUrl.includes('system-load') ||
           req.originalUrl.includes('health') ||
@@ -90,6 +117,7 @@ const createAuditLog = (req, res, next) => {
         return;
       }
 
+<<<<<<< HEAD
       if (req.originalUrl.includes('elections') && action === 'CREATE') {
         return;
       }
@@ -105,12 +133,39 @@ const createAuditLog = (req, res, next) => {
 
       recentLogs.set(logKey, now);
 
+=======
+      // Special handling for election creation - only log when ballot is created
+      if (req.originalUrl.includes('elections') && action === 'CREATE') {
+        // Skip election creation logs - we'll log when ballot is created instead
+        return;
+      }
+
+      // Create a more specific log key to prevent duplicates
+      const timestamp = Math.floor(Date.now() / 1000); // Round to seconds
+      const logKey = `${user_id}-${action}-${entity_type}-${entity_id}-${timestamp}`;
+      const now = Date.now();
+      
+      // Check for very recent duplicate logs (within 1 second)
+      const recentLog = recentLogs.get(logKey);
+      if (recentLog && (now - recentLog) < 1000) {
+        return; // Skip duplicate log
+      }
+      
+      // Update recent logs cache
+      recentLogs.set(logKey, now);
+      
+      // Clean up old entries from cache
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       for (const [key, timestamp] of recentLogs.entries()) {
         if (now - timestamp > DUPLICATE_PREVENTION_WINDOW) {
           recentLogs.delete(key);
         }
       }
 
+<<<<<<< HEAD
+=======
+      // Only log successful operations (2xx status codes)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (res.statusCode < 200 || res.statusCode >= 300) {
         return;
       }
@@ -122,9 +177,17 @@ const createAuditLog = (req, res, next) => {
         timestamp: new Date().toISOString()
       };
 
+<<<<<<< HEAD
       if (req.body && Object.keys(req.body).length > 0 && !req.originalUrl.includes('login')) {
         const sanitizedBody = { ...req.body };
 
+=======
+      // Add request body for non-sensitive operations
+      if (req.body && Object.keys(req.body).length > 0 && !req.originalUrl.includes('login')) {
+        const sanitizedBody = { ...req.body };
+        
+        // Remove sensitive fields
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const sensitiveFields = ['password', 'password_hash', 'token', 'otp', 'secret', 'newPassword', 'currentPassword'];
         sensitiveFields.forEach(field => {
           if (sanitizedBody[field]) {
@@ -135,17 +198,29 @@ const createAuditLog = (req, res, next) => {
         details.request = sanitizedBody;
       }
 
+<<<<<<< HEAD
+=======
+      // Add specific details for important operations
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (req.originalUrl.includes('ballots') && action === 'CREATE') {
         try {
           const responseData = JSON.parse(chunk);
           if (responseData.ballot) {
             details.election_id = responseData.ballot.election_id;
             details.ballot_id = responseData.ballot.id;
+<<<<<<< HEAD
+=======
+            // This represents the complete election + ballot creation process
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             action = 'CREATE_ELECTION_WITH_BALLOT';
             entity_type = 'elections';
             entity_id = responseData.ballot.election_id;
           }
         } catch (e) {
+<<<<<<< HEAD
+=======
+          // Ignore parsing errors
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         }
       }
 
@@ -162,7 +237,12 @@ const createAuditLog = (req, res, next) => {
       };
       
       auditLogModel.createAuditLog(logData)
+<<<<<<< HEAD
         .then(log => {     
+=======
+        .then(log => {
+          console.log(`Audit log created: ${action} by ${user_email} (${user_role}) - ${entity_type}${entity_id ? ` #${entity_id}` : ''}`);
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         })
         .catch(err => {
           console.error('Failed to create audit log:', err);

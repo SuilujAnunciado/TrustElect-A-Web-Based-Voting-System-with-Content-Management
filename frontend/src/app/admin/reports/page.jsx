@@ -17,7 +17,10 @@ import AdminActivityReport from "./components/AdminActivityReport";
 import SystemLoadDetail from "../../superadmin/reports/components/SystemLoadDetail";
 import { fetchCurrentUserName, buildSignatureFooter } from "@/utils/userIdentity";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export default function AdminReportsPage() {
@@ -109,6 +112,10 @@ export default function AdminReportsPage() {
 
       switch(reportId) {
         case 1: 
+<<<<<<< HEAD
+=======
+          // Department Voter Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           endpoint = '/reports/department-voter';
           const departmentResponse = await axios.get(`${API_BASE}${endpoint}`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -117,11 +124,19 @@ export default function AdminReportsPage() {
           break;
 
          case 2: 
+<<<<<<< HEAD
+=======
+           // Election Result Report - using admin summary for now
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
            endpoint = '/reports/admin/summary';
            const resultResponse = await axios.get(`${API_BASE}${endpoint}`, {
              headers: { Authorization: `Bearer ${token}` }
            });
            
+<<<<<<< HEAD
+=======
+           // Ensure elections is always an array
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
            const resultData = resultResponse.data;
            transformedData = {
              ...resultData,
@@ -147,6 +162,10 @@ export default function AdminReportsPage() {
              headers: { Authorization: `Bearer ${token}` }
            });
            
+<<<<<<< HEAD
+=======
+           // Ensure elections is always an array
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
            const summaryData = summaryResponse.data;
            transformedData = {
              ...summaryData,
@@ -163,6 +182,10 @@ export default function AdminReportsPage() {
             headers: { Authorization: `Bearer ${token}` }
           });
           
+<<<<<<< HEAD
+=======
+          // Ensure elections is always an array
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const participationData = participationResponse.data;
           transformedData = {
             ...participationData,
@@ -426,13 +449,24 @@ export default function AdminReportsPage() {
     }
   };
 
+<<<<<<< HEAD
   const filteredReports = useMemo(() => {
     return staticReports.filter(report => {
+=======
+  // Filter reports based on search term and filters
+  const filteredReports = useMemo(() => {
+    return staticReports.filter(report => {
+      // Search term filter
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const searchMatch = searchTerm === "" || 
         report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.type.toLowerCase().includes(searchTerm.toLowerCase());
 
+<<<<<<< HEAD
+=======
+      // Report type filter
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const typeMatch = filters.reportType === "All" || report.type === filters.reportType;
 
       return searchMatch && typeMatch;

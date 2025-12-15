@@ -2,6 +2,10 @@ const pool = require('../config/db');
 
 const getElectionSummary = async (req, res) => {
   try {
+<<<<<<< HEAD
+=======
+    // Get all elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await pool.query(`
       SELECT 
         e.*,
@@ -20,8 +24,15 @@ const getElectionSummary = async (req, res) => {
       GROUP BY e.id
       ORDER BY e.created_at DESC
     `);
+<<<<<<< HEAD
     const elections = result.rows;
 
+=======
+
+    const elections = result.rows;
+
+    // Get total active students
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const totalStudentsResult = await pool.query(`
       SELECT COUNT(*) as total_students
       FROM students
@@ -29,6 +40,10 @@ const getElectionSummary = async (req, res) => {
     `);
     const totalEligibleVoters = parseInt(totalStudentsResult.rows[0].total_students);
 
+<<<<<<< HEAD
+=======
+    // Calculate summary statistics
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const summary = {
       total_elections: elections.length,
       ongoing_elections: elections.filter(e => e.status === 'ongoing').length,
@@ -43,6 +58,10 @@ const getElectionSummary = async (req, res) => {
       summary.voter_turnout_percentage = ((summary.total_votes_cast / summary.total_eligible_voters) * 100).toFixed(2);
     }
 
+<<<<<<< HEAD
+=======
+    // Transform election data for the response
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const recentElections = elections.map(election => ({
       id: election.id,
       title: election.title,
@@ -104,6 +123,10 @@ const getElectionDetails = async (req, res) => {
 
     const election = result.rows[0];
 
+<<<<<<< HEAD
+=======
+    // Get ballot details
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const ballotResult = await pool.query(`
       SELECT 
         p.id as position_id,
@@ -165,12 +188,24 @@ const getElectionDetails = async (req, res) => {
 
 const getUpcomingElections = async (req, res) => {
   try {
+<<<<<<< HEAD
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
+=======
+    // Get current date at start of day
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    // Get start of current month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    // Get all upcoming elections with their ballot information
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await pool.query(`
       WITH upcoming_elections AS (
         SELECT 
@@ -221,15 +256,27 @@ const getUpcomingElections = async (req, res) => {
 
     const upcomingElections = result.rows;
 
+<<<<<<< HEAD
+=======
+    // Get elections starting this month
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const upcomingThisMonth = upcomingElections.filter(election => {
       const electionStart = new Date(election.date_from);
       return electionStart >= startOfMonth && electionStart <= endOfMonth;
     });
 
+<<<<<<< HEAD
+=======
+    // Calculate total expected voters
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const totalExpectedVoters = upcomingElections.reduce((sum, election) => {
       return sum + (parseInt(election.voter_count) || 0);
     }, 0);
 
+<<<<<<< HEAD
+=======
+    // Transform the data for the response
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const transformedElections = upcomingElections.map(election => ({
       id: election.id,
       title: election.title,
@@ -266,6 +313,10 @@ const getUpcomingElections = async (req, res) => {
 
 const getLiveVoteCount = async (req, res) => {
   try {
+<<<<<<< HEAD
+=======
+    // Get all ongoing elections with their vote counts
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await pool.query(`
       WITH live_election_stats AS (
         SELECT 
@@ -307,6 +358,10 @@ const getLiveVoteCount = async (req, res) => {
 
     const liveElections = result.rows;
 
+<<<<<<< HEAD
+=======
+    // Get votes by course/program for each ongoing election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const electionsWithCourseData = await Promise.all(
       liveElections.map(async (election) => {
         const courseVotesQuery = `
@@ -332,6 +387,10 @@ const getLiveVoteCount = async (req, res) => {
       })
     );
 
+<<<<<<< HEAD
+=======
+    // Calculate summary statistics
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const summary = {
       total_live_elections: liveElections.length,
       total_current_voters: liveElections.reduce((sum, e) => sum + parseInt(e.current_votes || 0), 0),

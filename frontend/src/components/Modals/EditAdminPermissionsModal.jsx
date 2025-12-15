@@ -17,7 +17,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
     maintenance: { canView: false, canCreate: false, canEdit: false, canDelete: false }
   };
   
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const { refreshPermissions, triggerGlobalPermissionsRefresh, hasPermission } = usePermissions();
   const [permissions, setPermissions] = useState(defaultPermissions);
   const [loading, setLoading] = useState(true);
@@ -26,10 +29,19 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
   const [hasAccess, setHasAccess] = useState(true);
 
   useEffect(() => {
+<<<<<<< HEAD
     const userRole = Cookies.get("role");
     const isSuperAdmin = userRole === 'Super Admin';
     const isAdmin = userRole === 'Admin';
 
+=======
+    // Allow both Super Admin and Admin to access admin permissions
+    const userRole = Cookies.get("role");
+    const isSuperAdmin = userRole === 'Super Admin';
+    const isAdmin = userRole === 'Admin';
+        
+    // Allow access for both Super Admin and Admin users
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!isSuperAdmin && !isAdmin) {
       setError("Access denied. Only Super Admin and Admin can manage admin permissions.");
       setHasAccess(false);
@@ -146,10 +158,19 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
     });
   };
 
+<<<<<<< HEAD
   const validatePermissions = async (adminId) => {
     try {
       const token = Cookies.get("token");
 
+=======
+  // Function to validate permissions after saving
+  const validatePermissions = async (adminId) => {
+    try {
+      const token = Cookies.get("token");
+      
+      // More robust URL construction
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
       return true;
@@ -228,12 +249,22 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
       }, 50);
     } catch (error) {
       console.error("Error saving permissions:", error);
+<<<<<<< HEAD
 
+=======
+      
+      // More detailed error logging
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (error.response) {
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
         console.error('Response headers:', error.response.headers);
+<<<<<<< HEAD
 
+=======
+        
+        // Provide specific error messages based on status code
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (error.response.status === 403) {
           toast?.error?.("You don't have permission to update admin permissions. Please ensure you have admin management permissions or contact a superadmin.");
         } else if (error.response.status === 404) {
@@ -251,7 +282,12 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
         console.error('Error message:', error.message);
         toast?.error?.(error.message || "An unexpected error occurred. Please try again.");
       }
+<<<<<<< HEAD
 
+=======
+      
+      // Show a more specific error message
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (error.message && error.message.includes('Network Error')) {
         setError("Network error. Please check your connection to the server and try again.");
       } else {
@@ -262,6 +298,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Safety function to check if module permissions exist
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const getPermissionValue = (module, action, defaultValue = false) => {
     return permissions && 
            permissions[module] && 
@@ -303,6 +343,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
           </div>
         ) : (
           <div className="space-y-6">
+<<<<<<< HEAD
+=======
+            {/* Users Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="mb-6 p-3 border rounded">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-black">Users</h3>
@@ -363,6 +407,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
               </div>
             </div>
 
+<<<<<<< HEAD
+=======
+            {/* Elections Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="mb-6 p-3 border rounded">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-black">Elections</h3>
@@ -423,6 +471,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
               </div>
             </div>
             
+<<<<<<< HEAD
+=======
+            {/* Departments Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="mb-6 p-3 border rounded">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-black">Departments</h3>
@@ -483,6 +535,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
               </div>
             </div>
 
+<<<<<<< HEAD
+=======
+            {/* CMS Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="mb-6 p-3 border rounded">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-black">CMS</h3>
@@ -543,6 +599,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
               </div>
             </div>
 
+<<<<<<< HEAD
+=======
+            {/* Audit Log Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="mb-6 p-3 border rounded">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-black">Audit Log</h3>
@@ -603,6 +663,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
               </div>
             </div>
 
+<<<<<<< HEAD
+=======
+            {/* Admin Management Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="mb-6 p-3 border rounded">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-black">Admin Management</h3>
@@ -663,6 +727,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
               </div>
             </div>
 
+<<<<<<< HEAD
+=======
+            {/* Maintenance Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="mb-6 p-3 border rounded">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold text-black">Maintenance</h3>
@@ -723,6 +791,10 @@ export default function EditAdminPermissionsModal({ admin, onClose, onSave }) {
               </div>
             </div>
 
+<<<<<<< HEAD
+=======
+            {/* Buttons */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={onClose}

@@ -90,7 +90,10 @@ const ArchiveConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isArc
 const SoftDeleteConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isSoftDeleting, autoDeleteDays, setAutoDeleteDays }) => {
   if (!isOpen) return null;
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
@@ -219,11 +222,19 @@ export default function ElectionPage() {
       
       const data = response.data || [];
       const pendingCount = data.filter(election => {
+<<<<<<< HEAD
+=======
+        // Determine if the creator is a superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const isSuperAdminCreator =
           election.created_by === 1 ||
           (election.created_by && election.created_by.id === 1) ||
           election.created_by_role === 'SuperAdmin';
         
+<<<<<<< HEAD
+=======
+        // Only count elections that need approval AND are not created by superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         return election.needs_approval && !isSuperAdminCreator;
       }).length;
 
@@ -275,15 +286,28 @@ export default function ElectionPage() {
     } else {
       setFilteredElections(
         elections.filter(election => {
+<<<<<<< HEAD
+=======
+          // Exclude archived and deleted elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (election.is_active === false || election.is_deleted === true) {
             return false;
           }
           if (activeTab === 'to_approve') {
+<<<<<<< HEAD
+=======
+            // Determine if the creator is a superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             const isSuperAdminCreator =
               election.created_by === 1 ||
               (election.created_by && election.created_by.id === 1) ||
               election.created_by_role === 'SuperAdmin';
+<<<<<<< HEAD
 
+=======
+            
+            // Only show elections that need approval AND are not created by superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             return election.needs_approval && !isSuperAdminCreator;
           } else {
             return election.status === activeTab;
@@ -302,13 +326,21 @@ export default function ElectionPage() {
   };
 
   const handleDeleteClick = (election, e) => {
+<<<<<<< HEAD
     e.stopPropagation(); 
+=======
+    e.stopPropagation(); // Prevent row click
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setElectionToSoftDelete(election);
     setSoftDeleteModalOpen(true);
   };
 
   const handleArchiveClick = (election, e) => {
+<<<<<<< HEAD
     e.stopPropagation();
+=======
+    e.stopPropagation(); // Prevent row click
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setElectionToArchive(election);
     setArchiveModalOpen(true);
   };
@@ -328,7 +360,12 @@ export default function ElectionPage() {
       await fetchWithAuth(`/elections/${electionToDelete.id}`, {
         method: 'DELETE'
       });
+<<<<<<< HEAD
 
+=======
+      
+      // Update the elections state to remove the deleted election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       setFilteredElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       
@@ -359,7 +396,12 @@ export default function ElectionPage() {
       await fetchWithAuth(`/elections/${electionToArchive.id}/archive`, {
         method: 'POST'
       });
+<<<<<<< HEAD
 
+=======
+      
+      // Update the elections state to remove the archived election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToArchive.id));
       setFilteredElections(prev => prev.filter(e => e.id !== electionToArchive.id));
       
@@ -396,7 +438,12 @@ export default function ElectionPage() {
           autoDeleteDays: autoDeleteDays
         })
       });
+<<<<<<< HEAD
 
+=======
+      
+      // Update the elections state to remove the soft deleted election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToSoftDelete.id));
       setFilteredElections(prev => prev.filter(e => e.id !== electionToSoftDelete.id));
       
@@ -428,11 +475,19 @@ export default function ElectionPage() {
   };
 
   const getStatusBadge = (election) => {
+<<<<<<< HEAD
+=======
+    // Determine if the creator is a superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const isSuperAdminCreator =
       election.created_by === 1 ||
       (election.created_by && election.created_by.id === 1) ||
       election.created_by_role === 'SuperAdmin';
 
+<<<<<<< HEAD
+=======
+    // Only show 'NEEDS APPROVAL' if not created by super admin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const status = (election.needs_approval && !isSuperAdminCreator) ? 'to_approve' : election.status;
     
     return (
@@ -636,6 +691,10 @@ export default function ElectionPage() {
         isDeleting={isDeleting}
       />
 
+<<<<<<< HEAD
+=======
+      {/* Archive Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <ArchiveConfirmationModal 
         isOpen={archiveModalOpen}
         election={electionToArchive}
@@ -644,6 +703,10 @@ export default function ElectionPage() {
         isArchiving={isArchiving}
       />
 
+<<<<<<< HEAD
+=======
+      {/* Soft Delete Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <SoftDeleteConfirmationModal 
         isOpen={softDeleteModalOpen}
         election={electionToSoftDelete}

@@ -86,7 +86,10 @@ exports.getCandidateList = async (req, res) => {
       ORDER BY date_from DESC;
     `;
 
+<<<<<<< HEAD
     
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await pool.query(query);
 
     res.json({

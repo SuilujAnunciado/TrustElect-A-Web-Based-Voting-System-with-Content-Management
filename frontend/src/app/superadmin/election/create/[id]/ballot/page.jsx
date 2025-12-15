@@ -18,11 +18,19 @@ const studentCouncilPositionOrder = {
   "Treasurer": 4,
   "Auditor": 5,
   "Public Relations Officer": 6,
+<<<<<<< HEAD
   "PRO": 6, 
+=======
+  "PRO": 6, // Alias for Public Relations Officer
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   "Business Manager": 7,
   "Sergeant at Arms": 8
 };
 
+<<<<<<< HEAD
+=======
+// Mr/Ms STI position order for sorting
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const mrMsSTIPositionOrder = {
   "Mr. STI": 1,
   "Ms. STI": 2,
@@ -51,13 +59,23 @@ function formatNameSimple(lastName, firstName, fallback) {
 async function fetchWithAuth(url, options = {}) {
   const token = Cookies.get("token");
   const apiBase = API_BASE || '/api';
+<<<<<<< HEAD
 
+=======
+  
+  // Ensure URL starts with /api if API_BASE is empty
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const fullUrl = url.startsWith('/api') ? url : `${apiBase}${url}`;
   
   const defaultHeaders = {
     "Authorization": `Bearer ${token}`
   };
+<<<<<<< HEAD
 
+=======
+  
+  // Only set Content-Type for non-FormData requests
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (!(options.body instanceof FormData)) {
     defaultHeaders["Content-Type"] = "application/json";
   }
@@ -84,7 +102,11 @@ async function fetchWithAuth(url, options = {}) {
       }
       
       if (response.status === 404 && errorMessage.includes('No ballot found')) {
+<<<<<<< HEAD
         return null; 
+=======
+        return null; // This is expected for new elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       }
       
       throw new Error(errorMessage);
@@ -299,6 +321,10 @@ const PartylistSelectionModal = ({ partylists, onSelect, onCancel, currentPositi
       try {
         const token = Cookies.get("token");
         
+<<<<<<< HEAD
+=======
+        // If student is selected, fetch their partylist directly
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (currentStudent && currentStudent.student_number) {
           try {
             const response = await axios.get(
@@ -311,17 +337,33 @@ const PartylistSelectionModal = ({ partylists, onSelect, onCancel, currentPositi
             
             
             if (response.data.success && response.data.data) {
+<<<<<<< HEAD
               const studentPartylist = response.data.data;
               setFilteredPartylists([studentPartylist]);
             } else {
+=======
+              // Student is in a partylist
+              const studentPartylist = response.data.data;
+              setFilteredPartylists([studentPartylist]);
+            } else {
+              // Student is not in any partylist
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               setFilteredPartylists([{ name: "Independent", slogan: "", advocacy: "" }]);
             }
           } catch (error) {
             console.error('Error fetching student partylist:', error);
+<<<<<<< HEAD
 
             setFilteredPartylists([{ name: "Independent", slogan: "", advocacy: "" }]);
           }
         } else {
+=======
+            // If there's an error, show Independent
+            setFilteredPartylists([{ name: "Independent", slogan: "", advocacy: "" }]);
+          }
+        } else {
+          // No student selected, fetch all partylists and their candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const candidatesPromises = partylists.map(async (party) => {
             if (!party || party.name === "Independent") return null;
             const response = await axios.get(
@@ -349,6 +391,10 @@ const PartylistSelectionModal = ({ partylists, onSelect, onCancel, currentPositi
         }
       } catch (error) {
         console.error("Error fetching partylist candidates:", error);
+<<<<<<< HEAD
+=======
+        // On error, show all partylists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setFilteredPartylists([...partylists, { name: "Independent", slogan: "", advocacy: "" }]);
       } finally {
         setIsLoading(false);
@@ -514,24 +560,46 @@ export default function BallotPage() {
   const [showStudentNumberSuggestions, setShowStudentNumberSuggestions] = useState(false);
   const [activeInput, setActiveInput] = useState({ posId: null, candId: null, field: null });
   const [candidateTypes, setCandidateTypes] = useState(() => {
+<<<<<<< HEAD
+=======
+    // Initialize with empty object to ensure it's always defined
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     try {
       return {};
     } catch (error) {
       console.warn('Error initializing candidateTypes:', error);
       return {};
     }
+<<<<<<< HEAD
   });
 
   const safeCandidateTypes = candidateTypes || {};
 
+=======
+  }); // Track candidate type for each candidate
+  
+  // Safety check to ensure candidateTypes is always defined
+  const safeCandidateTypes = candidateTypes || {};
+  
+  // Helper function to get candidate type safely
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const getCandidateType = (candidateId) => {
     if (!candidateId) return 'individual';
     if (!candidateTypes || typeof candidateTypes !== 'object') return 'individual';
     return candidateTypes[candidateId] || 'individual';
   };
+<<<<<<< HEAD
 
   const { mrMsSTIPositions, fetchMrMsSTIPositions, mrMsSTIPositionOrder } = useMrMsSTIPositions();
 
+=======
+  
+
+  // Mr/Ms STI positions hook
+  const { mrMsSTIPositions, fetchMrMsSTIPositions, mrMsSTIPositionOrder } = useMrMsSTIPositions();
+
+  // Ensure candidateTypes is always properly initialized
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (!candidateTypes || typeof candidateTypes !== 'object') {
       setCandidateTypes({});
@@ -627,6 +695,10 @@ export default function BallotPage() {
           scPositions = allPositionsData[scType.id];
         } else {
 
+<<<<<<< HEAD
+=======
+          // Go through each election type to find Student Council positions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           Object.values(allPositionsData).forEach(positionsArray => {
             if (Array.isArray(positionsArray) && positionsArray.length > 0) {
 
@@ -643,7 +715,12 @@ export default function BallotPage() {
             }
           });
         }
+<<<<<<< HEAD
 
+=======
+        
+        // If we found SC positions, extract their names and sort them
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (scPositions.length > 0) {
           const positionNames = scPositions.map(pos => pos.name);
           positionNames.sort((a, b) => (studentCouncilPositionOrder[a] || 999) - (studentCouncilPositionOrder[b] || 999));
@@ -663,6 +740,10 @@ export default function BallotPage() {
         }
       } catch (error) {
         console.error("Error loading Student Council positions from localStorage:", error);
+<<<<<<< HEAD
+=======
+        // Fallback to default positions if local storage fails, also sorted
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setStudentCouncilPositions([
           "President",
           "Vice President",
@@ -726,7 +807,12 @@ export default function BallotPage() {
       try {
         setIsLoading(true);
         setApiError(null);
+<<<<<<< HEAD
 
+=======
+        
+        // Fetch election data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const electionData = await fetchWithAuth(`/api/elections/${electionId}`);
         if (!electionData) {
           throw new Error("Election not found");
@@ -741,18 +827,33 @@ export default function BallotPage() {
                    electionData.election_type.toLowerCase().includes("ms") && 
                    electionData.election_type.toLowerCase().includes("sti")) {
           setIsMrMsSTIElection(true);
+<<<<<<< HEAD
 
+=======
+          // Fetch Mr/Ms STI positions when this election type is detected
+          // The hook will auto-fetch, but we can also call it explicitly
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           fetchMrMsSTIPositions();
         } else if (electionData.election_type && 
                    electionData.election_type.toLowerCase().includes("symposium")) {
           setIsSymposiumElection(true);
         }
+<<<<<<< HEAD
 
+=======
+        
+        // Try to fetch existing ballot
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         try {
           const ballotData = await getBallotByElection(electionId);
           if (ballotData && ballotData.positions) {
             const positions = ballotData.positions || [];
+<<<<<<< HEAD
 
+=======
+            
+            // Sort positions if it's a student council election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             if (electionData.election_type === "Student Council") {
               positions.sort((a, b) => (studentCouncilPositionOrder[a.name] || 999) - (studentCouncilPositionOrder[b.name] || 999));
             } else if (isMrMsSTIElection === true) {
@@ -763,17 +864,30 @@ export default function BallotPage() {
               ...ballotData,
               positions
             });
+<<<<<<< HEAD
 
+=======
+            
+            // Initialize candidate types for existing candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             if (isMrMsSTIElection === true) {
               const initialCandidateTypes = {};
               positions.forEach(pos => {
                 pos.candidates.forEach(cand => {
+<<<<<<< HEAD
+=======
+                  // Default to individual for existing candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   initialCandidateTypes[cand.id] = 'individual';
                 });
               });
               setCandidateTypes(initialCandidateTypes);
             }
           } else {
+<<<<<<< HEAD
+=======
+            // No existing ballot, create default structure
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             createDefaultBallotStructure(electionData.election_type);
           }
         } catch (ballotError) {
@@ -955,11 +1069,20 @@ export default function BallotPage() {
       const allPositionsData = JSON.parse(localStorage.getItem('electionPositions') || '{}');
       let foundPositions = false;
       
+<<<<<<< HEAD
+=======
+      // Try to find the Student Council type ID in localStorage
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const electionTypes = JSON.parse(localStorage.getItem('election_types') || '[]');
       const scType = electionTypes.find(type => 
         type.name && type.name.toLowerCase() === "student council"
       );
+<<<<<<< HEAD
 
+=======
+      
+      // If we found the SC type, check for its positions directly
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (scType && scType.id && allPositionsData[scType.id]) {
         const scPositions = allPositionsData[scType.id];
         const positionNames = scPositions.map(pos => pos.name);
@@ -967,9 +1090,17 @@ export default function BallotPage() {
         setStudentCouncilPositions(positionNames);
         return true;
       }
+<<<<<<< HEAD
 
       Object.values(allPositionsData).forEach(positionsArray => {
         if (!foundPositions && Array.isArray(positionsArray) && positionsArray.length > 0) {
+=======
+      
+      // Otherwise search all positions
+      Object.values(allPositionsData).forEach(positionsArray => {
+        if (!foundPositions && Array.isArray(positionsArray) && positionsArray.length > 0) {
+          // Filter positions that match common Student Council position names
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const foundSCPositions = positionsArray.filter(pos => 
             ["president", "vice president", "secretary", "treasurer", "auditor", "vp", "pro", "public relations officer", "business manager", "sergeant at arms"].some(
               term => pos.name && pos.name.toLowerCase().includes(term)
@@ -1004,6 +1135,10 @@ export default function BallotPage() {
     return null;
   };
 
+<<<<<<< HEAD
+=======
+  // Image compression function
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const compressImage = (file, maxWidth = 800, quality = 0.8) => {
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas');
@@ -1011,6 +1146,10 @@ export default function BallotPage() {
       const img = new Image();
       
       img.onload = () => {
+<<<<<<< HEAD
+=======
+        // Calculate new dimensions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         let { width, height } = img;
         if (width > maxWidth) {
           height = (height * maxWidth) / width;
@@ -1020,6 +1159,10 @@ export default function BallotPage() {
         canvas.width = width;
         canvas.height = height;
         
+<<<<<<< HEAD
+=======
+        // Draw and compress
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         ctx.drawImage(img, 0, 0, width, height);
         
         canvas.toBlob(
@@ -1044,7 +1187,12 @@ export default function BallotPage() {
     const updatedPositions = ballot.positions.map(pos => 
       pos.id === posId ? { ...pos, [field]: value } : pos
     );
+<<<<<<< HEAD
 
+=======
+    
+    // Sort positions if it's a student council election and we're changing the name
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (isStudentCouncilElection && field === "name") {
       updatedPositions.sort((a, b) => (studentCouncilPositionOrder[a.name] || 999) - (studentCouncilPositionOrder[b.name] || 999));
     } else if (isMrMsSTIElection === true && field === "name") {
@@ -1134,6 +1282,10 @@ export default function BallotPage() {
   };
 
   const selectNameSuggestion = (student, type, posId, candId) => {
+<<<<<<< HEAD
+=======
+    // Check if this student is already a candidate in any position
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const isDuplicate = ballot.positions.some(pos => 
       pos.candidates.some(cand => 
         cand.id !== candId && 
@@ -1173,6 +1325,10 @@ export default function BallotPage() {
   };
 
   const selectStudentNumberSuggestion = (student, posId, candId) => {
+<<<<<<< HEAD
+=======
+    // Check if this student (by student_id or student_number) is already a candidate in any position
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const isDuplicate = ballot.positions.some(pos =>
       pos.candidates.some(cand =>
         cand.id !== candId &&
@@ -1185,6 +1341,10 @@ export default function BallotPage() {
         ...prev,
         [`candidate-${candId}-duplicate`]: 'This student is already a candidate in another position or this position.'
       }));
+<<<<<<< HEAD
+=======
+      // Do not update other fields if it's a duplicate
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return;
     }
 
@@ -1193,11 +1353,19 @@ export default function BallotPage() {
       candidates: pos.candidates.map(cand =>
         cand.id === candId ? {
           ...cand,
+<<<<<<< HEAD
           student_id: student.id, 
+=======
+          student_id: student.id, // Store student ID
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           first_name: student.first_name,
           last_name: student.last_name,
           student_number: student.student_number,
           course: student.course_name,
+<<<<<<< HEAD
+=======
+          // Clear any previous name errors if a valid student is selected
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           [`candidate-fn-${cand.id}`]: undefined,
           [`candidate-ln-${cand.id}`]: undefined,
           [`candidate-validation-${cand.id}`]: undefined,
@@ -1208,6 +1376,10 @@ export default function BallotPage() {
 
     setBallot(prev => ({ ...prev, positions: updatedPositions }));
 
+<<<<<<< HEAD
+=======
+    // Clear suggestions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setShowStudentNumberSuggestions(false);
     setStudentNumberSuggestions([]);
     setShowFirstNameSuggestions(false);
@@ -1215,6 +1387,10 @@ export default function BallotPage() {
     setShowLastNameSuggestions(false);
     setLastNameSuggestions([]);
 
+<<<<<<< HEAD
+=======
+    // Clear specific errors related to name/student number if student is valid
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[`candidate-fn-${candId}`];
@@ -1239,6 +1415,10 @@ export default function BallotPage() {
       console.warn('Error updating candidate type:', error);
     }
 
+<<<<<<< HEAD
+=======
+    // Clear student-specific fields when switching to group
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (candidateType === 'group') {
       const updatedPositions = ballot.positions.map(pos => ({
         ...pos,
@@ -1274,8 +1454,16 @@ export default function BallotPage() {
         pos.candidates.some(c => c.id === candId)
       )?.candidates.find(c => c.id === candId);
 
+<<<<<<< HEAD
       if (candidate && (field === 'first_name' || field === 'last_name') && candidate.student_number) {
 
+=======
+      // Only clear student_number and course if the current candidate had a student_number
+      // and the user is manually typing name fields.
+      if (candidate && (field === 'first_name' || field === 'last_name') && candidate.student_number) {
+          // Clear student number and course if names are being manually edited after auto-fill
+          // This allows users to override auto-filled data.
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const finalUpdatedPositions = updatedPositions.map(pos => ({
               ...pos,
               candidates: pos.candidates.map(c =>
@@ -1285,7 +1473,13 @@ export default function BallotPage() {
           setBallot(prev => ({ ...prev, positions: finalUpdatedPositions }));
       }
 
+<<<<<<< HEAD
       if (isSymposiumElection) {
+=======
+
+      if (isSymposiumElection) {
+        // For Symposium elections, only validate project title
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (candidate && candidate.first_name && candidate.first_name.trim()) {
           const allCandidates = updatedPositions.flatMap(pos => pos.candidates);
           const duplicateCount = allCandidates.filter(cand => 
@@ -1306,6 +1500,10 @@ export default function BallotPage() {
             });
           }
         } else {
+<<<<<<< HEAD
+=======
+          // Clear validation error if project title is empty
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           setErrors(prev => {
             const newErrors = { ...prev };
             delete newErrors[`candidate-${candId}-validation`];
@@ -1314,10 +1512,18 @@ export default function BallotPage() {
           });
         }
       } else if (candidate && candidate.first_name && candidate.last_name) {
+<<<<<<< HEAD
         const allCandidates = updatedPositions.flatMap(pos => pos.candidates);
         const duplicateCount = allCandidates.filter(cand => 
           cand.id !== candId && 
           !cand.student_number && 
+=======
+        // For regular elections, validate student names
+        const allCandidates = updatedPositions.flatMap(pos => pos.candidates);
+        const duplicateCount = allCandidates.filter(cand => 
+          cand.id !== candId && 
+          !cand.student_number && // Only check by name if no student_number is set
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           cand.first_name.toLowerCase() === candidate.first_name.toLowerCase() && 
           cand.last_name.toLowerCase() === candidate.last_name.toLowerCase()
         ).length;
@@ -1334,8 +1540,15 @@ export default function BallotPage() {
             return newErrors;
           });
         }
+<<<<<<< HEAD
         validateStudentExists(candidate.first_name, candidate.last_name, candId);
       } else {
+=======
+        // Also validate if student exists if first and last name are filled
+        validateStudentExists(candidate.first_name, candidate.last_name, candId);
+      } else {
+         // Clear validation error if names are incomplete
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
          setErrors(prev => {
             const newErrors = { ...prev };
             delete newErrors[`candidate-${candId}-validation`];
@@ -1346,6 +1559,10 @@ export default function BallotPage() {
     } else if (field === 'student_number') {
         setActiveInput({ posId, candId, field: 'student_number' });
         fetchStudentNumberSuggestions(value, posId, candId);
+<<<<<<< HEAD
+=======
+        // If student number is cleared, also clear first name, last name, and course
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (!value.trim()) {
             const finalUpdatedPositions = updatedPositions.map(pos => ({
                 ...pos,
@@ -1354,6 +1571,10 @@ export default function BallotPage() {
                 )
             }));
             setBallot(prev => ({ ...prev, positions: finalUpdatedPositions }));
+<<<<<<< HEAD
+=======
+            // Clear any student number related errors
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             setErrors(prev => {
               const newErrors = { ...prev };
               delete newErrors[`candidate-sn-${candId}`];
@@ -1363,6 +1584,11 @@ export default function BallotPage() {
             });
         }
     } else {
+<<<<<<< HEAD
+=======
+        // If user manually types name or other fields, clear student number suggestions
+        // (already handled by onBlur, but good to ensure)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (activeInput.posId === posId && activeInput.candId === candId && activeInput.field === 'student_number') {
             setShowStudentNumberSuggestions(false);
         }
@@ -1370,6 +1596,10 @@ export default function BallotPage() {
     
     try {
       if (ballot.id && field !== '_pendingImage') {
+<<<<<<< HEAD
+=======
+        // When saving, if a student_id is present, send that. Otherwise, send individual fields.
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const candidateToUpdate = updatedPositions.find(p => p.id === posId)
                                   .candidates.find(c => c.id === candId);
         await updateCandidate(candId, {
@@ -1390,6 +1620,10 @@ export default function BallotPage() {
 
   const handleImageUpload = async (posId, candId, file) => {
     try {
+<<<<<<< HEAD
+=======
+      // Validate file first
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const validationError = validateImageFile(file);
       if (validationError) {
         setErrors(prev => ({
@@ -1399,27 +1633,49 @@ export default function BallotPage() {
         return;
       }
 
+<<<<<<< HEAD
+=======
+      // Show loading state
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setErrors(prev => ({
         ...prev,
         [`candidate_${candId}_image`]: 'Compressing and uploading image...'
       }));
 
+<<<<<<< HEAD
       let processedFile = file;
       if (file.size > 2 * 1024 * 1024) {
         processedFile = await compressImage(file, 1000, 0.8);
       }
 
+=======
+      // Compress image if it's larger than 2MB
+      let processedFile = file;
+      if (file.size > 2 * 1024 * 1024) { // 2MB
+        processedFile = await compressImage(file, 1000, 0.8);
+      }
+
+      // Create preview
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const previewUrl = URL.createObjectURL(processedFile);
       setImagePreviews(prev => ({
         ...prev,
         [candId]: previewUrl
       }));
 
+<<<<<<< HEAD
+=======
+      // Prepare form data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const formData = new FormData();
       formData.append('image', processedFile);
 
       const controller = new AbortController();
+<<<<<<< HEAD
       const timeoutId = setTimeout(() => controller.abort(), 30000); 
+=======
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
       try {
         const imageResponse = await fetchWithAuth('/api/ballots/candidates/upload-image', {
@@ -1436,6 +1692,10 @@ export default function BallotPage() {
           throw new Error(imageResponse.message || 'Failed to upload image');
         }
 
+<<<<<<< HEAD
+=======
+        // Update ballot with new image URL
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setBallot(prev => ({
           ...prev,
           positions: prev.positions.map(pos => 
@@ -1451,8 +1711,15 @@ export default function BallotPage() {
           )
         }));
 
+<<<<<<< HEAD
         URL.revokeObjectURL(previewUrl);
 
+=======
+        // Clean up preview URL
+        URL.revokeObjectURL(previewUrl);
+
+        // Clear errors
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setErrors(prev => {
           const newErrors = { ...prev };
           delete newErrors[`candidate_${candId}_image`];
@@ -1481,6 +1748,10 @@ export default function BallotPage() {
         [`candidate_${candId}_image`]: errorMessage
       }));
 
+<<<<<<< HEAD
+=======
+      // Clean up preview
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setImagePreviews(prev => {
         const newPreviews = { ...prev };
         delete newPreviews[candId];
@@ -1676,7 +1947,11 @@ export default function BallotPage() {
 
   const validateAllCandidates = () => {
     let hasInvalidCandidates = false;
+<<<<<<< HEAD
     const newErrors = { ...errors }; 
+=======
+    const newErrors = { ...errors }; // Start with existing errors
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     const allCandidates = ballot.positions.flatMap(pos => pos.candidates);
     const seenStudentNumbers = new Set();
@@ -1687,12 +1962,23 @@ export default function BallotPage() {
       let isCurrentCandidateInvalid = false;
       const candidateType = getCandidateType(cand.id);
 
+<<<<<<< HEAD
       if (isMrMsSTIElection === true && candidateType === 'group') {
+=======
+      // For Mr/Ms STI elections, check if this is a group candidate
+      if (isMrMsSTIElection === true && candidateType === 'group') {
+        // Group validation - only require name
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (!cand.first_name.trim()) {
           candidateErrors[`candidate-fn-${cand.id}`] = "Group name is required";
           isCurrentCandidateInvalid = true;
         }
+<<<<<<< HEAD
 
+=======
+        
+        // Check for duplicate group names
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (cand.first_name.trim()) {
           const groupName = cand.first_name.toLowerCase();
           const duplicateCount = allCandidates.filter(otherCand => 
@@ -1707,6 +1993,10 @@ export default function BallotPage() {
           }
         }
       } else {
+<<<<<<< HEAD
+=======
+        // Individual student validation - prioritize student number for validation and uniqueness
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (cand.student_number) {
         const studentMatch = allStudents.find(student =>
           student.student_number === cand.student_number
@@ -1716,15 +2006,28 @@ export default function BallotPage() {
           candidateErrors[`candidate-sn-${cand.id}`] = 'Student number not found';
           isCurrentCandidateInvalid = true;
         } else {
+<<<<<<< HEAD
 
           if (cand.first_name !== studentMatch.first_name ||
               cand.last_name !== studentMatch.last_name ||
               cand.course !== studentMatch.course_name) {
 
+=======
+          // If student number matches, ensure first_name, last_name, course are consistent
+          if (cand.first_name !== studentMatch.first_name ||
+              cand.last_name !== studentMatch.last_name ||
+              cand.course !== studentMatch.course_name) {
+            // This case should ideally not happen if selectStudentNumberSuggestion works correctly
+            // but it's a safeguard if user manually edits fields after selection
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             candidateErrors[`candidate-${cand.id}-validation`] = 'Student data mismatch. Please re-select student.';
             isCurrentCandidateInvalid = true;
           }
 
+<<<<<<< HEAD
+=======
+          // Check for duplicate student numbers/IDs among candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (seenStudentNumbers.has(cand.student_number) ||
               allCandidates.some(otherCand => otherCand.id !== cand.id && otherCand.student_id === studentMatch.id)) {
             candidateErrors[`candidate-${cand.id}-duplicate`] = 'This student is already a candidate.';
@@ -1732,18 +2035,31 @@ export default function BallotPage() {
           }
           seenStudentNumbers.add(cand.student_number);
         }
+<<<<<<< HEAD
       } else {
+=======
+      } else { // No student number, validate by name
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (!cand.first_name.trim()) {
           candidateErrors[`candidate-fn-${cand.id}`] = isSymposiumElection ? "Project title is required" : "First name is required";
           isCurrentCandidateInvalid = true;
         }
+<<<<<<< HEAD
 
+=======
+        
+        // Only require last name for individual students, not for groups or symposium projects
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (candidateType !== 'group' && !isSymposiumElection && !cand.last_name.trim()) {
           candidateErrors[`candidate-ln-${cand.id}`] = "Last name is required";
           isCurrentCandidateInvalid = true;
         }
 
         if (cand.first_name.trim()) {
+<<<<<<< HEAD
+=======
+          // For group candidates, only check first name for duplicates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (candidateType === 'group') {
             const groupName = cand.first_name.toLowerCase();
             if (seenFullNames.has(groupName) ||
@@ -1757,6 +2073,7 @@ export default function BallotPage() {
             }
             seenFullNames.add(groupName);
           } else if (cand.last_name.trim()) {
+<<<<<<< HEAD
             const fullName = `${cand.first_name.toLowerCase()} ${cand.last_name.toLowerCase()}`;
 
             if (seenFullNames.has(fullName) ||
@@ -1764,6 +2081,17 @@ export default function BallotPage() {
                   otherCand.id !== cand.id &&
                   !otherCand.student_number && 
                   getCandidateType(otherCand.id) !== 'group' && 
+=======
+            // For individual students, check both first and last name
+            const fullName = `${cand.first_name.toLowerCase()} ${cand.last_name.toLowerCase()}`;
+            
+            // Check for name-based duplicates (only if no student_number is set for either)
+            if (seenFullNames.has(fullName) ||
+                allCandidates.some(otherCand =>
+                  otherCand.id !== cand.id &&
+                  !otherCand.student_number && // Ensure other candidate also has no student_number
+                  getCandidateType(otherCand.id) !== 'group' && // Don't compare with group candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   otherCand.first_name.toLowerCase() === cand.first_name.toLowerCase() &&
                   otherCand.last_name.toLowerCase() === cand.last_name.toLowerCase()
                 )) {
@@ -1774,6 +2102,10 @@ export default function BallotPage() {
           }
         }
 
+<<<<<<< HEAD
+=======
+          // Only check student existence for individual students, not for groups or symposium projects
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (candidateType !== 'group' && !isSymposiumElection) {
             const studentExists = allStudents.some(student =>
               student.first_name.toLowerCase() === cand.first_name.toLowerCase() &&
@@ -1788,10 +2120,18 @@ export default function BallotPage() {
         }
       }
 
+<<<<<<< HEAD
+=======
+      // Update errors for the current candidate
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (isCurrentCandidateInvalid) {
         hasInvalidCandidates = true;
         Object.assign(newErrors, candidateErrors);
       } else {
+<<<<<<< HEAD
+=======
+        // Clear any previous errors for this candidate if it's now valid
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         delete newErrors[`candidate-sn-${cand.id}`];
         delete newErrors[`candidate-fn-${cand.id}`];
         delete newErrors[`candidate-ln-${cand.id}`];
@@ -1808,6 +2148,7 @@ export default function BallotPage() {
     try {
       setIsLoading(true);
       
+<<<<<<< HEAD
       const allExistingCandidates = ballot.positions.flatMap(pos => pos.candidates);
 
       const hasEmptyCandidates = allExistingCandidates.some(
@@ -1822,6 +2163,27 @@ export default function BallotPage() {
             return !cand.first_name.trim();
           }
 
+=======
+      // Get all existing candidates across all positions
+      const allExistingCandidates = ballot.positions.flatMap(pos => pos.candidates);
+      
+      // Check if there are any candidates with empty names or student numbers
+      const hasEmptyCandidates = allExistingCandidates.some(
+        cand => {
+          const candidateType = getCandidateType(cand.id) || 'individual';
+          
+          // For Symposium elections, only check if project title is empty
+          if (isSymposiumElection) {
+            return !cand.first_name.trim();
+          }
+          
+          // For group candidates, only check if first_name (group name) is empty
+          if (isMrMsSTIElection === true && candidateType === 'group') {
+            return !cand.first_name.trim();
+          }
+          
+          // For individual students, check both names or student number
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           return (!cand.first_name.trim() || !cand.last_name.trim()) && !cand.student_number.trim();
         }
       );
@@ -1842,6 +2204,10 @@ export default function BallotPage() {
         return;
       }
 
+<<<<<<< HEAD
+=======
+      // Check if there are any validation errors
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!validateAllCandidates()) {
         setApiError("Please fix existing candidate validation errors before adding a new one.");
         setIsLoading(false);
@@ -1852,12 +2218,18 @@ export default function BallotPage() {
         id: Math.floor(Math.random() * 1000000).toString(),
         first_name: "",
         last_name: "",
+<<<<<<< HEAD
         student_number: "",
         course: "",
+=======
+        student_number: "", // Initialize student_number
+        course: "",        // Initialize course
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         party: (isMrMsSTIElection === true) ? "" : "",
         slogan: (isMrMsSTIElection === true) ? "" : "",
         platform: (isMrMsSTIElection === true) ? "" : "",
         image_url: null,
+<<<<<<< HEAD
         student_id: null, 
         _isNew: true
       };
@@ -1866,6 +2238,17 @@ export default function BallotPage() {
         setCandidateTypes(prev => ({
           ...prev,
           [newCandidate.id]: 'individual' 
+=======
+        student_id: null,    // Initialize student_id
+        _isNew: true
+      };
+
+      // Set default candidate type for Mr/Ms STI elections
+      if (isMrMsSTIElection === true) {
+        setCandidateTypes(prev => ({
+          ...prev,
+          [newCandidate.id]: 'individual' // Default to individual student
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         }));
       }
   
@@ -1890,7 +2273,12 @@ export default function BallotPage() {
       setApiError(null);
   
       const candidateType = getCandidateType(candidate.id) || 'individual';
+<<<<<<< HEAD
 
+=======
+      
+      // Validate based on candidate type
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (isMrMsSTIElection === true && candidateType === 'group') {
         if (!candidate.first_name) {
           throw new Error("Group name is required");
@@ -1907,22 +2295,41 @@ export default function BallotPage() {
   
       const formData = new FormData();
      
+<<<<<<< HEAD
       if ((isMrMsSTIElection === true && candidateType === 'group') || isSymposiumElection === true) {
         formData.append('firstName', candidate.first_name);
         formData.append('lastName', '');
+=======
+      // For group candidates in Mr/Ms STI elections or Symposium elections, only use first_name
+      if ((isMrMsSTIElection === true && candidateType === 'group') || isSymposiumElection === true) {
+        formData.append('firstName', candidate.first_name);
+        formData.append('lastName', ''); // Empty for groups/symposium
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         formData.append('candidateType', isSymposiumElection ? 'symposium' : 'group');
       } else {
         formData.append('firstName', candidate.first_name);
         formData.append('lastName', candidate.last_name);
         formData.append('candidateType', 'individual');
       }
+<<<<<<< HEAD
 
       if (isMrMsSTIElection !== true) {
         if (isSymposiumElection === true) {
+=======
+      
+      // Only add campaign fields for non-Mr/Ms STI elections, but handle Symposium differently
+      if (isMrMsSTIElection !== true) {
+        if (isSymposiumElection === true) {
+          // For Symposium, only add platform (project description)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           formData.append('party', '');
           formData.append('slogan', '');
           formData.append('platform', candidate.platform || '');
         } else {
+<<<<<<< HEAD
+=======
+          // For regular elections, add all campaign fields
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           formData.append('party', candidate.party || '');
           formData.append('slogan', candidate.slogan || '');
           formData.append('platform', candidate.platform || '');
@@ -1955,7 +2362,12 @@ export default function BallotPage() {
           firstName: candidate.first_name,
           lastName: candidate.last_name
         };
+<<<<<<< HEAD
 
+=======
+        
+        // Only add campaign fields for non-Mr/Ms STI elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (isMrMsSTIElection !== true) {
           updateData.party = candidate.party;
           updateData.slogan = candidate.slogan;
@@ -2007,7 +2419,12 @@ export default function BallotPage() {
 
   const validateForm = () => {
     const newErrors = {};
+<<<<<<< HEAD
 
+=======
+    
+    // Check for duplicate candidates across all positions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const allCandidates = ballot.positions.flatMap(pos => pos.candidates);
     const seenCandidates = new Set();
     let hasDuplicates = false;
@@ -2018,7 +2435,12 @@ export default function BallotPage() {
           const fullName = isSymposiumElection 
             ? cand.first_name.toLowerCase() 
             : `${cand.first_name.toLowerCase()} ${cand.last_name.toLowerCase()}`;
+<<<<<<< HEAD
 
+=======
+          
+        // Check if student exists in the student list (skip for Symposium elections)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (!isSymposiumElection) {
           const studentExists = allStudents.some(student => 
             student.first_name.toLowerCase() === cand.first_name.toLowerCase() && 
@@ -2030,6 +2452,10 @@ export default function BallotPage() {
           }
         }
 
+<<<<<<< HEAD
+=======
+          // Check for duplicate candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (seenCandidates.has(fullName)) {
             newErrors[`candidate-${cand.id}-duplicate`] = 'This candidate is already a candidate';
             hasDuplicates = true;
@@ -2078,7 +2504,11 @@ export default function BallotPage() {
           if (!cand.first_name.trim()) {
             newErrors[`candidate-fn-${cand.id}`] = "Project title is required";
           }
+<<<<<<< HEAD
 
+=======
+          // No last name required for symposium projects
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         } else {
           if (!cand.first_name.trim()) {
             newErrors[`candidate-fn-${cand.id}`] = "First name is required";
@@ -2125,6 +2555,10 @@ export default function BallotPage() {
       setIsLoading(true);
       setApiError(null);
 
+<<<<<<< HEAD
+=======
+      // Validate again before submitting
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!validateForm()) {
         const hasDuplicateCandidates = Object.keys(errors).some(key => key.includes('-duplicate'));
         if (hasDuplicateCandidates) {
@@ -2160,7 +2594,12 @@ export default function BallotPage() {
               last_name: cand.last_name,
               image_url: cand.image_url
             };
+<<<<<<< HEAD
 
+=======
+            
+            // Only include campaign fields for non-Mr/Ms STI elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             if (isMrMsSTIElection !== true) {
               candidateData.party = cand.party;
               candidateData.slogan = cand.slogan;
@@ -2304,8 +2743,14 @@ export default function BallotPage() {
     );
   }
 
+<<<<<<< HEAD
   try {
 
+=======
+  // Error boundary for rendering
+  try {
+    // Ensure all critical state is properly initialized
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!ballot || !ballot.positions) {
       return (
         <div className="max-w-4xl mx-auto p-4">
@@ -2502,6 +2947,10 @@ export default function BallotPage() {
                         onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
+<<<<<<< HEAD
+=======
+                            // Show file size info
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                             const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
                             handleImageUpload(position.id, candidate.id, file);
                           }
@@ -2515,6 +2964,10 @@ export default function BallotPage() {
                   </div>
 
                   <div className="flex-1">
+<<<<<<< HEAD
+=======
+                    {/* Candidate Type Selector for Mr/Ms STI elections (not needed for Symposium) */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                     {isMrMsSTIElection === true && !isSymposiumElection && (
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-black mb-2">
@@ -2561,6 +3014,10 @@ export default function BallotPage() {
                       </div>
                     )}
 
+<<<<<<< HEAD
+=======
+                    {/* Conditional form fields based on candidate type */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                     {(() => {
                       try {
                         const isGroup = isMrMsSTIElection === true && (
@@ -2574,6 +3031,10 @@ export default function BallotPage() {
                         return false;
                       }
                     })() ? (
+<<<<<<< HEAD
+=======
+                      /* Group/Band/Symposium form - only name field */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                       <div className="mb-3">
                         <label className="block text-sm font-medium text-black mb-1">
                           {isSymposiumElection ? 'Project Title' : 'Group/Band Name'}
@@ -2592,6 +3053,10 @@ export default function BallotPage() {
                         )}
                       </div>
                     ) : (
+<<<<<<< HEAD
+=======
+                      /* Individual student form - full fields */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                       <>
                         <div className="grid grid-cols-2 gap-3 mb-3">
                         <div>
@@ -2755,8 +3220,15 @@ export default function BallotPage() {
                         </>
                     )}
 
+<<<<<<< HEAD
                     {(isMrMsSTIElection !== true) && (
                       <>
+=======
+                    {/* Only show campaign fields for non-Mr/Ms STI elections, but show platform for Symposium */}
+                    {(isMrMsSTIElection !== true) && (
+                      <>
+                        {/* Hide partylist and slogan for Symposium elections */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                         {!isSymposiumElection && (
                           <div className="grid grid-cols-2 gap-3 mb-3">
                             <div>

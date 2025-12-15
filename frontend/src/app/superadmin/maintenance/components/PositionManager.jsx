@@ -4,6 +4,10 @@ import { toast } from "react-toastify";
 import axios from 'axios';
 import Cookies from "js-cookie";
 
+<<<<<<< HEAD
+=======
+// Remove the custom api instance and use regular axios with proper headers
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const PositionManager = ({ electionTypes }) => {
   const [selectedElectionType, setSelectedElectionType] = useState(null);
   const [positions, setPositions] = useState([]);
@@ -188,11 +192,21 @@ const PositionManager = ({ electionTypes }) => {
     } catch (error) {
       console.error("Error deleting position:", error);
       toast.error(error.response?.data?.message || "An error occurred while deleting the position");
+<<<<<<< HEAD
 
       try {
         const updatedPositions = positions.filter(p => p.id !== positionId);
         setPositions(updatedPositions);
 
+=======
+      
+      // Fallback to localStorage if API fails
+      try {
+        const updatedPositions = positions.filter(p => p.id !== positionId);
+        setPositions(updatedPositions);
+        
+        // Save to localStorage as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const positionsData = JSON.parse(localStorage.getItem('electionPositions') || '{}');
         positionsData[selectedElectionType.id] = updatedPositions;
         localStorage.setItem('electionPositions', JSON.stringify(positionsData));
@@ -244,7 +258,11 @@ const PositionManager = ({ electionTypes }) => {
         
         {selectedElectionType && (
           <>
+<<<<<<< HEAD
 
+=======
+            {/* Position Form */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="bg-gray-50 p-4 rounded-lg border mb-6">
               <h3 className="text-lg font-semibold text-black mb-3">
                 {isEditing ? "Edit Position" : "Add New Position"}

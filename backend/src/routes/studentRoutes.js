@@ -9,7 +9,10 @@ const path = require('path');
 const fs = require('fs');
 const { checkPermission } = require('../middlewares/permissionMiddleware');
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get("/students/validate", validateStudentByNumber);
 
 router.get("/students/search", searchStudents);
@@ -18,6 +21,7 @@ router.get("/students/elections", verifyToken, isStudent, getStudentElections);
 router.get("/students/profile", verifyToken, isStudent, getStudentProfile);
 router.post("/students/upload", verifyToken, isStudent, profileUpload.single('profilePic'), uploadProfilePicture);
 
+<<<<<<< HEAD
 router.get("/images/candidates/:filename", (req, res) => {
   try {
     const filename = req.params.filename;
@@ -25,14 +29,35 @@ router.get("/images/candidates/:filename", (req, res) => {
     
     const filePath = path.join(__dirname, '../../uploads/candidates', sanitizedFilename);
 
+=======
+// Add a new route to proxy candidate images with proper CORS headers
+router.get("/images/candidates/:filename", (req, res) => {
+  try {
+    const filename = req.params.filename;
+    // Sanitize filename to prevent path traversal attacks
+    const sanitizedFilename = filename.replace(/\.\./g, '').replace(/\//g, '');
+    
+    const filePath = path.join(__dirname, '../../uploads/candidates', sanitizedFilename);
+    
+    // Check if file exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!fs.existsSync(filePath)) {
       return res.status(404).send('Image not found');
     }
     
+<<<<<<< HEAD
     res.set('Cross-Origin-Resource-Policy', 'cross-origin');
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Cache-Control', 'public, max-age=86400'); 
 
+=======
+    // Set proper CORS headers
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    
+    // Send the file
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     res.sendFile(filePath);
   } catch (error) {
     console.error('Error serving image:', error);
@@ -40,6 +65,10 @@ router.get("/images/candidates/:filename", (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+// Debug route for token
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get("/students/debug-token", verifyToken, (req, res) => {
   res.status(200).json({ 
     user: req.user,
@@ -105,6 +134,10 @@ router.post(
   uploadStudentsBatch
 );
 
+<<<<<<< HEAD
+=======
+// Admin batch upload route with permission check
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post(
   '/admin/students/batch',
   verifyToken,
@@ -116,6 +149,10 @@ router.post(
   uploadStudentsBatch
 );
 
+<<<<<<< HEAD
+=======
+// Admin reset student password route with permission check
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post(
   '/admin/students/reset-password',
   verifyToken,
@@ -125,6 +162,10 @@ router.post(
 
 router.get("/by-courses", verifyToken, getStudentsByCourses);
 
+<<<<<<< HEAD
+=======
+// Admin student management routes with permission checks
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get(
   '/admin/students',
   verifyToken,
@@ -159,10 +200,18 @@ router.delete(
 
 router.post("/students/change-password", verifyToken, isStudent, changePassword);
 
+<<<<<<< HEAD
+=======
+// Bulk delete routes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post("/students/bulk-delete-by-course", verifyToken, isSuperAdmin, bulkDeleteStudentsByCourse);
 router.post("/students/bulk-permanent-delete-by-course", verifyToken, isSuperAdmin, bulkPermanentDeleteStudentsByCourse);
 router.post("/students/bulk-delete-archived-by-course", verifyToken, isSuperAdmin, bulkDeleteArchivedStudentsByCourse);
 
+<<<<<<< HEAD
+=======
+// Delete all students routes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post("/students/delete-all", verifyToken, isSuperAdmin, deleteAllStudents);
 router.post("/students/permanent-delete-all", verifyToken, isSuperAdmin, permanentDeleteAllStudents);
 

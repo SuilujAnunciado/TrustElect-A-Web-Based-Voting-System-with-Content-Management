@@ -24,28 +24,51 @@ export default function DeletedDepartmentsPage() {
   const fetchDeletedDepartments = async () => {
     try {
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
+=======
+      
+      // Try multiple endpoints to get deleted departments
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let departmentsArray = [];
       let success = false;
 
       try {
+<<<<<<< HEAD
+=======
+        // First try superadmin endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const res = await axios.get("/api/superadmin/departments", {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
         const allDepartments = res.data.departments || res.data || [];
+<<<<<<< HEAD
+=======
+        // Filter for deleted departments
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         departmentsArray = allDepartments.filter(dept => dept.is_deleted === true);
         success = true;
       } catch (firstError) {
         console.warn("Error on superadmin endpoint, trying fallback:", firstError.message);
+<<<<<<< HEAD
     
         
         try {
+=======
+        
+        try {
+          // Try admin endpoint as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const res = await axios.get("/api/admin/departments", {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           });
           const allDepartments = res.data.departments || res.data || [];
+<<<<<<< HEAD
+=======
+          // Filter for deleted departments
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           departmentsArray = allDepartments.filter(dept => dept.is_deleted === true);
           success = true;
         } catch (secondError) {
@@ -75,11 +98,21 @@ export default function DeletedDepartmentsPage() {
   const confirmEnableAutoDelete = () => {
     setAutoDeleteEnabled(true);
     toast.success(`Auto-deletion enabled for ${autoDeleteDays} days`);
+<<<<<<< HEAD
 
     const timer = setTimeout(() => {
       performAutoDelete();
     }, autoDeleteDays * 24 * 60 * 60 * 1000); 
 
+=======
+    
+    // Set up auto-deletion timer
+    const timer = setTimeout(() => {
+      performAutoDelete();
+    }, autoDeleteDays * 24 * 60 * 60 * 1000); // Convert days to milliseconds
+    
+    // Store timer ID for potential cancellation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     localStorage.setItem('autoDeleteTimer', timer.toString());
     setShowAutoDeleteModal(false);
   };
@@ -102,7 +135,12 @@ export default function DeletedDepartmentsPage() {
   const performAutoDelete = async () => {
     try {
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
+=======
+      
+      // Get all deleted departments that are older than the specified days
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const now = new Date();
       const cutoffDate = new Date(now.getTime() - (autoDeleteDays * 24 * 60 * 60 * 1000));
       
@@ -117,6 +155,10 @@ export default function DeletedDepartmentsPage() {
         return;
       }
 
+<<<<<<< HEAD
+=======
+      // Delete each department permanently
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       for (const dept of departmentsToDelete) {
         try {
           await axios.delete(`/api/superadmin/departments/${dept.id}/permanent`, {
@@ -146,12 +188,21 @@ export default function DeletedDepartmentsPage() {
   const permanentlyDeleteDepartment = async () => {
     try {
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
+=======
+      
+      // Try multiple endpoints for permanent delete
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let success = false;
       let response;
       
       try {
+<<<<<<< HEAD
 
+=======
+        // First try superadmin endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}/permanent`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
@@ -161,6 +212,10 @@ export default function DeletedDepartmentsPage() {
         console.warn("Error on superadmin permanent delete endpoint, trying fallback:", firstError.message);
         
         try {
+<<<<<<< HEAD
+=======
+          // Try admin endpoint as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}/permanent`, {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
@@ -190,7 +245,12 @@ export default function DeletedDepartmentsPage() {
 
   useEffect(() => {
     fetchDeletedDepartments();
+<<<<<<< HEAD
 
+=======
+    
+    // Check if there's an existing auto-delete timer
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const existingTimer = localStorage.getItem('autoDeleteTimer');
     if (existingTimer) {
       setAutoDeleteEnabled(true);
@@ -216,6 +276,10 @@ export default function DeletedDepartmentsPage() {
         Back
       </button>
 
+<<<<<<< HEAD
+=======
+      {/* Auto-Delete Controls */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex items-center gap-4 mb-3">
           <h3 className="text-sm font-semibold text-black">Auto-Delete Settings:</h3>

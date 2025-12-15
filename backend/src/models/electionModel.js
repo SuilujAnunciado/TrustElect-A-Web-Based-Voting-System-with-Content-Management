@@ -1,6 +1,9 @@
 const pool = require("../config/db");
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getElectionStatus = (date_from, date_to, start_time, end_time, needs_approval = false) => {
 
   if (needs_approval === true) {
@@ -25,7 +28,12 @@ const getDisplayStatus = getElectionStatus;
 
 const getElectionsByStatus = async (status, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
+<<<<<<< HEAD
 
+=======
+  
+  // First get just the election IDs with pagination
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const electionIdsQuery = `
     SELECT e.id
     FROM elections e
@@ -52,6 +60,10 @@ const getElectionsByStatus = async (status, page = 1, limit = 10) => {
     return [];
   }
   
+<<<<<<< HEAD
+=======
+  // Then get the full election data for just those IDs using more efficient subqueries
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const result = await pool.query(`
     SELECT 
         e.id, 
@@ -80,6 +92,7 @@ const getElectionsByStatus = async (status, page = 1, limit = 10) => {
   return result.rows;
 };
 
+<<<<<<< HEAD
 const statsCache = {
   data: null,
   timestamp: 0,
@@ -87,12 +100,27 @@ const statsCache = {
 };
 
 const getElectionStatistics = async () => {
+=======
+// Simple in-memory cache for election statistics
+const statsCache = {
+  data: null,
+  timestamp: 0,
+  TTL: 5 * 60 * 1000 // 5 minutes cache TTL
+};
+
+const getElectionStatistics = async () => {
+  // Check if we have valid cached data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const now = Date.now();
   if (statsCache.data && (now - statsCache.timestamp < statsCache.TTL)) {
     return statsCache.data;
   }
   
   
+<<<<<<< HEAD
+=======
+  // Use more efficient queries with subqueries instead of multiple joins
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const result = await pool.query(`
     SELECT 
       status,
@@ -118,7 +146,12 @@ const getElectionStatistics = async () => {
     ) as stats
     GROUP BY status
   `);
+<<<<<<< HEAD
 
+=======
+  
+  // Update the cache
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   statsCache.data = result.rows;
   statsCache.timestamp = now;
   
@@ -162,6 +195,10 @@ const createElection = async (electionData, userId, needsApproval = false) => {
   try {
       await client.query("BEGIN");
 
+<<<<<<< HEAD
+=======
+      // Check if user is superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const userCheck = await client.query(
           `SELECT role_id FROM users WHERE id = $1`,
           [userId]
@@ -169,6 +206,10 @@ const createElection = async (electionData, userId, needsApproval = false) => {
 
       const isSuperAdmin = userCheck.rows[0]?.role_id === 1;
       
+<<<<<<< HEAD
+=======
+      // Override needsApproval for superadmin and set status to approved
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (isSuperAdmin) {
           needsApproval = false;
       }
@@ -205,6 +246,10 @@ const createElection = async (electionData, userId, needsApproval = false) => {
           RETURNING *;
       `;
       
+<<<<<<< HEAD
+=======
+      // Determine initial status based on dates and creator
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const now = new Date();
       const start = new Date(`${electionData.dateFrom}T${electionData.startTime}`);
       const end = new Date(`${electionData.dateTo}T${electionData.endTime}`);
@@ -227,12 +272,21 @@ const createElection = async (electionData, userId, needsApproval = false) => {
           userId,
           needsApproval,
           initialStatus,
+<<<<<<< HEAD
           isSuperAdmin ? userId : null,  
           isSuperAdmin ? now : null     
+=======
+          isSuperAdmin ? userId : null,  // Set approved_by for superadmin
+          isSuperAdmin ? now : null      // Set approved_at for superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       ]);
       
       const election = electionResult.rows[0];
 
+<<<<<<< HEAD
+=======
+      // Save precinct programs if provided
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (electionData.eligibleVoters.precinct && electionData.eligibleVoters.precinct.length > 0 && 
           electionData.eligibleVoters.precinctPrograms) {
           
@@ -394,6 +448,10 @@ const getElectionById = async (id) => {
     
     const election = electionResult.rows[0];
     
+<<<<<<< HEAD
+=======
+    // Get eligible voters criteria
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const criteriaQuery = `
       SELECT 
         ARRAY_AGG(DISTINCT course_name) as programs,
@@ -406,6 +464,10 @@ const getElectionById = async (id) => {
     const criteriaResult = await pool.query(criteriaQuery, [id]);
     const criteria = criteriaResult.rows[0];
     
+<<<<<<< HEAD
+=======
+    // Get precinct programs
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const precinctProgramsQuery = `
       SELECT precinct, programs
       FROM election_precinct_programs
@@ -414,6 +476,10 @@ const getElectionById = async (id) => {
     
     const precinctProgramsResult = await pool.query(precinctProgramsQuery, [id]);
     
+<<<<<<< HEAD
+=======
+    // Convert precinct programs to the expected format
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const precinctPrograms = {};
     const precincts = [];
     
@@ -422,6 +488,10 @@ const getElectionById = async (id) => {
       precinctPrograms[row.precinct] = row.programs;
     });
     
+<<<<<<< HEAD
+=======
+    // Combine all eligible voter criteria
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const eligibleVoters = {
       programs: criteria?.programs || [],
       yearLevels: criteria?.year_levels || [],
@@ -446,6 +516,10 @@ const updateElection = async (id, updates) => {
   try {
     await client.query('BEGIN');
     
+<<<<<<< HEAD
+=======
+    // Update basic election details
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let updateFields = [];
     let values = [];
     let paramCount = 1;
@@ -479,14 +553,26 @@ const updateElection = async (id, updates) => {
       }
     }
     
+<<<<<<< HEAD
     if (updates.eligible_voters && updates.eligible_voters.precinct && 
         updates.eligible_voters.precinctPrograms) {
       
+=======
+    // Handle precinct programs if provided
+    if (updates.eligible_voters && updates.eligible_voters.precinct && 
+        updates.eligible_voters.precinctPrograms) {
+      
+      // Delete existing precinct programs
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await client.query(
         'DELETE FROM election_precinct_programs WHERE election_id = $1',
         [id]
       );
       
+<<<<<<< HEAD
+=======
+      // Insert new precinct programs
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       for (const precinct of updates.eligible_voters.precinct) {
         const programs = updates.eligible_voters.precinctPrograms[precinct] || [];
         
@@ -503,6 +589,10 @@ const updateElection = async (id, updates) => {
     
     await client.query('COMMIT');
     
+<<<<<<< HEAD
+=======
+    // Return the updated election with all details
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return await getElectionById(id);
   } catch (error) {
     await client.query('ROLLBACK');
@@ -517,7 +607,13 @@ const deleteElection = async (id) => {
   return { message: "Election deleted successfully" };
 };
 
+<<<<<<< HEAD
 const archiveElection = async (id, userId) => {
+=======
+// Archive election (soft archive) - using admin system approach
+const archiveElection = async (id, userId) => {
+  // First check if election exists and get its current state
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const checkResult = await pool.query(
     `SELECT id, title, is_active, is_deleted, status FROM elections WHERE id = $1`,
     [id]
@@ -529,14 +625,26 @@ const archiveElection = async (id, userId) => {
   
   const election = checkResult.rows[0];
   
+<<<<<<< HEAD
+=======
+  // Check if already archived (is_active = false, is_deleted = false)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (election.is_active === false && election.is_deleted === false) {
     throw new Error("Election is already archived");
   }
   
+<<<<<<< HEAD
+=======
+  // Check if already deleted
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (election.is_deleted === true) {
     throw new Error("Election is already deleted");
   }
   
+<<<<<<< HEAD
+=======
+  // Check if required columns exist, if not, add them
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const columnCheck = await pool.query(`
     SELECT column_name 
     FROM information_schema.columns 
@@ -548,6 +656,10 @@ const archiveElection = async (id, userId) => {
   const missingColumns = ['is_active', 'archived_at', 'archived_by'].filter(col => !existingColumns.includes(col));
   
   if (missingColumns.length > 0) {
+<<<<<<< HEAD
+=======
+    // Add missing columns
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     await pool.query(`
       ALTER TABLE elections 
       ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE,
@@ -567,7 +679,13 @@ const archiveElection = async (id, userId) => {
   return { message: "Election archived successfully", election: result.rows[0] };
 };
 
+<<<<<<< HEAD
 const restoreArchivedElection = async (id, userId) => {
+=======
+// Restore archived election - using admin system approach
+const restoreArchivedElection = async (id, userId) => {
+  // First check if election exists and get its current state
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const checkResult = await pool.query(
     `SELECT id, title, is_active, is_deleted FROM elections WHERE id = $1`,
     [id]
@@ -579,10 +697,18 @@ const restoreArchivedElection = async (id, userId) => {
   
   const election = checkResult.rows[0];
   
+<<<<<<< HEAD
+=======
+  // Check if election is archived (is_active = false, is_deleted = false)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (election.is_active !== false) {
     throw new Error("Election is not archived");
   }
   
+<<<<<<< HEAD
+=======
+  // Check if election is deleted (can't restore deleted elections from archive page)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (election.is_deleted) {
     throw new Error("Election is deleted, not archived");
   }
@@ -602,7 +728,13 @@ const restoreArchivedElection = async (id, userId) => {
   return { message: "Election restored successfully", election: result.rows[0] };
 };
 
+<<<<<<< HEAD
 const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
+=======
+// Soft delete election - using admin system approach
+const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
+  // First check if election exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const checkResult = await pool.query(
     `SELECT id, is_active, is_deleted FROM elections WHERE id = $1`,
     [id]
@@ -614,14 +746,26 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   
   const election = checkResult.rows[0];
   
+<<<<<<< HEAD
+=======
+  // Check if already deleted
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (election.is_deleted === true) {
     throw new Error("Election is already deleted");
   }
   
+<<<<<<< HEAD
+=======
+  // Check if already archived (is_active = false, is_deleted = false)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (election.is_active === false && election.is_deleted === false) {
     throw new Error("Election is already archived");
   }
   
+<<<<<<< HEAD
+=======
+  // Check if required columns exist, if not, add them
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const columnCheck = await pool.query(`
     SELECT column_name 
     FROM information_schema.columns 
@@ -633,6 +777,10 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   const missingColumns = ['is_active', 'is_deleted', 'deleted_at', 'deleted_by', 'auto_delete_at'].filter(col => !existingColumns.includes(col));
   
   if (missingColumns.length > 0) {
+<<<<<<< HEAD
+=======
+    // Add missing columns
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     await pool.query(`
       ALTER TABLE elections 
       ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE,
@@ -661,6 +809,10 @@ const softDeleteElection = async (id, userId, autoDeleteDays = null) => {
   return { message: "Election deleted successfully", election: result.rows[0] };
 };
 
+<<<<<<< HEAD
+=======
+// Restore soft deleted election - using admin system approach
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const restoreDeletedElection = async (id, userId) => {
   const result = await pool.query(
     `UPDATE elections 
@@ -677,7 +829,13 @@ const restoreDeletedElection = async (id, userId) => {
   return { message: "Election restored successfully", election: result.rows[0] };
 };
 
+<<<<<<< HEAD
 const permanentDeleteElection = async (id) => {
+=======
+// Permanent delete election (hard delete)
+const permanentDeleteElection = async (id) => {
+  // First check if election exists and is in archived or deleted state
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const checkResult = await pool.query(
     `SELECT id, title, is_active, is_deleted FROM elections WHERE id = $1`,
     [id]
@@ -689,10 +847,18 @@ const permanentDeleteElection = async (id) => {
   
   const election = checkResult.rows[0];
   
+<<<<<<< HEAD
+=======
+  // Check if election is in archived or deleted state
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (election.is_active !== false && !election.is_deleted) {
     throw new Error("Election is not in archived or deleted state");
   }
   
+<<<<<<< HEAD
+=======
+  // Now perform the permanent delete
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const result = await pool.query(
     `DELETE FROM elections WHERE id = $1 RETURNING *`,
     [id]
@@ -707,6 +873,10 @@ const permanentDeleteElection = async (id) => {
 
 const getArchivedElections = async (userId = null) => {
   try {
+<<<<<<< HEAD
+=======
+    // First check if archive columns exist
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const columnCheck = await pool.query(`
       SELECT column_name 
       FROM information_schema.columns 
@@ -771,8 +941,15 @@ const getArchivedElections = async (userId = null) => {
   }
 };
 
+<<<<<<< HEAD
 const getDeletedElections = async (userId = null) => {
   try {
+=======
+// Get soft deleted elections
+const getDeletedElections = async (userId = null) => {
+  try {
+    // First check if the archive columns exist
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const columnCheck = await pool.query(`
       SELECT column_name 
       FROM information_schema.columns 
@@ -784,6 +961,10 @@ const getDeletedElections = async (userId = null) => {
     const hasDeleteColumns = columnCheck.rows.some(row => row.column_name === 'is_deleted');
     
     if (!hasActiveColumns || !hasDeleteColumns) {
+<<<<<<< HEAD
+=======
+      console.log('Archive/delete columns not found, returning empty array');
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return [];
     }
     
@@ -833,10 +1014,18 @@ const getDeletedElections = async (userId = null) => {
     return result.rows;
   } catch (error) {
     console.error('Error in getDeletedElections:', error);
+<<<<<<< HEAD
+=======
+    // If there's an error (likely due to missing columns), return empty array
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return [];
   }
 };
 
+<<<<<<< HEAD
+=======
+// Get elections ready for auto-delete
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getElectionsForAutoDelete = async () => {
   const result = await pool.query(
     `SELECT * FROM elections 
@@ -848,6 +1037,10 @@ const getElectionsForAutoDelete = async () => {
   return result.rows;
 };
 
+<<<<<<< HEAD
+=======
+// Clean up auto-delete elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const cleanupAutoDeleteElections = async () => {
   const electionsToDelete = await getElectionsForAutoDelete();
   
@@ -952,6 +1145,10 @@ async function updateElectionStatuses() {
   try {
     await client.query('BEGIN');
 
+<<<<<<< HEAD
+=======
+    // Get current statuses of all elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const { rows: currentElections } = await client.query(`
       SELECT id, status FROM elections
       WHERE needs_approval = FALSE 
@@ -967,6 +1164,10 @@ async function updateElectionStatuses() {
       currentStatusMap[election.id] = election.status;
     });
 
+<<<<<<< HEAD
+=======
+    // Update statuses for all elections that don't need approval or are created by superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await client.query(`
       UPDATE elections
       SET status = 
@@ -1112,8 +1313,14 @@ const getAllElectionsWithCreator = async () => {
 };
 
 /**
+<<<<<<< HEAD
  * @param {Object} criteria 
  * @returns {Promise<Array>} 
+=======
+ * Get eligible students based on eligibility criteria
+ * @param {Object} criteria - Eligibility criteria
+ * @returns {Promise<Array>} List of eligible students
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const getEligibleStudentsForCriteria = async (criteria) => {
   try {
@@ -1132,6 +1339,10 @@ const getEligibleStudentsForCriteria = async (criteria) => {
     const studentParams = [];
     const conditions = [];
     
+<<<<<<< HEAD
+=======
+    // Handle general program criteria
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (criteria.programs?.length) {
       conditions.push(`course_name = ANY($${studentParams.length + 1})`);
       studentParams.push(criteria.programs);
@@ -1147,6 +1358,10 @@ const getEligibleStudentsForCriteria = async (criteria) => {
       studentParams.push(criteria.gender);
     }
     
+<<<<<<< HEAD
+=======
+    // Handle precinct-specific program criteria
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (criteria.precinctPrograms && Object.keys(criteria.precinctPrograms).length > 0) {
       const allPrecinctPrograms = [];
       Object.values(criteria.precinctPrograms).forEach(programs => {
@@ -1154,6 +1369,10 @@ const getEligibleStudentsForCriteria = async (criteria) => {
       });
       
       if (allPrecinctPrograms.length > 0) {
+<<<<<<< HEAD
+=======
+        // Remove duplicates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const uniquePrograms = [...new Set(allPrecinctPrograms)];
         conditions.push(`course_name = ANY($${studentParams.length + 1})`);
         studentParams.push(uniquePrograms);
@@ -1185,10 +1404,20 @@ const updateEligibleVoters = async (electionId, students, criteria) => {
   try {
     await client.query('BEGIN');
 
+<<<<<<< HEAD
     await client.query('DELETE FROM eligible_voters WHERE election_id = $1', [electionId]);
 
     await client.query('DELETE FROM election_precinct_programs WHERE election_id = $1', [electionId]);
 
+=======
+    // Delete existing eligible voters
+    await client.query('DELETE FROM eligible_voters WHERE election_id = $1', [electionId]);
+
+    // Delete existing precinct programs
+    await client.query('DELETE FROM election_precinct_programs WHERE election_id = $1', [electionId]);
+
+    // Save precinct programs if provided
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (criteria.precinctPrograms && Object.keys(criteria.precinctPrograms).length > 0) {
       for (const [precinct, programs] of Object.entries(criteria.precinctPrograms)) {
         if (programs && programs.length > 0) {
@@ -1253,17 +1482,31 @@ const updateEligibleVoters = async (electionId, students, criteria) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+// Laboratory precinct functions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const createElectionLaboratoryPrecincts = async (electionId, laboratoryPrecincts) => {
   const client = await pool.connect();
   
   try {
     await client.query('BEGIN');
+<<<<<<< HEAD
 
+=======
+    
+    // Clear existing laboratory precincts for this election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     await client.query(
       'DELETE FROM election_laboratory_precincts WHERE election_id = $1',
       [electionId]
     );
+<<<<<<< HEAD
 
+=======
+    
+    // Insert new laboratory precincts
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     for (const labPrecinct of laboratoryPrecincts) {
       if (labPrecinct.assignedCourses && labPrecinct.assignedCourses.length > 0) {
         await client.query(
@@ -1290,26 +1533,48 @@ const assignStudentsToLaboratoryPrecincts = async (electionId, laboratoryPrecinc
   
   try {
     await client.query('BEGIN');
+<<<<<<< HEAD
 
+=======
+    
+    // Get all eligible voters for this election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const eligibleVoters = await client.query(
       'SELECT * FROM eligible_voters WHERE election_id = $1',
       [electionId]
     );
+<<<<<<< HEAD
 
     for (const voter of eligibleVoters.rows) {
       for (const labPrecinct of laboratoryPrecincts) {
         if (labPrecinct.assignedCourses.includes(voter.course_name)) {
+=======
+    
+    // Assign each student to appropriate laboratory precinct
+    for (const voter of eligibleVoters.rows) {
+      for (const labPrecinct of laboratoryPrecincts) {
+        if (labPrecinct.assignedCourses.includes(voter.course_name)) {
+          // Get the election_laboratory_precinct_id
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const elpResult = await client.query(
             'SELECT id FROM election_laboratory_precincts WHERE election_id = $1 AND laboratory_precinct_id = $2',
             [electionId, labPrecinct.laboratoryPrecinctId]
           );
           
           if (elpResult.rows.length > 0) {
+<<<<<<< HEAD
+=======
+            // Update eligible_voters with laboratory assignment
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             await client.query(
               'UPDATE eligible_voters SET election_laboratory_precinct_id = $1 WHERE id = $2',
               [elpResult.rows[0].id, voter.id]
             );
+<<<<<<< HEAD
             break; 
+=======
+            break; // Student assigned to first matching lab
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           }
         }
       }
@@ -1345,6 +1610,10 @@ module.exports = {
   getEligibleStudentsForCriteria,
   updateEligibleVoters,
   createElectionLaboratoryPrecincts,
+<<<<<<< HEAD
+=======
+  // Archive and Delete functionality
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   archiveElection,
   restoreArchivedElection,
   softDeleteElection,

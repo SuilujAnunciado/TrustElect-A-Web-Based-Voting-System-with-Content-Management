@@ -4,7 +4,10 @@ import Image from 'next/image';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function StudentsSection({ 
   landingContent, 
   updateStudentUI, 
@@ -81,6 +84,10 @@ export default function StudentsSection({
         }
         
         const data = await response.json();
+<<<<<<< HEAD
+=======
+        console.log('Server response:', data);
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       }
 
       alert(`${type === 'landing' ? 'Landing page' : 'Background poster'} design has been applied.`);
@@ -147,7 +154,11 @@ export default function StudentsSection({
 
   const LandingPreview = () => (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+<<<<<<< HEAD
 
+=======
+      {/* Header Preview */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="w-full flex justify-between items-center p-4 bg-[#01579B] shadow-md">
         <h1 className="text-xl font-bold flex items-center">
           {landingContent.logo?.imageUrl ? (
@@ -163,6 +174,10 @@ export default function StudentsSection({
         </h1>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Hero Section Preview */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div 
         className="p-8"
         style={{
@@ -189,6 +204,10 @@ export default function StudentsSection({
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Features Preview */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="p-8 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <h3 className="text-2xl font-bold text-center mb-8 text-gray-800">Key Features</h3>
@@ -226,6 +245,10 @@ export default function StudentsSection({
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Call to Action Preview */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {landingContent.callToAction?.enabled && (
         <div 
           className="p-8"
@@ -251,6 +274,10 @@ export default function StudentsSection({
         </div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Footer Preview */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="bg-[#01579B] text-white py-4 px-6">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
@@ -325,7 +352,12 @@ export default function StudentsSection({
           Apply Background Design
         </button>
       </div>
+<<<<<<< HEAD
 
+=======
+      
+      {/* Status message */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {landingContent.studentUI?.type === 'poster' && landingContent.studentUI?.backgroundImage && (
         <div className="mt-3 p-2 bg-green-100 text-green-800 rounded-md text-sm flex items-center">
           <Check className="w-4 h-4 mr-1" />
@@ -366,7 +398,12 @@ export default function StudentsSection({
           Apply Landing Design
         </button>
       </div>
+<<<<<<< HEAD
 
+=======
+      
+      {/* Status message */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {landingContent.studentUI?.type === 'landing' && (
         <div className="mt-3 p-2 bg-green-100 text-green-800 rounded-md text-sm flex items-center">
           <Check className="w-4 h-4 mr-1" />
@@ -386,7 +423,12 @@ export default function StudentsSection({
     <div>
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-4 text-black">Student Dashboard Design</h2>
+<<<<<<< HEAD
 
+=======
+        
+        {/* Tab Navigation */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="flex border-b mb-6">
           <button
             className={`px-4 py-2 font-medium text-sm ${
@@ -410,11 +452,20 @@ export default function StudentsSection({
           </button>
         </div>
         
+<<<<<<< HEAD
 
         <div className="mb-8">
           {activeTab === 'background' ? <BackgroundDesignTab /> : <LandingDesignTab />}
         </div>
 
+=======
+        {/* Tab Content */}
+        <div className="mb-8">
+          {activeTab === 'background' ? <BackgroundDesignTab /> : <LandingDesignTab />}
+        </div>
+        
+        {/* Remove Design Button - Always at the bottom */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="mt-8 pt-4 border-t">
           <button
             onClick={handleRemoveDesign}
@@ -429,6 +480,10 @@ export default function StudentsSection({
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Landing Page Preview Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showLandingPreview && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">

@@ -30,21 +30,42 @@ function formatNameSimple(lastName, firstName, fallback) {
 
 const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '/default-candidate.png';
+<<<<<<< HEAD
 
   if (imageUrl.startsWith('http')) {
     return imageUrl;
   }
 
+=======
+  
+  // If it's already a full URL, use it as is
+  if (imageUrl.startsWith('http')) {
+    return imageUrl;
+  }
+  
+  // If it's a relative path starting with /uploads, make it absolute
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (imageUrl.startsWith('/uploads')) {
     return `${BASE_URL}${imageUrl}`;
   }
 
+<<<<<<< HEAD
+=======
+  // If it's just a filename, construct the full path
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (!imageUrl.startsWith('/')) {
     return `${BASE_URL}/uploads/candidates/${imageUrl}`;
   }
 
+<<<<<<< HEAD
  return `${BASE_URL}${imageUrl}`;
 };
+=======
+  // For any other relative path, prepend base URL
+  return `${BASE_URL}${imageUrl}`;
+};
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const candidateKey = (candidateId) => 
   candidateId === undefined || candidateId === null ? '' : String(candidateId);
 
@@ -178,7 +199,13 @@ export default function VotePage({ params }) {
         });
         
         setElection(response.data.election);
+<<<<<<< HEAD
 
+=======
+        
+        // For symposium elections, we need to fetch full candidate details
+        // since the student-ballot endpoint returns simplified data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         let enhancedPositions = response.data.positions;
         let localDetailsMap = {};
         const electionTypeValue = (response.data.election?.election_type || '').toLowerCase();
@@ -232,6 +259,10 @@ export default function VotePage({ params }) {
         annotatedPositions.forEach(position => {
           position.candidates.forEach(candidate => {
             if (candidate.image_url) {
+<<<<<<< HEAD
+=======
+              // Add cache busting to prevent stale images
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               const processedUrl = getImageUrl(candidate.image_url);
               const urlWithTimestamp = `${processedUrl}?timestamp=${new Date().getTime()}`;
               newImageCache[candidate.id] = urlWithTimestamp;
@@ -244,6 +275,10 @@ export default function VotePage({ params }) {
       } catch (err) {
         console.error('Error fetching ballot:', err);
         
+<<<<<<< HEAD
+=======
+        // Handle IP validation errors specifically
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (err.response?.status === 403 && err.response?.data?.message?.includes('Access denied')) {
           setError(err.response.data.message);
         } else {
@@ -443,8 +478,15 @@ export default function VotePage({ params }) {
           return;
         }
 
+<<<<<<< HEAD
         if (error.response.status === 403 && error.response.data?.message?.includes('Access denied')) {
           toast.error(error.response.data.message);
+=======
+        // Handle IP validation errors specifically
+        if (error.response.status === 403 && error.response.data?.message?.includes('Access denied')) {
+          toast.error(error.response.data.message);
+          // Redirect back to elections page after showing error
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           setTimeout(() => {
             router.push('/student/elections');
           }, 3000);
@@ -485,6 +527,7 @@ export default function VotePage({ params }) {
   };
 
   const handleImageError = (candidateId, event) => {
+<<<<<<< HEAD
 
     if (!imageErrors[candidateId]) {
       const candidate = getCandidateById(candidateId);
@@ -493,6 +536,21 @@ export default function VotePage({ params }) {
         const fallbackUrl = `${baseUrl}/api/uploads/candidates/${candidate.image_url}`;
         event.target.src = fallbackUrl;
 
+=======
+    
+    // Try fallback URL if not already tried
+    if (!imageErrors[candidateId]) {
+      const candidate = getCandidateById(candidateId);
+      if (candidate && candidate.image_url) {
+        // Try alternative URL paths
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        const fallbackUrl = `${baseUrl}/api/uploads/candidates/${candidate.image_url}`;
+        
+        // Update the image source to try the fallback
+        event.target.src = fallbackUrl;
+        
+        // Mark as error only if this was the fallback attempt
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (event.target.src.includes('/api/uploads/')) {
           setImageErrors(prev => ({
             ...prev,
@@ -701,7 +759,12 @@ export default function VotePage({ params }) {
                             </div>
                           )}
                         </div>
+<<<<<<< HEAD
 
+=======
+                        
+                        {/* Selection Indicator */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                         <div className="flex items-center mb-2">
                           <div className="flex-shrink-0 mr-2">
                             {selectedCandidates[position.position_id]?.includes(candidate.id) ? (
@@ -773,6 +836,10 @@ export default function VotePage({ params }) {
               </div>
             </div>
 
+<<<<<<< HEAD
+=======
+            {/* Add summary section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <h3 className="text-lg font-medium text-blue-800 mb-2">Vote Summary</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -892,7 +959,12 @@ export default function VotePage({ params }) {
                     <p className="text-yellow-700 mb-4">
                       Are you sure you want to submit your votes? This action cannot be undone.
                     </p>
+<<<<<<< HEAD
 
+=======
+                    
+                    {/* Add encryption status indicator */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                     {encryptionStatus !== 'idle' && (
                       <div className={`mb-4 p-3 rounded-md flex items-center
                         ${encryptionStatus === 'encrypting' ? 'bg-blue-100 text-blue-800' : 
@@ -948,6 +1020,44 @@ export default function VotePage({ params }) {
           </div>
         )}
       </div>
+<<<<<<< HEAD
+=======
+      
+      {/* Add an encryption explanation section at the bottom 
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+          <Lock className="h-5 w-5 mr-2 text-blue-600" />
+          How Your Vote Is Protected
+        </h2>
+        
+        <div className="space-y-4">
+          <div className="rounded-lg bg-gray-50 p-4">
+            <h3 className="font-medium text-gray-800 mb-2">End-to-End Encryption</h3>
+            <p className="text-gray-600 text-sm">
+              Your vote is encrypted on this device before being sent to our servers. This means
+              that your voting choices are never transmitted over the internet in plain text.
+            </p>
+          </div>
+          
+          <div className="rounded-lg bg-gray-50 p-4">
+            <h3 className="font-medium text-gray-800 mb-2">Anonymous Storage</h3>
+            <p className="text-gray-600 text-sm">
+              When stored in our database, your vote is separated from your identity using advanced
+              cryptographic techniques. Even system administrators cannot determine who you voted for.
+            </p>
+          </div>
+          
+          <div className="rounded-lg bg-gray-50 p-4">
+            <h3 className="font-medium text-gray-800 mb-2">Verifiable Receipts</h3>
+            <p className="text-gray-600 text-sm">
+              After voting, you'll receive a unique receipt token. This allows you to verify that your
+              vote was counted correctly without revealing your specific choices to others.
+            </p>
+          </div>
+        </div>
+      </div>
+      */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     </div>
   );
 }

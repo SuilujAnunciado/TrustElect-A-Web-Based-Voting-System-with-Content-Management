@@ -17,6 +17,10 @@ const {
   getAllElectionsWithCreator,
   createElectionLaboratoryPrecincts,
   assignStudentsToLaboratoryPrecincts,
+<<<<<<< HEAD
+=======
+  // Archive and Delete functionality
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   archiveElection,
   restoreArchivedElection,
   softDeleteElection,
@@ -1735,6 +1739,10 @@ exports.getElectionEligibilityCriteria = async (req, res) => {
       precincts: []
     };
 
+<<<<<<< HEAD
+=======
+    // Get precinct programs
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const precinctProgramsQuery = `
       SELECT precinct, programs
       FROM election_precinct_programs
@@ -1748,7 +1756,11 @@ exports.getElectionEligibilityCriteria = async (req, res) => {
       precinctPrograms[row.precinct] = row.programs;
     });
 
+<<<<<<< HEAD
 
+=======
+    // Add precinct programs to criteria
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     criteria.precinctPrograms = precinctPrograms;
     
     return res.status(200).json({
@@ -1999,8 +2011,14 @@ exports.getStudentElectionStatus = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Update eligibility criteria for an election
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.updateElectionCriteria = async (req, res) => {
   try {
@@ -2029,6 +2047,12 @@ exports.updateElectionCriteria = async (req, res) => {
         message: "Election not found"
       });
     }
+<<<<<<< HEAD
+=======
+    
+    // Allow updating eligibility criteria for all election statuses
+    // Previously this was restricted to only upcoming elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     const eligibleStudents = await electionModel.getEligibleStudentsForCriteria(eligibility);
     
@@ -2060,6 +2084,10 @@ exports.getCompletedElectionResults = async (req, res) => {
   try {
     const { id } = req.params;
 
+<<<<<<< HEAD
+=======
+    // Get election details with actual total votes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const election = await pool.query(`
       SELECT 
         e.*,
@@ -2082,6 +2110,10 @@ exports.getCompletedElectionResults = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
+=======
+    // Get positions with candidates and vote counts
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const results = await pool.query(`
       WITH vote_counts AS (
         SELECT 
@@ -2130,6 +2162,10 @@ exports.getCompletedElectionResults = async (req, res) => {
       ORDER BY p.name, vote_count DESC NULLS LAST, c.last_name, c.first_name
     `, [id]);
 
+<<<<<<< HEAD
+=======
+    // Format the results by position
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const formattedResults = {};
     results.rows.forEach(row => {
       if (!formattedResults[row.position_id]) {
@@ -2188,6 +2224,10 @@ exports.getVoterVerificationCodes = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
+=======
+    // Check if election exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const electionCheck = await pool.query(
       'SELECT id, title, status FROM elections WHERE id = $1',
       [electionId]
@@ -2200,6 +2240,10 @@ exports.getVoterVerificationCodes = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
+=======
+    // Get all voters who have voted in this election with their vote tokens
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const votersQuery = `
       SELECT DISTINCT ON (v.vote_token)
         v.vote_token,
@@ -2217,6 +2261,10 @@ exports.getVoterVerificationCodes = async (req, res) => {
 
     const votersResult = await pool.query(votersQuery, [electionId]);
 
+<<<<<<< HEAD
+=======
+    // Generate verification codes for each voter
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const voterCodes = votersResult.rows.map(voter => ({
       voteToken: voter.vote_token,
       verificationCode: generateUniqueCode(voter.vote_token),
@@ -2228,6 +2276,10 @@ exports.getVoterVerificationCodes = async (req, res) => {
       yearLevel: voter.year_level
     }));
 
+<<<<<<< HEAD
+=======
+    // Sort by vote date (most recent first)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     voterCodes.sort((a, b) => new Date(b.voteDate) - new Date(a.voteDate));
 
     res.json({
@@ -2263,6 +2315,10 @@ exports.getVotesPerCandidate = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
+=======
+    // Check if election exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const electionCheck = await pool.query(
       'SELECT id, title, status FROM elections WHERE id = $1',
       [electionId]
@@ -2275,6 +2331,10 @@ exports.getVotesPerCandidate = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
+=======
+    // Get all positions and their candidates with vote counts and course information
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const positionsQuery = `
       SELECT 
         p.id as position_id,
@@ -2299,7 +2359,13 @@ exports.getVotesPerCandidate = async (req, res) => {
     `;
 
     const positionsResult = await pool.query(positionsQuery, [electionId]);
+<<<<<<< HEAD
 
+=======
+    console.log('Positions query result:', positionsResult.rows.length, 'rows');
+
+    // Get all votes with verification codes for each candidate
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const votesQuery = `
       SELECT 
         v.candidate_id,
@@ -2315,7 +2381,13 @@ exports.getVotesPerCandidate = async (req, res) => {
     `;
 
     const votesResult = await pool.query(votesQuery, [electionId]);
+<<<<<<< HEAD
 
+=======
+    console.log('Votes query result:', votesResult.rows.length, 'rows');
+
+    // Group votes by candidate
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const votesByCandidate = {};
     votesResult.rows.forEach(vote => {
       if (!votesByCandidate[vote.candidate_id]) {
@@ -2331,6 +2403,10 @@ exports.getVotesPerCandidate = async (req, res) => {
       });
     });
 
+<<<<<<< HEAD
+=======
+    // Group positions and candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const positions = {};
     positionsResult.rows.forEach(row => {
       if (!positions[row.position_id]) {
@@ -2343,6 +2419,10 @@ exports.getVotesPerCandidate = async (req, res) => {
         };
       }
 
+<<<<<<< HEAD
+=======
+      // Add candidate if it exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       positions[row.position_id].candidates.push({
         id: row.candidate_id,
         firstName: row.first_name,
@@ -2357,6 +2437,10 @@ exports.getVotesPerCandidate = async (req, res) => {
 
     const positionsArray = Object.values(positions)
       .sort((a, b) => {
+<<<<<<< HEAD
+=======
+        // Sort by display_order first, then by position ID
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const orderA = a.displayOrder !== null ? a.displayOrder : 999;
         const orderB = b.displayOrder !== null ? b.displayOrder : 999;
         if (orderA !== orderB) return orderA - orderB;
@@ -2395,6 +2479,10 @@ exports.setTieBreaker = async (req, res) => {
     const { id: electionId } = req.params;
     const { position_id, candidate_id, tie_breaker_message } = req.body;
 
+<<<<<<< HEAD
+=======
+    // Validate input
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!position_id || !candidate_id || !tie_breaker_message || !tie_breaker_message.trim()) {
       return res.status(400).json({
         success: false,
@@ -2402,6 +2490,10 @@ exports.setTieBreaker = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
+=======
+    // Verify election exists and is completed
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const electionResult = await pool.query(
       'SELECT id, status FROM elections WHERE id = $1',
       [electionId]
@@ -2422,6 +2514,10 @@ exports.setTieBreaker = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
+=======
+    // Verify candidate belongs to the position and election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const candidateResult = await pool.query(`
       SELECT c.id, c.position_id, p.ballot_id, b.election_id
       FROM candidates c
@@ -2437,15 +2533,27 @@ exports.setTieBreaker = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
+=======
+    // Check if tie_breaker_message column exists, if not, add it
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     try {
       await pool.query(`
         ALTER TABLE candidates 
         ADD COLUMN IF NOT EXISTS tie_breaker_message TEXT
       `);
     } catch (alterError) {
+<<<<<<< HEAD
 
     }
 
+=======
+      // Column might already exist, ignore error
+      console.log('Column check:', alterError.message);
+    }
+
+    // Update candidate with tie-breaker message
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const updateResult = await pool.query(`
       UPDATE candidates
       SET tie_breaker_message = $1, updated_at = NOW()

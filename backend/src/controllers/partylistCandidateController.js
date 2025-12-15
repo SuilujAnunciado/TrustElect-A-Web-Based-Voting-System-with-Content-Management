@@ -9,6 +9,11 @@ exports.uploadCandidateImage = async (req, res) => {
         message: "No image file provided" 
       });
     }
+<<<<<<< HEAD
+=======
+
+    // The file path will be relative to the public directory
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const filePath = `/uploads/candidates/${req.file.filename}`;
 
     res.status(200).json({
@@ -44,6 +49,10 @@ exports.addPartylistCandidate = async (req, res) => {
       return res.status(400).json({ message: "First name, last name, student number and course are required" });
     }
 
+<<<<<<< HEAD
+=======
+    // If isRepresentative is true, position should be null
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const candidateData = {
       studentId,
       firstName,
@@ -81,6 +90,10 @@ exports.getPartylistCandidates = async (req, res) => {
 
     const candidates = await getCandidatesByPartylist(partylistId);
 
+<<<<<<< HEAD
+=======
+    // Group candidates by position or representative status
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const positionGroups = {};
     const representatives = [];
 
@@ -147,6 +160,10 @@ exports.updatePartylistCandidate = async (req, res) => {
       return res.status(400).json({ message: "Candidate ID is required" });
     }
 
+<<<<<<< HEAD
+=======
+    // Build candidate data object with only provided fields
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const candidateData = {};
     
     if (position !== undefined) {
@@ -161,6 +178,10 @@ exports.updatePartylistCandidate = async (req, res) => {
       candidateData.imageUrl = imageUrl;
     }
 
+<<<<<<< HEAD
+=======
+    // If no fields to update, return error
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (Object.keys(candidateData).length === 0) {
       return res.status(400).json({ message: "No fields to update" });
     }

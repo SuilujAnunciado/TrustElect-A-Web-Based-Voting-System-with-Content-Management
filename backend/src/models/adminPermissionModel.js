@@ -1,8 +1,15 @@
 const pool = require("../config/db");
+<<<<<<< HEAD
 
 /**
  * @param {number} adminId 
  * @returns {Array} 
+=======
+/**
+ * Get all permissions for a specific admin
+ * @param {number} adminId - The admin's user ID
+ * @returns {Array} Array of permission objects by module
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const getAdminPermissions = async (adminId) => {
   try {
@@ -20,10 +27,17 @@ const getAdminPermissions = async (adminId) => {
 };
 
 /**
+<<<<<<< HEAD
 
  * @param {number} adminId 
  * @param {Object} permissions 
  * @returns {boolean}
+=======
+ * Set permissions for a specific admin
+ * @param {number} adminId - The admin's user ID
+ * @param {Object} permissions - Object containing permission settings
+ * @returns {boolean} Success indicator
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const setAdminPermissions = async (adminId, permissions) => {
   const client = await pool.connect();
@@ -60,6 +74,7 @@ const setAdminPermissions = async (adminId, permissions) => {
 };
 
 /**
+<<<<<<< HEAD
 
  * @param {number} adminId 
  * @param {string} module 
@@ -68,6 +83,17 @@ const setAdminPermissions = async (adminId, permissions) => {
  */
 const hasPermission = async (adminId, module, action) => {
   try {
+=======
+ * Check if an admin has a specific permission
+ * @param {number} adminId - The admin's user ID
+ * @param {string} module - The module name (e.g., 'users')
+ * @param {string} action - The action name (view/create/edit/delete)
+ * @returns {boolean} Whether the admin has permission
+ */
+const hasPermission = async (adminId, module, action) => {
+  try {
+    // Remove any existing 'can_' prefix to avoid duplication
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const cleanAction = action.replace(/^can_/, '');
     const permissionColumn = `can_${cleanAction}`;
     

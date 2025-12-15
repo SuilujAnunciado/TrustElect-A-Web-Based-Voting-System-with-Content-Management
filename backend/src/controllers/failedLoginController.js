@@ -9,7 +9,11 @@ exports.getFailedLoginReport = async (req, res) => {
       data: {
         total_attempts: data.total_attempts,
         locked_accounts: data.locked_accounts,
+<<<<<<< HEAD
         high_risk_ips: 0, 
+=======
+        high_risk_ips: 0, // Removed as per requirement
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         recent_attempts: data.recent_attempts.map(attempt => ({
           timestamp: attempt.timestamp,
           email: attempt.email,

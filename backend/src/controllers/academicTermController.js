@@ -9,11 +9,22 @@ const {
   getStudentCountByTerm
 } = require('../models/academicTermModel');
 
+<<<<<<< HEAD
 
 exports.getAcademicTerms = async (req, res) => {
   try {
     const terms = await getAllAcademicTerms();
 
+=======
+/**
+ * Get all academic terms
+ */
+exports.getAcademicTerms = async (req, res) => {
+  try {
+    const terms = await getAllAcademicTerms();
+    
+    // Get student count for each term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const termsWithCounts = await Promise.all(
       terms.map(async (term) => ({
         ...term,
@@ -34,7 +45,13 @@ exports.getAcademicTerms = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 
+=======
+/**
+ * Get current academic term
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.getCurrentTerm = async (req, res) => {
   try {
     const currentTerm = await getCurrentAcademicTerm();
@@ -64,6 +81,12 @@ exports.getCurrentTerm = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Get academic term by ID
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.getAcademicTermById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -94,6 +117,12 @@ exports.getAcademicTermById = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Create a new academic term
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.createAcademicTerm = async (req, res) => {
   try {
     const { school_year, term, is_current } = req.body;
@@ -121,6 +150,12 @@ exports.createAcademicTerm = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Update an academic term
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.updateAcademicTerm = async (req, res) => {
   try {
     const { id } = req.params;
@@ -149,7 +184,13 @@ exports.updateAcademicTerm = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 
+=======
+/**
+ * Set an academic term as current
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.setCurrentTerm = async (req, res) => {
   try {
     const { id } = req.params;
@@ -170,6 +211,12 @@ exports.setCurrentTerm = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Delete an academic term
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.deleteAcademicTerm = async (req, res) => {
   try {
     const { id } = req.params;
@@ -180,7 +227,10 @@ exports.deleteAcademicTerm = async (req, res) => {
       success: true,
       message: 'Academic term deleted successfully'
     });
+<<<<<<< HEAD
     
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   } catch (error) {
     console.error('Error deleting academic term:', error);
     res.status(500).json({

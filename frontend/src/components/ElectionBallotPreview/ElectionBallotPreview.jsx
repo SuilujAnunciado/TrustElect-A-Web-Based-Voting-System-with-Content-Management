@@ -19,7 +19,10 @@ const ElectionBallotPreview = ({
     }
   };
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
@@ -65,6 +68,10 @@ const ElectionBallotPreview = ({
             </div>
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Ballot Preview Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="mt-6">
             <h3 className="text-lg font-semibold mb-4">Ballot Details</h3>
             <div className="mb-4 p-4 border rounded-lg">
@@ -122,6 +129,10 @@ const ElectionBallotPreview = ({
             ))}
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Action Buttons */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="flex justify-end gap-4 mt-6">
             <button
               onClick={onClose}

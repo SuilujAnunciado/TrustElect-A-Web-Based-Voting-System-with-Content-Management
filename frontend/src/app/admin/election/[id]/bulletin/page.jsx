@@ -13,7 +13,10 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || '';
 const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '/default-candidate.png';
   
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (imageUrl.startsWith('http')) {
     return imageUrl;
   }
@@ -99,9 +102,17 @@ export default function ElectionBulletinPage() {
   const [candidateImages, setCandidateImages] = useState({});
   const [imageErrors, setImageErrors] = useState({});
   
+<<<<<<< HEAD
   const [currentVoterPage, setCurrentVoterPage] = useState(1);
   const [votersPerPage] = useState(40);
   
+=======
+  // Pagination states for voters
+  const [currentVoterPage, setCurrentVoterPage] = useState(1);
+  const [votersPerPage] = useState(40);
+  
+  // Pagination states for candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [currentCandidatePage, setCurrentCandidatePage] = useState(1);
   const [candidatesPerPage] = useState(40);
 
@@ -175,6 +186,10 @@ export default function ElectionBulletinPage() {
       const data = await fetchWithAuth(`/elections/${params.id}/details`);
       setElection(data.election);
       
+<<<<<<< HEAD
+=======
+      // Load candidate images
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const imageCache = {};
       if (data.election?.positions) {
         data.election.positions.forEach(position => {
@@ -203,14 +218,25 @@ export default function ElectionBulletinPage() {
 
   useEffect(() => {
     if (activeSubTab === 'all-voters' && params.id) {
+<<<<<<< HEAD
       setCurrentVoterPage(1); 
       loadVoterCodes();
     } else if (activeSubTab === 'per-candidate' && params.id) {
       setCurrentCandidatePage(1); 
+=======
+      setCurrentVoterPage(1); // Reset to first page when switching tabs
+      loadVoterCodes();
+    } else if (activeSubTab === 'per-candidate' && params.id) {
+      setCurrentCandidatePage(1); // Reset to first page when switching tabs
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       loadCandidateVotes();
     }
   }, [activeSubTab, params.id]);
 
+<<<<<<< HEAD
+=======
+  // Reset pagination when search terms change
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     setCurrentVoterPage(1);
   }, [searchTerm]);
@@ -219,6 +245,10 @@ export default function ElectionBulletinPage() {
     setCurrentCandidatePage(1);
   }, [candidateSearchTerm]);
 
+<<<<<<< HEAD
+=======
+  // Pagination logic for voters
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const filteredVoters = voterCodes.filter(voter => 
     voter.verificationCode.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -227,6 +257,10 @@ export default function ElectionBulletinPage() {
   const endVoterIndex = startVoterIndex + votersPerPage;
   const currentVoters = filteredVoters.slice(startVoterIndex, endVoterIndex);
 
+<<<<<<< HEAD
+=======
+  // Pagination logic for candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const allCandidates = candidateVotes.flatMap(position => 
     position.candidates.map(candidate => ({
       ...candidate,

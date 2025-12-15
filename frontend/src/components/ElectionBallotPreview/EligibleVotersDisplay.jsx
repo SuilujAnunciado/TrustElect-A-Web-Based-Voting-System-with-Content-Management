@@ -6,7 +6,10 @@ const EligibleVotersDisplay = ({ electionId }) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const fetchVoters = async () => {
       try {

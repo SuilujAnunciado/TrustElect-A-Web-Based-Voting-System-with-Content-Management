@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const jwt = require("jsonwebtoken"); 
+=======
+const jwt = require("jsonwebtoken"); //Import jsonwebtoken
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
 const { checkEmployeeNumberExists, registerAdmin, checkAdminEmailExists, getAllAdmins, getAllAdminsIncludingDeleted, updateAdmin, softDeleteAdmin, restoreAdmin, resetAdminPassword, deleteAdminPermanently, unlockAdminAccount, getSuperAdmins, getAdminById} = require("../models/adminModel");
@@ -77,6 +81,7 @@ exports.registerAdmin = async (req, res) => {
       department, 
       createdBy
     );
+<<<<<<< HEAD
 
 
 
@@ -84,6 +89,19 @@ exports.registerAdmin = async (req, res) => {
       await setAdminPermissions(newAdmin.id, permissions);
     }
 
+=======
+    
+    console.log('Admin registered successfully:', newAdmin);
+
+
+    if (permissions && typeof permissions === 'object') {
+      console.log('Setting admin permissions...');
+      await setAdminPermissions(newAdmin.id, permissions);
+      console.log('Admin permissions set successfully');
+    }
+
+    console.log('Admin registration completed successfully');
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return res.status(201).json({
       message: "Admin registered successfully!",
       generatedPassword: autoPassword, 
@@ -127,9 +145,15 @@ exports.getAllAdmins = async (req, res) => {
 
 exports.getArchivedAdmins = async (req, res) => {
   try {
+<<<<<<< HEAD
 
     const { getAllAdmins: getAllAdminsModel } = require('../models/adminModel');
     const archivedAdmins = await getAllAdminsModel(true); 
+=======
+    // Get only archived admins using the model function directly
+    const { getAllAdmins: getAllAdminsModel } = require('../models/adminModel');
+    const archivedAdmins = await getAllAdminsModel(true); // Pass true for archived only
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     res.json({ admins: archivedAdmins });
   } catch (error) {
     console.error("Error fetching archived admins:", error);
@@ -187,12 +211,22 @@ exports.updateAdmin = async (req, res) => {
 exports.softDeleteAdmin = async (req, res) => {
   try {
     const { id } = req.params;
+<<<<<<< HEAD
     const { action } = req.query; 
 
+=======
+    const { action } = req.query; // Check if it's archive or delete
+
+    // Check if user is trying to delete themselves
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.id === parseInt(id)) {
       return res.status(403).json({ message: "You cannot delete your own account." });
     }
 
+<<<<<<< HEAD
+=======
+    // Check if the admin being deleted is a Super Admin and the current user is not a Super Admin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const adminToDelete = await getAdminById(id);
     if (adminToDelete && adminToDelete.role_id === 1 && req.user.role_id !== 1) {
       return res.status(403).json({ message: "Only Super Admins can delete other Super Admins." });
@@ -304,8 +338,14 @@ exports.unlockAdminAccount = async (req, res) => {
 const buildAbsoluteUrl = (req, relativePath) => {
   if (!relativePath) return null;
   let basePath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+<<<<<<< HEAD
   if (basePath.startsWith('/uploads/')) {
     basePath = `/api${basePath}`; 
+=======
+  // Normalize to /api/uploads if the path starts with /uploads
+  if (basePath.startsWith('/uploads/')) {
+    basePath = `/api${basePath}`; // serve under /api/uploads as well
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   }
   const protocol = req.protocol;
   const host = req.get('host');
@@ -377,7 +417,10 @@ exports.uploadAdminProfilePicture = async (req, res) => {
       return res.status(500).json({ message: "Failed to update profile picture" });
     }
 
+<<<<<<< HEAD
     
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return res.status(200).json({ 
       message: "Profile picture uploaded successfully", 
       filePath: filePath,

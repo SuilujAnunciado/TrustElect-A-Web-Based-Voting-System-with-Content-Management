@@ -18,9 +18,15 @@ import {
   Cell
 } from 'recharts';
 
+<<<<<<< HEAD
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+=======
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+// Helper function to format numbers
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const formatNumber = (num) => {
   if (num === null || num === undefined) return '0';
   return new Intl.NumberFormat().format(num);
@@ -44,6 +50,10 @@ const DepartmentVoterReport = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
 
+<<<<<<< HEAD
+=======
+  // Process data for charts
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const chartData = useMemo(() => {
     if (!data.departmentStats || data.departmentStats.length === 0) {
       return {
@@ -53,6 +63,10 @@ const DepartmentVoterReport = () => {
       };
     }
 
+<<<<<<< HEAD
+=======
+    // Sort departments by total students (for bar chart length)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const sortedStats = [...data.departmentStats].sort((a, b) => b.total_students - a.total_students);
     
     const barChartData = sortedStats.map(stat => ({
@@ -63,6 +77,10 @@ const DepartmentVoterReport = () => {
       participationRate: parseFloat(((stat.voted_count / stat.total_students) * 100).toFixed(1)) || 0
     }));
 
+<<<<<<< HEAD
+=======
+    // Calculate overall statistics
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const totalStudents = data.departmentStats.reduce((sum, stat) => sum + (parseInt(stat.total_students) || 0), 0);
     const totalVoted = data.departmentStats.reduce((sum, stat) => sum + (parseInt(stat.voted_count) || 0), 0);
     const overallParticipation = totalStudents > 0 ? ((totalVoted / totalStudents) * 100).toFixed(1) : 0;
@@ -264,6 +282,10 @@ const DepartmentVoterReport = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+<<<<<<< HEAD
+=======
+        {/* Department Participation Bar Chart */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="bg-white/50 backdrop-blur-sm rounded-lg shadow border border-gray-200 p-6">
           <h3 className="text-lg font-semibold mb-4 text-black flex items-center">
             <BarChart3 className="w-5 h-5 mr-2 text-[#01579B]" />
@@ -375,7 +397,11 @@ const DepartmentVoterReport = () => {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Department Statistics Table */}
+=======
+      {/* Simple Department Statistics Table */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="bg-white/50 backdrop-blur-sm rounded-lg shadow border border-gray-200 p-6">
         <h3 className="text-lg font-semibold mb-4 text-black flex items-center">
           <BarChart3 className="w-5 h-5 mr-2 text-[#01579B]" />

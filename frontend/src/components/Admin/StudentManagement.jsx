@@ -10,7 +10,10 @@ export default function StudentManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const { hasPermission, loading: permissionsLoading } = usePermissions();
 
  
@@ -49,6 +52,10 @@ export default function StudentManagement() {
       return;
     }
     
+<<<<<<< HEAD
+=======
+    // Add student logic here (e.g., open a modal)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     alert("Add student functionality would open here");
   };
 
@@ -58,6 +65,10 @@ export default function StudentManagement() {
       return;
     }
     
+<<<<<<< HEAD
+=======
+    // Edit student logic here
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     alert(`Edit student ${studentId} functionality would open here`);
   };
 
@@ -75,6 +86,10 @@ export default function StudentManagement() {
         headers: { Authorization: `Bearer ${token}` },
       });
       
+<<<<<<< HEAD
+=======
+      // Refresh the student list
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       fetchStudents();
     } catch (error) {
       console.error("Error deleting student:", error);

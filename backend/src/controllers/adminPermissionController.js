@@ -1,5 +1,9 @@
 const { getAdminPermissions, setAdminPermissions, hasPermission } = require('../models/adminPermissionModel');
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.getPermissions = async (req, res) => {
   try {
     const { adminId } = req.params;

@@ -16,7 +16,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -104,8 +107,14 @@ export default function ProfilePage() {
       const token = Cookies.get("token");
       if (!token) return;
 
+<<<<<<< HEAD
       const cleanProfilePic = (profilePic || "").split("?")[0];
 
+=======
+      // Ensure we only store the clean URL (without any query params/timestamps)
+      const cleanProfilePic = (profilePic || "").split("?")[0];
+      // Send relative path to backend when possible
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const relativePic = cleanProfilePic.startsWith("http")
         ? cleanProfilePic.replace(/^https?:\/\/[^/]+/, "")
         : cleanProfilePic;
@@ -178,7 +187,12 @@ export default function ProfilePage() {
           withCredentials: true
         }
       );
+<<<<<<< HEAD
 
+=======
+      
+      // Clear password fields
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -239,7 +253,11 @@ export default function ProfilePage() {
             </button>
           </div>
           
+<<<<<<< HEAD
           {/* Change Password */}
+=======
+          {/* Password Change Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="mt-8 border-t pt-4">
             <button 
               onClick={() => setShowPasswordSection(!showPasswordSection)}

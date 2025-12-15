@@ -18,7 +18,10 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     birthdate: "",
   });
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [courses, setCourses] = useState([]);
   const [yearLevels, setYearLevels] = useState([]);
   const [allYearLevels, setAllYearLevels] = useState([]);
@@ -41,14 +44,21 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
   });
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+<<<<<<< HEAD
   const isCollegeProgram = (courseName) => {
     if (!courseName) return true; 
+=======
+  // Function to determine if a course is a college program or senior high program
+  const isCollegeProgram = (courseName) => {
+    if (!courseName) return true; // Default to college if no course name
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     const collegeKeywords = ['BS', 'BA', 'BSCS', 'BSIT', 'BSCPE', 'BMMA', 'BSTM', 'BSHM', 'BSA', 'BSBAOM'];
     const seniorHighKeywords = ['SHS', 'STEM', 'ABM', 'HUMSS', 'GAS', 'TVL', 'ICT', 'HE', 'Grade 11', 'Grade 12'];
     
     const courseUpper = courseName.toUpperCase();
     
+<<<<<<< HEAD
     if (seniorHighKeywords.some(keyword => courseUpper.includes(keyword.toUpperCase()))) {
       return false;
     }
@@ -60,12 +70,33 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     return true;
   };
 
+=======
+    // Check for senior high keywords first
+    if (seniorHighKeywords.some(keyword => courseUpper.includes(keyword.toUpperCase()))) {
+      return false;
+    }
+    
+    // Check for college keywords
+    if (collegeKeywords.some(keyword => courseUpper.includes(keyword.toUpperCase()))) {
+      return true;
+    }
+    
+    // Default to college if no specific keywords found
+    return true;
+  };
+
+  // Function to filter year levels based on course type
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const filterYearLevels = (courseName) => {
     if (!courseName || allYearLevels.length === 0) return allYearLevels;
     
     const isCollege = isCollegeProgram(courseName);
     
     if (isCollege) {
+<<<<<<< HEAD
+=======
+      // For college programs, show 1st Year to 4th Year
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return allYearLevels.filter(level => 
         level.includes('1st Year') || 
         level.includes('2nd Year') || 
@@ -73,6 +104,10 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
         level.includes('4th Year')
       );
     } else {
+<<<<<<< HEAD
+=======
+      // For senior high programs, show Grade 11 and Grade 12
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return allYearLevels.filter(level => 
         level.includes('Grade 11') || 
         level.includes('Grade 12') ||
@@ -190,7 +225,12 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     
           const yearLevelNames = yearLevelsResponse.data.data.map(level => level.name);
           setAllYearLevels(yearLevelNames);
+<<<<<<< HEAD
 
+=======
+          
+          // Set initial year levels (will be filtered based on selected course)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           setYearLevels(yearLevelNames);
 
           if (yearLevelNames.length > 0) {
@@ -211,11 +251,19 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     fetchMaintenanceData();
   }, []);
 
+<<<<<<< HEAD
+=======
+  // Effect to filter year levels when allYearLevels or courseName changes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (allYearLevels.length > 0 && formData.courseName) {
       const filteredYearLevels = filterYearLevels(formData.courseName);
       setYearLevels(filteredYearLevels);
       
+<<<<<<< HEAD
+=======
+      // Reset year level if current selection is not valid
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const currentYearLevel = formData.yearLevel;
       const isValidYearLevel = filteredYearLevels.includes(currentYearLevel);
       
@@ -241,9 +289,17 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
           courseName: selectedCourse.course_name
         }));
 
+<<<<<<< HEAD
         const filteredYearLevels = filterYearLevels(selectedCourse.course_name);
         setYearLevels(filteredYearLevels);
         
+=======
+        // Filter year levels based on selected course
+        const filteredYearLevels = filterYearLevels(selectedCourse.course_name);
+        setYearLevels(filteredYearLevels);
+        
+        // Reset year level selection if current selection is not valid for the new course
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const currentYearLevel = formData.yearLevel;
         const isValidYearLevel = filteredYearLevels.includes(currentYearLevel);
         
@@ -266,10 +322,18 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
         }
       }
     } else if (name === "firstName" || name === "middleName" || name === "lastName") {
+<<<<<<< HEAD
+=======
+      // Only allow letters and spaces, max 35 characters
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const lettersOnly = value.replace(/[^a-zA-Z\s]/g, '');
       const trimmed = lettersOnly.slice(0, 35);
       setFormData(prev => ({ ...prev, [name]: trimmed }));
       
+<<<<<<< HEAD
+=======
+      // Clear name errors when user starts typing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (errors[name]) {
         setErrors(prev => {
           const newErrors = {...prev};
@@ -278,10 +342,18 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
         });
       }
     } else if (name === "studentNumber") {
+<<<<<<< HEAD
+=======
+      // Only allow numbers, exactly 11 digits
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const numbersOnly = value.replace(/[^0-9]/g, '');
       const trimmed = numbersOnly.slice(0, 11);
       setFormData(prev => ({ ...prev, [name]: trimmed }));
       
+<<<<<<< HEAD
+=======
+      // Clear student number errors when user starts typing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (errors.studentNumber) {
         setErrors(prev => {
           const newErrors = {...prev};
@@ -291,7 +363,12 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
       }
     } else if (name === "email") {
       setFormData(prev => ({ ...prev, [name]: value }));
+<<<<<<< HEAD
 
+=======
+      
+      // Clear email errors when user starts typing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (errors.email) {
         setErrors(prev => {
           const newErrors = {...prev};
@@ -300,6 +377,10 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
         });
       }
 
+<<<<<<< HEAD
+=======
+      // Trigger real-time email validation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       debouncedEmailValidation(value);
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -316,12 +397,20 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
       return response.data.exists || false;
     } catch (error) {
       console.error("Error checking email:", error);
+<<<<<<< HEAD
       return false; 
+=======
+      return false; // Assume email is available if check fails
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } finally {
       setEmailChecking(false);
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Debounced email validation function
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const validateEmailRealTime = async (email) => {
     if (!email || !email.includes('@')) {
       setEmailValidationStatus({
@@ -332,6 +421,10 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
       return;
     }
 
+<<<<<<< HEAD
+=======
+    // Check if it's a valid STI email format
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!email.endsWith("@novaliches.sti.edu.ph") && !email.endsWith("@novaliches.sti.edu")) {
       setEmailValidationStatus({
         isValid: false,
@@ -356,8 +449,14 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
       const emailExists = response.data.exists || false;
       
       if (emailExists) {
+<<<<<<< HEAD
         setEmailValidationStatus({
           isValid: true, 
+=======
+        // Email exists - this is OK for re-enrollment in different terms
+        setEmailValidationStatus({
+          isValid: true, // Changed to true - allow re-enrollment
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           message: "Email exists (student will be re-enrolled in this term)",
           isChecking: false
         });
@@ -371,13 +470,21 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     } catch (error) {
       console.error("Error checking email:", error);
       setEmailValidationStatus({
+<<<<<<< HEAD
         isValid: true, 
+=======
+        isValid: true, // Allow to proceed even if check fails
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         message: "Unable to verify email - will validate during registration",
         isChecking: false
       });
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Debounce function
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const debounce = (func, delay) => {
     let timeoutId;
     return (...args) => {
@@ -386,9 +493,18 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     };
   };
 
+<<<<<<< HEAD
   const debouncedEmailValidation = debounce(validateEmailRealTime, 1000);
 
   const handleCancel = () => {
+=======
+  // Create debounced email validation
+  const debouncedEmailValidation = debounce(validateEmailRealTime, 1000);
+
+  // Handle cancel with confirmation
+  const handleCancel = () => {
+    // Check if form has any data entered
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const hasData = formData.firstName || formData.middleName || formData.lastName || 
                    formData.email || formData.studentNumber || formData.birthdate ||
                    formData.courseName || formData.yearLevel;
@@ -400,18 +516,31 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Confirm cancel and close modal
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const confirmCancel = () => {
     setShowCancelConfirm(false);
     onClose();
   };
 
+<<<<<<< HEAD
+=======
+  // Cancel the cancel action
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const cancelCancel = () => {
     setShowCancelConfirm(false);
   };
 
   const validateInputs = async () => {
     let newErrors = {};
+<<<<<<< HEAD
 
+=======
+    
+    // Name validations
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.firstName.trim()) {
       newErrors.firstName = "*First Name is required.";
     } else if (formData.firstName.length > 35) {
@@ -433,17 +562,32 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     } else if (!/^[a-zA-Z\s]+$/.test(formData.lastName)) {
       newErrors.lastName = "Last Name can only contain letters and spaces.";
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Email validations
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.email.trim()) {
       newErrors.email = "*Email is required.";
     } else if (!formData.email.endsWith("@novaliches.sti.edu.ph") && !formData.email.endsWith("@novaliches.sti.edu")) {
       newErrors.email = "Invalid STI email. Must end with @novaliches.sti.edu.ph or @novaliches.sti.edu";
     } else if (emailValidationStatus.isValid === false && emailValidationStatus.message.includes("Invalid STI email")) {
+<<<<<<< HEAD
+=======
+      // Only block if email format is invalid, not if it exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       newErrors.email = emailValidationStatus.message;
     } else if (emailValidationStatus.isChecking) {
       newErrors.email = "Please wait - verifying the email...";
     }
+<<<<<<< HEAD
 
+=======
+    // Remove the check that blocks existing emails - backend will handle re-enrollment
+    
+    // Student number validations
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.studentNumber.trim()) {
       newErrors.studentNumber = "*Student Number is required.";
     } else if (formData.studentNumber.length !== 11) {
@@ -453,7 +597,12 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
     } else if (!formData.studentNumber.startsWith("02000")) {
       newErrors.studentNumber = "Student Number must start with '02000'.";
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Other validations
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.courseId && !formData.courseName) newErrors.courseId = "*Select a course.";
     if (!formData.yearLevel) newErrors.yearLevel = "*Select a year level.";
     if (!formData.birthdate) newErrors.birthdate = "*Birth date is required.";
@@ -494,6 +643,10 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
   
   const confirmRegistration = async () => {
     try {
+<<<<<<< HEAD
+=======
+      // Check if academic term is selected
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!selectedAcademicTermId) {
         alert("Please select an academic term first before adding students");
         return;
@@ -539,7 +692,11 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
         birthdate: formattedBirthdate,
         password: generatedPassword,
         createdBy: superAdminId,
+<<<<<<< HEAD
         academicTermId: selectedAcademicTermId 
+=======
+        academicTermId: selectedAcademicTermId // Pass the selected term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       };
 
       const res = await axios.post("/api/superadmin/students", studentData, {
@@ -683,6 +840,10 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
             />
             {errors.birthdate && <p className="text-red-500 text-sm">{errors.birthdate}</p>}
 
+<<<<<<< HEAD
+=======
+            {/* Course Dropdown */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <label name="course" className="text-black font-bold">Select Course:</label>
             <select 
               name="courseId" 
@@ -710,6 +871,10 @@ export default function AddStudentModal({ onClose, selectedAcademicTermId }) {
             {errors.courseId && <p className="text-red-500 text-sm">{errors.courseId}</p>}
             {errors.courseSelection && <p className="text-red-500 text-sm">{errors.courseSelection}</p>}
 
+<<<<<<< HEAD
+=======
+            {/* Year Level Dropdown */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <label name="yearLevel" className="text-black font-bold">Select Year Level:</label>
                
             <select 

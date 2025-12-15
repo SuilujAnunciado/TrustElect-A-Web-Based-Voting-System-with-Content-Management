@@ -11,12 +11,16 @@ import Image from 'next/image';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '/images/default-avatar.png';
   if (imageUrl.startsWith('http')) return imageUrl;
   if (imageUrl.startsWith('blob:')) return imageUrl;
   
+<<<<<<< HEAD
   let cleanImageUrl = imageUrl;
   
   if (cleanImageUrl.startsWith('/')) {
@@ -31,6 +35,27 @@ const getImageUrl = (imageUrl) => {
     return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
   }
 
+=======
+  // Handle different image path formats
+  let cleanImageUrl = imageUrl;
+  
+  // Remove leading slashes
+  if (cleanImageUrl.startsWith('/')) {
+    cleanImageUrl = cleanImageUrl.substring(1);
+  }
+  
+  // If it already starts with uploads, use it directly
+  if (cleanImageUrl.startsWith('uploads/')) {
+    return `${API_BASE}/${cleanImageUrl}`;
+  }
+  
+  // If it's just a filename, assume it's in candidates folder
+  if (!cleanImageUrl.includes('/')) {
+    return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
+  }
+  
+  // Default case
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
 };
 
@@ -181,7 +206,11 @@ export default function ElectionSummaryReport() {
         }))
       };
 
+<<<<<<< HEAD
       const result = await generatePdfReport(11, reportData); 
+=======
+      const result = await generatePdfReport(11, reportData); // 11 for Election Detail
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!result.success) {
         console.error('PDF generation failed:', result.message);
         alert('Failed to generate PDF: ' + result.message);
@@ -220,7 +249,11 @@ export default function ElectionSummaryReport() {
         })) : []
       };
 
+<<<<<<< HEAD
       const result = await generatePdfReport(1, reportData); 
+=======
+      const result = await generatePdfReport(1, reportData); // 1 is the report ID for Election Summary
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!result.success) {
         console.error('PDF generation failed:', result.message);
         alert('Failed to generate PDF: ' + result.message);

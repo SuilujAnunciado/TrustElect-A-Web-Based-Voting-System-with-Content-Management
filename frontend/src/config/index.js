@@ -1,5 +1,9 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+<<<<<<< HEAD
+=======
+// Add BASE_URL export
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export const BASE_URL = API_URL;
 
 export const config = {
@@ -17,11 +21,18 @@ export const formatImageUrl = (url) => {
       return url;
     }
 
+<<<<<<< HEAD
     
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }
 
+<<<<<<< HEAD
+=======
+    // Remove any leading slashes and keep same-origin path
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const cleanPath = url.replace(/^\/+/, '');
     return `/${cleanPath}`;
   } catch (error) {

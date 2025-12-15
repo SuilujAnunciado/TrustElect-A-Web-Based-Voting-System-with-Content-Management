@@ -1,5 +1,9 @@
 const pool = require("../config/db");
 const { DateTime } = require("luxon");
+<<<<<<< HEAD
+=======
+// Import the notification service
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const notificationService = require("./notificationService");
 
 const MANILA_TIMEZONE = "Asia/Manila";
@@ -17,10 +21,17 @@ async function updateElectionStatuses() {
 
     const now = DateTime.now().setZone(MANILA_TIMEZONE);
     
+<<<<<<< HEAD
     const newlyCompletedElections = [];
     const newlyOngoingElections = [];
 
 
+=======
+    // Track elections that transitioned to completed or ongoing status
+    const newlyCompletedElections = [];
+    const newlyOngoingElections = [];
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     for (const election of elections) {
       const startDateTime = DateTime.fromISO(election.date_from)
         .setZone(MANILA_TIMEZONE)
@@ -29,7 +40,10 @@ async function updateElectionStatuses() {
           minute: election.start_time ? parseInt(election.start_time.split(':')[1]) : 0
         });
 
+<<<<<<< HEAD
         
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const endDateTime = DateTime.fromISO(election.date_to)
         .setZone(MANILA_TIMEZONE)
         .set({
@@ -56,6 +70,10 @@ async function updateElectionStatuses() {
           [newStatus, election.id]
         );
         
+<<<<<<< HEAD
+=======
+        // Track status changes for notifications
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (newStatus === 'completed' && oldStatus !== 'completed') {
           newlyCompletedElections.push(election);
         } else if (newStatus === 'ongoing' && oldStatus !== 'ongoing') {
@@ -66,9 +84,18 @@ async function updateElectionStatuses() {
 
     await client.query('COMMIT');
     
+<<<<<<< HEAD
     if (newlyCompletedElections.length > 0) {
       for (const election of newlyCompletedElections) {
         try {
+=======
+    // After transaction is committed, send notifications for status changes
+    if (newlyCompletedElections.length > 0) {
+      // Process each completed election
+      for (const election of newlyCompletedElections) {
+        try {
+          // Get complete election details for the notification
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const { rows } = await pool.query(
             'SELECT * FROM elections WHERE id = $1',
             [election.id]
@@ -77,17 +104,32 @@ async function updateElectionStatuses() {
           if (rows.length > 0) {
             const completeElection = rows[0];
             
+<<<<<<< HEAD
+=======
+            // Send notifications to students
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             await notificationService.notifyStudentsAboutElectionResults(completeElection);
           }
         } catch (error) {
           console.error(`Error sending notifications for completed election ${election.id}:`, error);
+<<<<<<< HEAD
+=======
+          // Continue with other elections even if one fails
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         }
       }
     }
 
     if (newlyOngoingElections.length > 0) {
+<<<<<<< HEAD
       for (const election of newlyOngoingElections) {
         try {
+=======
+      // Process each election that became ongoing
+      for (const election of newlyOngoingElections) {
+        try {
+          // Get complete election details for the notification
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const { rows } = await pool.query(
             'SELECT * FROM elections WHERE id = $1',
             [election.id]
@@ -96,10 +138,18 @@ async function updateElectionStatuses() {
           if (rows.length > 0) {
             const completeElection = rows[0];
             
+<<<<<<< HEAD
+=======
+            // Send notifications to students that election is now ongoing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             await notificationService.notifyStudentsAboutElection(completeElection);
           }
         } catch (error) {
           console.error(`Error sending notifications for ongoing election ${election.id}:`, error);
+<<<<<<< HEAD
+=======
+          // Continue with other elections even if one fails
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         }
       }
     }
@@ -112,7 +162,14 @@ async function updateElectionStatuses() {
     client.release();
   }
 }
+<<<<<<< HEAD
 setInterval(updateElectionStatuses, 15 * 60 * 1000); 
 updateElectionStatuses(); 
+=======
+
+// Run this more frequently to catch elections ending
+setInterval(updateElectionStatuses, 15 * 60 * 1000); // Every 15 minutes
+updateElectionStatuses(); // Run immediately on startup
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 module.exports = { updateElectionStatuses };

@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 import { jsPDF } from 'jspdf';
+=======
+// Import jsPDF
+import { jsPDF } from 'jspdf';
+// Import jspdf-autotable
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { fetchCurrentUserName, buildSignatureFooter } from './userIdentity';
@@ -33,14 +39,29 @@ const formatNumber = (num) => {
   }
 };
 
+<<<<<<< HEAD
 const addHeader = (doc, title, description) => {
   try {
     doc.addImage('/images/sti_logo.png', 'PNG', 14, 10, 30, 20); 
+=======
+// Updated addHeader function - using PNG instead of SVG
+const addHeader = (doc, title, description) => {
+  // Add STI logo from public folder (use PNG instead of SVG)
+  try {
+    // Use PNG logo from public/images/sti_logo.png instead of SVG
+    // Adjusted size: reduced height from 30 to 20 to prevent stretching
+    doc.addImage('/images/sti_logo.png', 'PNG', 14, 10, 30, 20); // x, y, width, height
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   } catch (error) {
     console.error('Error adding STI logo to PDF:', error);
     console.warn('Proceeding without logo');
   }
+<<<<<<< HEAD
 
+=======
+  
+  // College name and address on the right side of logo
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text('STI COLLEGE NOVALICHES', 50, 20);
@@ -49,17 +70,31 @@ const addHeader = (doc, title, description) => {
   doc.setFont('helvetica', 'normal');
   doc.text('Diamond Avenue Corner, Quirino Highway, San Bartolome,', 50, 28);
   doc.text('Novaliches, Quezon City', 50, 35);
+<<<<<<< HEAD
 
   doc.setLineWidth(0.5);
   doc.line(14, 45, 196, 45);
+=======
+  
+  // Add a line separator
+  doc.setLineWidth(0.5);
+  doc.line(14, 45, 196, 45);
+  
+  // Report title
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text(title, 14, 55);
   
+<<<<<<< HEAD
+=======
+  // Report description
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
   doc.text(description, 14, 65);
   
+<<<<<<< HEAD
   doc.setFontSize(10);
   doc.text(`Generated on: ${formatDate(new Date())}`, 14, 75);
   
@@ -79,10 +114,37 @@ const addFooter = (doc, reportTitle) => {
   doc.setFont('helvetica', 'bold');
   doc.text('STI TrustElect', 14, footerY);
 
+=======
+  // Generated date
+  doc.setFontSize(10);
+  doc.text(`Generated on: ${formatDate(new Date())}`, 14, 75);
+  
+  return 85; // Return the Y position after the header
+};
+
+// Add footer function with horizontal line, STI TrustElect branding, and page number
+const addFooter = (doc, reportTitle) => {
+  const pageHeight = doc.internal.pageSize.height;
+  const pageWidth = doc.internal.pageSize.width;
+  const footerY = pageHeight - 20; // Position footer 20 units from bottom
+  
+  // Add horizontal line
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(128, 128, 128); // Grey color
+  doc.line(14, footerY - 5, pageWidth - 14, footerY - 5);
+  
+  // Add STI TrustElect branding on the left
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.text('STI TrustElect', 14, footerY);
+  
+  // Add page number on the right
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
   const totalPages = doc.internal.getNumberOfPages();
   const pageText = `Page ${pageNumber} of ${totalPages}`;
   
+<<<<<<< HEAD
   const textWidth = doc.getTextWidth(pageText);
   doc.text(pageText, pageWidth - 14 - textWidth, footerY);
   
@@ -95,32 +157,78 @@ const addFooterToAllPages = (doc, reportTitle) => {
 
   const originalPage = currentPage;
 
+=======
+  // Calculate text width to right-align it
+  const textWidth = doc.getTextWidth(pageText);
+  doc.text(pageText, pageWidth - 14 - textWidth, footerY);
+  
+  return footerY - 10; // Return Y position above footer
+};
+
+// Enhanced footer system - Add footer to all pages
+const addFooterToAllPages = (doc, reportTitle) => {
+  const totalPages = doc.internal.getNumberOfPages();
+  const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+  
+  // Save current page
+  const originalPage = currentPage;
+  
+  // Add footer to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     addFooter(doc, reportTitle || 'TrustElect Report');
   }
+<<<<<<< HEAD
 
+=======
+  
+  // Return to original page
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (originalPage) {
     doc.setPage(originalPage);
   }
 };
 
+<<<<<<< HEAD
 const originalAddPage = jsPDF.prototype.addPage;
 jsPDF.prototype.addPage = function() {
   originalAddPage.call(this);
+=======
+// Override the internal addPage method to automatically add footer
+const originalAddPage = jsPDF.prototype.addPage;
+jsPDF.prototype.addPage = function() {
+  originalAddPage.call(this);
+  // Add footer to new page
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   addFooter(this, this._reportTitle || 'TrustElect Report');
   return this;
 };
 
+<<<<<<< HEAD
 const originalAutoTableAddPage = autoTable.prototype.addPage;
 autoTable.prototype.addPage = function() {
   originalAutoTableAddPage.call(this);
+=======
+// Override the internal addPage method for autoTable to add footer
+const originalAutoTableAddPage = autoTable.prototype.addPage;
+autoTable.prototype.addPage = function() {
+  originalAutoTableAddPage.call(this);
+  // Add footer to new page created by autoTable
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   addFooter(this.doc, this.doc._reportTitle || 'TrustElect Report');
   return this;
 };
 
+<<<<<<< HEAD
 const originalOutput = jsPDF.prototype.output;
 jsPDF.prototype.output = function(type, options) {
+=======
+// Override the internal output method to add footer to all pages
+const originalOutput = jsPDF.prototype.output;
+jsPDF.prototype.output = function(type, options) {
+  // Add footer to all pages before output
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   addFooterToAllPages(this, this._reportTitle || 'TrustElect Report');
   return originalOutput.call(this, type, options);
 };
@@ -136,7 +244,11 @@ const addSignatureBlockToLastPage = (doc, footerText) => {
   }
 
   doc.setPage(totalPages);
+<<<<<<< HEAD
   const pageHeight = doc.internal.pageSize.height || 297; 
+=======
+  const pageHeight = doc.internal.pageSize.height || 297; // default A4 height in mm
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const startY = Math.max(pageHeight - 60, 20);
   const lines = footerText.split('\n');
 
@@ -148,7 +260,13 @@ const addSignatureBlockToLastPage = (doc, footerText) => {
   });
 };
 
+<<<<<<< HEAD
 const createSummaryTable = (doc, data, columns, startY) => {
+=======
+// Helper function to create a summary table
+const createSummaryTable = (doc, data, columns, startY) => {
+  // Use the imported autoTable function directly
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   autoTable(doc, {
     startY: startY,
     head: [columns.map(col => col.header)],
@@ -170,6 +288,7 @@ const createSummaryTable = (doc, data, columns, startY) => {
     margin: { top: 10, bottom: 30, left: 14, right: 14 }
   });
   
+<<<<<<< HEAD
   return doc.lastAutoTable.finalY + 10; 
 };
 
@@ -179,6 +298,19 @@ const generateElectionReport = (data) => {
   
   let currentY = addHeader(doc, 'Election Summary Report', 'Overview of all elections with detailed statistics and voter turnout.');
 
+=======
+  return doc.lastAutoTable.finalY + 10; // Return the Y position after the table
+};
+
+// Generate Election Report - Fixed yPos variable
+const generateElectionReport = (data) => {
+  const doc = new jsPDF();
+  doc._reportTitle = 'Election Summary Report'; // Set report title for footer
+  
+  let currentY = addHeader(doc, 'Election Summary Report', 'Overview of all elections with detailed statistics and voter turnout.');
+  
+  // Add summary section
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const summaryData = [
     { metric: "Total Elections", value: formatNumber(data.summary.total_elections) },
     { metric: "Ongoing Elections", value: formatNumber(data.summary.ongoing_elections) },
@@ -189,16 +321,26 @@ const generateElectionReport = (data) => {
   
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
+<<<<<<< HEAD
   doc.text("Summary Statistics", 14, currentY);
   
   currentY = createSummaryTable(doc, summaryData, [
+=======
+  doc.text("Summary Statistics", 14, currentY); // Fixed: use currentY instead of yPos
+  
+  currentY = createSummaryTable(doc, summaryData, [ // Fixed: use currentY instead of yPos
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     { header: "Metric", key: "metric" },
     { header: "Value", key: "value" }
   ], currentY + 10);
   
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
+<<<<<<< HEAD
   doc.text("Recent Elections", 14, currentY); 
+=======
+  doc.text("Recent Elections", 14, currentY); // Fixed: use currentY instead of yPos
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   createSummaryTable(doc, data.recent_elections, [
     { header: "Title", key: "title" },
@@ -207,10 +349,20 @@ const generateElectionReport = (data) => {
     { header: "Start Date", key: "start_date" },
     { header: "End Date", key: "end_date" }
   ], currentY + 10);
+<<<<<<< HEAD
 
   return doc;
 };
 
+=======
+  
+  // Footer will be automatically added to all pages
+  
+  return doc;
+};
+
+// Generate User Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateUserReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = 'User Management Report';
@@ -242,16 +394,31 @@ const generateUserReport = (data) => {
     { header: "Active", key: "active_users" },
     { header: "Inactive", key: "inactive_users" }
   ], currentY + 10);
+<<<<<<< HEAD
 
   return doc;
 };
 
+=======
+  
+  // Footer will be automatically added to all pages
+  
+  return doc;
+};
+
+// Generate Admin Activity Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateAdminActivityReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = 'Admin Activity Report';
   
   let currentY = addHeader(doc, 'Admin Activity Report', 'Summary of administrative actions and system activities.');
+<<<<<<< HEAD
 
+=======
+  
+  // Ensure we have valid summary data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const summary = data.summary || {};
   const summaryData = [
     { metric: "Total Activities", value: formatNumber(summary.total_activities || 0) },
@@ -259,7 +426,12 @@ const generateAdminActivityReport = (data) => {
     { metric: "Today's Activities", value: formatNumber(summary.activities_today || 0) },
     { metric: "Most Common Action", value: summary.most_common_action || 'N/A' }
   ];
+<<<<<<< HEAD
 
+=======
+  
+  // Ensure we have valid activities data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const activities = data.activities || [];
   const activitiesData = activities.map(activity => ({
     admin: activity.admin_name || 'Unknown',
@@ -293,16 +465,31 @@ const generateAdminActivityReport = (data) => {
     doc.setFont('helvetica', 'normal');
     doc.text("No activities found for the selected period.", 14, currentY + 10);
   }
+<<<<<<< HEAD
 
   return doc;
 };
 
+=======
+  
+  // Footer will be automatically added to all pages
+  
+  return doc;
+};
+
+// Generate Election Detail Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateElectionDetailReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = data.title || 'Election Detail Report';
   
   let yPos = addHeader(doc, data.title, data.description);
+<<<<<<< HEAD
 
+=======
+  
+  // Add summary section
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const summaryData = [
     { metric: "Election Title", value: data.summary.election_title },
     { metric: "Election Type", value: data.summary.election_type },
@@ -322,7 +509,12 @@ const generateElectionDetailReport = (data) => {
     { header: "Metric", key: "metric" },
     { header: "Value", key: "value" }
   ], yPos + 10);
+<<<<<<< HEAD
 
+=======
+  
+  // Add positions and candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.positions && data.positions.length > 0) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -330,6 +522,10 @@ const generateElectionDetailReport = (data) => {
     yPos += 10;
     
     data.positions.forEach((position, index) => {
+<<<<<<< HEAD
+=======
+      // Add a new page if we're running out of space
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (yPos > 250) {
         doc.addPage();
         yPos = 20;
@@ -361,20 +557,37 @@ const generateElectionDetailReport = (data) => {
         yPos += 10;
       }
       
+<<<<<<< HEAD
       yPos += 10; 
     });
   }
 
+=======
+      yPos += 10; // Add some space between positions
+    });
+  }
+  
+  // Footer will be automatically added to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return doc;
 };
 
+<<<<<<< HEAD
+=======
+// Generate Election Result Report (Enhanced with winners and rankings)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateElectionResultReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = data.title || 'Election Result Report';
   
   let yPos = addHeader(doc, data.title, data.description);
+<<<<<<< HEAD
 
+=======
+  
+  // Add election details section
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const electionData = [
     { metric: "Election Title", value: data.election_details.title },
     { metric: "Election Type", value: data.election_details.type },
@@ -394,7 +607,12 @@ const generateElectionResultReport = (data) => {
     { header: "Detail", key: "metric" },
     { header: "Value", key: "value" }
   ], yPos + 10);
+<<<<<<< HEAD
 
+=======
+  
+  // Add summary statistics
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.summary) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -413,7 +631,12 @@ const generateElectionResultReport = (data) => {
       { header: "Value", key: "value" }
     ], yPos);
   }
+<<<<<<< HEAD
 
+=======
+  
+  // Add positions and candidates with winners highlighted
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.positions && data.positions.length > 0) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -421,26 +644,50 @@ const generateElectionResultReport = (data) => {
     yPos += 10;
     
     data.positions.forEach((position, positionIndex) => {
+<<<<<<< HEAD
+=======
+      // Add a new page if we're running out of space
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (yPos > 200) {
         doc.addPage();
         yPos = 20;
       }
+<<<<<<< HEAD
 
+=======
+      
+      // Position header with winner highlight
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
       doc.text(`Position: ${position.position_name}`, 14, yPos);
       yPos += 8;
+<<<<<<< HEAD
 
+=======
+      
+      // Highlight winner
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (position.candidates && position.candidates.length > 0) {
         const winner = position.candidates.find(c => c.is_winner) || position.candidates[0];
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
+<<<<<<< HEAD
         doc.setTextColor(0, 100, 0);
         doc.text(`Winner: ${winner.name} (${winner.vote_count} votes - ${winner.vote_percentage}%)`, 14, yPos);
         doc.setTextColor(0, 0, 0);
         yPos += 8;
       }
 
+=======
+        doc.setTextColor(0, 100, 0); // Green color for winner
+        doc.text(`Winner: ${winner.name} (${winner.vote_count} votes - ${winner.vote_percentage}%)`, 14, yPos);
+        doc.setTextColor(0, 0, 0); // Reset to black
+        yPos += 8;
+      }
+      
+      // Candidates table
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (position.candidates && position.candidates.length > 0) {
         const candidateData = position.candidates.map((candidate, index) => ({
           rank: candidate.rank,
@@ -466,14 +713,26 @@ const generateElectionResultReport = (data) => {
         yPos += 10;
       }
       
+<<<<<<< HEAD
       yPos += 15; 
     });
   }
 
+=======
+      yPos += 15; // Add space between positions
+    });
+  }
+  
+  // Footer will be automatically added to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return doc;
 };
 
+<<<<<<< HEAD
+=======
+// Add this new function after generateAdminActivityReport
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateFailedLoginReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = 'Failed Login Report';
@@ -512,10 +771,20 @@ const generateFailedLoginReport = (data) => {
     { header: "Status", key: "status" }
   ], yPos + 10);
   
+<<<<<<< HEAD
+=======
+  // Footer will be automatically added to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return doc;
 };
 
+<<<<<<< HEAD
+=======
+// Add more report generators for other report types as needed...
+
+// Generate Audit Log Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateAuditLogReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = 'Activity Audit Log Report';
@@ -558,10 +827,18 @@ const generateAuditLogReport = (data) => {
     { header: "Timestamp", key: "timestamp" }
   ], yPos + 10);
   
+<<<<<<< HEAD
+=======
+  // Footer will be automatically added to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return doc;
 };
 
+<<<<<<< HEAD
+=======
+// Generate Upcoming Elections Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateUpcomingElectionReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = 'Upcoming Elections Report';
@@ -603,10 +880,18 @@ const generateUpcomingElectionReport = (data) => {
     { header: "Expected Voters", key: "voters" }
   ], yPos + 10);
   
+<<<<<<< HEAD
+=======
+  // Footer will be automatically added to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return doc;
 };
 
+<<<<<<< HEAD
+=======
+// Generate Live Vote Count Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateLiveVoteCountReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = 'Live Vote Count Report';
@@ -650,10 +935,20 @@ const generateLiveVoteCountReport = (data) => {
     { header: "Turnout", key: "turnout" },
     { header: "Time Remaining", key: "remaining" }
   ], yPos + 10);
+<<<<<<< HEAD
     
   return doc;
 };
 
+=======
+  
+  // Footer will be automatically added to all pages
+  
+  return doc;
+};
+
+// Generate System Load Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateSystemLoadReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = 'System Load Report';
@@ -698,10 +993,18 @@ const generateSystemLoadReport = (data) => {
     { header: "Average", key: "average" }
   ], yPos + 10);
   
+<<<<<<< HEAD
+=======
+  // Footer will be automatically added to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return doc;
 };
 
+<<<<<<< HEAD
+=======
+// Generate Voter Participation Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateVoterParticipationReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = 'Voter Participation Report';
@@ -735,6 +1038,10 @@ const generateVoterParticipationReport = (data) => {
     { header: "Voted Count", key: "voted_count" }
   ], yPos + 10);
   
+<<<<<<< HEAD
+=======
+  // Add voter history summary (first 20 records to avoid overflow)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.voter_history && data.voter_history.length > 0) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -755,16 +1062,28 @@ const generateVoterParticipationReport = (data) => {
     ], yPos + 10);
   }
   
+<<<<<<< HEAD
+=======
+  // Footer will be automatically added to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return doc;
 };
 
+<<<<<<< HEAD
+=======
+// Generate Candidate List Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateCandidateListReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = 'Candidate List Report';
   
   let yPos = addHeader(doc, "Candidate List Report", "Comprehensive list of all candidates per election with their course and party affiliations.");
   
+<<<<<<< HEAD
+=======
+  // Election details
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const electionData = [
     { metric: "Election Title", value: data.election_details.title },
     { metric: "Election Type", value: data.election_details.type },
@@ -782,7 +1101,13 @@ const generateCandidateListReport = (data) => {
     { header: "Value", key: "value" }
   ], yPos + 10);
   
+<<<<<<< HEAD
   data.positions.forEach((position, index) => {
+=======
+  // Positions and candidates
+  data.positions.forEach((position, index) => {
+    // Add a new page if we're running out of space
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (yPos > 250) {
       doc.addPage();
       yPos = 20;
@@ -808,16 +1133,29 @@ const generateCandidateListReport = (data) => {
     ], yPos) + 20;
   });
   
+<<<<<<< HEAD
+=======
+  // Footer will be automatically added to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return doc;
 };
 
+<<<<<<< HEAD
+=======
+// Generate Department Voter Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateDepartmentVoterReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = data.title || 'Department Voter Report';
   
   let yPos = addHeader(doc, data.title, data.description);
+<<<<<<< HEAD
 
+=======
+  
+  // Add election details section
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.election_details) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -833,7 +1171,12 @@ const generateDepartmentVoterReport = (data) => {
     doc.text(`Overall Participation: ${data.election_details.overall_participation}`, 14, yPos);
     yPos += 15;
   }
+<<<<<<< HEAD
 
+=======
+  
+  // Add summary statistics
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.summary) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -851,13 +1194,23 @@ const generateDepartmentVoterReport = (data) => {
     doc.text(`Overall Participation: ${data.summary.overall_participation}`, 14, yPos);
     yPos += 15;
   }
+<<<<<<< HEAD
 
+=======
+  
+  // Add department statistics
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.positions && data.positions.length > 0) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text("Department Statistics", 14, yPos);
     yPos += 10;
+<<<<<<< HEAD
 
+=======
+    
+    // Create department statistics table
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const departmentData = data.positions.map(dept => ({
       department: dept.position_name,
       totalStudents: formatNumber(dept.totalStudents || 0),
@@ -875,16 +1228,29 @@ const generateDepartmentVoterReport = (data) => {
     ], yPos);
   }
   
+<<<<<<< HEAD
+=======
+  // Footer will be automatically added to all pages
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return doc;
 };
 
+<<<<<<< HEAD
+=======
+// Generate Comprehensive Election Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateComprehensiveElectionReport = (data) => {
   const doc = new jsPDF();
   doc._reportTitle = data.title || 'Comprehensive Election Report';
   
   let yPos = addHeader(doc, data.title, data.description);
+<<<<<<< HEAD
 
+=======
+  
+  // Add election details section
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.election_details) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -910,6 +1276,10 @@ const generateComprehensiveElectionReport = (data) => {
     ], yPos);
   }
   
+<<<<<<< HEAD
+=======
+  // Add ballot information
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.ballot_info && data.ballot_info.length > 0) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -917,6 +1287,10 @@ const generateComprehensiveElectionReport = (data) => {
     yPos += 10;
     
     data.ballot_info.forEach((position, index) => {
+<<<<<<< HEAD
+=======
+      // Add a new page if we're running out of space
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (yPos > 200) {
         doc.addPage();
         yPos = 20;
@@ -931,6 +1305,10 @@ const generateComprehensiveElectionReport = (data) => {
         const candidateData = position.candidates.map(candidate => {
           const data = { name: candidate.name || 'Unknown Candidate' };
           
+<<<<<<< HEAD
+=======
+          // Always include course if available, otherwise show "Not specified"
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           data.course = candidate.course || 'Not specified';
           if (candidate.party) data.party = candidate.party;
           if (candidate.slogan) data.slogan = candidate.slogan;
@@ -938,6 +1316,11 @@ const generateComprehensiveElectionReport = (data) => {
           
           return data;
         });
+<<<<<<< HEAD
+=======
+        
+        // Create dynamic headers based on available data - always include course
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const headers = [
           { header: "Candidate Name", key: "name" },
           { header: "Course", key: "course" }
@@ -954,10 +1337,18 @@ const generateComprehensiveElectionReport = (data) => {
         yPos += 10;
       }
       
+<<<<<<< HEAD
       yPos += 15; 
     });
   }
 
+=======
+      yPos += 15; // Add space between positions
+    });
+  }
+  
+  // Add election results
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.results && data.results.length > 0) {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -965,6 +1356,10 @@ const generateComprehensiveElectionReport = (data) => {
     yPos += 10;
     
     data.results.forEach((position, index) => {
+<<<<<<< HEAD
+=======
+      // Add a new page if we're running out of space
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (yPos > 200) {
         doc.addPage();
         yPos = 20;
@@ -974,17 +1369,32 @@ const generateComprehensiveElectionReport = (data) => {
       doc.setFont('helvetica', 'bold');
       doc.text(`Position: ${position.position_name}`, 14, yPos);
       yPos += 8;
+<<<<<<< HEAD
 
+=======
+      
+      // Highlight winner
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (position.candidates && position.candidates.length > 0) {
         const winner = position.candidates.find(c => c.is_winner) || position.candidates[0];
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
+<<<<<<< HEAD
         doc.setTextColor(0, 100, 0); 
         doc.text(`Winner: ${winner.name} (${formatNumber(winner.vote_count)} votes - ${winner.vote_percentage}%)`, 14, yPos);
         doc.setTextColor(0, 0, 0); 
         yPos += 8;
       }
       
+=======
+        doc.setTextColor(0, 100, 0); // Green color for winner
+        doc.text(`Winner: ${winner.name} (${formatNumber(winner.vote_count)} votes - ${winner.vote_percentage}%)`, 14, yPos);
+        doc.setTextColor(0, 0, 0); // Reset to black
+        yPos += 8;
+      }
+      
+      // Candidates results table
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (position.candidates && position.candidates.length > 0) {
         const candidateData = position.candidates.map(candidate => ({
           rank: candidate.rank,
@@ -1010,11 +1420,22 @@ const generateComprehensiveElectionReport = (data) => {
         yPos += 10;
       }
       
+<<<<<<< HEAD
       yPos += 15;
     });
   }
 
   if (data.candidate_votes && data.candidate_votes.length > 0) {
+=======
+      yPos += 15; // Add space between positions
+    });
+  }
+
+
+  // Add candidate votes section
+  if (data.candidate_votes && data.candidate_votes.length > 0) {
+    // Add a new page if we're running out of space
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (yPos > 150) {
       doc.addPage();
       yPos = 20;
@@ -1026,6 +1447,10 @@ const generateComprehensiveElectionReport = (data) => {
     yPos += 10;
     
     data.candidate_votes.forEach((position, index) => {
+<<<<<<< HEAD
+=======
+      // Add a new page if we're running out of space
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (yPos > 200) {
         doc.addPage();
         yPos = 20;
@@ -1059,25 +1484,46 @@ const generateComprehensiveElectionReport = (data) => {
         yPos += 10;
       }
       
+<<<<<<< HEAD
       yPos += 15; 
     });
   }
 
+=======
+      yPos += 15; // Add space between positions
+    });
+  }
+  
+  // Add report generation timestamp
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.generated_at) {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Report generated on: ${data.generated_at}`, 14, yPos);
   }
   
+<<<<<<< HEAD
+=======
+  // Footer will be automatically added to all pages
+  
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return doc;
 };
 
 const generateVotingTimeReport = (data) => {
   const doc = new jsPDF();
+<<<<<<< HEAD
   doc._reportTitle = 'Voting Time Report'; 
   
   let currentY = addHeader(doc, 'Voting Time Report', 'Detailed voter activity tracking including login times, session duration, and device information.');
   
+=======
+  doc._reportTitle = 'Voting Time Report'; // Set report title for footer
+  
+  let currentY = addHeader(doc, 'Voting Time Report', 'Detailed voter activity tracking including login times, session duration, and device information.');
+  
+  // Add election details section if available
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.election_details) {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -1093,7 +1539,12 @@ const generateVotingTimeReport = (data) => {
     doc.text(`Generated: ${data.election_details.report_generated}`, 14, currentY);
     currentY += 15;
   }
+<<<<<<< HEAD
 
+=======
+  
+  // Add summary section
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (data.summary) {
     const summaryData = [
       { metric: 'Total Voters', value: formatNumber(data.summary.total_voters) },
@@ -1113,7 +1564,13 @@ const generateVotingTimeReport = (data) => {
     currentY += 20;
   }
 
+<<<<<<< HEAD
   if (data.voting_data && data.voting_data.length > 0) {
+=======
+  // Add voting data table
+  if (data.voting_data && data.voting_data.length > 0) {
+    // Add a new page if we're running out of space
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (currentY > 200) {
       doc.addPage();
       currentY = 20;
@@ -1124,6 +1581,10 @@ const generateVotingTimeReport = (data) => {
     doc.text('Voter Activity Details', 14, currentY);
     currentY += 10;
 
+<<<<<<< HEAD
+=======
+    // Create table data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const tableData = data.voting_data.map(voter => ({
       voter_id: voter.voter_id,
       login_time: voter.login_time,
@@ -1147,6 +1608,11 @@ const generateVotingTimeReport = (data) => {
     doc.text('No voting data available.', 14, currentY);
   }
 
+<<<<<<< HEAD
+=======
+  // Footer will be automatically added to all pages
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return doc;
 };
 
@@ -1214,9 +1680,17 @@ export const generatePdfReport = async (reportId, data) => {
     const signatureFooter = buildSignatureFooter(currentUserName);
     addSignatureBlockToLastPage(doc, signatureFooter);
 
+<<<<<<< HEAD
     const reportTitle = getReportTitle(reportId);
     addFooterToAllPages(doc, reportTitle);
 
+=======
+    // Ensure footer is added to all pages before saving
+    const reportTitle = getReportTitle(reportId);
+    addFooterToAllPages(doc, reportTitle);
+    
+    // Generate filename and save
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     const filename = `${reportTitle.replace(/\s+/g, '_')}_${timestamp}.pdf`;
     

@@ -1,5 +1,10 @@
 const pool = require("../config/db");
+<<<<<<< HEAD
 const bcrypt = require("bcryptjs"); 
+=======
+const bcrypt = require("bcryptjs"); // Changed from "bcrypt" to "bcryptjs"
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 const checkEmployeeNumberExists = async (employeeNumber, excludeAdminId = null) => {
   try {
@@ -65,6 +70,10 @@ const registerAdmin = async (firstName, lastName, email, username, hashedPasswor
   try {
     await client.query("BEGIN"); 
 
+<<<<<<< HEAD
+=======
+    // Deduplicate department names if provided
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let deduplicatedDepartment = department;
     if (department) {
       const departments = department.split(',').map(d => d.trim()).filter(d => d);
@@ -154,6 +163,10 @@ const updateAdmin = async (id, fields) => {
   try {
     await client.query("BEGIN");
 
+<<<<<<< HEAD
+=======
+    // Update users table for name and email fields
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const userUpdates = [];
     const userValues = [];
     let userIndex = 1;
@@ -174,6 +187,10 @@ const updateAdmin = async (id, fields) => {
       userIndex++;
     }
 
+<<<<<<< HEAD
+=======
+    // Update admins table for admin-specific fields
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const adminUpdates = [];
     const adminValues = [];
     let adminIndex = 1;
@@ -184,6 +201,10 @@ const updateAdmin = async (id, fields) => {
       adminIndex++;
     }
     if (fields.department) {
+<<<<<<< HEAD
+=======
+      // Deduplicate department names by splitting, removing duplicates, and rejoining
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const departments = fields.department.split(',').map(d => d.trim()).filter(d => d);
       const uniqueDepartments = [...new Set(departments)];
       const deduplicatedDepartment = uniqueDepartments.join(', ');
@@ -197,6 +218,10 @@ const updateAdmin = async (id, fields) => {
       return null;
     }
 
+<<<<<<< HEAD
+=======
+    // Update users table if needed
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (userUpdates.length > 0) {
       userValues.push(id);
       const userUpdateQuery = `
@@ -207,6 +232,10 @@ const updateAdmin = async (id, fields) => {
       await client.query(userUpdateQuery, userValues);
     }
 
+<<<<<<< HEAD
+=======
+    // Update admins table if needed
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (adminUpdates.length > 0) {
       adminValues.push(id);
       const adminUpdateQuery = `
@@ -218,7 +247,12 @@ const updateAdmin = async (id, fields) => {
     }
 
     await client.query("COMMIT");
+<<<<<<< HEAD
 
+=======
+    
+    // Return the updated user data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await client.query(`
       SELECT users.id, users.first_name, users.last_name, users.email, users.is_active, 
              admins.employee_number, admins.department, users.is_locked, users.locked_until
@@ -239,6 +273,10 @@ const updateAdmin = async (id, fields) => {
 
 const softDeleteAdmin = async (id, action = 'archive') => {
   try {
+<<<<<<< HEAD
+=======
+    // Add a field to distinguish between archived and deleted
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const isDeleted = action === 'delete';
     const query = `
       UPDATE users 

@@ -1,6 +1,9 @@
 const pool = require("../config/db");
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getAllLaboratoryPrecincts = async () => {
   const result = await pool.query(`
     SELECT 
@@ -102,11 +105,19 @@ const createElectionLaboratoryPrecincts = async (electionId, laboratoryPrecincts
   try {
     await client.query('BEGIN');
     
+<<<<<<< HEAD
+=======
+    // Clear existing laboratory precincts for this election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     await client.query(
       'DELETE FROM election_laboratory_precincts WHERE election_id = $1',
       [electionId]
     );
     
+<<<<<<< HEAD
+=======
+    // Insert new laboratory precincts
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     for (const labPrecinct of laboratoryPrecincts) {
       if (labPrecinct.assignedCourses && labPrecinct.assignedCourses.length > 0) {
         await client.query(
@@ -134,25 +145,45 @@ const assignStudentsToLaboratoryPrecincts = async (electionId, laboratoryPrecinc
   try {
     await client.query('BEGIN');
     
+<<<<<<< HEAD
+=======
+    // Get all eligible voters for this election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const eligibleVoters = await client.query(
       'SELECT * FROM eligible_voters WHERE election_id = $1',
       [electionId]
     );
     
+<<<<<<< HEAD
     for (const voter of eligibleVoters.rows) {
       for (const labPrecinct of laboratoryPrecincts) {
         if (labPrecinct.assignedCourses.includes(voter.course_name)) {
+=======
+    // Assign each student to appropriate laboratory precinct
+    for (const voter of eligibleVoters.rows) {
+      for (const labPrecinct of laboratoryPrecincts) {
+        if (labPrecinct.assignedCourses.includes(voter.course_name)) {
+          // Get the election_laboratory_precinct_id
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const elpResult = await client.query(
             'SELECT id FROM election_laboratory_precincts WHERE election_id = $1 AND laboratory_precinct_id = $2',
             [electionId, labPrecinct.laboratoryPrecinctId]
           );
           
           if (elpResult.rows.length > 0) {
+<<<<<<< HEAD
+=======
+            // Update eligible_voters with laboratory assignment
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             await client.query(
               'UPDATE eligible_voters SET election_laboratory_precinct_id = $1 WHERE id = $2',
               [elpResult.rows[0].id, voter.id]
             );
+<<<<<<< HEAD
             break; 
+=======
+            break; // Student assigned to first matching lab
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           }
         }
       }

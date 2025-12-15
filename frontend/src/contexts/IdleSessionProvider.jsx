@@ -3,7 +3,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 
 const WARNING_MS = 10 * 60 * 1000; // 10 minutes
+<<<<<<< HEAD
 const TIMEOUT_MS = 15 * 60 * 1000; 
+=======
+const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 export default function IdleSessionProvider({ children }) {
   const [showWarning, setShowWarning] = useState(false);
@@ -25,7 +29,11 @@ export default function IdleSessionProvider({ children }) {
   const logout = useCallback(() => {
     clearTimers();
     setShowWarning(false);
+<<<<<<< HEAD
 
+=======
+    // Clear client auth
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     Cookies.remove('token');
     Cookies.remove('role');
     try {
@@ -35,7 +43,11 @@ export default function IdleSessionProvider({ children }) {
         credentials: 'include'
       }).catch(() => {});
     } catch (_) {}
+<<<<<<< HEAD
 
+=======
+    // Redirect to landing page instead of login
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (typeof window !== 'undefined') {
       window.location.href = '/';
     }
@@ -56,6 +68,10 @@ export default function IdleSessionProvider({ children }) {
       }, 1000);
     }, WARNING_MS);
 
+<<<<<<< HEAD
+=======
+    // Force logout after TIMEOUT_MS
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     timeoutTimerRef.current = setTimeout(() => {
       logout();
     }, TIMEOUT_MS);
@@ -65,7 +81,11 @@ export default function IdleSessionProvider({ children }) {
     startTimers();
   }, [startTimers]);
 
+<<<<<<< HEAD
 
+=======
+  // Bind activity listeners
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     startTimers();
 
@@ -74,6 +94,10 @@ export default function IdleSessionProvider({ children }) {
 
     const visHandler = () => {
       if (document.visibilityState === 'visible') {
+<<<<<<< HEAD
+=======
+        // If user came back, treat as activity
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         resetActivity();
       }
     };

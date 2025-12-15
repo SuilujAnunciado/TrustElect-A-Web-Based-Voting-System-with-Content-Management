@@ -1,4 +1,8 @@
 "use client";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -15,19 +19,35 @@ export default function ArchivedStudents() {
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
 
+<<<<<<< HEAD
+=======
+  // Batch delete states
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [showBatchDeleteModal, setShowBatchDeleteModal] = useState(false);
   const [selectedCourseForDelete, setSelectedCourseForDelete] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [courses, setCourses] = useState([]);
 
+<<<<<<< HEAD
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
 
+=======
+  // Delete all archived students states
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+
+  // Utility function to format names properly (Title Case)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatName = (name) => {
     if (!name) return '';
     return name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
   };
 
+<<<<<<< HEAD
+=======
+  // Utility function to format full name display
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatFullName = (lastName, firstName, middleName) => {
     const formattedLastName = formatName(lastName);
     const formattedFirstName = formatName(firstName);
@@ -46,7 +66,11 @@ export default function ArchivedStudents() {
       const archivedStudents = res.data.students.filter((student) => !student.is_active);
       setStudents(archivedStudents);
       
+<<<<<<< HEAD
 
+=======
+      // Extract unique courses from archived students
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const uniqueCourses = [...new Set(archivedStudents.map(student => student.course_name))];
       setCourses(uniqueCourses);
       
@@ -103,6 +127,10 @@ export default function ArchivedStudents() {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Batch delete archived students by course
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleBatchDeleteArchived = async () => {
     if (!selectedCourseForDelete) {
       toast.error("Please select a course to delete archived students from.");
@@ -128,7 +156,11 @@ export default function ArchivedStudents() {
         toast.success(response.data.message || "Archived students deleted successfully.");
         setShowBatchDeleteModal(false);
         setSelectedCourseForDelete("");
+<<<<<<< HEAD
         fetchArchivedStudents();
+=======
+        fetchArchivedStudents(); // Refresh the student list
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       } else {
         toast.error(response.data.message || "Failed to delete archived students.");
       }
@@ -140,6 +172,10 @@ export default function ArchivedStudents() {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Delete all archived students function
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleDeleteAllArchivedStudents = async () => {
     const confirmMessage = `Are you sure you want to PERMANENTLY DELETE ALL ${students.length} archived students? This action cannot be undone and will remove all data permanently.`;
 
@@ -156,7 +192,11 @@ export default function ArchivedStudents() {
       if (response.data.success) {
         toast.success(response.data.message || "All archived students deleted successfully.");
         setShowDeleteAllModal(false);
+<<<<<<< HEAD
         fetchArchivedStudents(); 
+=======
+        fetchArchivedStudents(); // Refresh the student list
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       } else {
         toast.error(response.data.message || "Failed to delete all archived students.");
       }
@@ -243,6 +283,10 @@ export default function ArchivedStudents() {
         isLoading={isDeleting}
       />
 
+<<<<<<< HEAD
+=======
+      {/* Batch Delete Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showBatchDeleteModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-md">
@@ -304,7 +348,11 @@ export default function ArchivedStudents() {
         </div>
       )}
 
+<<<<<<< HEAD
 
+=======
+      {/* Delete All Archived Students Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showDeleteAllModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-md">

@@ -8,7 +8,10 @@ import { Toaster, toast } from "react-hot-toast";
 import { Calendar, Filter, RefreshCw, Users, Shield, Download } from "lucide-react";
 import usePermissions from "../../../hooks/usePermissions";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function AuditLogsPage() {
   const router = useRouter();
   const [logs, setLogs] = useState([]);
@@ -72,6 +75,10 @@ export default function AuditLogsPage() {
       }
 
       if (filters.userRole !== "all") {
+<<<<<<< HEAD
+=======
+        // Handle different role variations
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (filters.userRole === "Super Admin") {
           params.append("user_role", "Super Admin,SystemAdmin");
         } else {

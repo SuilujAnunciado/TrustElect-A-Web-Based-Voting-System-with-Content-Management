@@ -12,7 +12,10 @@ import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 import { toast } from "react-hot-toast";
 import usePermissions from "@/hooks/usePermissions";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function ManageAdminsPage() {
   const router = useRouter();
   const { hasPermission, permissions, permissionsLoading } = usePermissions();
@@ -35,6 +38,10 @@ export default function ManageAdminsPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [availableDepartments, setAvailableDepartments] = useState([]);
 
+<<<<<<< HEAD
+=======
+  // Check if user has admin management permissions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
 
     
@@ -57,6 +64,10 @@ export default function ManageAdminsPage() {
       setAvailableDepartments(departments);
     } catch (error) {
       console.error("Error fetching departments:", error);
+<<<<<<< HEAD
+=======
+      // Fallback to hardcoded departments if API fails
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setAvailableDepartments([
         "Information and Communication Technology (ICT)",
         "Tourism and Hospitality Management (THM)",
@@ -76,11 +87,20 @@ export default function ManageAdminsPage() {
 
       const tokenData = JSON.parse(atob(token.split('.')[1]));
       setCurrentUserId(tokenData.id);
+<<<<<<< HEAD
 
       if (tokenData.department) {
         setCurrentUserDepartment(tokenData.department);
       } else {
 
+=======
+      
+      // Get department from token or fetch from API
+      if (tokenData.department) {
+        setCurrentUserDepartment(tokenData.department);
+      } else {
+        // Fetch current user data to get department
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         try {
           const userRes = await axios.get("/api/admin/profile", {
             headers: { Authorization: `Bearer ${token}` },
@@ -101,12 +121,25 @@ export default function ManageAdminsPage() {
       }));
 
 
+<<<<<<< HEAD
+=======
+      // Filter out system admins/root admins and only show active admins
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let filteredAdmins = updatedAdmins.filter((admin) => 
         admin.is_active && !isSuperAdmin(admin)
       );
 
+<<<<<<< HEAD
       filteredAdmins = applyDepartmentVisibilityFilter(filteredAdmins, tokenData);
 
+=======
+
+      // Apply department-based visibility filtering
+      filteredAdmins = applyDepartmentVisibilityFilter(filteredAdmins, tokenData);
+
+
+      // If no admins are shown after filtering, show all active admins as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (filteredAdmins.length === 0) {
         const fallbackAdmins = updatedAdmins.filter((admin) => admin.is_active && !isSuperAdmin(admin));
         setAdmins(fallbackAdmins);
@@ -148,6 +181,10 @@ export default function ManageAdminsPage() {
       return;
     }
 
+<<<<<<< HEAD
+=======
+    // Check if user is trying to delete themselves
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (currentUserId && parseInt(currentUserId) === parseInt(adminId)) {
       toast.error("You cannot archive your own account.");
       return;
@@ -180,6 +217,10 @@ export default function ManageAdminsPage() {
       return;
     }
 
+<<<<<<< HEAD
+=======
+    // Check if user is trying to delete themselves
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (currentUserId && parseInt(currentUserId) === parseInt(adminId)) {
       toast.error("You cannot delete your own account.");
       return;
@@ -242,14 +283,25 @@ export default function ManageAdminsPage() {
     }
   };
 
+<<<<<<< HEAD
   const getVisibleDepartments = () => {
+=======
+  // Get departments that the current user can see admins from
+  const getVisibleDepartments = () => {
+    // If no department or Administrator/Administration/System, show all departments
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!currentUserDepartment || 
         currentUserDepartment === "Administrator" || 
         currentUserDepartment === "Administration" || 
         currentUserDepartment === "System") {
       return availableDepartments;
     }
+<<<<<<< HEAD
 
+=======
+    
+    // For academic/organization department users, only show their own department
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return availableDepartments.filter(dept => {
       const deptName = dept.department_name || dept;
       return deptName === currentUserDepartment;
@@ -270,24 +322,47 @@ export default function ManageAdminsPage() {
     return admin.id === currentUserId;
   };
 
+<<<<<<< HEAD
+=======
+  // Apply department-based visibility filtering
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const applyDepartmentVisibilityFilter = (admins, currentUser) => {
     const currentUserDept = currentUser.department;
     const currentUserId = currentUser.id;
     const currentUserRole = currentUser.role_id;
 
+<<<<<<< HEAD
+=======
+
+    // If current user is Administrator/Administration/System (role_id 1 or department check), they can see all admins
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (currentUserRole === 1 || currentUserDept === "Administrator" || currentUserDept === "Administration" || currentUserDept === "System") {
       return admins;
     }
 
+<<<<<<< HEAD
+=======
+    // If current user department is undefined or null, show all admins as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!currentUserDept) {
       return admins;
     }
 
+<<<<<<< HEAD
     const filtered = admins.filter(admin => {
+=======
+    // For academic/organization department users, only show admins from their department
+    const filtered = admins.filter(admin => {
+      // Only show admins from the same department
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (admin.department === currentUserDept) {
         return true;
       }
 
+<<<<<<< HEAD
+=======
+      // Hide Administrator/Administration/System department admins
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (admin.department === "Administrator" || admin.department === "Administration" || admin.department === "System") {
         return false;
       }
@@ -422,10 +497,17 @@ export default function ManageAdminsPage() {
               <td className="p-3">
                 <span className={`px-2 py-1 rounded-full text-xs ${
                   admin.role_id === 1
+<<<<<<< HEAD
                     ? 'bg-purple-100 text-purple-800'
                     : (admin.department === 'Administrator'
                         ? 'bg-purple-100 text-purple-800' 
                         : 'bg-blue-100 text-blue-800')
+=======
+                    ? 'bg-purple-100 text-purple-800' // Root Admin
+                    : (admin.department === 'Administrator'
+                        ? 'bg-purple-100 text-purple-800' // System Admin styling
+                        : 'bg-blue-100 text-blue-800') // Admin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 }`}>
                   {admin.role_id === 1 ? 'Root Admin' : (admin.department === 'Administrator' ? 'System Admin' : 'Admin')}
                 </span>
@@ -556,19 +638,38 @@ export default function ManageAdminsPage() {
             setSelectedAdmin(null);
           }}
           onSave={(updatedPermissions) => {
+<<<<<<< HEAD
             try {
               const updateTimestamp = Date.now().toString();
               localStorage.setItem(`admin_permissions_updated_${selectedAdmin.id}`, updateTimestamp);
 
+=======
+            // Force permission update for the target admin
+            try {
+              // Store a timestamp in localStorage to indicate when the permissions were last updated
+              const updateTimestamp = Date.now().toString();
+              localStorage.setItem(`admin_permissions_updated_${selectedAdmin.id}`, updateTimestamp);
+              
+              // Dispatch a custom event to notify any component that might be using this admin's permissions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               const permissionUpdateEvent = new CustomEvent('admin-permissions-updated', {
                 detail: { 
                   adminId: selectedAdmin.id,
                   timestamp: updateTimestamp,
+<<<<<<< HEAD
                   permissions: updatedPermissions 
                 }
               });
               window.dispatchEvent(permissionUpdateEvent);
 
+=======
+                  permissions: updatedPermissions // Include the permissions that were saved
+                }
+              });
+              window.dispatchEvent(permissionUpdateEvent);
+              
+              // Create a global timestamp update as well
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               if (typeof window !== 'undefined' && window.GLOBAL_PERMISSIONS_TIMESTAMP) {
                 window.GLOBAL_PERMISSIONS_TIMESTAMP = Date.now();
               }
@@ -580,7 +681,11 @@ export default function ManageAdminsPage() {
             
             setShowPermissionsModal(false);
             setSelectedAdmin(null);
+<<<<<<< HEAD
             fetchAdmins();
+=======
+            fetchAdmins(); // Refresh admin list after permission update
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           }}
         />
       )}

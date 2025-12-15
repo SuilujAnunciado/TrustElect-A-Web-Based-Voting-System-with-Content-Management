@@ -5,7 +5,10 @@ import { Upload, X, Image as ImageIcon, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Cookies from "js-cookie";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const PageBackgroundSection = ({ 
   landingContent, 
   setLandingContent, 
@@ -20,11 +23,19 @@ const PageBackgroundSection = ({
     const file = event.target.files[0];
     if (!file) return;
 
+<<<<<<< HEAD
+=======
+    // Validate file type
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!file.type.startsWith('image/')) {
       toast.error('Please select a valid image file');
       return;
     }
 
+<<<<<<< HEAD
+=======
+    // Validate file size (5MB limit)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image size must be less than 5MB');
       return;
@@ -33,8 +44,15 @@ const PageBackgroundSection = ({
     setIsUploading(true);
 
     try {
+<<<<<<< HEAD
       const localUrl = URL.createObjectURL(file);
       
+=======
+      // Create a local URL for immediate preview
+      const localUrl = URL.createObjectURL(file);
+      
+      // Update the landing content with the new background image for preview
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setLandingContent(prev => ({
         ...prev,
         [section]: {
@@ -50,7 +68,11 @@ const PageBackgroundSection = ({
       toast.error('Failed to upload background image');
     } finally {
       setIsUploading(false);
+<<<<<<< HEAD
 
+=======
+      // Reset file input
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -70,6 +92,10 @@ const PageBackgroundSection = ({
 
   const currentBackground = landingContent[section]?.backgroundImage;
 
+<<<<<<< HEAD
+=======
+  // For header section, add color pickers
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const isHeader = section === 'header';
 
   const updateHeaderColor = (field, value) => {
@@ -89,6 +115,10 @@ const PageBackgroundSection = ({
       </h3>
       
       <div className="space-y-4">
+<<<<<<< HEAD
+=======
+        {/* Color pickers for header section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {isHeader && (
           <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b">
             <div>
@@ -134,6 +164,10 @@ const PageBackgroundSection = ({
             </div>
           </div>
         )}
+<<<<<<< HEAD
+=======
+        {/* Current Background Preview */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {currentBackground && (
           <div className="relative">
             <div className="text-sm font-medium text-gray-700 mb-2">Current Background:</div>
@@ -187,12 +221,21 @@ const PageBackgroundSection = ({
             </div>
           </div>
         </div>
+<<<<<<< HEAD
+=======
+
+        {/* Simple Info */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm text-blue-700">
             The uploaded image will automatically cover the entire section while keeping all content visible on top.
           </p>
         </div>
 
+<<<<<<< HEAD
+=======
+        {/* Action Buttons */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="flex justify-between mt-4">
           {currentBackground && (
             <button

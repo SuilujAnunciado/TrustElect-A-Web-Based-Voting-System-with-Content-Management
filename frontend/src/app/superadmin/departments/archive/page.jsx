@@ -25,25 +25,43 @@ export default function ArchivedDepartmentsPage() {
       if (!token) {
         throw new Error("No authentication token found");
       }
+<<<<<<< HEAD
 s
+=======
+
+      // Try multiple endpoints to get archived departments
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let departmentsArray = [];
       let success = false;
 
       try {
+<<<<<<< HEAD
 
+=======
+        // First try superadmin archived endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const res = await axios.get("/api/superadmin/departments/archived", {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
           withCredentials: true
+<<<<<<< HEAD
         });   
+=======
+        });
+        
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         departmentsArray = res.data.departments || res.data || [];
         success = true;
       } catch (firstError) {
         console.warn("Error on superadmin archived endpoint, trying fallback:", firstError.message);
         
         try {
+<<<<<<< HEAD
+=======
+          // Try admin archived endpoint as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const res = await axios.get("/api/admin/departments/archived", {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -57,6 +75,10 @@ s
         } catch (secondError) {
           console.error("Error on admin archived endpoint:", secondError.message);
           
+<<<<<<< HEAD
+=======
+          // Try generic archived endpoint as last resort
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           try {
             const res = await axios.get("/api/departments/archived", {
               headers: {
@@ -100,11 +122,20 @@ s
   const confirmRestoreDepartment = async () => {
     try {
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
+=======
+      
+      // Try multiple API endpoints
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let success = false;
       let response;
       
       try {
+<<<<<<< HEAD
+=======
+        // First try superadmin endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         response = await axios.patch(`/api/superadmin/departments/${selectedDepartmentId}/restore`, {}, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -113,13 +144,22 @@ s
         console.warn("Error on first restore endpoint, trying fallback:", firstError.message);
         
         try {
+<<<<<<< HEAD
+=======
+          // Try admin endpoint as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           response = await axios.patch(`/api/admin/departments/${selectedDepartmentId}/restore`, {}, {
             headers: { Authorization: `Bearer ${token}` },
           });
           success = true;
         } catch (secondError) {
           console.error("Error on admin endpoint:", secondError.message);
+<<<<<<< HEAD
 
+=======
+          
+          // Try generic endpoint as last resort
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           try {
             response = await axios.patch(`/api/departments/${selectedDepartmentId}/restore`, {}, {
               headers: { Authorization: `Bearer ${token}` },
@@ -149,11 +189,20 @@ s
   const confirmPermanentDeleteDepartment = async () => {
     try {
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
+=======
+      
+      // Try multiple API endpoints
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let success = false;
       let response;
       
       try {
+<<<<<<< HEAD
+=======
+        // First try superadmin endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}/permanent`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -162,6 +211,10 @@ s
         console.warn("Error on first permanent delete endpoint, trying fallback:", firstError.message);
         
         try {
+<<<<<<< HEAD
+=======
+          // Try admin endpoint as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}/permanent`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -169,6 +222,10 @@ s
         } catch (secondError) {
           console.error("Error on admin endpoint:", secondError.message);
           
+<<<<<<< HEAD
+=======
+          // Try generic endpoint as last resort
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           try {
             response = await axios.delete(`/api/departments/${selectedDepartmentId}/permanent`, {
               headers: { Authorization: `Bearer ${token}` },

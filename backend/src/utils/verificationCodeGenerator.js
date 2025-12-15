@@ -8,7 +8,11 @@ const generateUniqueCode = (receiptId) => {
   for (let i = 0; i < receiptId.length; i++) {
     const char = receiptId.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
+<<<<<<< HEAD
     hash = hash & hash; 
+=======
+    hash = hash & hash; // Convert to 32-bit integer
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   }
   
   const absHash = Math.abs(hash);

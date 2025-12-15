@@ -2,6 +2,10 @@
 import axios from 'axios';
 
 /**
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  * @param {string} apiUrl 
  * @param {Function} setContent 
  * @param {Function} setInitialContent 
@@ -52,14 +56,23 @@ export const fetchThemes = async (apiUrl, setThemes, setActiveTheme) => {
     const response = await axios.get(`${apiUrl}/api/content/themes`);
     if (response.data) {
       setThemes(response.data);
+<<<<<<< HEAD
  
+=======
+      
+      // Find the active theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const active = response.data.find(theme => theme.isActive);
       if (active) {
         setActiveTheme(active);
       }
     }
   } catch (error) {
+<<<<<<< HEAD
 
+=======
+    console.log("Themes API not available, using default themes");
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     loadDefaultThemes(setThemes, setActiveTheme);
   }
 };

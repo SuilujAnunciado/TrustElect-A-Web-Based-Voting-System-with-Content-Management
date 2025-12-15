@@ -16,7 +16,10 @@ router.get("/", verifyToken, async (req, res) => {
     const existingCourseNames = new Set(dbResult.rows.map(course => course.course_name));
     
     const courses = [...dbResult.rows];
+<<<<<<< HEAD
    
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     let needsSync = false;
     for (const programName of programNames) {
@@ -28,6 +31,10 @@ router.get("/", verifyToken, async (req, res) => {
           not_in_db: true
         });
         
+<<<<<<< HEAD
+=======
+        // Also try to insert it into the courses table to keep things in sync
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         try {
           const insertResult = await pool.query(
             "INSERT INTO courses (course_name) VALUES ($1) RETURNING id, course_name",
@@ -35,6 +42,10 @@ router.get("/", verifyToken, async (req, res) => {
           );
           
           if (insertResult.rows.length > 0) {
+<<<<<<< HEAD
+=======
+            // Update the entry with the new ID
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             courses[courses.length - 1] = {
               id: insertResult.rows[0].id,
               course_name: insertResult.rows[0].course_name
@@ -42,6 +53,10 @@ router.get("/", verifyToken, async (req, res) => {
           }
         } catch (insertError) {
           console.error(`Failed to add ${programName} to courses:`, insertError);
+<<<<<<< HEAD
+=======
+          // Keep the entry in the response with null ID
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         }
       }
     }
@@ -61,12 +76,23 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+// Route to manually sync courses from maintenance API
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post("/sync", verifyToken, isSuperAdmin, async (req, res) => {
   try {
     const { syncCourses } = require('../scripts/syncCourses');
     
+<<<<<<< HEAD
     await syncCourses();
 
+=======
+    // Run the sync function
+    await syncCourses();
+    
+    // Get updated list of courses
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const updatedCoursesResult = await pool.query(
       "SELECT id, course_name FROM courses ORDER BY course_name ASC"
     );

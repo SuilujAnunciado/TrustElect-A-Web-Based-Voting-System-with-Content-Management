@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
+<<<<<<< HEAD
+=======
+// Mr/Ms STI position order for sorting
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const mrMsSTIPositionOrder = {
   "Mr. STI": 1,
   "Ms. STI": 2,
@@ -13,7 +17,10 @@ const mrMsSTIPositionOrder = {
   "Ms. STI 3rd Runner-up": 8
 };
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export const useMrMsSTIPositions = () => {
   const [mrMsSTIPositions, setMrMsSTIPositions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +33,10 @@ export const useMrMsSTIPositions = () => {
     try {
       const token = Cookies.get("token");
       
+<<<<<<< HEAD
+=======
+      // First, get the Mr/Ms STI election type ID
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const typesResponse = await axios.get('/api/maintenance/election-types', {
         headers: { 
           Authorization: `Bearer ${token}`,
@@ -47,6 +58,10 @@ export const useMrMsSTIPositions = () => {
       }
 
       if (mrMsSTITypeId) {
+<<<<<<< HEAD
+=======
+        // Fetch positions for Mr/Ms STI election type
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const response = await axios.get(`/api/maintenance/positions?electionTypeId=${mrMsSTITypeId}`, {
           headers: { 
             Authorization: `Bearer ${token}`,
@@ -57,14 +72,26 @@ export const useMrMsSTIPositions = () => {
         
         if (response.data.success && response.data.data && response.data.data.length > 0) {
           const positions = response.data.data.map(pos => pos.name);
+<<<<<<< HEAD
           positions.sort((a, b) => (mrMsSTIPositionOrder[a] || 999) - (mrMsSTIPositionOrder[b] || 999));
           setMrMsSTIPositions(positions);
           
+=======
+          // Sort positions according to Mr/Ms STI order
+          positions.sort((a, b) => (mrMsSTIPositionOrder[a] || 999) - (mrMsSTIPositionOrder[b] || 999));
+          setMrMsSTIPositions(positions);
+          
+          // Cache in localStorage
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           localStorage.setItem('mrMsSTIPositions', JSON.stringify(positions));
           return;
         }
       }
 
+<<<<<<< HEAD
+=======
+      // Fallback: try to get all positions and filter
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.get('/api/maintenance/positions', {
         headers: { 
           Authorization: `Bearer ${token}`,
@@ -76,6 +103,10 @@ export const useMrMsSTIPositions = () => {
       if (response.data.success && response.data.data) {
         const allPositions = response.data.data;
         
+<<<<<<< HEAD
+=======
+        // Filter for Mr/Ms STI positions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const mrMsSTIPositions = allPositions.filter(pos => 
           pos.name && (
             pos.name.toLowerCase().includes("mr") && 
@@ -86,14 +117,26 @@ export const useMrMsSTIPositions = () => {
         ).map(pos => pos.name);
         
         if (mrMsSTIPositions.length > 0) {
+<<<<<<< HEAD
           mrMsSTIPositions.sort((a, b) => (mrMsSTIPositionOrder[a] || 999) - (mrMsSTIPositionOrder[b] || 999));
           setMrMsSTIPositions(mrMsSTIPositions);
           
+=======
+          // Sort positions according to Mr/Ms STI order
+          mrMsSTIPositions.sort((a, b) => (mrMsSTIPositionOrder[a] || 999) - (mrMsSTIPositionOrder[b] || 999));
+          setMrMsSTIPositions(mrMsSTIPositions);
+          
+          // Cache in localStorage
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           localStorage.setItem('mrMsSTIPositions', JSON.stringify(mrMsSTIPositions));
           return;
         }
       }
 
+<<<<<<< HEAD
+=======
+      // Final fallback: use default positions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const defaultPositions = [
         "Mr. STI", 
         "Ms. STI", 
@@ -108,18 +151,31 @@ export const useMrMsSTIPositions = () => {
       defaultPositions.sort((a, b) => (mrMsSTIPositionOrder[a] || 999) - (mrMsSTIPositionOrder[b] || 999));
       setMrMsSTIPositions(defaultPositions);
       
+<<<<<<< HEAD
+=======
+      // Cache in localStorage
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       localStorage.setItem('mrMsSTIPositions', JSON.stringify(defaultPositions));
       
     } catch (error) {
       console.error("Error fetching Mr/Ms STI positions:", error);
       setError(error.message);
+<<<<<<< HEAD
 
+=======
+      
+      // Try to load from localStorage as fallback
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       try {
         const cachedPositions = localStorage.getItem('mrMsSTIPositions');
         if (cachedPositions) {
           const positions = JSON.parse(cachedPositions);
           setMrMsSTIPositions(positions);
         } else {
+<<<<<<< HEAD
+=======
+          // Use default positions if no cache
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const defaultPositions = [
             "Mr. STI", 
             "Ms. STI", 
@@ -136,6 +192,10 @@ export const useMrMsSTIPositions = () => {
         }
       } catch (cacheError) {
         console.error("Error loading from cache:", cacheError);
+<<<<<<< HEAD
+=======
+        // Use hardcoded defaults
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const defaultPositions = [
           "Mr. STI", 
           "Ms. STI", 
@@ -155,6 +215,10 @@ export const useMrMsSTIPositions = () => {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Load positions on mount
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     fetchMrMsSTIPositions();
   }, []);

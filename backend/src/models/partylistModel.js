@@ -1,16 +1,37 @@
 const pool = require('../config/db');
 
+<<<<<<< HEAD
 const createPartylist = async (partylistData) => {
   const client = await pool.connect();
   try {
+=======
+
+const createPartylist = async (partylistData) => {
+  const client = await pool.connect();
+  try {
+    console.log('Model: Beginning transaction...');
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     await client.query('BEGIN');
 
     let logoUrl = null;
     if (partylistData.logo) {
+<<<<<<< HEAD
       logoUrl = `/uploads/partylists/${partylistData.logo.filename}`;
     }
 
 
+=======
+      console.log('Model: Processing logo file:', partylistData.logo.filename);
+      logoUrl = `/uploads/partylists/${partylistData.logo.filename}`;
+    }
+
+    console.log('Model: Inserting partylist data:', {
+      name: partylistData.name,
+      hasSlogan: !!partylistData.slogan,
+      hasAdvocacy: !!partylistData.advocacy,
+      logoUrl
+    });
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     try {
       const result = await client.query(
@@ -26,11 +47,19 @@ const createPartylist = async (partylistData) => {
         ]
       );
 
+<<<<<<< HEAD
+=======
+      console.log('Model: Insert successful, committing transaction...');
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await client.query('COMMIT');
       return result.rows[0];
     } catch (insertError) {
       console.error('Model: Insert failed:', insertError.message);
       
+<<<<<<< HEAD
+=======
+      // Check if table exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       try {
         const tableCheck = await client.query(`
           SELECT EXISTS (
@@ -40,6 +69,10 @@ const createPartylist = async (partylistData) => {
         `);
         
         if (!tableCheck.rows[0].exists) {
+<<<<<<< HEAD
+=======
+          console.log('Model: Partylists table does not exist, creating...');
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           await client.query(`
             CREATE TABLE IF NOT EXISTS partylists (
               id SERIAL PRIMARY KEY,
@@ -53,6 +86,10 @@ const createPartylist = async (partylistData) => {
             );
           `);
           
+<<<<<<< HEAD
+=======
+          // Try insert again after creating table
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const result = await client.query(
             `INSERT INTO partylists (
               name, slogan, advocacy, logo_url
@@ -83,6 +120,10 @@ const createPartylist = async (partylistData) => {
     await client.query('ROLLBACK');
     throw error;
   } finally {
+<<<<<<< HEAD
+=======
+    console.log('Model: Releasing client...');
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     client.release();
   }
 };

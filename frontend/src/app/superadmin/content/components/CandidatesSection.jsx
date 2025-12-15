@@ -6,7 +6,10 @@ import { User } from 'lucide-react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const CandidatesSection = ({ 
   landingContent, 
   updateCandidates, 
@@ -60,8 +63,15 @@ const CandidatesSection = ({
   };
 
   async function fetchWithAuth(url) {
+<<<<<<< HEAD
     let token = Cookies.get('token');
     
+=======
+    // Try to get token from cookies first
+    let token = Cookies.get('token');
+    
+    // Fall back to localStorage if not in cookies
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!token && typeof window !== 'undefined') {
       token = localStorage.getItem('authToken');
     }
@@ -91,7 +101,12 @@ const CandidatesSection = ({
       
       if (data && data.elections) {
         setElections(data.elections);
+<<<<<<< HEAD
 
+=======
+        
+        // Select the first election by default if available
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (data.elections.length > 0) {
           setSelectedElection(data.elections[0].id);
         }
@@ -111,11 +126,22 @@ const CandidatesSection = ({
       
       if (data && data.election) {
         let electionData = data.election;
+<<<<<<< HEAD
 
         let allCandidates = [];
         let positionsMap = {};
 
         if (electionData?.ballot?.positions && Array.isArray(electionData.ballot.positions)) {
+=======
+        
+        // Process the ballot structure to match what we need
+        let allCandidates = [];
+        let positionsMap = {};
+        
+        // Handle different possible ballot structures
+        if (electionData?.ballot?.positions && Array.isArray(electionData.ballot.positions)) {
+          // Use ballot positions if available
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           electionData.positions = electionData.ballot.positions.map(pos => ({
             id: pos.position_id || pos.id,
             name: pos.position_name || pos.name,
@@ -123,7 +149,12 @@ const CandidatesSection = ({
             candidates: pos.candidates
           }));
         }
+<<<<<<< HEAD
 
+=======
+        
+        // Extract candidates from positions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (electionData.positions && Array.isArray(electionData.positions)) {
           electionData.positions.forEach(position => {
             const positionName = position.name;
@@ -148,7 +179,12 @@ const CandidatesSection = ({
         
         setCandidates(allCandidates);
         setCandidatesByPosition(positionsMap);
+<<<<<<< HEAD
 
+=======
+        
+        // Update the landing content with the fetched candidates
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         updateCandidates('items', allCandidates);
       }
     } catch (error) {
@@ -198,7 +234,12 @@ const CandidatesSection = ({
             className="w-full px-3 py-2 border rounded-md text-black"
           />
         </div>
+<<<<<<< HEAD
 
+=======
+        
+        {/* Color pickers for the section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-black mb-1">
@@ -240,7 +281,12 @@ const CandidatesSection = ({
             </div>
           </div>
         </div>
+<<<<<<< HEAD
 
+=======
+        
+        {/* Election Selector */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="border rounded-md p-4 bg-gray-50">
           <label className="block text-sm font-medium text-black mb-2">
             Select Election to Display Candidates From:
@@ -268,6 +314,10 @@ const CandidatesSection = ({
           )}
         </div>
         
+<<<<<<< HEAD
+=======
+        {/* Candidates By Position */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="border rounded-md overflow-hidden">
           <div className="bg-gray-100 px-3 py-2 border-b flex justify-between items-center">
             <h3 className="text-sm font-medium text-black">Election Ballot</h3>
@@ -345,7 +395,12 @@ const CandidatesSection = ({
             </div>
           )}
         </div>
+<<<<<<< HEAD
 
+=======
+        
+        {/* Preview */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {showPreview && (
           <div className="border rounded overflow-hidden">
             <div className="bg-gray-100 px-3 py-2 border-b flex justify-between items-center">

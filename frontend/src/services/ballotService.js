@@ -1,6 +1,10 @@
 import Cookies from 'js-cookie';
 
+<<<<<<< HEAD
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+=======
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''; // Remove '/api'
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 async function fetchWithAuth(url, options = {}) {
   const token = Cookies.get('token');
@@ -14,7 +18,10 @@ async function fetchWithAuth(url, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const response = await fetch(`${API_BASE}${url}`, {
     ...options,
     headers,

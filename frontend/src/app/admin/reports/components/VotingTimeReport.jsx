@@ -9,7 +9,10 @@ import { generatePdfReport } from '@/utils/pdfGenerator';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function VotingTimeReport() {
   const [votingData, setVotingData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +58,10 @@ export default function VotingTimeReport() {
         headers: { Authorization: `Bearer ${token}` }
       });
       
+<<<<<<< HEAD
+=======
+      // Handle different response structures
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let electionsData = [];
       if (Array.isArray(response.data)) {
         electionsData = response.data;
@@ -75,11 +82,19 @@ export default function VotingTimeReport() {
     try {
       setLoading(true);
       
+<<<<<<< HEAD
+=======
+      // Build query parameters
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '50'
       });
       
+<<<<<<< HEAD
+=======
+      // Add status filter if not 'all'
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (selectedStatus !== 'all') {
         params.append('status', selectedStatus);
       }
@@ -119,6 +134,10 @@ export default function VotingTimeReport() {
 
   const handleDownload = async () => {
     try {
+<<<<<<< HEAD
+=======
+      // Get current election title for context
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const currentElectionTitle = selectedElection === 'all' 
         ? 'All Elections' 
         : elections.find(e => e.id === selectedElection)?.title || 'Selected Election';
@@ -148,7 +167,11 @@ export default function VotingTimeReport() {
       };
 
       console.log('Generating PDF with data:', reportData);
+<<<<<<< HEAD
       await generatePdfReport(12, reportData);
+=======
+      await generatePdfReport(12, reportData); // 12 is the report ID for Voting Time Report
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error downloading report:', error);
     }
@@ -272,6 +295,10 @@ export default function VotingTimeReport() {
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Pagination */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {Array.isArray(votingData) && votingData.length > 0 && pagination.totalPages > 1 && (
         <div className="flex justify-between items-center mt-4 bg-white/50 backdrop-blur-sm rounded-lg p-4 border border-gray-200">
           <div className="text-sm text-gray-600">

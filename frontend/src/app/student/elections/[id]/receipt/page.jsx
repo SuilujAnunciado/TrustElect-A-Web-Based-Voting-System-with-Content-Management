@@ -8,10 +8,17 @@ import Cookies from 'js-cookie';
 import { use } from 'react';
 import { toast } from 'react-hot-toast';
 
+<<<<<<< HEAD
 let html2canvas = null;
 
 
 if (typeof window !== 'undefined') {
+=======
+// Import html2canvas via client-side only
+let html2canvas = null;
+if (typeof window !== 'undefined') {
+  // Only import in browser environment
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   import('html2canvas').then(module => {
     html2canvas = module.default;
   });
@@ -36,13 +43,25 @@ function formatNameSimple(lastName, firstName, fallback) {
   return `${cap(lastName)}, ${cap(firstName)}`;
 }
 
+<<<<<<< HEAD
 function generateUniqueCode(receiptId) {
   if (!receiptId) return 'N/A';
 
+=======
+// Function to generate unique 6-character code from receipt ID
+function generateUniqueCode(receiptId) {
+  if (!receiptId) return 'N/A';
+  
+  // Debug logging to verify the receipt ID being used
+  console.log('Generating unique code from receipt ID:', receiptId);
+  
+  // Create a hash from the receipt ID using a more robust hashing algorithm
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   let hash = 0;
   for (let i = 0; i < receiptId.length; i++) {
     const char = receiptId.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
+<<<<<<< HEAD
     hash = hash & hash; 
   }
 
@@ -55,6 +74,24 @@ function generateUniqueCode(receiptId) {
     code = (code + padded).substring(0, 6);
   }
 
+=======
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  // Use absolute value and convert to base36 for alphanumeric characters
+  const absHash = Math.abs(hash);
+  const base36 = absHash.toString(36).toUpperCase();
+  
+  // Take first 6 characters and pad if necessary
+  let code = base36.substring(0, 6);
+  if (code.length < 6) {
+    // Pad with additional characters from the hash
+    const padded = (absHash * 31).toString(36).toUpperCase();
+    code = (code + padded).substring(0, 6);
+  }
+  
+  // Ensure we have exactly 6 alphanumeric characters
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   while (code.length < 6) {
     const randomIndex = Math.abs(hash + code.length) % alphanumeric.length;
@@ -62,6 +99,10 @@ function generateUniqueCode(receiptId) {
   }
   
   const finalCode = code.substring(0, 6);
+<<<<<<< HEAD
+=======
+  console.log('Generated unique code:', finalCode);
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
   return finalCode;
 }
@@ -76,7 +117,12 @@ export default function VoteReceiptPage({ params }) {
   const [receipt, setReceipt] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
+<<<<<<< HEAD
 
+=======
+  
+  // Add ref for the receipt component
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const receiptRef = useRef(null);
 
   const getImageUrl = (imageUrl) => {
@@ -101,19 +147,37 @@ export default function VoteReceiptPage({ params }) {
     try {
       setLoading(true);
       setError(null);
+<<<<<<< HEAD
 
+=======
+      
+      // Get authentication token
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const token = Cookies.get('token');
       if (!token) {
         throw new Error('Authentication required. Please log in again.');
       }
+<<<<<<< HEAD
 
       const voteToken = localStorage.getItem(`vote_token_${electionId}`);
 
+=======
+      
+      // Get vote token from localStorage if available
+      const voteToken = localStorage.getItem(`vote_token_${electionId}`);
+      
+      // Prepare headers
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       };
+<<<<<<< HEAD
 
+=======
+      
+      // First try to get the vote token if we don't have one yet
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!voteToken) {
         try {
           const tokenResponse = await axios.get(`${API_BASE}/elections/${electionId}/vote-token`, {
@@ -131,21 +195,44 @@ export default function VoteReceiptPage({ params }) {
           }
         } catch (tokenError) {
           console.error('Error fetching vote token:', tokenError);
+<<<<<<< HEAD
         }
       } else {
+=======
+          // Continue with the receipt request even if token fetch fails
+        }
+      } else {
+        // Add vote token to headers if available
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         headers['X-Vote-Token'] = voteToken;
       }
       
       try {
+<<<<<<< HEAD
+=======
+        // Fetch receipt from API with token
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const response = await axios.get(`${API_BASE}/elections/${electionId}/vote-receipt`, {
           headers,
           withCredentials: true
         });
+<<<<<<< HEAD
 
         setReceipt(response.data);
       } catch (tokenError) {
         console.error('Error fetching receipt with token, trying without token:', tokenError);
 
+=======
+        
+        // Set receipt data
+        console.log('Receipt data received:', response.data);
+        console.log('Vote token from receipt:', response.data.voteToken);
+        setReceipt(response.data);
+      } catch (tokenError) {
+        console.error('Error fetching receipt with token, trying without token:', tokenError);
+        
+        // If fetching with token fails, try without token
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const responseWithoutToken = await axios.get(`${API_BASE}/elections/${electionId}/vote-receipt`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -158,7 +245,12 @@ export default function VoteReceiptPage({ params }) {
       }
     } catch (err) {
       console.error('Error fetching receipt:', err);
+<<<<<<< HEAD
 
+=======
+      
+      // Handle specific errors
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (err.response) {
         console.error('Error response data:', err.response.data);
         console.error('Error response status:', err.response.status);
@@ -199,11 +291,21 @@ export default function VoteReceiptPage({ params }) {
     
     try {
       setIsDownloading(true);
+<<<<<<< HEAD
 
+=======
+      
+      // Make sure html2canvas is loaded
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (typeof html2canvas !== 'function') {
         throw new Error('HTML2Canvas is not loaded properly');
       }
 
+<<<<<<< HEAD
+=======
+      // Create a simplified version of the receipt for capture
+      // This avoids the oklch color function issue
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.left = '-9999px';
@@ -211,20 +313,35 @@ export default function VoteReceiptPage({ params }) {
       container.style.padding = '20px';
       container.style.width = '800px';
       container.style.fontFamily = 'Arial, sans-serif';
+<<<<<<< HEAD
 
+=======
+      
+      // Add receipt header
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const header = document.createElement('h1');
       header.textContent = 'Vote Receipt';
       header.style.fontSize = '24px';
       header.style.marginBottom = '20px';
       header.style.color = '#000';
       container.appendChild(header);
+<<<<<<< HEAD
 
+=======
+      
+      // Basic info section
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const infoSection = document.createElement('div');
       infoSection.style.border = '1px solid #ddd';
       infoSection.style.borderRadius = '4px';
       infoSection.style.padding = '15px';
       infoSection.style.marginBottom = '20px';
+<<<<<<< HEAD
 
+=======
+      
+      // Election info
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const electionInfo = document.createElement('div');
       electionInfo.style.marginBottom = '10px';
       electionInfo.innerHTML = `
@@ -232,7 +349,12 @@ export default function VoteReceiptPage({ params }) {
         <p style="margin: 5px 0; font-size: 14px; color: #000;"><strong>Date & Time:</strong> ${new Date(receipt.voteDate).toLocaleString()}</p>
       `;
       infoSection.appendChild(electionInfo);
+<<<<<<< HEAD
 
+=======
+      
+      // Vote token and verification code
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const tokenInfo = document.createElement('div');
       const uniqueCode = generateUniqueCode(receipt.voteToken);
       tokenInfo.innerHTML = `
@@ -243,7 +365,12 @@ export default function VoteReceiptPage({ params }) {
       infoSection.appendChild(tokenInfo);
       
       container.appendChild(infoSection);
+<<<<<<< HEAD
 
+=======
+      
+      // Footer
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const footer = document.createElement('div');
       footer.style.background = '#fff9e6';
       footer.style.border = '1px solid #ffe69c';
@@ -262,9 +389,17 @@ export default function VoteReceiptPage({ params }) {
         </p>
       `;
       container.appendChild(footer);
+<<<<<<< HEAD
 
       document.body.appendChild(container);
       
+=======
+      
+      // Add container to the body
+      document.body.appendChild(container);
+      
+      // Use html2canvas on the custom container
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const canvas = await html2canvas(container, {
         scale: 2,
         useCORS: true,
@@ -273,17 +408,35 @@ export default function VoteReceiptPage({ params }) {
         allowTaint: true,
       });
       
+<<<<<<< HEAD
       document.body.removeChild(container);
 
       const imageData = canvas.toDataURL('image/png');
  
+=======
+      // Remove the temporary container
+      document.body.removeChild(container);
+      
+      // Convert canvas to image data URL
+      const imageData = canvas.toDataURL('image/png');
+      
+      // Create a download link
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const link = document.createElement('a');
       link.download = `receipt-id-${receipt.voteToken}.png`;
       link.href = imageData;
       document.body.appendChild(link);
+<<<<<<< HEAD
 
       link.click();
 
+=======
+      
+      // Trigger download
+      link.click();
+      
+      // Clean up
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       document.body.removeChild(link);
       
       toast.success('Receipt downloaded as image!');

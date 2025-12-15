@@ -1,4 +1,8 @@
 "use client";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -114,6 +118,10 @@ export default function Home() {
     
     try {
       const timestamp = new Date().getTime();
+<<<<<<< HEAD
+=======
+      // Fix: Use relative path - Next.js rewrites will handle the routing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.get(`/api/content?t=${timestamp}`, {
         timeout: 5000
       });
@@ -137,7 +145,11 @@ export default function Home() {
             subtitle: newHero.subtitle || landingContent.hero.subtitle,
             videoUrl: newHero.videoUrl || null,
             posterImage: newHero.posterImage || null,
+<<<<<<< HEAD
             carouselImages: newHero.carouselImages || [], 
+=======
+            carouselImages: newHero.carouselImages || [], // FIX: Added missing carouselImages property
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             bgColor: newHero.bgColor || landingContent.hero.bgColor || "#1e40af",
             textColor: newHero.textColor || landingContent.hero.textColor || "#ffffff",
             backgroundImage: newHero.backgroundImage || null
@@ -183,6 +195,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+<<<<<<< HEAD
   }, []);
 
   const refreshContent = useCallback(async () => {
@@ -196,6 +209,24 @@ export default function Home() {
     checkApiConnection();
     fetchContent();
 
+=======
+  }, []); // FIX: Remove landingContent dependency to prevent infinite loops
+
+  // FIX: Add function to clear cache and refresh content
+  const refreshContent = useCallback(async () => {
+    // Clear cache
+    localStorage.removeItem('cachedLandingContent');
+    // Fetch fresh content
+    await fetchContent();
+  }, [fetchContent]);
+
+  // KEEP ONLY THIS useEffect - the one with empty dependency array
+  useEffect(() => {
+    checkApiConnection();
+    fetchContent();
+    
+    // Add storage event listener to refresh content when admin updates are made
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const handleStorageChange = (e) => {
       if (e.key === 'contentUpdated') {
         refreshContent();
@@ -207,19 +238,33 @@ export default function Home() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
+<<<<<<< HEAD
   }, [refreshContent]); 
 
+=======
+  }, [refreshContent]); // Add refreshContent dependency
+
+  // Carousel auto-rotation effect
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (landingContent.hero.carouselImages && landingContent.hero.carouselImages.length > 1) {
       const interval = setInterval(() => {
         setCurrentCarouselIndex((prevIndex) => 
           (prevIndex + 1) % landingContent.hero.carouselImages.length
         );
+<<<<<<< HEAD
       }, 5000); 
 
       return () => clearInterval(interval);
     } else {
 
+=======
+      }, 5000); // Change image every 5 seconds
+
+      return () => clearInterval(interval);
+    } else {
+      // Reset to first image if carousel images change
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setCurrentCarouselIndex(0);
     }
   }, [landingContent.hero.carouselImages]);
@@ -228,21 +273,37 @@ export default function Home() {
   const formatImageUrl = (url) => {
     if (!url) return null; 
     try {
+<<<<<<< HEAD
 
+=======
+      // Filter out blob URLs that are temporary client-side URLs
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (url.startsWith('blob:')) {
         console.warn("Blob URLs cannot be used on the public landing page:", url);
         return null;
       }
 
+<<<<<<< HEAD
+=======
+      // Handle absolute URLs
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (url.startsWith('http://') || url.startsWith('https://')) {
         return url;
       }
 
+<<<<<<< HEAD
+=======
+      // For relative URLs starting with /uploads, /api, etc.
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (url.startsWith('/')) {
         const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
         return API_BASE ? `${API_BASE}${url}` : url;
       }
 
+<<<<<<< HEAD
+=======
+      // For relative URLs without leading slash
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
       return API_BASE ? `${API_BASE}/${url}` : `/${url}`;
     } catch (error) {
@@ -271,6 +332,10 @@ export default function Home() {
     );
   };
 
+<<<<<<< HEAD
+=======
+  // Full-bleed background image renderer to avoid CSS background blur/pixelation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const renderSectionBackground = (url, alt) => {
     const formattedUrl = formatImageUrl(url);
     if (!formattedUrl) return null;
@@ -293,7 +358,11 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen flex flex-col">
+<<<<<<< HEAD
 
+=======
+      {/* Header Section - Updated to remove About button */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <header 
         className="w-full flex justify-between items-center p-6 shadow-md fixed top-0 left-0 right-0 z-50 relative"
         style={{
@@ -322,7 +391,12 @@ export default function Home() {
               onError={(e) => {
                 console.error("Error loading logo:", landingContent.logo.imageUrl);
                 console.error("Formatted URL:", formatImageUrl(landingContent.logo.imageUrl));
+<<<<<<< HEAD
 
+=======
+                
+                // Try multiple fallback URLs for logo
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 const fallbackUrls = [
                   landingContent.logo.imageUrl.replace('/uploads/images/', '/api/uploads/images/'),
                   landingContent.logo.imageUrl.replace('/uploads/', '/api/uploads/'),
@@ -368,6 +442,10 @@ export default function Home() {
         </h1>
         
         <nav className="flex items-center gap-4 relative z-10">
+<<<<<<< HEAD
+=======
+          {/* Removed About button */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <Button
             onClick={() => setShowLogin(true)}
             className="cursor-pointer px-6 py-2 br-5 bg-blue-800 text-white font-semibold rounded-lg shadow-md hover:bg-blue-500"
@@ -407,11 +485,19 @@ export default function Home() {
           </div>
           <div className="lg:w-3/4 mt-10 lg:mt-0 flex justify-center w-full">
             {(() => {
+<<<<<<< HEAD
+=======
+              // Check for carousel images first
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               if (landingContent.hero.carouselImages && landingContent.hero.carouselImages.length > 0) {
 
                 
                 return (
                   <div className="w-full h-full min-h-[500px] bg-gray-900 rounded-lg overflow-hidden relative">
+<<<<<<< HEAD
+=======
+                    {/* Carousel Images */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                     <div className="relative w-full h-full min-h-[500px]">
                       {landingContent.hero.carouselImages.map((image, index) => {
 
@@ -459,6 +545,12 @@ export default function Home() {
                       })}
                     </div>
 
+<<<<<<< HEAD
+=======
+
+                    
+                    {/* Carousel Indicators */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                     {landingContent.hero.carouselImages.length > 1 && (
                       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
                         {landingContent.hero.carouselImages.map((_, index) => (
@@ -477,7 +569,12 @@ export default function Home() {
                         ))}
                       </div>
                     )}
+<<<<<<< HEAD
 
+=======
+                    
+                    {/* Navigation Arrows */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                     {landingContent.hero.carouselImages.length > 1 && (
                       <>
                         <button
@@ -511,10 +608,19 @@ export default function Home() {
                   </div>
                 );
               }
+<<<<<<< HEAD
 
               const heroVideoUrl = landingContent.hero && landingContent.hero.videoUrl ? 
                 formatImageUrl(landingContent.hero.videoUrl) : null;
 
+=======
+              
+              // Fallback to video if no carousel images
+              const heroVideoUrl = landingContent.hero && landingContent.hero.videoUrl ? 
+                formatImageUrl(landingContent.hero.videoUrl) : null;
+              
+              // Safety check: Ensure hero video is not accidentally using CTA video
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               if (heroVideoUrl && landingContent.callToAction?.videoUrl && 
                   heroVideoUrl === formatImageUrl(landingContent.callToAction.videoUrl)) {
                 console.warn("WARNING: Hero video URL matches CTA video URL - this should not happen!");
@@ -565,7 +671,12 @@ export default function Home() {
                   onError={(e) => {
                     console.error("Error loading hero poster image:", posterWithTimestamp);
                     console.error("Original URL:", heroPosterUrl);
+<<<<<<< HEAD
 
+=======
+                    
+                    // Try multiple fallback URLs
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                     const fallbackUrls = [
                       heroPosterUrl.replace('/uploads/images/', '/api/uploads/images/'),
                       heroPosterUrl.replace('/uploads/', '/api/uploads/'),
@@ -621,6 +732,10 @@ export default function Home() {
         </div>
       </section>
 
+<<<<<<< HEAD
+=======
+      {/* Call to Action Section - Moved after Hero */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {landingContent.callToAction.enabled && (
         <section 
            className="text-white py-16 px-6 min-h-screen flex items-center relative pt-24"
@@ -633,8 +748,14 @@ export default function Home() {
             renderSectionBackground(landingContent.callToAction.backgroundImage, 'Call To Action Background')
           )}
           <div className="container mx-auto max-w-6xl w-full relative z-10">
+<<<<<<< HEAD
 
             <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+=======
+            {/* Changed to flex layout with video on left and content on right */}
+            <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+              {/* Video container - Left side, smaller size */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="lg:w-1/2 w-full">
                 {(() => {
 
@@ -685,6 +806,10 @@ export default function Home() {
                 )}
               </div>
 
+<<<<<<< HEAD
+=======
+              {/* Content container - Right side */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="lg:w-1/2 w-full space-y-6">
                 <div className="text-center lg:text-left">
                   <h2 
@@ -706,6 +831,10 @@ export default function Home() {
         </section>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Features Section - Moved after CTA */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <section 
         className="text-white py-16 px-6 min-h-screen flex items-center relative pt-24"
         style={{
@@ -785,6 +914,10 @@ export default function Home() {
       </section>
 
 
+<<<<<<< HEAD
+=======
+      {/* New About Us Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <section className="py-20 px-6 bg-white">
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-4xl font-bold text-center mb-12 text-blue-900">
@@ -858,6 +991,10 @@ export default function Home() {
         </section>
       </main>
 
+<<<<<<< HEAD
+=======
+      {/* Footer */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <footer className="bg-[#0020C2] text-white py-8 px-6">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center">
@@ -872,12 +1009,20 @@ export default function Home() {
         </div>
       </footer>
 
+<<<<<<< HEAD
+=======
+      {/* Login Form (Centered on Click) */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showLogin && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <LoginForm onClose={() => setShowLogin(false)} />
         </div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Remove the About Modal completely */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     </div>
   );
 }

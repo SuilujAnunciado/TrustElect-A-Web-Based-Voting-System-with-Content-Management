@@ -13,11 +13,19 @@ const ConfirmationModal = ({
   confirmButtonColor = "bg-red-500 hover:bg-red-600",
   cancelButtonColor = "bg-gray-300 hover:bg-gray-400",
   isLoading = false,
+<<<<<<< HEAD
   type = "danger" 
 }) => {
   if (!isOpen) return null;
 
   
+=======
+  type = "danger" // "danger", "warning", "info"
+}) => {
+  if (!isOpen) return null;
+
+  // Determine colors based on type
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const getColors = () => {
     switch (type) {
       case "danger":
@@ -48,16 +56,29 @@ const ConfirmationModal = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 ">
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
+<<<<<<< HEAD
 
+=======
+        {/* Title */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <h2 className="text-xl font-bold text-black text-center mb-4">
           {title}
         </h2>
         
+<<<<<<< HEAD
  
         <p className="text-black text-center mb-6">
           {message}
         </p>
 
+=======
+        {/* Message */}
+        <p className="text-black text-center mb-6">
+          {message}
+        </p>
+        
+        {/* Buttons */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="flex justify-center gap-4">
           <button
             onClick={onClose}

@@ -1,4 +1,8 @@
 "use client";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useState, useEffect } from "react";
 import { Download, X, Calendar, Filter, Users, BarChart2, RefreshCw } from "lucide-react";
 import { generatePdfReport } from '@/utils/pdfGenerator';
@@ -10,11 +14,21 @@ export default function LiveVoteCountDetail({ report, onClose, onDownload }) {
   const formatDateTime = (date, time) => {
     if (!date || !time) return 'N/A';
     try {
+<<<<<<< HEAD
 
       const dateObj = new Date(date);
 
       const [hours, minutes] = time.split(':');
 
+=======
+      // Parse the date
+      const dateObj = new Date(date);
+      
+      // Parse the time (assuming format like "14:30:00")
+      const [hours, minutes] = time.split(':');
+      
+      // Set the time components
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       dateObj.setHours(parseInt(hours, 10));
       dateObj.setMinutes(parseInt(minutes, 10));
       
@@ -53,7 +67,11 @@ export default function LiveVoteCountDetail({ report, onClose, onDownload }) {
   };
 
   useEffect(() => {
+<<<<<<< HEAD
   
+=======
+    // Set up auto-refresh every 10 minutes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const interval = setInterval(() => {
       setIsRefreshing(true);
       report.onRefresh().then(() => {
@@ -96,7 +114,11 @@ export default function LiveVoteCountDetail({ report, onClose, onDownload }) {
     };
 
     try {
+<<<<<<< HEAD
       await generatePdfReport(6, reportData); 
+=======
+      await generatePdfReport(6, reportData); // 6 is the report ID for Live Vote Count
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error generating report:', error);
     }

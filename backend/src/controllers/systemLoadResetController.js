@@ -1,12 +1,25 @@
 const pool = require('../config/db');
 
+<<<<<<< HEAD
+=======
+/**
+ * System Load Reset Controller
+ * Handles resetting system load data for fresh testing
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 exports.resetSystemLoadData = async (req, res) => {
   const client = await pool.connect();
   
   try {
     await client.query('BEGIN');
+<<<<<<< HEAD
 
+=======
+    
+    
+    // Check if system_load_logs table exists first
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const tableExists = await client.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
@@ -16,10 +29,20 @@ exports.resetSystemLoadData = async (req, res) => {
     `);
     
     if (tableExists.rows[0].exists) {
+<<<<<<< HEAD
       await client.query('DELETE FROM system_load_logs WHERE activity_type = $1', ['login']);
       
       await client.query('DELETE FROM system_load_logs WHERE activity_type = $1', ['voting']);
 
+=======
+      // Clear login activity data
+      await client.query('DELETE FROM system_load_logs WHERE activity_type = $1', ['login']);
+      
+      // Clear voting activity data  
+      await client.query('DELETE FROM system_load_logs WHERE activity_type = $1', ['voting']);
+      
+      // Clear all system load logs
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await client.query('DELETE FROM system_load_logs');
     } 
     
@@ -76,9 +99,18 @@ exports.resetSystemLoadData = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 
 exports.getResetStatus = async (req, res) => {
   try {
+=======
+/**
+ * Get system load reset status
+ */
+exports.getResetStatus = async (req, res) => {
+  try {
+    // Check if system_load_logs table exists first
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const tableExists = await pool.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
@@ -100,7 +132,12 @@ exports.getResetStatus = async (req, res) => {
         }
       });
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Check if there's any system load data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await pool.query(`
       SELECT 
         COUNT(*) as total_logs,

@@ -1,10 +1,17 @@
 const pool = require('../config/db');
 
+<<<<<<< HEAD
 
 class FailedLoginModel {
   static async getFailedLoginSummary() {
     try {
   
+=======
+class FailedLoginModel {
+  static async getFailedLoginSummary() {
+    try {
+      // Get total failed attempts
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const totalAttemptsQuery = `
         SELECT COUNT(*) as total_attempts
         FROM audit_logs
@@ -13,6 +20,10 @@ class FailedLoginModel {
       `;
       const totalAttempts = await pool.query(totalAttemptsQuery);
 
+<<<<<<< HEAD
+=======
+      // Get locked accounts count - accounts with 3 or more failed attempts within 30 minutes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const lockedAccountsQuery = `
         WITH recent_failures AS (
           SELECT 
@@ -31,6 +42,10 @@ class FailedLoginModel {
       `;
       const lockedAccounts = await pool.query(lockedAccountsQuery);
 
+<<<<<<< HEAD
+=======
+      // Get recent failed attempts with locked status
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const recentAttemptsQuery = `
         WITH recent_failures AS (
           SELECT 
@@ -61,6 +76,10 @@ class FailedLoginModel {
       `;
       const recentAttempts = await pool.query(recentAttemptsQuery);
 
+<<<<<<< HEAD
+=======
+      // Get time distribution
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const timeDistributionQuery = `
         SELECT 
           EXTRACT(HOUR FROM created_at) as hour,
@@ -73,6 +92,10 @@ class FailedLoginModel {
       `;
       const timeDistribution = await pool.query(timeDistributionQuery);
 
+<<<<<<< HEAD
+=======
+      // Format the response
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = {
         total_attempts: parseInt(totalAttempts.rows[0]?.total_attempts) || 0,
         locked_accounts: parseInt(lockedAccounts.rows[0]?.locked_accounts) || 0,

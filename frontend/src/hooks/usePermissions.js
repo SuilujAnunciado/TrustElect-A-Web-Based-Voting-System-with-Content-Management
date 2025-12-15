@@ -12,7 +12,10 @@ export const updateGlobalPermissionsTimestamp = () => {
   }
 };
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export const ensureUserIdFromToken = () => {
   try {
     const userId = Cookies.get('userId');
@@ -34,7 +37,12 @@ export const ensureUserIdFromToken = () => {
 };
 
 /**
+<<<<<<< HEAD
  * @returns {Object}
+=======
+ * Custom hook to fetch and check admin permissions
+ * @returns {Object} Permission check functions and loading state
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 export default function usePermissions() {
   const [permissions, setPermissions] = useState({});
@@ -43,6 +51,10 @@ export default function usePermissions() {
   const [userData, setUserData] = useState(null);
   const [initialized, setInitialized] = useState(false);
 
+<<<<<<< HEAD
+=======
+  // Initialize user data once
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (!initialized) {
       const userId = Cookies.get('userId');
@@ -148,7 +160,11 @@ export default function usePermissions() {
       setPermissionsLoading(false);
       return false;
     }
+<<<<<<< HEAD
   }, []); 
+=======
+  }, []); // REMOVED all dependencies to prevent circular re-renders
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
   const refreshPermissions = useCallback(() => {
     const userId = userData?.id || Cookies.get('userId');
@@ -158,7 +174,11 @@ export default function usePermissions() {
     }
     
     return Promise.resolve(false);
+<<<<<<< HEAD
   }, [fetchPermissions, userData?.id]); 
+=======
+  }, [fetchPermissions, userData?.id]); // Added userData?.id dependency
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
   const hasPermission = useCallback((module, action) => {
     const userRole = Cookies.get('role');
@@ -174,16 +194,31 @@ export default function usePermissions() {
     return false;
   }, [permissions]);
 
+<<<<<<< HEAD
+=======
+  // Initial permissions fetch - only run once when userData is available
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (userData?.id && !permissionsLastUpdated) {
       fetchPermissions(userData.id);
     }
+<<<<<<< HEAD
   }, [userData?.id, fetchPermissions, permissionsLastUpdated]);
 
   useEffect(() => {
     const handlePermissionUpdate = (event) => {
       const { adminId, timestamp } = event.detail;
 
+=======
+  }, [userData?.id, fetchPermissions, permissionsLastUpdated]); // Added missing dependencies
+
+  // Global permissions update listener - FIXED to prevent circular dependencies
+  useEffect(() => {
+    const handlePermissionUpdate = (event) => {
+      const { adminId, timestamp } = event.detail;
+      
+      // Check if this update applies to the current user
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (userData?.id && userData.id.toString() === adminId.toString()) {
         const userId = userData.id;
         fetchPermissions(userId); 
@@ -204,11 +239,19 @@ export default function usePermissions() {
     window.addEventListener('admin-permissions-updated', handlePermissionUpdate);
     const permissionCheckInterval = setInterval(checkGlobalPermissionsUpdate, 10000); 
 
+<<<<<<< HEAD
+=======
+    // Clean up
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return () => {
       window.removeEventListener('admin-permissions-updated', handlePermissionUpdate);
       clearInterval(permissionCheckInterval);
     };
+<<<<<<< HEAD
   }, [userData?.id, permissionsLastUpdated, fetchPermissions]); 
+=======
+  }, [userData?.id, permissionsLastUpdated, fetchPermissions]); // Added fetchPermissions dependency
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
   const triggerGlobalPermissionsRefresh = useCallback(() => {
     updateGlobalPermissionsTimestamp();

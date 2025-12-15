@@ -14,14 +14,24 @@ export default function Header() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
   const { logoUrl, isLoading: logoLoading } = useLogo();
 
+<<<<<<< HEAD
   
   const handleLogout = async () => {
     try {
+=======
+  const handleLogout = async () => {
+    try {
+      // Get user information before removing cookies
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const token = Cookies.get("token");
       const userId = Cookies.get("userId");
       const email = Cookies.get("email");
       const role = Cookies.get("role");
       
+<<<<<<< HEAD
+=======
+      // Call the logout API
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await axios.post(`${API_URL}/auth/logout`, {
         userId,
         email,
@@ -30,6 +40,10 @@ export default function Header() {
         headers: { Authorization: `Bearer ${token}` }
       });
       
+<<<<<<< HEAD
+=======
+      // Then remove cookies and redirect
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       Cookies.remove("token");
       Cookies.remove("role");
       Cookies.remove("email");
@@ -37,6 +51,10 @@ export default function Header() {
       router.push("/");
     } catch (error) {
       console.error("Logout error:", error);
+<<<<<<< HEAD
+=======
+      // Still perform client-side logout even if API call fails
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       Cookies.remove("token");
       Cookies.remove("role");
       Cookies.remove("email");
@@ -61,6 +79,10 @@ export default function Header() {
             style={{ maxHeight: 'calc(51px - (0px * 2))' }}
             onError={(e) => {
               console.error("Error loading logo:", logoUrl);
+<<<<<<< HEAD
+=======
+              // Try multiple fallback URLs for logo
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               const fallbackUrls = [
                 logoUrl.replace('/uploads/images/', '/api/uploads/images/'),
                 logoUrl.replace('/uploads/', '/api/uploads/'),

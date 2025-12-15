@@ -37,17 +37,30 @@ export default function DeletedAdminsPage() {
     }
   };
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const enableAutoDelete = () => {
     if (!confirm(`Are you sure you want to enable auto-deletion? All deleted admins will be permanently deleted after ${autoDeleteDays} days.`)) return;
     
     setAutoDeleteEnabled(true);
     toast.success(`Auto-deletion enabled for ${autoDeleteDays} days`);
+<<<<<<< HEAD
 
     const timer = setTimeout(() => {
       performAutoDelete();
     }, autoDeleteDays * 24 * 60 * 60 * 1000); 
     
+=======
+    
+    // Set up auto-deletion timer
+    const timer = setTimeout(() => {
+      performAutoDelete();
+    }, autoDeleteDays * 24 * 60 * 60 * 1000); // Convert days to milliseconds
+    
+    // Store timer ID for potential cancellation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     localStorage.setItem('autoDeleteTimer', timer.toString());
   };
 
@@ -66,7 +79,12 @@ export default function DeletedAdminsPage() {
   const performAutoDelete = async () => {
     try {
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
+=======
+      
+      // Get all deleted admins that are older than the specified days
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const now = new Date();
       const cutoffDate = new Date(now.getTime() - (autoDeleteDays * 24 * 60 * 60 * 1000));
       
@@ -81,6 +99,10 @@ export default function DeletedAdminsPage() {
         return;
       }
 
+<<<<<<< HEAD
+=======
+      // Delete each admin permanently
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       for (const admin of adminsToDelete) {
         try {
           await axios.delete(`/api/admin/manage-admins/${admin.id}/permanent`, {
@@ -102,6 +124,10 @@ export default function DeletedAdminsPage() {
     }
   };
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const confirmPermanentDelete = (id) => {
     setSelectedAdminId(id);
     setShowConfirmModal(true);
@@ -135,7 +161,12 @@ export default function DeletedAdminsPage() {
 
   useEffect(() => {
     fetchDeletedAdmins();
+<<<<<<< HEAD
 
+=======
+    
+    // Check if there's an existing auto-delete timer
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const existingTimer = localStorage.getItem('autoDeleteTimer');
     if (existingTimer) {
       setAutoDeleteEnabled(true);
@@ -158,6 +189,10 @@ export default function DeletedAdminsPage() {
         Back
       </button>
 
+<<<<<<< HEAD
+=======
+      {/* Auto-Delete Controls */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex items-center gap-4 mb-3">
           <h3 className="text-sm font-semibold text-black">Auto-Delete Settings:</h3>

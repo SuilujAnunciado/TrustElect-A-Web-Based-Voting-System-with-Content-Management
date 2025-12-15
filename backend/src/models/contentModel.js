@@ -1,8 +1,14 @@
 const pool = require('../config/db');
 
+<<<<<<< HEAD
 
 /**
  * @returns {Promise<Array>} 
+=======
+/**
+ * Get all landing content sections
+ * @returns {Promise<Array>} Landing content sections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function getAllContent() {
   try {
@@ -14,6 +20,10 @@ async function getAllContent() {
        ORDER BY section_order ASC`
     );
     
+<<<<<<< HEAD
+=======
+    // Transform the results into a more usable format for the frontend
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (result.rows.length > 0) {
       const contentObj = {};
       
@@ -21,6 +31,10 @@ async function getAllContent() {
         contentObj[row.section_key] = row.content_data;
       });
       
+<<<<<<< HEAD
+=======
+      // Ensure logo section exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!contentObj.logo) {
         contentObj.logo = {
           imageUrl: null
@@ -42,8 +56,14 @@ async function getAllContent() {
 }
 
 /**
+<<<<<<< HEAD
  * @param {String} sectionKey 
  * @returns {Promise<Object>} 
+=======
+ * Get content for a specific section
+ * @param {String} sectionKey - Section key (hero, features, callToAction)
+ * @returns {Promise<Object>} Section content
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function getSectionContent(sectionKey) {
   try {
@@ -62,6 +82,10 @@ async function getSectionContent(sectionKey) {
       };
     }
     
+<<<<<<< HEAD
+=======
+    // Return default content based on section
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const defaultContent = {
       logo: {
         imageUrl: null
@@ -130,17 +154,29 @@ async function getSectionContent(sectionKey) {
 }
 
 /**
+<<<<<<< HEAD
 
  * @param {String} sectionKey 
  * @param {Object} contentData
  * @returns {Promise<Object>}
+=======
+ * Update content for a specific section
+ * @param {String} sectionKey - Section key (hero, features, callToAction)
+ * @param {Object} contentData - New content data
+ * @returns {Promise<Object>} Updated section content
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function updateSectionContent(sectionKey, contentData) {
   const client = await pool.connect();
   
   try {
     await client.query('BEGIN');
+<<<<<<< HEAD
 
+=======
+    
+    // Update the section content
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const updateResult = await client.query(
       `UPDATE landing_content 
        SET content_data = $1, updated_at = CURRENT_TIMESTAMP 
@@ -150,6 +186,11 @@ async function updateSectionContent(sectionKey, contentData) {
     );
     
     if (updateResult.rows.length === 0) {
+<<<<<<< HEAD
+=======
+      // If section doesn't exist, insert it
+      // First determine the next order number
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const orderResult = await client.query(
         `SELECT COALESCE(MAX(section_order), 0) + 1 as next_order FROM landing_content`
       );
@@ -179,8 +220,14 @@ async function updateSectionContent(sectionKey, contentData) {
 }
 
 /**
+<<<<<<< HEAD
  * @param {Object} mediaData
  * @returns {Promise<Object>} 
+=======
+ * Save a media file record
+ * @param {Object} mediaData - Media file data
+ * @returns {Promise<Object>} Saved media record
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function saveMedia(mediaData) {
   try {
@@ -226,8 +273,14 @@ async function saveMedia(mediaData) {
 }
 
 /**
+<<<<<<< HEAD
  * @param {Number} id 
  * @returns {Promise<Object>} 
+=======
+ * Get a media file by ID
+ * @param {Number} id - Media ID
+ * @returns {Promise<Object>} Media record
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function getMediaById(id) {
   try {
@@ -253,8 +306,14 @@ async function getMediaById(id) {
 }
 
 /**
+<<<<<<< HEAD
  * @param {String} fileType 
  * @returns {Promise<Array>} 
+=======
+ * Get all media files, optionally filtered by type
+ * @param {String} fileType - Optional file type filter (image, video)
+ * @returns {Promise<Array>} Media records
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function getAllMedia(fileType = null) {
   try {
@@ -284,8 +343,14 @@ async function getAllMedia(fileType = null) {
 }
 
 /**
+<<<<<<< HEAD
  * @param {Number} id 
  * @returns {Promise<Boolean>} 
+=======
+ * Delete a media file by ID
+ * @param {Number} id - Media ID
+ * @returns {Promise<Boolean>} Success status
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function deleteMedia(id) {
   try {
@@ -302,7 +367,12 @@ async function deleteMedia(id) {
 }
 
 /**
+<<<<<<< HEAD
  * @returns {Promise<Object>}
+=======
+ * Get the active theme
+ * @returns {Promise<Object>} Active theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function getActiveTheme() {
   try {
@@ -319,6 +389,10 @@ async function getActiveTheme() {
       return result.rows[0];
     }
     
+<<<<<<< HEAD
+=======
+    // If no active theme, return the default theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const defaultResult = await pool.query(
       `SELECT id, name, colors, 
               to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') as "createdAt", 
@@ -340,8 +414,14 @@ async function getActiveTheme() {
 }
 
 /**
+<<<<<<< HEAD
  * @param {Number} themeId 
  * @returns {Promise<Object>}
+=======
+ * Set a theme as active
+ * @param {Number} themeId - Theme ID to activate
+ * @returns {Promise<Object>} Activated theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function setActiveTheme(themeId) {
   const client = await pool.connect();
@@ -349,10 +429,18 @@ async function setActiveTheme(themeId) {
   try {
     await client.query('BEGIN');
     
+<<<<<<< HEAD
+=======
+    // Deactivate all themes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     await client.query(
       `UPDATE themes SET is_active = FALSE`
     );
     
+<<<<<<< HEAD
+=======
+    // Activate the specified theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await client.query(
       `UPDATE themes 
        SET is_active = TRUE, updated_at = CURRENT_TIMESTAMP 
@@ -380,10 +468,18 @@ async function setActiveTheme(themeId) {
 }
 
 /**
+<<<<<<< HEAD
  * @param {String} name 
  * @param {Object} colors 
  * @param {Boolean} isActive 
  * @returns {Promise<Object>} 
+=======
+ * Create a new theme
+ * @param {String} name - Theme name
+ * @param {Object} colors - Theme colors
+ * @param {Boolean} isActive - Whether to set as active
+ * @returns {Promise<Object>} Created theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function createTheme(name, colors, isActive = false) {
   const client = await pool.connect();
@@ -391,12 +487,20 @@ async function createTheme(name, colors, isActive = false) {
   try {
     await client.query('BEGIN');
     
+<<<<<<< HEAD
+=======
+    // If this theme will be active, deactivate all others
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (isActive) {
       await client.query(
         `UPDATE themes SET is_active = FALSE`
       );
     }
     
+<<<<<<< HEAD
+=======
+    // Create the new theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await client.query(
       `INSERT INTO themes (name, colors, is_active) 
        VALUES ($1, $2, $3) 
@@ -418,7 +522,12 @@ async function createTheme(name, colors, isActive = false) {
 }
 
 /**
+<<<<<<< HEAD
  * @returns {Promise<Array>} 
+=======
+ * Get all themes
+ * @returns {Promise<Array>} All themes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function getAllThemes() {
   try {
@@ -438,9 +547,15 @@ async function getAllThemes() {
 }
 
 /**
+<<<<<<< HEAD
 
  * @param {Number} id 
  * @returns {Promise<Object>} 
+=======
+ * Get a theme by ID
+ * @param {Number} id - Theme ID
+ * @returns {Promise<Object>} Theme record
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function getThemeById(id) {
   try {
@@ -465,11 +580,19 @@ async function getThemeById(id) {
 }
 
 /**
+<<<<<<< HEAD
  
  * @param {Number} id 
  * @param {String} name
  * @param {Object} colors 
  * @returns {Promise<Object>}
+=======
+ * Update a theme
+ * @param {Number} id - Theme ID
+ * @param {String} name - Theme name
+ * @param {Object} colors - Theme colors
+ * @returns {Promise<Object>} Updated theme record
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 async function updateTheme(id, name, colors) {
   try {
@@ -495,22 +618,40 @@ async function updateTheme(id, name, colors) {
 }
 
 /**
+<<<<<<< HEAD
  * @param {Number} id
  * @returns {Promise<Boolean>} 
  */
 async function deleteTheme(id) {
   try {
+=======
+ * Delete a theme
+ * @param {Number} id - Theme ID
+ * @returns {Promise<Boolean>} Success status
+ */
+async function deleteTheme(id) {
+  try {
+    // Don't allow deleting the last theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const countResult = await pool.query('SELECT COUNT(*) FROM themes');
     if (parseInt(countResult.rows[0].count) <= 1) {
       throw new Error('Cannot delete the last theme');
     }
     
+<<<<<<< HEAD
+=======
+    // If this is the active theme, make another theme active
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const themeResult = await pool.query(
       'SELECT is_active FROM themes WHERE id = $1',
       [id]
     );
     
     if (themeResult.rows.length > 0 && themeResult.rows[0].is_active) {
+<<<<<<< HEAD
+=======
+      // Find another theme to make active
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const otherThemeResult = await pool.query(
         'SELECT id FROM themes WHERE id != $1 LIMIT 1',
         [id]
@@ -520,7 +661,12 @@ async function deleteTheme(id) {
         await setActiveTheme(otherThemeResult.rows[0].id);
       }
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Delete the theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await pool.query(
       'DELETE FROM themes WHERE id = $1 RETURNING id',
       [id]

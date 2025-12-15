@@ -11,7 +11,10 @@ import PartylistDetails from "./components/PartylistDetails";
 import PositionManager from "./components/PositionManager";
 import LaboratoryPrecinctManager from "./components/LaboratoryPrecinctManager";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const API_ENDPOINTS = {
   programs: "programs",
   electionTypes: "election-types",
@@ -95,11 +98,19 @@ const MaintenancePage = () => {
             "/api/superadmin/departments",
             { headers: { Authorization: `Bearer ${token}` } }
           );
+<<<<<<< HEAD
 
           const departments = response.data.departments || response.data || [];
           const activeDepartments = departments.filter(dept => {
             const isDeleted = dept.is_deleted === true;
             const isActive = dept.is_active !== false; 
+=======
+          // Transform and filter out archived/deleted departments
+          const departments = response.data.departments || response.data || [];
+          const activeDepartments = departments.filter(dept => {
+            const isDeleted = dept.is_deleted === true;
+            const isActive = dept.is_active !== false; // treat null/undefined as active true
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             return isActive && !isDeleted;
           });
           setItems(activeDepartments.map(dept => ({
@@ -108,6 +119,10 @@ const MaintenancePage = () => {
             department_type: dept.department_type
           })));
         } else if (activeTab === "laboratoryPrecincts") {
+<<<<<<< HEAD
+=======
+          // Fetch precincts for laboratory precinct management
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           response = await axios.get(
             "/api/maintenance/precincts",
             { headers: { Authorization: `Bearer ${token}` } }
@@ -371,7 +386,11 @@ const MaintenancePage = () => {
   };
 
   const handleArchivePartylist = async (id) => {
+<<<<<<< HEAD
   
+=======
+    // Find the partylist to get its name for confirmation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const partylist = partylistList.find(p => p.id === id);
     if (!partylist) {
       toast.error("Partylist not found");
@@ -405,7 +424,11 @@ const MaintenancePage = () => {
   };
 
   const handleRestorePartylist = async (id) => {
+<<<<<<< HEAD
    
+=======
+    // Find the partylist to get its name for confirmation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const partylist = archivedPartylistList.find(p => p.id === id);
     if (!partylist) {
       toast.error("Partylist not found");
@@ -438,7 +461,11 @@ const MaintenancePage = () => {
   };
 
   const handlePermanentDeletePartylist = async (id) => {
+<<<<<<< HEAD
 
+=======
+    // Find the partylist to get its name for confirmation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const partylist = archivedPartylistList.find(p => p.id === id);
     if (!partylist) {
       toast.error("Partylist not found");

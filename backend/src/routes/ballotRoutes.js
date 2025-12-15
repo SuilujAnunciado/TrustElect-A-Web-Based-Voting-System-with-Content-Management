@@ -22,8 +22,14 @@ const router = express.Router();
 
 router.post("/", verifyToken,  createBallot);
 router.get("/", verifyToken, createBallot);
+<<<<<<< HEAD
 router.get("/:electionId/ballot", verifyToken, getBallotByElection);
 
+=======
+// Change this line:
+router.get("/:electionId/ballot", verifyToken, getBallotByElection);
+// To:
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get("/election/:electionId", verifyToken, getBallotByElection);
 router.put("/:ballotId/description", verifyToken,  updateBallotdescription);
 router.delete("/:ballotId", verifyToken,  deleteBallot);
@@ -50,5 +56,8 @@ router.post(
 router.put("/candidates/:candidateId", verifyToken, updateCandidate);
 router.delete("/candidates/:candidateId", verifyToken,deleteCandidate);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 module.exports = router;

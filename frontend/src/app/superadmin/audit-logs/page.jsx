@@ -16,7 +16,10 @@ export default function AuditLogsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [filters, setFilters] = useState({
     activityType: "all",
     userRole: "all",
@@ -74,6 +77,10 @@ export default function AuditLogsPage() {
       }
 
       if (filters.userRole !== "all") {
+<<<<<<< HEAD
+=======
+        // Handle different role variations
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (filters.userRole === "Super Admin") {
           params.append("user_role", "Super Admin,SystemAdmin");
         } else {
@@ -115,10 +122,19 @@ export default function AuditLogsPage() {
         const seenLogs = new Set();
         
         res.data.data.forEach(log => {
+<<<<<<< HEAD
           if (log.action === 'SMS_VERIFIED') {
             return;
           }
 
+=======
+          // Filter out SMS_VERIFIED logs
+          if (log.action === 'SMS_VERIFIED') {
+            return;
+          }
+          
+          // Create a more comprehensive unique key
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const logKey = `${log.action}-${log.entity_type}-${log.entity_id}-${log.user_id}-${log.user_email}-${new Date(log.created_at).getTime()}`;
           if (!seenLogs.has(logKey)) {
             seenLogs.add(logKey);
@@ -204,7 +220,11 @@ export default function AuditLogsPage() {
           const userName = log.admin_name || log.user_name || log.student_name || 
                           log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
                           'Unknown User';
+<<<<<<< HEAD
           const description = getActivityDescription(log).replace(/,/g, ';'); 
+=======
+          const description = getActivityDescription(log).replace(/,/g, ';'); // Replace commas to avoid CSV issues
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           return [
             log.id,
             formatDateTime(log.created_at),
@@ -269,7 +289,11 @@ export default function AuditLogsPage() {
     const isAdministratorDept = deptLc === 'administrator' || deptLc === 'administration' || deptLc === 'system';
     
     if (roleLc === 'admin' && isAdministratorDept) {
+<<<<<<< HEAD
       return 'bg-red-100 text-red-800';
+=======
+      return 'bg-red-100 text-red-800'; // System Admin color
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     }
     
     switch (roleLc) {
@@ -305,12 +329,22 @@ export default function AuditLogsPage() {
 
   const getActivityDescription = (log) => {
     if (!log) return "-";
+<<<<<<< HEAD
 
+=======
+    
+    // Extract user information - use full name only (like AdminActivityReport does)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const userFullName = log.admin_name || log.user_name || log.student_name || 
                          log.details?.admin_name || log.details?.user_name || log.details?.student_name || 
                          'Unknown User';
     const timestamp = new Date(log.created_at).toLocaleString();
+<<<<<<< HEAD
 
+=======
+    
+    // Extract entity details
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const entityId = log.entity_id ? `#${log.entity_id}` : '';
     const electionTitle = log.details?.election_title || log.details?.title || '';
     const candidateName = log.details?.candidate_name || log.details?.name || '';
@@ -544,7 +578,12 @@ export default function AuditLogsPage() {
           </button>
         </div>
       </div>
+<<<<<<< HEAD
 
+=======
+      
+      {/* Advanced filter panel */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showFilters && (
         <div className="mb-4 bg-white p-4 rounded shadow-sm border border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -665,7 +704,12 @@ export default function AuditLogsPage() {
           </div>
         </div>
       )}
+<<<<<<< HEAD
 
+=======
+      
+      {/* Quick filter selector */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="mb-4 bg-white p-3 rounded shadow-sm flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <select
@@ -710,7 +754,12 @@ export default function AuditLogsPage() {
           Refresh
         </button>
       </div>
+<<<<<<< HEAD
 
+=======
+      
+      {/* Loading state */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {loading ? (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
@@ -780,7 +829,12 @@ export default function AuditLogsPage() {
               </tbody>
             </table>
           </div>
+<<<<<<< HEAD
 
+=======
+          
+          {/* Pagination */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
               <div className="text-sm text-gray-600">

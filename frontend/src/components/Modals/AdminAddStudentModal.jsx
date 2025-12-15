@@ -25,8 +25,13 @@ export default function AdminAddStudentModal({ onClose, onSuccess, departmentCou
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+<<<<<<< HEAD
   
   useEffect(() => {
+=======
+  useEffect(() => {
+    // Update courses if departmentCourses changes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (departmentCourses && departmentCourses.length > 0) {
       setCourses(departmentCourses);
     }
@@ -73,8 +78,15 @@ export default function AdminAddStudentModal({ onClose, onSuccess, departmentCou
           if (token) {
             const tokenData = JSON.parse(atob(token.split('.')[1]));
             if (tokenData && tokenData.id) {
+<<<<<<< HEAD
               Cookies.set("userId", tokenData.id, { path: "/", secure: false, sameSite: "strict" });
 
+=======
+              // Set the cookie for future use
+              Cookies.set("userId", tokenData.id, { path: "/", secure: false, sameSite: "strict" });
+              
+              // Use this ID
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               return tokenData.id;
             }
           }
@@ -245,6 +257,10 @@ export default function AdminAddStudentModal({ onClose, onSuccess, departmentCou
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Password Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showPasswordModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">

@@ -5,6 +5,10 @@ exports.getDepartmentVoterReport = async (req, res) => {
     const { page = 1, limit = 10, department = '', search = '' } = req.query;
     const offset = (page - 1) * limit;
 
+<<<<<<< HEAD
+=======
+    // Build the WHERE clause and parameters
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let whereClause = 'WHERE s.is_active = TRUE';
     const queryParams = [];
     
@@ -12,11 +16,19 @@ exports.getDepartmentVoterReport = async (req, res) => {
       queryParams.push(department);
       whereClause += ` AND s.course_name = $${queryParams.length}`;
     }
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (search) {
       queryParams.push(`%${search}%`);
       whereClause += ` AND (LOWER(s.first_name) LIKE LOWER($${queryParams.length}) OR LOWER(s.last_name) LIKE LOWER($${queryParams.length}) OR s.student_number LIKE $${queryParams.length})`;
     }
 
+<<<<<<< HEAD
+=======
+    // Base query for students with voting status
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const baseQuery = `
       WITH student_voting AS (
         SELECT 
@@ -41,10 +53,18 @@ exports.getDepartmentVoterReport = async (req, res) => {
       )
     `;
 
+<<<<<<< HEAD
+=======
+    // Get total count
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const countQuery = `
       SELECT COUNT(*) FROM student_voting
     `;
 
+<<<<<<< HEAD
+=======
+    // Get department statistics
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const statsQuery = `
       SELECT 
         department,
@@ -54,6 +74,10 @@ exports.getDepartmentVoterReport = async (req, res) => {
       GROUP BY department
     `;
 
+<<<<<<< HEAD
+=======
+    // Get paginated student data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const studentsQuery = `
       SELECT *
       FROM student_voting
@@ -61,14 +85,25 @@ exports.getDepartmentVoterReport = async (req, res) => {
       LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
     `;
 
+<<<<<<< HEAD
     const paginationParams = [...queryParams, limit, offset];
 
+=======
+    // Add pagination parameters
+    const paginationParams = [...queryParams, limit, offset];
+
+    // Execute queries
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const [totalResult, statsResult, studentsResult] = await Promise.all([
       pool.query(baseQuery + countQuery, queryParams),
       pool.query(baseQuery + statsQuery, queryParams),
       pool.query(baseQuery + studentsQuery, paginationParams)
     ]);
 
+<<<<<<< HEAD
+=======
+    // Get unique departments for the filter dropdown
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const departmentsQuery = `
       SELECT DISTINCT course_name as department
       FROM students

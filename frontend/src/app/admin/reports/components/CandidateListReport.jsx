@@ -16,7 +16,10 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const getImageUrl = (imageUrl) => {
@@ -24,23 +27,46 @@ const getImageUrl = (imageUrl) => {
   if (imageUrl.startsWith('http')) return imageUrl;
   if (imageUrl.startsWith('blob:')) return imageUrl;
   
+<<<<<<< HEAD
   let cleanImageUrl = imageUrl;
   
+=======
+  // Handle different image path formats
+  let cleanImageUrl = imageUrl;
+  
+  // Remove leading slashes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (cleanImageUrl.startsWith('/')) {
     cleanImageUrl = cleanImageUrl.substring(1);
   }
   
+<<<<<<< HEAD
+=======
+  // If it already starts with uploads, use it directly
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (cleanImageUrl.startsWith('uploads/')) {
     return `${API_BASE}/${cleanImageUrl}`;
   }
   
+<<<<<<< HEAD
+=======
+  // If it's just a filename, assume it's in candidates folder
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (!cleanImageUrl.includes('/')) {
     return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
   }
   
+<<<<<<< HEAD
   return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
 };
 
+=======
+  // Default case - try candidates folder first
+  return `${API_BASE}/uploads/candidates/${cleanImageUrl}`;
+};
+
+// Helper function to format numbers
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const formatNumber = (num) => {
   if (num === null || num === undefined) return '0';
   return new Intl.NumberFormat().format(num);
@@ -54,8 +80,15 @@ export default function CandidateListReport() {
   const [searchTerm, setSearchTerm] = useState('');
   const { token } = useAuth();
 
+<<<<<<< HEAD
   const currentElection = reportData?.elections.find(e => e.id === selectedElection);
 
+=======
+  // Get current election data
+  const currentElection = reportData?.elections.find(e => e.id === selectedElection);
+
+  // Process data for charts
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const chartData = useMemo(() => {
     if (!currentElection?.positions || currentElection.positions.length === 0) {
       return {
@@ -64,6 +97,10 @@ export default function CandidateListReport() {
       };
     }
 
+<<<<<<< HEAD
+=======
+    // Calculate statistics for each position
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const positionStats = currentElection.positions.map(position => {
       const totalVotes = position.candidates.reduce((sum, candidate) => sum + (candidate.vote_count || 0), 0);
       const candidateCount = position.candidates.length;
@@ -78,8 +115,15 @@ export default function CandidateListReport() {
       };
     });
 
+<<<<<<< HEAD
     const sortedStats = positionStats.sort((a, b) => b.totalVotes - a.totalVotes);
 
+=======
+    // Sort by total votes (for bar chart length)
+    const sortedStats = positionStats.sort((a, b) => b.totalVotes - a.totalVotes);
+
+    // Calculate overall statistics
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const totalCandidates = positionStats.reduce((sum, pos) => sum + pos.candidateCount, 0);
     const totalVotes = positionStats.reduce((sum, pos) => sum + pos.totalVotes, 0);
     const averageVotes = totalCandidates > 0 ? totalVotes / totalCandidates : 0;
@@ -136,6 +180,10 @@ export default function CandidateListReport() {
         return;
       }
 
+<<<<<<< HEAD
+=======
+      // Get filtered positions based on search term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const filteredPositions = currentElection.positions.map(position => {
         const filteredCandidates = position.candidates.filter(candidate =>
           !searchTerm ||
@@ -174,8 +222,13 @@ export default function CandidateListReport() {
         }))
       };
 
+<<<<<<< HEAD
       console.log('Download data:', downloadData); 
       await generatePdfReport(9, downloadData); 
+=======
+      console.log('Download data:', downloadData); // Debug log
+      await generatePdfReport(9, downloadData); // 9 is the report ID for Candidate List
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error downloading report:', error);
     }
@@ -423,12 +476,25 @@ export default function CandidateListReport() {
                       alt={`${candidate.first_name} ${candidate.last_name}`}
                       className="w-16 h-16 object-cover rounded-md"
                       onError={(e) => {
+<<<<<<< HEAD
                         const currentSrc = e.target.src;
                         if (currentSrc.includes('/uploads/candidates/')) {
                           e.target.src = currentSrc.replace('/uploads/candidates/', '/uploads/');
                         } else if (currentSrc.includes('/api/uploads/')) {
                           e.target.src = currentSrc.replace('/api/uploads/', '/uploads/');
                         } else {
+=======
+                        // Try alternative image paths
+                        const currentSrc = e.target.src;
+                        if (currentSrc.includes('/uploads/candidates/')) {
+                          // Try without the candidates folder
+                          e.target.src = currentSrc.replace('/uploads/candidates/', '/uploads/');
+                        } else if (currentSrc.includes('/api/uploads/')) {
+                          // Try direct path
+                          e.target.src = currentSrc.replace('/api/uploads/', '/uploads/');
+                        } else {
+                          // Fallback to default avatar
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                           e.target.src = '/images/default-avatar.png';
                         }
                       }}

@@ -6,7 +6,10 @@ import { ArrowLeft, Upload, Save } from "lucide-react";
 import axios from "axios";
 import Cookies from "js-cookie";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function AdminProfilePage() {
   const router = useRouter();
   const [profilePic, setProfilePic] = useState("https://via.placeholder.com/100");
@@ -26,7 +29,11 @@ export default function AdminProfilePage() {
     fetchProfile();
   }, []);
 
+<<<<<<< HEAD
 
+=======
+  // Fetch Admin Profile
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const fetchProfile = async () => {
     try {
       const token = Cookies.get("token");
@@ -47,7 +54,12 @@ export default function AdminProfilePage() {
       setEmail(res.data.email || "");
       setEmployeeNumber(res.data.employeeNumber || "");
       setDepartment(res.data.department || "");
+<<<<<<< HEAD
 
+=======
+  
+      // Handle both absolute and relative URLs, prevent duplicate query strings
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const rawUrl = res.data.profile_picture || null;
       const baseProfileUrl = rawUrl ? rawUrl.split("?")[0] : null;
       const isAbsolute = baseProfileUrl && /^https?:\/\//i.test(baseProfileUrl);
@@ -98,6 +110,10 @@ export default function AdminProfilePage() {
         return;
       }
 
+<<<<<<< HEAD
+=======
+      // Handle both absolute and relative URLs from upload response
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const cleanPath = (res.data.url || res.data.filePath || "").split("?")[0];
       const isAbsolute = /^https?:\/\//i.test(cleanPath);
       const finalBase = isAbsolute ? cleanPath : `https://trustelectonline.com${cleanPath}`;
@@ -107,7 +123,12 @@ export default function AdminProfilePage() {
       setPreviewImage(null);
       setSelectedFile(null);
       setUploadSuccess(true);
+<<<<<<< HEAD
 
+=======
+      
+      // Dispatch event to update sidebar
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       window.dispatchEvent(new Event("adminProfileUpdated"));
     } catch (error) {
       setUploadError("Failed to upload image. Please try again.");
@@ -115,6 +136,10 @@ export default function AdminProfilePage() {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Cancel upload
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleCancelUpload = () => {
     setPreviewImage(null);
     setSelectedFile(null);

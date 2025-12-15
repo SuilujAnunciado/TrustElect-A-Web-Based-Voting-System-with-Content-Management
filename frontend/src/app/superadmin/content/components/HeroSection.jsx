@@ -9,7 +9,10 @@ const HeroSection = ({
   handleFileUpload, 
   removeImage, 
   showPreview 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 }) => {
   return (
     <div className="space-y-4">
@@ -90,12 +93,21 @@ const HeroSection = ({
             </div>
           </div>
         </div>
+<<<<<<< HEAD
 
+=======
+        
+        {/* Carousel Images Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div>
           <label className="block text-sm font-medium text-black mb-2">
             Upload 3 - 5 Images for Carousel
           </label>
           <div className="space-y-4">
+<<<<<<< HEAD
+=======
+            {/* Upload Area */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
               <input 
                 id="hero-carousel-input"
@@ -120,7 +132,12 @@ const HeroSection = ({
                 </span>
               </label>
             </div>
+<<<<<<< HEAD
 
+=======
+            
+            {/* Display uploaded carousel images */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             {landingContent.hero.carouselImages && landingContent.hero.carouselImages.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -131,10 +148,18 @@ const HeroSection = ({
                     <span className="text-xs text-gray-600">
                       Click X to remove
                     </span>
+<<<<<<< HEAD
                     <button
                       onClick={() => {
                         updateHero('carouselImages', []);
 
+=======
+                    {/* Clear All button */}
+                    <button
+                      onClick={() => {
+                        updateHero('carouselImages', []);
+                        // Clear temporary files
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                         if (window.carouselFiles) {
                           window.carouselFiles = [];
                         }
@@ -145,7 +170,12 @@ const HeroSection = ({
                     </button>
                   </div>
                 </div>
+<<<<<<< HEAD
 
+=======
+                
+                {/* Large Preview Grid */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {landingContent.hero.carouselImages.map((image, index) => (
                     <div key={index} className="relative group border-2 border-gray-200 rounded-lg overflow-hidden hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-md">
@@ -154,7 +184,11 @@ const HeroSection = ({
                         alt={`Carousel image ${index + 1}`}
                         className="w-full h-24 object-cover"
                       />
+<<<<<<< HEAD
 
+=======
+                      {/* Hover delete button */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center">
                         <button
                           onClick={() => removeImage('heroCarousel', index)}
@@ -164,7 +198,11 @@ const HeroSection = ({
                           ×
                         </button>
                       </div>
+<<<<<<< HEAD
 
+=======
+                      {/* Permanent delete button in top-right corner */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                       <button
                         onClick={() => removeImage('heroCarousel', index)}
                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow-lg z-10"
@@ -186,7 +224,12 @@ const HeroSection = ({
                     </div>
                   ))}
                 </div>
+<<<<<<< HEAD
 
+=======
+                
+                {/* Status and Info */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-start space-x-2">
                     <div className="text-blue-500 mt-0.5">
@@ -202,7 +245,12 @@ const HeroSection = ({
                 </div>
               </div>
             )}
+<<<<<<< HEAD
 
+=======
+            
+            {/* Upload Instructions */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
               <strong>Upload Guidelines:</strong> Upload 3-5 high-quality images (PNG, JPG, WEBP) for the hero carousel. 
               Click "Update Banner" to save and display images on the landing page. Maximum file size: 5MB per image.
@@ -210,6 +258,10 @@ const HeroSection = ({
           </div>
         </div>
         
+<<<<<<< HEAD
+=======
+        {/* Hero Preview - only shown if content has changed or preview is toggled */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {showPreview && (
           <div className="border rounded overflow-hidden">
             <div className="bg-gray-100 px-3 py-2 border-b flex justify-between items-center">

@@ -6,6 +6,10 @@ import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 
 export default function EditAdminModal({ admin, onClose, onSuccess }) {
+<<<<<<< HEAD
+=======
+  // Get current user info to check if editing own profile
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const currentUserEmail = Cookies.get("email");
   const isEditingOwnProfile = currentUserEmail === admin.email;
   
@@ -17,11 +21,18 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     department: admin.department || "",
   });
 
+<<<<<<< HEAD
+=======
+  // Clear any existing errors when component mounts
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     setErrors({});
   }, []);
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [departments, setDepartments] = useState([]);
   const [errors, setErrors] = useState({});
   const [loadingDepartments, setLoadingDepartments] = useState(true);
@@ -31,6 +42,10 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
+<<<<<<< HEAD
+=======
+  // Check if form has been modified
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const hasFormChanged = () => {
     const baseChanges = (
       formData.firstName !== (admin.first_name || "") ||
@@ -39,11 +54,19 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
       formData.department !== (admin.department || "")
     );
     
+<<<<<<< HEAD
+=======
+    // Only check email changes if not editing own profile
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const emailChanged = isEditingOwnProfile ? false : (formData.email !== (admin.email || ""));
     
     return baseChanges || emailChanged;
   };
 
+<<<<<<< HEAD
+=======
+  // Fetch departments when component mounts
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -76,14 +99,24 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     fetchDepartments();
   }, [admin.id]);
 
+<<<<<<< HEAD
   const checkEmailExists = async (email) => {
     if (!email || email === admin.email) return false; 
+=======
+  // Check if email already exists
+  const checkEmailExists = async (email) => {
+    if (!email || email === admin.email) return false; // Don't check if it's the same email
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     try {
       setCheckingEmail(true);
       const token = Cookies.get("token");
       const userRole = Cookies.get("role");
       
+<<<<<<< HEAD
+=======
+      // Use the correct endpoint based on user role
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const endpoint = userRole === 'Super Admin' 
         ? `/api/superadmin/check-email?email=${encodeURIComponent(email)}`
         : `/api/admin/check-email?email=${encodeURIComponent(email)}`;
@@ -103,14 +136,28 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
+<<<<<<< HEAD
+=======
+    // Prevent email changes when editing own profile
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (name === 'email' && isEditingOwnProfile) {
       return;
     }
     
+<<<<<<< HEAD
     let processedValue = value;
     if (name === 'firstName' || name === 'lastName') {
       processedValue = value.replace(/[^a-zA-Z\s]/g, '').substring(0, 35);
     } else if (name === 'employeeNumber') {
+=======
+    // Apply character limits and validation
+    let processedValue = value;
+    if (name === 'firstName' || name === 'lastName') {
+      // Only allow letters and spaces, max 35 characters
+      processedValue = value.replace(/[^a-zA-Z\s]/g, '').substring(0, 35);
+    } else if (name === 'employeeNumber') {
+      // Only allow alphanumeric characters, max 8 characters
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       processedValue = value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
     } else if (name === 'email') {
       processedValue = value.substring(0, 50);
@@ -118,14 +165,26 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     
     setFormData({ ...formData, [name]: processedValue });
     
+<<<<<<< HEAD
+=======
+    // Clear error for this field when user starts typing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
     }
     
+<<<<<<< HEAD
+=======
+    // Clear department error when department changes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (name === 'department' && errors.department) {
       setErrors({ ...errors, department: "" });
     }
     
+<<<<<<< HEAD
+=======
+    // Check email if it's an email field and has changed
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (name === 'email' && processedValue !== admin.email && !isEditingOwnProfile) {
       if (processedValue.endsWith("@novaliches.sti.edu.ph") || processedValue.endsWith("@novaliches.sti.edu")) {
         checkEmailExists(processedValue).then(exists => {
@@ -140,6 +199,10 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
   const validateInputs = async () => {
     let newErrors = {};
         
+<<<<<<< HEAD
+=======
+    // First Name validation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First Name is required.";
     } else if (!/^[A-Za-z\s]+$/.test(formData.firstName.trim())) {
@@ -149,7 +212,12 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     } else if (formData.firstName.trim().length > 35) {
       newErrors.firstName = "First Name must not exceed 35 characters.";
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Last Name validation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.lastName.trim()) {
       newErrors.lastName = "Last Name is required.";
     } else if (!/^[A-Za-z\s]+$/.test(formData.lastName.trim())) {
@@ -159,7 +227,12 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     } else if (formData.lastName.trim().length > 35) {
       newErrors.lastName = "Last Name must not exceed 35 characters.";
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Email validation (skip if editing own profile)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!isEditingOwnProfile) {
       if (!formData.email.trim()) {
         newErrors.email = "Email is required.";
@@ -168,13 +241,22 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
       } else if (formData.email.length > 50) {
         newErrors.email = "Email must not exceed 50 characters.";
       } else if (formData.email !== admin.email) {
+<<<<<<< HEAD
+=======
+        // Check if email already exists (only if it's different from current email)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const emailExists = await checkEmailExists(formData.email);
         if (emailExists) {
           newErrors.email = "Email already exists. Please use a different email.";
         }
       }
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Employee Number validation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.employeeNumber.trim()) {
       newErrors.employeeNumber = "Employee Number is required.";
     } else if (!/^[a-zA-Z0-9]+$/.test(formData.employeeNumber)) {
@@ -184,10 +266,19 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     } else if (formData.employeeNumber.length > 8) {
       newErrors.employeeNumber = "Employee Number must not exceed 8 characters.";
     }
+<<<<<<< HEAD
 
     if (!formData.department) {
       newErrors.department = "Select a department.";
     }
+=======
+    
+    // Department validation - ONLY check if department is selected
+    if (!formData.department) {
+      newErrors.department = "Select a department.";
+    }
+    // NO department restriction - multiple admins can be in the same department
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -197,6 +288,10 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
     const isValid = await validateInputs();
     if (!isValid) return;
     
+<<<<<<< HEAD
+=======
+    // Show confirmation modal instead of directly submitting
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setShowSaveConfirm(true);
   };
 
@@ -208,6 +303,10 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
       const token = Cookies.get("token");
       const userRole = Cookies.get("role");
       
+<<<<<<< HEAD
+=======
+      // Prepare data in the format expected by the API
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const updateData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -215,11 +314,19 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
         department: formData.department
       };
       
+<<<<<<< HEAD
+=======
+      // Only include email if not editing own profile
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!isEditingOwnProfile) {
         updateData.email = formData.email;
       }
 
       
+<<<<<<< HEAD
+=======
+      // Use the correct endpoint based on user role
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const endpoint = userRole === 'Super Admin' 
         ? `/api/superadmin/admins/${admin.id}`
         : `/api/admin/manage-admins/${admin.id}`;
@@ -230,14 +337,25 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
       
       toast.success(`${updateData.firstName} ${updateData.lastName} updated successfully!`);
       
+<<<<<<< HEAD
+=======
+      // Call onSuccess callback if provided
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (onSuccess) {
         onSuccess();
       } else {
         onClose();
       }
+<<<<<<< HEAD
 
       if (typeof window !== 'undefined') {
 
+=======
+      
+      // Trigger a callback function instead of reloading the page
+      if (typeof window !== 'undefined') {
+        // Create an event to notify that an admin was updated
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const event = new CustomEvent('admin-updated', { 
           detail: { 
             adminId: admin.id,
@@ -259,6 +377,10 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
   };
 
   const handleCancel = () => {
+<<<<<<< HEAD
+=======
+    // Check if form has been modified
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (hasFormChanged()) {
       setShowCancelConfirm(true);
     } else {
@@ -381,6 +503,10 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Cancel Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showCancelConfirm && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -408,6 +534,10 @@ export default function EditAdminModal({ admin, onClose, onSuccess }) {
         </div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Save Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showSaveConfirm && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">

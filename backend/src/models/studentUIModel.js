@@ -1,6 +1,9 @@
 const pool = require('../config/db.js');
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 class StudentUIModel {
   static async getConfig() {
     try {
@@ -76,6 +79,10 @@ class StudentUIModel {
         updatedRecord = updateResult.rows[0];
       }
 
+<<<<<<< HEAD
+=======
+      // Verify the update
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const verifyResult = await pool.query(
         'SELECT * FROM student_ui WHERE id = $1',
         [updatedRecord.id]
@@ -161,7 +168,12 @@ class StudentUIModel {
             SET use_landing_design = TRUE
             WHERE type = 'landing' AND use_landing_design = FALSE;
           `);
+<<<<<<< HEAD
 
+=======
+          
+          // Add constraint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           await pool.query(`
             ALTER TABLE student_ui
             ADD CONSTRAINT enforce_landing_design CHECK (

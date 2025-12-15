@@ -5,7 +5,10 @@ const { verifyToken, allowRoles } = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/studentUIUploadMiddleware');
 const pool = require('../config/db.js');
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get('/', 
   verifyToken,
   allowRoles('Student', 'Admin', 'Super Admin'),

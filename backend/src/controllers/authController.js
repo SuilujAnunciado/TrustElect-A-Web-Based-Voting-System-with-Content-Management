@@ -9,7 +9,10 @@ const smsService = require('../services/smsService');
 const { logAction } = require('../middlewares/auditLogMiddleware');
 require("dotenv").config();
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_TIME_MINUTES = 5;
 
@@ -1132,6 +1135,183 @@ exports.testSms = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+// Debug OTP SMS with detailed logging
+exports.debugOtpSms = async (req, res) => {
+  try {
+    console.log('=== DEBUG OTP SMS ===');
+    
+    const { phoneNumber } = req.body;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+    
+    // Check iProgSMS configuration
+    const config = {
+      apiKey: process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing',
+      senderName: process.env.IPROGSMS_SENDER_NAME || 'TrustElect',
+      apiUrl: process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1'
+    };
+    
+    console.log('iProgSMS config:', config);
+    
+    if (!process.env.IPROGSMS_API_KEY) {
+      return res.status(400).json({
+        success: false,
+        message: 'iProgSMS configuration incomplete. Please set IPROGSMS_API_KEY in your .env file',
+        config: config
+      });
+    }
+    
+    console.log('Original phone number:', phoneNumber);
+    
+    // Test OTP SMS
+    const otpResult = await smsService.sendOTPSMS(phoneNumber, '123456');
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Debug OTP SMS completed',
+      config: config,
+      originalPhone: phoneNumber,
+      otpResult: otpResult
+    });
+    
+  } catch (error) {
+    console.error('Debug OTP SMS error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Debug OTP SMS failed',
+      error: error.message
+    });
+  }
+};
+
+// Test iProgSMS API directly with curl command
+exports.testIprogSmsDirect = async (req, res) => {
+  try {
+    console.log('=== TEST IPROGSMS API DIRECTLY ===');
+    
+    const { phoneNumber } = req.body;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+    
+    const config = {
+      apiKey: process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing',
+      apiUrl: process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1'
+    };
+    
+    if (!process.env.IPROGSMS_API_KEY) {
+      return res.status(400).json({
+        success: false,
+        message: 'iProgSMS configuration incomplete'
+      });
+    }
+    
+    const formattedNumber = phoneNumber.startsWith('09') ? phoneNumber : '0' + phoneNumber.replace(/^\+?63/, '');
+    const testOtp = '123456';
+    
+    // Test both endpoints with exact documentation format
+    const testData1 = {
+      api_token: process.env.IPROGSMS_API_KEY,
+      phone_number: formattedNumber,
+      otp: testOtp,
+      message: `Your TrustElect verification code is: ${testOtp}. Valid for 5 minutes.`
+    };
+    
+    const testData2 = {
+      api_token: process.env.IPROGSMS_API_KEY,
+      phone_number: formattedNumber,
+      message: `Your TrustElect verification code is: ${testOtp}. Valid for 5 minutes.`
+    };
+    
+    const results = [];
+    
+    // Test /otp endpoint
+    try {
+      console.log('Testing /otp endpoint...');
+      const response1 = await axios.post(
+        `${config.apiUrl}/otp`,
+        testData1,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+      results.push({
+        endpoint: '/otp',
+        status: response1.status,
+        data: response1.data,
+        success: true
+      });
+    } catch (error) {
+      results.push({
+        endpoint: '/otp',
+        error: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        success: false
+      });
+    }
+    
+    // Test /otp/send_otp endpoint
+    try {
+      console.log('Testing /otp/send_otp endpoint...');
+      const response2 = await axios.post(
+        `${config.apiUrl}/otp/send_otp`,
+        testData2,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+      results.push({
+        endpoint: '/otp/send_otp',
+        status: response2.status,
+        data: response2.data,
+        success: true
+      });
+    } catch (error) {
+      results.push({
+        endpoint: '/otp/send_otp',
+        error: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        success: false
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Direct API test completed',
+      config: config,
+      phoneNumber: formattedNumber,
+      results: results
+    });
+    
+  } catch (error) {
+    console.error('Direct API test error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Direct API test failed',
+      error: error.message
+    });
+  }
+};
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 exports.resendSmsOtp = async (req, res) => {
   try {
@@ -1143,7 +1323,12 @@ exports.resendSmsOtp = async (req, res) => {
         message: 'User ID is required'
       });
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Get user's phone number
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
     const phoneNumber = phoneResult.rows[0]?.phone_number;
     
@@ -1153,7 +1338,12 @@ exports.resendSmsOtp = async (req, res) => {
         message: 'No phone number found for this user'
       });
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Check for recent OTP attempts to prevent abuse
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const recentOtpQuery = `
       SELECT created_at, attempts FROM otps 
       WHERE user_id = $1 
@@ -1169,7 +1359,11 @@ exports.resendSmsOtp = async (req, res) => {
     if (recentOtpResult.rows.length > 0) {
       const recentOtp = recentOtpResult.rows[0];
       const timeSinceLastOtp = Math.floor((Date.now() - new Date(recentOtp.created_at).getTime()) / 1000);
+<<<<<<< HEAD
       const remainingCooldown = 120 - timeSinceLastOtp; 
+=======
+      const remainingCooldown = 120 - timeSinceLastOtp; // 2 minutes cooldown
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       
       if (remainingCooldown > 0) {
         return res.status(429).json({
@@ -1179,7 +1373,12 @@ exports.resendSmsOtp = async (req, res) => {
         });
       }
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Check for too many attempts in the last hour
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const attemptsQuery = `
       SELECT COUNT(*) as attempt_count FROM otps 
       WHERE user_id = $1 
@@ -1198,23 +1397,44 @@ exports.resendSmsOtp = async (req, res) => {
         retryAfter: 3600
       });
     }
+<<<<<<< HEAD
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     console.log('Resending SMS OTP:', otp);
  
+=======
+    
+    // Generate new 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('Resending SMS OTP:', otp);
+    
+    // Store new OTP in database
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const insertQuery = `
       INSERT INTO otps (user_id, phone_number, otp, expires_at, otp_type, verified, attempts, purpose)
       VALUES ($1, $2, $3, NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
     `;
     
     await pool.query(insertQuery, [userId, phoneNumber, otp]);
+<<<<<<< HEAD
 
     const smsResult = await smsService.sendOTPSMS(phoneNumber, otp);
 
+=======
+    
+    // Send SMS
+    console.log('Attempting to resend SMS to:', phoneNumber);
+    const smsResult = await smsService.sendOTPSMS(phoneNumber, otp);
+    console.log('Resend SMS result:', smsResult);
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     if (!smsResult.success) {
       console.error('Resend SMS sending failed:', smsResult);
       
+<<<<<<< HEAD
+=======
+      // If it's a configuration issue, return the OTP for testing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (smsResult.code === 'CONFIG_ERROR' || smsResult.code === 401 || smsResult.code === 402) {
         console.log('iProgSMS configuration issue detected, returning OTP for testing');
         return res.status(200).json({
@@ -1232,7 +1452,12 @@ exports.resendSmsOtp = async (req, res) => {
         code: smsResult.code
       });
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Log the resend action
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     await logAction(
       { id: userId, email: 'SMS_RESEND', role: 'SMS_RESEND' },
       'SMS_RESEND',
@@ -1240,7 +1465,12 @@ exports.resendSmsOtp = async (req, res) => {
       userId,
       { phoneNumber: phoneNumber, provider: 'iProgSMS' }
     );
+<<<<<<< HEAD
 
+=======
+    
+    // In development mode, return OTP for testing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (process.env.NODE_ENV === 'development') {
       return res.status(200).json({
         success: true,
@@ -1264,10 +1494,18 @@ exports.resendSmsOtp = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+// Add a new logout endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.logoutUser = async (req, res) => {
   try {
     let userData = null;
     
+<<<<<<< HEAD
+=======
+    // First try to get user data from authenticated request
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user) {
       userData = { 
         id: req.user.id, 
@@ -1275,6 +1513,10 @@ exports.logoutUser = async (req, res) => {
         role: req.user.role || 'Unknown' 
       };
     } 
+<<<<<<< HEAD
+=======
+    // If not authenticated, try to get user info from request body
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     else if (req.body.userId || req.body.email) {
       userData = {
         id: req.body.userId || 0,
@@ -1282,7 +1524,12 @@ exports.logoutUser = async (req, res) => {
         role: req.body.role || 'Unknown'
       };
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Log the logout action if we have user data
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (userData) {
       await logAction(
         userData,

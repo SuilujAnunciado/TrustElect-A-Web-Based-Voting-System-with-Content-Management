@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import React, { useState, useEffect } from 'react';
 import { Download, Search, X, User } from 'lucide-react';
 import { generatePdfReport } from '@/utils/pdfGenerator';
@@ -100,9 +103,17 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
       const dateObj = new Date(date);
       
       const [hours, minutes] = time.split(':');
+<<<<<<< HEAD
 
       dateObj.setHours(parseInt(hours, 10), parseInt(minutes, 10));
 
+=======
+      
+      // Set the time on our date object
+      dateObj.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+      
+      // Format the date and time
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return dateObj.toLocaleString('en-US', {
         year: 'numeric',
         month: 'long',
@@ -257,7 +268,11 @@ const CandidateListDetail = ({ report, onClose, onDownload }) => {
                                   className="w-16 h-16 object-cover rounded border border-gray-200"
                                   onError={() => handleImageError(candidate.id)}
                                   onLoad={() => {
+<<<<<<< HEAD
 
+=======
+                                    // Remove from error set if image loads successfully
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                                     setImageErrors(prev => {
                                       const newSet = new Set(prev);
                                       newSet.delete(candidate.id);

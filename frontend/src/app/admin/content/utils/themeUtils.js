@@ -1,9 +1,19 @@
  "use client"
+<<<<<<< HEAD
 /**
  * @param {string} colorKey 
  * @param {string} colorValue 
  * @param {Object} newTheme 
  * @param {Function} setNewTheme 
+=======
+
+/**
+ * Theme color change handler
+ * @param {string} colorKey - The color key to update (e.g., 'heroBg', 'heroText')
+ * @param {string} colorValue - The new color value (hex)
+ * @param {Object} newTheme - The current theme object
+ * @param {Function} setNewTheme - Function to update the theme object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 export const handleThemeColorChange = (colorKey, colorValue, newTheme, setNewTheme) => {
   setNewTheme({
@@ -16,9 +26,16 @@ export const handleThemeColorChange = (colorKey, colorValue, newTheme, setNewThe
 };
 
 /**
+<<<<<<< HEAD
  * @param {string} colorValue 
  * @param {Object} theme
  * @returns {Object} 
+=======
+ * Update all background colors at once
+ * @param {string} colorValue - The new color value (hex)
+ * @param {Object} theme - The theme to update
+ * @returns {Object} - Updated theme object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 export const updateAllBackgrounds = (colorValue, theme) => {
   return {
@@ -35,6 +52,7 @@ export const updateAllBackgrounds = (colorValue, theme) => {
 };
 
 /**
+<<<<<<< HEAD
  * @param {string} colorValue 
  * @param {string} purpose 
  * @param {string} mediaType 
@@ -45,6 +63,19 @@ export const updateAllBackgrounds = (colorValue, theme) => {
  */
 export const updateCTASettings = (colorValue, purpose, mediaType, theme, landingContent, setLandingContent) => {
 
+=======
+ * Update CTA settings
+ * @param {string} colorValue - The new color value (hex)
+ * @param {string} purpose - The purpose/type of CTA
+ * @param {string} mediaType - The type of media to display (image, video, flash)
+ * @param {Object} theme - The theme to update
+ * @param {Object} landingContent - The current landing content
+ * @param {Function} setLandingContent - Function to update landing content
+ * @returns {Object} - Updated theme object
+ */
+export const updateCTASettings = (colorValue, purpose, mediaType, theme, landingContent, setLandingContent) => {
+  // CTA configurations based on purpose
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const ctaConfigs = {
     signup: {
       title: "Ready to create your first election?",
@@ -102,7 +133,12 @@ export const updateCTASettings = (colorValue, purpose, mediaType, theme, landing
     
     setLandingContent(updatedContent);
   }
+<<<<<<< HEAD
 
+=======
+  
+  // Return updated theme
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return {
     ...theme,
     colors: {
@@ -118,6 +154,7 @@ export const updateCTASettings = (colorValue, purpose, mediaType, theme, landing
 };
 
 /**
+<<<<<<< HEAD
 
  * @param {Object} theme 
  * @param {Object} landingContent 
@@ -129,26 +166,65 @@ export const updateCTASettings = (colorValue, purpose, mediaType, theme, landing
 export const applyThemeColors = (theme, landingContent, setLandingContent, saveContent, setIsLoading, setSaveStatus) => {
   const updatedContent = JSON.parse(JSON.stringify(landingContent));
 
+=======
+ * Apply theme colors to site content
+ * @param {Object} theme - The theme to apply
+ * @param {Object} landingContent - The current landing content
+ * @param {Function} setLandingContent - Function to update the landing content
+ * @param {Function} saveContent - Function to save all content
+ * @param {Function} setIsLoading - Function to update the loading state
+ * @param {Function} setSaveStatus - Function to update the save status
+ */
+export const applyThemeColors = (theme, landingContent, setLandingContent, saveContent, setIsLoading, setSaveStatus) => {
+  console.log("Applying theme colors with direct function:", theme.name);
+  // Use a temporary variable to create a completely new object
+  const updatedContent = JSON.parse(JSON.stringify(landingContent));
+
+  // Ensure header object exists and apply colors
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   updatedContent.header = updatedContent.header || {};
   updatedContent.header.bgColor = theme.colors.headerBg || updatedContent.header.bgColor || "#01579B";
   updatedContent.header.textColor = theme.colors.headerText || updatedContent.header.textColor || "#ffffff";
   
+<<<<<<< HEAD
   updatedContent.hero.bgColor = theme.colors.heroBg;
   updatedContent.hero.textColor = theme.colors.heroText;
 
   updatedContent.features.sectionBgColor = theme.colors.featureSectionBg;
 
+=======
+  // Update hero colors
+  updatedContent.hero.bgColor = theme.colors.heroBg;
+  updatedContent.hero.textColor = theme.colors.heroText;
+  
+  // Add the feature section background color
+  updatedContent.features.sectionBgColor = theme.colors.featureSectionBg;
+  
+  // Update all feature columns to have consistent colors
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   updatedContent.features.columns = updatedContent.features.columns.map(column => ({
     ...column,
     bgColor: theme.colors.featureBg,
     textColor: theme.colors.featureText
   }));
+<<<<<<< HEAD
 
   updatedContent.callToAction.bgColor = theme.colors.ctaBg;
   updatedContent.callToAction.textColor = theme.colors.ctaText;
 
   if (theme.ctaConfig) {
     if (theme.ctaConfig.purpose && theme.ctaConfig.purpose !== "default") {
+=======
+  
+  // Update CTA colors
+  updatedContent.callToAction.bgColor = theme.colors.ctaBg;
+  updatedContent.callToAction.textColor = theme.colors.ctaText;
+  
+  // Apply CTA configuration if available
+  if (theme.ctaConfig) {
+    if (theme.ctaConfig.purpose && theme.ctaConfig.purpose !== "default") {
+      // Use updateCTASettings to apply the correct CTA content based on purpose
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return updateCTASettings(
         theme.colors.ctaBg,
         theme.ctaConfig.purpose,
@@ -159,6 +235,7 @@ export const applyThemeColors = (theme, landingContent, setLandingContent, saveC
       );
     }
   }
+<<<<<<< HEAD
 
   setLandingContent(updatedContent);
   
@@ -169,6 +246,26 @@ export const applyThemeColors = (theme, landingContent, setLandingContent, saveC
     setSaveStatus("Saving theme changes...");
     
     saveContent().then(() => {
+=======
+  
+  console.log("Updated content with applied theme:", updatedContent);
+  
+  // Set the new content state
+  setLandingContent(updatedContent);
+  
+  // Force a refresh of the UI
+  setIsLoading(true);
+  
+  // Add a small delay and then save all sections
+  setTimeout(() => {
+    setIsLoading(false);
+    console.log("Auto-saving theme changes...");
+    setSaveStatus("Saving theme changes...");
+    
+    // Use saveContent to save all sections at once
+    saveContent().then(() => {
+      console.log("Theme changes saved successfully");
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setSaveStatus("Theme applied and saved!");
       setTimeout(() => setSaveStatus(""), 3000);
     }).catch(error => {

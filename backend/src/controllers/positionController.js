@@ -17,7 +17,10 @@ exports.getPositions = async (req, res) => {
     } else {
       positions = await getAllPositions();
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     res.status(200).json({
       success: true,

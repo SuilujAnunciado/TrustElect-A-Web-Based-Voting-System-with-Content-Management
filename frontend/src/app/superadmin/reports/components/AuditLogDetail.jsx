@@ -1,4 +1,8 @@
 "use client";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useState, useMemo } from 'react';
 import { X, Download, Filter, Search, ArrowUp, Activity, Clock, Calendar } from 'lucide-react';
 import { generatePdfReport } from '@/utils/pdfGenerator';
@@ -38,8 +42,15 @@ export default function AuditLogDetail({ report, onClose, onDownload }) {
     }
   };
 
+<<<<<<< HEAD
   const getDescriptiveAction = (log) => {
     try {
+=======
+  // Function to generate descriptive action message
+  const getDescriptiveAction = (log) => {
+    try {
+      // Parse details if it's a string
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const details = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
       
       switch (log.action?.toUpperCase()) {
@@ -122,6 +133,10 @@ export default function AuditLogDetail({ report, onClose, onDownload }) {
     });
   }, [report.data.logs, searchTerm, filterType, filterRole]);
 
+<<<<<<< HEAD
+=======
+  // Calculate summary metrics
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const summaryMetrics = useMemo(() => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -151,6 +166,10 @@ export default function AuditLogDetail({ report, onClose, onDownload }) {
     };
   }, [report.data.logs]);
 
+<<<<<<< HEAD
+=======
+  // Handle scroll to top
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleScroll = (e) => {
     const scrollTop = e.target.scrollTop;
     setShowScrollButton(scrollTop > 300);
@@ -186,7 +205,11 @@ export default function AuditLogDetail({ report, onClose, onDownload }) {
     };
 
     try {
+<<<<<<< HEAD
       await generatePdfReport(4, reportData); 
+=======
+      await generatePdfReport(4, reportData); // 4 is the report ID for Audit Log
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error generating report:', error);
     }
@@ -206,7 +229,11 @@ export default function AuditLogDetail({ report, onClose, onDownload }) {
         </div>
 
         <div className="p-6">
+<<<<<<< HEAD
 
+=======
+          {/* Summary Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white p-4 rounded-lg border">
               <div className="flex items-center gap-2 mb-2">
@@ -242,6 +269,10 @@ export default function AuditLogDetail({ report, onClose, onDownload }) {
             </div>
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Filters and Search */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -286,12 +317,20 @@ export default function AuditLogDetail({ report, onClose, onDownload }) {
             </button>
           </div>
 
+<<<<<<< HEAD
           {/* Results  */}
+=======
+          {/* Results Summary */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="mb-4 text-sm text-black">
             Showing {filteredLogs.length} of {report.data.logs.length} activities
             {(filterType !== 'all' || filterRole !== 'all' || searchTerm) && ' (filtered)'}
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Logs Table */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div 
             id="audit-log-table-container"
             className="overflow-auto max-h-[50vh] relative"
@@ -337,6 +376,10 @@ export default function AuditLogDetail({ report, onClose, onDownload }) {
               </tbody>
             </table>
 
+<<<<<<< HEAD
+=======
+            {/* Scroll to Top Button */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <button
               onClick={scrollToTop}
               className={`fixed bottom-6 right-6 p-3 bg-[#01579B] text-white rounded-full shadow-lg transition-all duration-300 hover:bg-[#01416E] ${

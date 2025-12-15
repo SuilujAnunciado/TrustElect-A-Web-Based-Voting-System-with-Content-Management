@@ -1,9 +1,15 @@
 const auditLogModel = require('../models/auditLogModel');
 
 /**
+<<<<<<< HEAD
 
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Get admin activity logs with filtering and pagination
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.getAdminActivities = async (req, res) => {
   try {

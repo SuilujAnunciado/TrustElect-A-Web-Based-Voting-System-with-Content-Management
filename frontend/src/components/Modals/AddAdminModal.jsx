@@ -13,7 +13,10 @@ export default function AddAdminModal({ onClose }) {
     department: "",
   });
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [permissions, setPermissions] = useState({
     users: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     elections: { canView: false, canCreate: false, canEdit: false, canDelete: false },
@@ -49,6 +52,10 @@ export default function AddAdminModal({ onClose }) {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Function to check if email already exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const checkEmailExists = async (email) => {
     if (!email || (!email.endsWith("@novaliches.sti.edu.ph") && !email.endsWith("@novaliches.sti.edu"))) {
       return false;
@@ -57,13 +64,22 @@ export default function AddAdminModal({ onClose }) {
     try {
       setCheckingEmail(true);
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
+=======
+      
+      // Try admin endpoint first, fallback to superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let res;
       try {
         res = await axios.get(`/api/admin/check-email?email=${encodeURIComponent(email)}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } catch (error) {
+<<<<<<< HEAD
+=======
+        // Fallback to superadmin endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         res = await axios.get(`/api/superadmin/check-email?email=${encodeURIComponent(email)}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -72,7 +88,11 @@ export default function AddAdminModal({ onClose }) {
       return res.data.exists || false;
     } catch (error) {
       console.error("Error checking email:", error);
+<<<<<<< HEAD
       return false; 
+=======
+      return false; // Assume email is available if check fails
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } finally {
       setCheckingEmail(false);
     }
@@ -83,7 +103,12 @@ export default function AddAdminModal({ onClose }) {
       try {
         const token = Cookies.get("token");
         const userRole = Cookies.get("role");
+<<<<<<< HEAD
 
+=======
+        
+        // Use the correct endpoint based on user role
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const endpoint = userRole === 'Super Admin' 
           ? "/api/superadmin/department-names"
           : "/api/admin/department-names";
@@ -112,12 +137,20 @@ export default function AddAdminModal({ onClose }) {
     const fetchDepartmentsWithAdmins = async () => {
       try {
         const token = Cookies.get("token");
+<<<<<<< HEAD
+=======
+        // Try admin endpoint first, fallback to superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         let res;
         try {
           res = await axios.get("/api/admin/manage-admins", {
             headers: { Authorization: `Bearer ${token}` },
           });
         } catch (error) {
+<<<<<<< HEAD
+=======
+          // Fallback to superadmin endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           res = await axios.get("/api/superadmin/admins", {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -144,12 +177,24 @@ export default function AddAdminModal({ onClose }) {
 
     let newValue = value;
     if (name === 'employeeNumber') {
+<<<<<<< HEAD
       newValue = value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
     }
     if (name === 'firstName' || name === 'lastName') {
       newValue = value.replace(/[^A-Za-z\s]/g, '').substring(0, 35);
     }
     if (name === 'email') {
+=======
+      // alphanumeric only, max 8 characters
+      newValue = value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
+    }
+    if (name === 'firstName' || name === 'lastName') {
+      // letters and spaces only, max 35 characters
+      newValue = value.replace(/[^A-Za-z\s]/g, '').substring(0, 35);
+    }
+    if (name === 'email') {
+      // Check email domain and length
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (value.length > 50) {
         newValue = value.substring(0, 50);
       } else {
@@ -160,10 +205,18 @@ export default function AddAdminModal({ onClose }) {
     const updated = { ...formData, [name]: newValue };
     setFormData(updated);
 
+<<<<<<< HEAD
+=======
+    // Clear email error when user starts typing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (name === 'email' && errors.email) {
       setErrors(prev => ({ ...prev, email: '' }));
     }
 
+<<<<<<< HEAD
+=======
+    // Check email existence when user finishes typing
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (name === 'email' && newValue && (newValue.endsWith("@novaliches.sti.edu.ph") || newValue.endsWith("@novaliches.sti.edu"))) {
       const emailExists = await checkEmailExists(newValue);
       if (emailExists) {
@@ -180,7 +233,12 @@ export default function AddAdminModal({ onClose }) {
 
   const validateInputs = async () => {
     let newErrors = {};
+<<<<<<< HEAD
 
+=======
+    
+    // First Name validation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.firstName.trim()) {
       newErrors.firstName = "*First Name is required.";
     } else if (!/^[A-Za-z\s]+$/.test(formData.firstName.trim())) {
@@ -188,7 +246,12 @@ export default function AddAdminModal({ onClose }) {
     } else if (formData.firstName.trim().length > 35) {
       newErrors.firstName = "*First Name must not exceed 35 characters.";
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Last Name validation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.lastName.trim()) {
       newErrors.lastName = "*Last Name is required.";
     } else if (!/^[A-Za-z\s]+$/.test(formData.lastName.trim())) {
@@ -196,7 +259,12 @@ export default function AddAdminModal({ onClose }) {
     } else if (formData.lastName.trim().length > 35) {
       newErrors.lastName = "*Last Name must not exceed 35 characters.";
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Email validation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.email.trim()) {
       newErrors.email = "*Email is required.";
     } else if (!formData.email.endsWith("@novaliches.sti.edu.ph") && !formData.email.endsWith("@novaliches.sti.edu")) {
@@ -204,12 +272,20 @@ export default function AddAdminModal({ onClose }) {
     } else if (formData.email.length > 50) {
       newErrors.email = "*Email must not exceed 50 characters.";
     } else {
+<<<<<<< HEAD
+=======
+      // Check if email already exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const emailExists = await checkEmailExists(formData.email);
       if (emailExists) {
         newErrors.email = "*Email already exists. Please use a different email.";
       }
     }
     
+<<<<<<< HEAD
+=======
+    // Employee Number validation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.employeeNumber.trim()) {
       newErrors.employeeNumber = "*Employee Number is required.";
     } else if (!/^[a-zA-Z0-9]+$/.test(formData.employeeNumber)) {
@@ -220,6 +296,10 @@ export default function AddAdminModal({ onClose }) {
       newErrors.employeeNumber = "*Employee Number must not exceed 8 characters.";
     }
     
+<<<<<<< HEAD
+=======
+    // Department validation
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!formData.department) {
       newErrors.department = "*Select a department.";
     }
@@ -337,18 +417,30 @@ export default function AddAdminModal({ onClose }) {
       if (/[A-Z]/.test(formData.lastName)) {
         console.warn("lastName contains uppercase letters which will be preserved in the password");
       }
+<<<<<<< HEAD
+=======
+      // Always include all permissions (users, elections, departments, cms, auditLog)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const adminData = {
         ...formData,
         password: finalPassword,
         createdBy: adminId,
         permissions: { ...permissions }
       };
+<<<<<<< HEAD
+=======
+      // Try admin endpoint first, fallback to superadmin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let res;
       try {
         res = await axios.post("/api/admin/manage-admins", adminData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } catch (error) {
+<<<<<<< HEAD
+=======
+        // Fallback to superadmin endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         res = await axios.post("/api/superadmin/admins", adminData, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -426,6 +518,10 @@ export default function AddAdminModal({ onClose }) {
                 {checkingEmail && <p className="text-blue-500 text-sm">Checking email availability...</p>}
                 {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
 
+<<<<<<< HEAD
+=======
+                {/* Department Dropdown */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <label name="department" className="text-black font-bold">Select Department:</label>
                 <select 
                   name="department" 
@@ -474,6 +570,10 @@ export default function AddAdminModal({ onClose }) {
               </div>
 
               <div className="max-h-80 overflow-y-auto">
+<<<<<<< HEAD
+=======
+                {/* Users Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="mb-6 p-3 border rounded">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-semibold text-black">Users</h3>
@@ -534,6 +634,10 @@ export default function AddAdminModal({ onClose }) {
                   </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                {/* Elections Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="mb-6 p-3 border rounded">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-semibold text-black">Elections</h3>
@@ -594,6 +698,10 @@ export default function AddAdminModal({ onClose }) {
                   </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                {/* Departments Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="mb-6 p-3 border rounded">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-semibold text-black">Departments</h3>
@@ -654,6 +762,10 @@ export default function AddAdminModal({ onClose }) {
                   </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                {/* CMS Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="mb-6 p-3 border rounded">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-semibold text-black">CMS</h3>
@@ -714,6 +826,10 @@ export default function AddAdminModal({ onClose }) {
                   </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                {/* Audit Log Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="mb-6 p-3 border rounded">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-semibold text-black">Audit Log</h3>
@@ -774,6 +890,10 @@ export default function AddAdminModal({ onClose }) {
                   </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                {/* Admin Management Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="mb-6 p-3 border rounded">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-semibold text-black">Admin Management</h3>
@@ -834,6 +954,10 @@ export default function AddAdminModal({ onClose }) {
                   </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                {/* Maintenance Permission Section */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="mb-6 p-3 border rounded">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-semibold text-black">Maintenance</h3>
@@ -940,8 +1064,14 @@ const validateLettersOnly = (value) => {
 const handleNameChange = (e) => {
   const { name, value } = e.target;
   
+<<<<<<< HEAD
   if ((name === 'firstName' || name === 'lastName') && !validateLettersOnly(value)) {
     return; 
+=======
+  // Only allow letters and spaces for first name and last name
+  if ((name === 'firstName' || name === 'lastName') && !validateLettersOnly(value)) {
+    return; // Don't update state if invalid characters are entered
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   }
   
   setFormData({ ...formData, [name]: value });

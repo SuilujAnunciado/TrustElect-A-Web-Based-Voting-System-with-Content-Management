@@ -10,7 +10,10 @@ class EmailQueue {
     this.maxRetries = 3; 
   }
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   addToQueue(emailData) {
     this.queue.push(emailData);
     
@@ -30,6 +33,10 @@ class EmailQueue {
     let errorCount = 0;
 
     while (this.queue.length > 0) {
+<<<<<<< HEAD
+=======
+      // Process emails in batches
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const batch = this.queue.splice(0, this.batchSize);
 
       for (const emailData of batch) {
@@ -74,6 +81,10 @@ class EmailQueue {
         }
       }
 
+<<<<<<< HEAD
+=======
+      // Delay between batches
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (this.queue.length > 0) {
         await new Promise(resolve => setTimeout(resolve, this.delayBetweenBatches));
       }
@@ -90,14 +101,24 @@ class EmailQueue {
     return this.processing;
   }
 
+<<<<<<< HEAD
   setBatchSize(size) {
     if (size > 0 && size <= 50) { 
+=======
+  // Method to configure batch size dynamically
+  setBatchSize(size) {
+    if (size > 0 && size <= 50) { // Max 50 emails per batch to avoid overwhelming
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       this.batchSize = size;
     } else {
       console.log('⚠️  Batch size must be between 1 and 50');
     }
   }
 
+<<<<<<< HEAD
+=======
+  // Method to get current configuration
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   getConfig() {
     return {
       batchSize: this.batchSize,
@@ -108,6 +129,10 @@ class EmailQueue {
   }
 }
 
+<<<<<<< HEAD
+=======
+// Create a singleton instance
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const emailQueue = new EmailQueue();
 
 module.exports = {

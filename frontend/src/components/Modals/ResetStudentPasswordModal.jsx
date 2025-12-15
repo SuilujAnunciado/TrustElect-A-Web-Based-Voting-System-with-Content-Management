@@ -9,8 +9,13 @@ export default function ResetStudentPasswordModal({ student, onClose }) {
   const [newPassword, setNewPassword] = useState("");
   const [userRole, setUserRole] = useState(null);
 
+<<<<<<< HEAD
   
   useEffect(() => {
+=======
+  useEffect(() => {
+    // Get user role from token
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const token = Cookies.get('token');
     if (token) {
       try {
@@ -26,7 +31,13 @@ export default function ResetStudentPasswordModal({ student, onClose }) {
     e.preventDefault();
     try {
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
+=======
+      
+      // Determine the correct endpoint based on user role
+      // Super Admins can use superadmin endpoint, admins use admin endpoint
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const endpoint = userRole === 'Super Admin' 
         ? "/api/superadmin/students/reset-password"
         : "/api/admin/students/reset-password";

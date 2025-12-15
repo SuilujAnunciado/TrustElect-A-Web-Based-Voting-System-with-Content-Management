@@ -15,7 +15,10 @@ const notificationService = require('../services/notificationService');
   @param {Object} req 
   @param {Object} res 
  */
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -86,8 +89,14 @@ exports.getNotifications = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Get count of unread notifications for the current user
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.getUnreadCount = async (req, res) => {
   try {
@@ -109,8 +118,14 @@ exports.getUnreadCount = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Mark a notification as read
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.markAsRead = async (req, res) => {
   try {
@@ -141,8 +156,14 @@ exports.markAsRead = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Mark all notifications as read for the current user
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.markAllAsRead = async (req, res) => {
   try {
@@ -165,9 +186,15 @@ exports.markAllAsRead = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
 
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Delete a notification
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.deleteNotification = async (req, res) => {
   try {
@@ -198,8 +225,14 @@ exports.deleteNotification = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Delete all notifications for the current user
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.deleteAllNotifications = async (req, res) => {
   try {
@@ -222,8 +255,14 @@ exports.deleteAllNotifications = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
+=======
+ * Debug endpoint to get notifications by role
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.debugNotificationsByRole = async (req, res) => {
   try {
@@ -256,11 +295,21 @@ exports.debugNotificationsByRole = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
  */
 exports.debugSendTestToSuperadmins = async (req, res) => {
   try {
+=======
+ * Debug endpoint to send a test notification to all superadmins
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ */
+exports.debugSendTestToSuperadmins = async (req, res) => {
+  try {
+    // This should only be accessible in development
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (process.env.NODE_ENV === 'production') {
       return res.status(403).json({
         success: false,

@@ -12,7 +12,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const DeleteConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isDeleting }) => {
   if (!isOpen) return null;
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
@@ -180,6 +183,10 @@ const statusIcons = {
 };
 
 const isCreatedBySystemAdmin = (election) => {
+<<<<<<< HEAD
+=======
+  // No creator information
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (!election.created_by) return false;
   
   if (typeof election.created_by === 'number' || typeof election.created_by === 'string') {
@@ -187,6 +194,10 @@ const isCreatedBySystemAdmin = (election) => {
   }
   
   if (typeof election.created_by === 'object') {
+<<<<<<< HEAD
+=======
+    // Check by role if available
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (election.created_by.role) {
       const role = election.created_by.role.toLowerCase();
       return role.includes('superadmin') || 
@@ -195,11 +206,20 @@ const isCreatedBySystemAdmin = (election) => {
              role.includes('super');
     }
     
+<<<<<<< HEAD
+=======
+    // Check by ID if role not available
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (election.created_by.id) {
       return election.created_by.id === 1 || election.created_by.id === '1';
     }
   }
+<<<<<<< HEAD
 
+=======
+  
+  // Default to false if we can't determine
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return false;
 };
 
@@ -242,7 +262,12 @@ export default function ElectionPage() {
         setElections([]);
         return;
       }
+<<<<<<< HEAD
 
+=======
+      
+      // Do not filter out super admin elections globally; show all elections
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(response.data || []);
     } catch (err) {
       console.error("Failed to load elections:", err);
@@ -255,6 +280,10 @@ export default function ElectionPage() {
 
   const fetchPendingApprovals = useCallback(async () => {
     try {
+<<<<<<< HEAD
+=======
+      // Only fetch pending approvals if the user has edit permissions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!hasPermission('elections', 'edit')) {
         setPendingApprovals([]);
         setPendingCount(0);
@@ -262,9 +291,19 @@ export default function ElectionPage() {
       }
       
       setLoading(true);
+<<<<<<< HEAD
       const data = await fetchWithAuth('/elections/admin-pending-approval');
 
       const adminCreatedElections = data.filter(election => {
+=======
+      // Use the dedicated endpoint for admin pending approval
+      const data = await fetchWithAuth('/elections/admin-pending-approval');
+      
+      // Filter to only include elections created by the current admin
+      // This ensures system admin created elections won't appear here
+      const adminCreatedElections = data.filter(election => {
+        // Exclude elections created by system admin
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         return !isCreatedBySystemAdmin(election);
       });
       
@@ -272,6 +311,10 @@ export default function ElectionPage() {
       setPendingCount(adminCreatedElections.length);
     } catch (err) {
       console.error("Failed to load pending approvals:", err);
+<<<<<<< HEAD
+=======
+      // Don't set the main error state here, just log it
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setPendingApprovals([]);
       setPendingCount(0);
     } finally {
@@ -279,6 +322,10 @@ export default function ElectionPage() {
     }
   }, [hasPermission]);
 
+<<<<<<< HEAD
+=======
+  // Initial load
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const loadData = async () => {
       if (!permissionsLoading && hasPermission('elections', 'view')) {
@@ -298,12 +345,17 @@ export default function ElectionPage() {
           election.is_active !== false && election.is_deleted !== true
         )
         .map(election => {
+<<<<<<< HEAD
+=======
+          // If created by super admin, treat as not needing approval
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (isCreatedBySystemAdmin(election) && election.needs_approval) {
             return { ...election, needs_approval: false };
           }
           return election;
         }));
     } else if (activeTab === 'pending') {
+<<<<<<< HEAD
       setFilteredElections(pendingApprovals);
     } else {
       setFilteredElections(
@@ -311,6 +363,19 @@ export default function ElectionPage() {
           if (election.is_active === false || election.is_deleted === true) {
             return false;
           }
+=======
+      // Use the dedicated pendingApprovals state
+      setFilteredElections(pendingApprovals);
+    } else {
+      // For other tabs, filter by status but exclude those needing approval and archived/deleted
+      setFilteredElections(
+        elections.filter(election => {
+          // Exclude archived and deleted elections
+          if (election.is_active === false || election.is_deleted === true) {
+            return false;
+          }
+          // If created by super admin, treat as not needing approval
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (isCreatedBySystemAdmin(election) && election.needs_approval) {
             return election.status === activeTab;
           }
@@ -320,10 +385,20 @@ export default function ElectionPage() {
     }
   }, [activeTab, elections, pendingApprovals]);
 
+<<<<<<< HEAD
   useEffect(() => {
     if (!permissionsLoading) {
       const currentTab = tabs.find(tab => tab.id === activeTab);
       if (currentTab?.requiresPermission && !hasPermission('elections', currentTab.requiresPermission)) {
+=======
+  // Set default active tab based on permissions
+  useEffect(() => {
+    if (!permissionsLoading) {
+      // If the current active tab requires permissions the user doesn't have
+      const currentTab = tabs.find(tab => tab.id === activeTab);
+      if (currentTab?.requiresPermission && !hasPermission('elections', currentTab.requiresPermission)) {
+        // Fall back to 'all' tab which is always available with view permission
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setActiveTab('all');
       }
     }
@@ -346,7 +421,11 @@ export default function ElectionPage() {
   };
 
   const handleDeleteClick = (election, e) => {
+<<<<<<< HEAD
     e.stopPropagation();
+=======
+    e.stopPropagation(); // Prevent row click
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!hasPermission('elections', 'delete')) {
       alert("You don't have permission to delete elections");
       return;
@@ -356,7 +435,11 @@ export default function ElectionPage() {
   };
 
   const handleArchiveClick = (election, e) => {
+<<<<<<< HEAD
     e.stopPropagation(); 
+=======
+    e.stopPropagation(); // Prevent row click
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!hasPermission('elections', 'delete')) {
       alert("You don't have permission to archive elections");
       return;
@@ -380,7 +463,12 @@ export default function ElectionPage() {
       await fetchWithAuth(`/elections/${electionToDelete.id}`, {
         method: 'DELETE'
       });
+<<<<<<< HEAD
 
+=======
+      
+      // Update the elections state to remove the deleted election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       setFilteredElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       
@@ -412,6 +500,10 @@ export default function ElectionPage() {
         method: 'POST'
       });
       
+<<<<<<< HEAD
+=======
+      // Update the elections state to remove the archived election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToArchive.id));
       setFilteredElections(prev => prev.filter(e => e.id !== electionToArchive.id));
       
@@ -448,7 +540,12 @@ export default function ElectionPage() {
           autoDeleteDays: autoDeleteDays
         })
       });
+<<<<<<< HEAD
 
+=======
+      
+      // Update the elections state to remove the soft deleted election
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToSoftDelete.id));
       setFilteredElections(prev => prev.filter(e => e.id !== electionToSoftDelete.id));
       
@@ -480,6 +577,10 @@ export default function ElectionPage() {
   };
 
   const getStatusBadge = (election) => {
+<<<<<<< HEAD
+=======
+    // If created by super admin, never show as pending approval
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (isCreatedBySystemAdmin(election)) {
       return (
         <div className={`flex items-center px-3 py-1 rounded-full ${statusColors[election.status]}`}>
@@ -492,6 +593,10 @@ export default function ElectionPage() {
         </div>
       );
     }
+<<<<<<< HEAD
+=======
+    // If the election needs approval, show it as to_approve regardless of other status
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (election.needs_approval) {
       return (
         <div className={`flex items-center px-3 py-1 rounded-full ${statusColors['to_approve']}`}>
@@ -512,6 +617,10 @@ export default function ElectionPage() {
     );
   };
 
+<<<<<<< HEAD
+=======
+  // Show loading state while permissions are being checked
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (loading || permissionsLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center p-6 bg-gray-50 min-h-screen">
@@ -520,6 +629,10 @@ export default function ElectionPage() {
     );
   }
   
+<<<<<<< HEAD
+=======
+  // Only show access denied if permissions have loaded and user definitely doesn't have permission
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (!permissionsLoading && !hasPermission('elections', 'view')) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -715,6 +828,10 @@ export default function ElectionPage() {
       )}
 
 
+<<<<<<< HEAD
+=======
+      {/* Delete Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <DeleteConfirmationModal 
         isOpen={deleteModalOpen}
         election={electionToDelete}
@@ -723,6 +840,10 @@ export default function ElectionPage() {
         isDeleting={isDeleting}
       />
 
+<<<<<<< HEAD
+=======
+      {/* Archive Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <ArchiveConfirmationModal 
         isOpen={archiveModalOpen}
         election={electionToArchive}
@@ -731,6 +852,10 @@ export default function ElectionPage() {
         isArchiving={isArchiving}
       />
 
+<<<<<<< HEAD
+=======
+      {/* Soft Delete Confirmation Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <SoftDeleteConfirmationModal 
         isOpen={softDeleteModalOpen}
         election={electionToSoftDelete}

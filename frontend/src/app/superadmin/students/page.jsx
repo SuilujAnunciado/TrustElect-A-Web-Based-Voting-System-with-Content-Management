@@ -1,4 +1,8 @@
 "use client";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -35,7 +39,11 @@ export default function ManageStudents() {
   const [selectedYearLevel, setSelectedYearLevel] = useState("");
   const [selectedAcademicTermId, setSelectedAcademicTermId] = useState(null);
   const [showStatsPanel, setShowStatsPanel] = useState(false);
+<<<<<<< HEAD
   const [sortBy, setSortBy] = useState("name-asc");
+=======
+  const [sortBy, setSortBy] = useState("name-asc"); // "name-asc", "name-desc", "student-number-asc", "student-number-desc"
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -50,6 +58,7 @@ export default function ManageStudents() {
   const [batchResults, setBatchResults] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
+<<<<<<< HEAD
   const [showBatchDeleteModal, setShowBatchDeleteModal] = useState(false);
   const [selectedCourseForDelete, setSelectedCourseForDelete] = useState("");
   const [deleteType, setDeleteType] = useState("archive");
@@ -59,6 +68,20 @@ export default function ManageStudents() {
   const [deleteAllType, setDeleteAllType] = useState("archive"); 
   const [isDeletingAll, setIsDeletingAll] = useState(false);
 
+=======
+  // Batch delete states
+  const [showBatchDeleteModal, setShowBatchDeleteModal] = useState(false);
+  const [selectedCourseForDelete, setSelectedCourseForDelete] = useState("");
+  const [deleteType, setDeleteType] = useState("archive"); // "archive" or "permanent"
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Delete all students states
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [deleteAllType, setDeleteAllType] = useState("archive"); // "archive" or "permanent"
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+
+  // Academic term management states
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [showAddTermModal, setShowAddTermModal] = useState(false);
   const [newSchoolYear, setNewSchoolYear] = useState("");
   const [newTerm, setNewTerm] = useState("");
@@ -120,6 +143,10 @@ export default function ManageStudents() {
   const handleBatchUpload = async () => {
     if (!selectedFile) return;
   
+<<<<<<< HEAD
+=======
+    // Check if academic term is selected
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!selectedAcademicTermId) {
       toast.error("Please select an academic term first");
       return;
@@ -140,7 +167,11 @@ export default function ManageStudents() {
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('createdBy', superAdminId);
+<<<<<<< HEAD
       formData.append('academicTermId', selectedAcademicTermId); 
+=======
+      formData.append('academicTermId', selectedAcademicTermId); // Add selected term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   
       const res = await axios.post('/api/superadmin/students/batch', formData, {
         headers: {
@@ -186,7 +217,12 @@ export default function ManageStudents() {
     try {
       setLoading(true);
       const token = Cookies.get("token");
+<<<<<<< HEAD
 
+=======
+      
+      // Add academic_term_id to query if selected
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let url = "/api/superadmin/students";
       if (selectedAcademicTermId) {
         url += `?academic_term_id=${selectedAcademicTermId}`;
@@ -228,6 +264,10 @@ export default function ManageStudents() {
       filtered = filtered.filter((student) => student.year_level === selectedYearLevel);
     }
 
+<<<<<<< HEAD
+=======
+    // Apply sorting
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "name-asc":
@@ -263,6 +303,10 @@ export default function ManageStudents() {
   };
 
   useEffect(() => {
+<<<<<<< HEAD
+=======
+    // Don't fetch students on mount - wait for academic term to be set
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     fetchCoursesAndYearLevels();
   }, []);
 
@@ -271,6 +315,10 @@ export default function ManageStudents() {
     setFilteredCount(filteredCount);
   }, [searchQuery, selectedCourse, selectedYearLevel, currentPage, students, sortBy, studentsPerPage]);
 
+<<<<<<< HEAD
+=======
+  // Fetch students when academic term changes
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     fetchStudents();
   }, [selectedAcademicTermId]);
@@ -336,11 +384,19 @@ export default function ManageStudents() {
     setBatchResults(null);
   };
 
+<<<<<<< HEAD
+=======
+  // Utility function to format names properly (Title Case)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatName = (name) => {
     if (!name) return '';
     return name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
   };
 
+<<<<<<< HEAD
+=======
+  // Utility function to format full name display
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatFullName = (lastName, firstName, middleName) => {
     const formattedLastName = formatName(lastName);
     const formattedFirstName = formatName(firstName);
@@ -349,6 +405,10 @@ export default function ManageStudents() {
     return `${formattedLastName}, ${formattedFirstName}${formattedMiddleName ? ` ${formattedMiddleName}` : ''}`;
   };
 
+<<<<<<< HEAD
+=======
+  // Batch delete functions
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleBatchDelete = async () => {
     if (!selectedCourseForDelete) {
       return;
@@ -373,7 +433,11 @@ export default function ManageStudents() {
         toast.success(response.data.message || "Students archived successfully.");
         setShowBatchDeleteModal(false);
         setSelectedCourseForDelete("");
+<<<<<<< HEAD
         fetchStudents();
+=======
+        fetchStudents(); // Refresh the student list
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       } else {
         toast.error(response.data.message || "Failed to archive students.");
       }
@@ -385,6 +449,10 @@ export default function ManageStudents() {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Delete all students function
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleDeleteAllStudents = async () => {
     setIsDeletingAll(true);
     try {
@@ -401,7 +469,11 @@ export default function ManageStudents() {
       if (response.data.success) {
         toast.success(response.data.message || "All students archived successfully.");
         setShowDeleteAllModal(false);
+<<<<<<< HEAD
         fetchStudents(); 
+=======
+        fetchStudents(); // Refresh the student list
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       } else {
         toast.error(response.data.message || "Failed to archive all students.");
       }
@@ -429,6 +501,10 @@ export default function ManageStudents() {
 
   const stats = calculateStats();
 
+<<<<<<< HEAD
+=======
+  // Handle creating new academic term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleCreateAcademicTerm = async () => {
     if (!newSchoolYear || !newTerm) {
       toast.error("Please fill in all fields");
@@ -457,7 +533,12 @@ export default function ManageStudents() {
         setNewSchoolYear("");
         setNewTerm("");
         setSetAsCurrentTerm(false);
+<<<<<<< HEAD
 
+=======
+        
+        // Refresh students if this was set as current
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (setAsCurrentTerm) {
           fetchStudents();
         }
@@ -592,11 +673,19 @@ export default function ManageStudents() {
 
                       if (response.data.success) {
                         toast.success("Current term updated successfully");
+<<<<<<< HEAD
 
                         if (window.refreshAcademicTerms) {
                           window.refreshAcademicTerms();
                         }
  
+=======
+                        // Refresh the term selector to update (Current) labels
+                        if (window.refreshAcademicTerms) {
+                          window.refreshAcademicTerms();
+                        }
+                        // Refresh students list
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                         setTimeout(() => fetchStudents(), 500);
                       }
                     } catch (error) {
@@ -1138,6 +1227,10 @@ export default function ManageStudents() {
         isLoading={false}
       />
 
+<<<<<<< HEAD
+=======
+      {/* Add New Academic Term Modal */}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showAddTermModal && (
         <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -1171,6 +1264,10 @@ export default function ManageStudents() {
                 <option value="Term 1">Term 1</option>
                 <option value="Term 2">Term 2</option>
               </select>
+<<<<<<< HEAD
+=======
+{/*               <p className="text-xs text-gray-500 mt-1">Or type your own in the field above</p>*/}
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             </div>
 
             <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">

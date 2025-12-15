@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const pool = require("../config/db");
 
+<<<<<<< HEAD
 
 const buildAbsoluteUrl = (req, relativePath) => {
   if (!relativePath) return null;
@@ -13,6 +14,14 @@ const buildAbsoluteUrl = (req, relativePath) => {
 
   if (basePath.startsWith('/uploads/')) {
     basePath = `/api${basePath}`;
+=======
+const buildAbsoluteUrl = (req, relativePath) => {
+  if (!relativePath) return null;
+  let basePath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+  // Normalize to /api/uploads if the path starts with /uploads
+  if (basePath.startsWith('/uploads/')) {
+    basePath = `/api${basePath}`; // serve under /api/uploads as well
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   }
   const protocol = req.protocol;
   const host = req.get('host');
@@ -20,6 +29,10 @@ const buildAbsoluteUrl = (req, relativePath) => {
 };
 
 const generateStudentPassword = (lastName, studentNumber) => {
+<<<<<<< HEAD
+=======
+  // Format lastName to proper case (Title Case)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formattedLastName = lastName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
   const lastThreeDigits = studentNumber.slice(-3);
   const specialCharacter = "!";
@@ -37,7 +50,12 @@ const normalizeForEmail = (text) => {
   if (!text) return '';
 
   let normalized = text.toLowerCase().replace(/\s+/g, '');
+<<<<<<< HEAD
 s
+=======
+  
+  // Replace Spanish characters with their ASCII equivalents
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const charMap = {
     'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
     'ü': 'u', 'ñ': 'n', 'ç': 'c', 'à': 'a', 'è': 'e',
@@ -56,7 +74,14 @@ exports.registerStudent = async (req, res) => {
   try {
     const { firstName, middleName, lastName, email, studentNumber, courseName, courseId, yearLevel, gender, birthdate, password, createdBy, academicTermId } = req.body;
 
+<<<<<<< HEAD
     let termId = academicTermId ? parseInt(academicTermId) : null;
+=======
+    // Get academic term ID from request or use current term
+    let termId = academicTermId ? parseInt(academicTermId) : null;
+    
+    // Don't check for duplicate student number here - backend model will check per term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     let hashedPassword;
     if (password) {
@@ -108,7 +133,11 @@ exports.registerStudent = async (req, res) => {
       processedBirthdate,
       createdBy,
       courseId,
+<<<<<<< HEAD
       termId 
+=======
+      termId // Pass academic term ID
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     );
 
     res.status(201).json({
@@ -134,6 +163,10 @@ exports.registerStudent = async (req, res) => {
 
 exports.getAllStudents = async (req, res) => {
   try {
+<<<<<<< HEAD
+=======
+    // Get academic_term_id from query parameter if provided
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const academicTermId = req.query.academic_term_id ? parseInt(req.query.academic_term_id) : null;
     
     const students = await getAllStudents(academicTermId);
@@ -288,18 +321,32 @@ exports.uploadStudentsBatch = async (req, res) => {
 
     const workbook = XLSX.read(fs.readFileSync(filePath));
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+<<<<<<< HEAD
 
     let jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); 
+=======
+    
+    // Try to detect the actual header row by looking for meaningful column names
+    let jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // Get raw data as arrays
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     if (jsonData.length === 0) {
       return res.status(400).json({ message: 'Excel file contains no data' });
     }
 
+<<<<<<< HEAD
+=======
+    // Find the header row by looking for common student data column names
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let headerRowIndex = 0;
     let bestHeaderRow = 0;
     let maxMatches = 0;
     
+<<<<<<< HEAD
     for (let i = 0; i < Math.min(jsonData.length, 10); i++) { 
+=======
+    for (let i = 0; i < Math.min(jsonData.length, 10); i++) { // Check first 10 rows
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const row = jsonData[i];
       if (!row || row.length === 0) continue;
       
@@ -316,6 +363,7 @@ exports.uploadStudentsBatch = async (req, res) => {
     
     headerRowIndex = bestHeaderRow;
     
+<<<<<<< HEAD
     if (maxMatches === 0) {
       headerRowIndex = 0;
     }
@@ -329,6 +377,25 @@ exports.uploadStudentsBatch = async (req, res) => {
       return String(header).trim();
     });
 
+=======
+    // If no good header row found, try to use the first row and clean it up
+    if (maxMatches === 0) {
+      headerRowIndex = 0;
+    }
+    
+    // Extract headers from the best row
+    const headers = jsonData[headerRowIndex] || [];
+    
+    // Clean up headers - remove empty ones and normalize
+    const cleanHeaders = headers.map((header, index) => {
+      if (!header || String(header).trim() === '' || String(header).startsWith('_EMPTY')) {
+        return `Column_${index + 1}`; // Give empty columns a generic name
+      }
+      return String(header).trim();
+    });
+    
+    // Convert to JSON format using the cleaned headers
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const dataRows = jsonData.slice(headerRowIndex + 1);
     jsonData = dataRows.map(row => {
       const obj = {};
@@ -337,9 +404,17 @@ exports.uploadStudentsBatch = async (req, res) => {
       });
       return obj;
     }).filter(row => {
+<<<<<<< HEAD
       return Object.values(row).some(value => value && String(value).trim() !== '');
     });
     
+=======
+      // Filter out completely empty rows
+      return Object.values(row).some(value => value && String(value).trim() !== '');
+    });
+    
+    // If we still have no data after processing, return an error
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (jsonData.length === 0) {
       return res.status(400).json({ 
         message: 'No valid data found in Excel file. Please check that your file has proper column headers and data.',
@@ -356,6 +431,7 @@ exports.uploadStudentsBatch = async (req, res) => {
       const normalizedRow = {};
 
       Object.keys(row).forEach(key => {
+<<<<<<< HEAD
         const normalizedKey = key.toLowerCase()
           .replace(/\s+/g, '')      
           .replace(/[_-]/g, '')         
@@ -365,6 +441,21 @@ exports.uploadStudentsBatch = async (req, res) => {
         if (process.env.NODE_ENV === 'production') {
         }
 
+=======
+        // More comprehensive column name normalization
+        const normalizedKey = key.toLowerCase()
+          .replace(/\s+/g, '')           // Remove all spaces
+          .replace(/[_-]/g, '')          // Remove underscores and hyphens
+          .replace(/\./g, '')            // Remove dots
+          .trim();
+
+        // Debug logging (only in development)
+        if (process.env.NODE_ENV === 'production') {
+        }
+      
+        // Map various possible column names to our expected format
+        // Use more flexible matching that looks for keywords within the column name
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (normalizedKey.includes('first') && normalizedKey.includes('name')) {
           normalizedRow.firstName = row[key];
         } else if (normalizedKey.includes('middle') && normalizedKey.includes('name')) {
@@ -376,7 +467,11 @@ exports.uploadStudentsBatch = async (req, res) => {
                    (normalizedKey.includes('student') && normalizedKey.includes('id')) ||
                    normalizedKey.includes('studentno') || normalizedKey.includes('studentnum') ||
                    (normalizedKey.includes('id') && !normalizedKey.includes('email'))) {
+<<<<<<< HEAD
           normalizedRow.studentNumber = String(row[key]); 
+=======
+          normalizedRow.studentNumber = String(row[key]); // Ensure it's a string
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         } else if (normalizedKey.includes('course') || normalizedKey.includes('program') || 
                    normalizedKey.includes('degree') || normalizedKey.includes('major')) {
           normalizedRow.courseName = row[key];
@@ -391,10 +486,19 @@ exports.uploadStudentsBatch = async (req, res) => {
         } else if (normalizedKey.includes('email') || normalizedKey.includes('mail')) {
           normalizedRow.email = row[key];
         } else {
+<<<<<<< HEAD
           normalizedRow[key] = row[key];
         }
       });
 
+=======
+          // Keep original column for debugging
+          normalizedRow[key] = row[key];
+        }
+      });
+      
+      // Debug logging (only in development)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (process.env.NODE_ENV === 'development') {
       }
       return normalizedRow;
@@ -414,7 +518,11 @@ exports.uploadStudentsBatch = async (req, res) => {
       });
       
       if (missingFields.length > 0) {     
+<<<<<<< HEAD
 
+=======
+        // Provide more detailed error information
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const availableColumns = Object.keys(student).filter(key => student[key] !== undefined && student[key] !== null && String(student[key]).trim() !== '');
         const errorMessage = `Missing required fields: ${missingFields.join(', ')}. Available columns: ${availableColumns.join(', ')}`;
         
@@ -464,16 +572,28 @@ exports.uploadStudentsBatch = async (req, res) => {
           else if (yearLevelStr.toLowerCase().includes('fourth') || yearLevelStr.toLowerCase().includes('4th')) {
             year = 4;
           }
+<<<<<<< HEAD
 
           else if (yearLevelStr.toLowerCase() === 'g11' || yearLevelStr.toLowerCase() === 'grade 11') {
             student.yearLevel = 'Grade 11';
             validatedData.push(student);
             return; 
+=======
+          // Handle senior high school year levels
+          else if (yearLevelStr.toLowerCase() === 'g11' || yearLevelStr.toLowerCase() === 'grade 11') {
+            student.yearLevel = 'Grade 11';
+            validatedData.push(student);
+            return; // Skip the rest of the validation for year level
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           }
           else if (yearLevelStr.toLowerCase() === 'g12' || yearLevelStr.toLowerCase() === 'grade 12') {
             student.yearLevel = 'Grade 12';
             validatedData.push(student);
+<<<<<<< HEAD
             return;
+=======
+            return; // Skip the rest of the validation for year level
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           }
 
           if (year >= 1 && year <= 4) {
@@ -582,6 +702,10 @@ exports.uploadStudentsBatch = async (req, res) => {
       }
     }
 
+<<<<<<< HEAD
+=======
+    // Get academic term ID from request body or use current term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const academicTermId = req.body.academicTermId ? parseInt(req.body.academicTermId) : null;
     
     const result = await processBatchStudents(validatedData, req.body.createdBy, academicTermId);
@@ -597,6 +721,10 @@ exports.uploadStudentsBatch = async (req, res) => {
       allErrors.push(...result.errors);
     }
 
+<<<<<<< HEAD
+=======
+    // Get detected columns for debugging
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const detectedColumns = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
     const mappedColumns = {
       firstName: jsonData.some(row => row.firstName !== undefined),
@@ -940,7 +1068,12 @@ exports.validateStudentByNumber = async (req, res) => {
         message: "Student number is required" 
       });
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Validate student number format
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!/^02000[0-9]{6}$/.test(studentNumber)) {
 
       return res.status(400).json({
@@ -948,7 +1081,12 @@ exports.validateStudentByNumber = async (req, res) => {
         message: "Invalid student number format. Must be 11 digits starting with 02000"
       });
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Query to find the student
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const query = `
       SELECT 
         s.id, 
@@ -995,7 +1133,12 @@ exports.searchStudents = async (req, res) => {
         message: "Search term must be at least 4 characters" 
       });
     }
+<<<<<<< HEAD
 
+=======
+    
+    // Search by student number (partial match)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const query = `
       SELECT 
         s.id, 
@@ -1100,6 +1243,10 @@ exports.bulkDeleteStudentsByCourse = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+// Bulk permanent delete students by course
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.bulkPermanentDeleteStudentsByCourse = async (req, res) => {
   try {
     const { courseName } = req.body;
@@ -1133,6 +1280,10 @@ exports.bulkPermanentDeleteStudentsByCourse = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+// Bulk permanent delete archived students by course
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.bulkDeleteArchivedStudentsByCourse = async (req, res) => {
   try {
     const { courseName } = req.body;
@@ -1166,9 +1317,16 @@ exports.bulkDeleteArchivedStudentsByCourse = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 exports.deleteAllStudents = async (req, res) => {
   try {
     const result = await deleteAllStudents(false);
+=======
+// Delete all students (archive)
+exports.deleteAllStudents = async (req, res) => {
+  try {
+    const result = await deleteAllStudents(false); // false = archive (soft delete)
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     if (!result.success) {
       return res.status(404).json(result);
@@ -1190,9 +1348,16 @@ exports.deleteAllStudents = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 exports.permanentDeleteAllStudents = async (req, res) => {
   try {
     const result = await deleteAllStudents(true); 
+=======
+// Permanently delete all students
+exports.permanentDeleteAllStudents = async (req, res) => {
+  try {
+    const result = await deleteAllStudents(true); // true = permanent delete
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     if (!result.success) {
       return res.status(404).json(result);

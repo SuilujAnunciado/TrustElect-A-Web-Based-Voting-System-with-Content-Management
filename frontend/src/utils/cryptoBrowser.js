@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+// Minimal browser AES-256-GCM decrypt helper compatible with backend cryptoService outputs
+// Expects hex strings for encrypted, iv, authTag, key
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 function hexToBytes(hex) {
 	if (typeof hex !== 'string') throw new Error('Expected hex string');
@@ -20,6 +25,10 @@ async function decryptAesGcmHex({ encrypted, iv, authTag, key }) {
 	const ctBytes = hexToBytes(encrypted);
 	const tagBytes = hexToBytes(authTag);
 
+<<<<<<< HEAD
+=======
+	// WebCrypto expects ciphertext with tag appended at the end
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 	const sealed = new Uint8Array(ctBytes.length + tagBytes.length);
 	sealed.set(ctBytes, 0);
 	sealed.set(tagBytes, ctBytes.length);

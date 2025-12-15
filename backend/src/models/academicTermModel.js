@@ -1,6 +1,12 @@
 const pool = require("../config/db");
 
+<<<<<<< HEAD
 
+=======
+/**
+ * Get all academic terms
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getAllAcademicTerms = async () => {
   const query = `
     SELECT 
@@ -19,6 +25,12 @@ const getAllAcademicTerms = async () => {
   return result.rows;
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Get the current academic term
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getCurrentAcademicTerm = async () => {
   const query = `
     SELECT 
@@ -37,6 +49,12 @@ const getCurrentAcademicTerm = async () => {
   return result.rows[0] || null;
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Get academic term by ID
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getAcademicTermById = async (id) => {
   const query = `
     SELECT 
@@ -54,11 +72,21 @@ const getAcademicTermById = async (id) => {
   return result.rows[0] || null;
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Create a new academic term
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const createAcademicTerm = async (schoolYear, term, isCurrent = false) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
+<<<<<<< HEAD
+=======
+    // If this is marked as current, unset all other current terms
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (isCurrent) {
       await client.query(`
         UPDATE academic_terms 
@@ -67,6 +95,10 @@ const createAcademicTerm = async (schoolYear, term, isCurrent = false) => {
       `);
     }
 
+<<<<<<< HEAD
+=======
+    // Check if this combination already exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const existingCheck = await client.query(`
       SELECT id FROM academic_terms 
       WHERE LOWER(school_year) = LOWER($1) AND LOWER(term) = LOWER($2)
@@ -93,6 +125,12 @@ const createAcademicTerm = async (schoolYear, term, isCurrent = false) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Update an academic term
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const updateAcademicTerm = async (id, schoolYear, term) => {
   const query = `
     UPDATE academic_terms
@@ -109,11 +147,21 @@ const updateAcademicTerm = async (id, schoolYear, term) => {
   return result.rows[0];
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Set an academic term as current (and unset others)
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const setCurrentAcademicTerm = async (id) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
+<<<<<<< HEAD
+=======
+    // Check if the term exists
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const termCheck = await client.query(
       'SELECT id FROM academic_terms WHERE id = $1 AND is_active = TRUE',
       [id]
@@ -123,8 +171,15 @@ const setCurrentAcademicTerm = async (id) => {
       throw new Error('Academic term not found or inactive');
     }
 
+<<<<<<< HEAD
     await client.query('UPDATE academic_terms SET is_current = FALSE');
 
+=======
+    // Unset all current terms
+    await client.query('UPDATE academic_terms SET is_current = FALSE');
+
+    // Set the specified term as current
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await client.query(`
       UPDATE academic_terms
       SET is_current = TRUE, updated_at = NOW()
@@ -142,12 +197,23 @@ const setCurrentAcademicTerm = async (id) => {
   }
 };
 
+<<<<<<< HEAD
 
+=======
+/**
+ * Soft delete an academic term (set is_active to false)
+ * Only allowed if no students are associated with this term
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const deleteAcademicTerm = async (id) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
+<<<<<<< HEAD
+=======
+    // Check if any students are associated with this term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const studentCheck = await client.query(
       'SELECT COUNT(*) as count FROM students WHERE academic_term_id = $1',
       [id]
@@ -157,6 +223,10 @@ const deleteAcademicTerm = async (id) => {
       throw new Error('Cannot delete academic term: students are enrolled in this term');
     }
 
+<<<<<<< HEAD
+=======
+    // Check if this is the current term
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const currentCheck = await client.query(
       'SELECT is_current FROM academic_terms WHERE id = $1',
       [id]
@@ -170,6 +240,10 @@ const deleteAcademicTerm = async (id) => {
       throw new Error('Cannot delete the current academic term');
     }
 
+<<<<<<< HEAD
+=======
+    // Soft delete
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await client.query(`
       UPDATE academic_terms
       SET is_active = FALSE, updated_at = NOW()
@@ -187,6 +261,12 @@ const deleteAcademicTerm = async (id) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * Get student count per academic term
+ */
+>>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getStudentCountByTerm = async (termId) => {
   const query = `
     SELECT COUNT(*) as count
