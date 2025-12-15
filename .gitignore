@@ -1,155 +1,45 @@
-<<<<<<< HEAD
 
-=======
-# Environment variables - NEVER COMMIT THESE
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-<<<<<<< HEAD
-=======
-# Backend environment files
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
+
 backend/.env
 backend/.env.local
 backend/.env.development.local
 backend/.env.test.local
 backend/.env.production.local
 
-<<<<<<< HEAD
-=======
-# Frontend environment files
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 frontend/.env
 frontend/.env.local
 frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
 
-<<<<<<< HEAD
-=======
-# Node modules
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 node_modules/
 backend/node_modules/
 frontend/node_modules/
 
-<<<<<<< HEAD
 
-=======
-# Logs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-<<<<<<< HEAD
-=======
-# Runtime data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
+
 pids
 *.pid
 *.seed
 *.pid.lock
 
-<<<<<<< HEAD
-coverage/
-.nyc_output
-
-
-jspm_packages/
-
-.npm
-
-.eslintcache
-
-*.tgz
-
-.yarn-integrity
-
-.cache
-.parcel-cache
-
-.next
-
-.nuxt
-
-.vuepress/dist
-
-.serverless
-
-.fusebox/
-
-.dynamodb/
-
-.tern-port
-
-.vscode-test
-
-=======
-# Coverage directory
-coverage/
-.nyc_output
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# IDE files
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-<<<<<<< HEAD
-=======
-# OS generated files
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 .DS_Store
 .DS_Store?
 ._*
@@ -158,17 +48,8 @@ jspm_packages/
 ehthumbs.db
 Thumbs.db
 
-<<<<<<< HEAD
 *.tmp
 *.temp
 
-
-=======
-# Temporary files
-*.tmp
-*.temp
-
-# Build outputs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 dist/
 build/
