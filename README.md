@@ -14,9 +14,3 @@ while preserving voter anonymity until official results are tabulated.
 Security forms the foundation of this voting system through the implementation of
 Multi-Factor Authentication (MFA) and End-to-end Encryption (E2EE). 
 
-## TrustElect Team
-
- - **Suiluj Anunciado** - Lead Programmer 
- - **Steven Baradero** -  Project Manager 
- - **Elmie Sanico** - System Analyst 
- - **Giann Ararao** - Quality Assurance 
