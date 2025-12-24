@@ -15,7 +15,6 @@ const generatePassword = (lastName, employeeNumber) => {
 
 exports.registerAdmin = async (req, res) => {
   try {
-    console.log('Admin registration attempt with data:', req.body);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
