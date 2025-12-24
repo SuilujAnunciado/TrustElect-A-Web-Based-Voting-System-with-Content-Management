@@ -867,6 +867,7 @@ export default function Home() {
         </div>
       </footer>
 
+
       {showLogin && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <LoginForm onClose={() => setShowLogin(false)} />
