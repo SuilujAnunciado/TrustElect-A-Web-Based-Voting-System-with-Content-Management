@@ -1,10 +1,6 @@
 "use client"
 import { useState } from 'react';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const FeaturesSection = ({ 
   landingContent, 
   updateFeature, 
@@ -138,12 +134,6 @@ const FeaturesSection = ({
                 </div>
               )}
             </div>
-<<<<<<< HEAD
-
-=======
-            
-            {/* Feature preview - only shown if content has changed or preview is toggled */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             {showPreview && (
               <div className="border rounded-md overflow-hidden">
                 <div className="bg-gray-100 px-3 py-1 border-b flex justify-between items-center">

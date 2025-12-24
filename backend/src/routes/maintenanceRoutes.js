@@ -15,10 +15,6 @@ const {
 const { verifyToken, isSuperAdmin } = require("../middlewares/authMiddleware");
 const { checkPermission } = require("../middlewares/permissionMiddleware");
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const router = express.Router();
 
 router.get("/programs", verifyToken, getPrograms);

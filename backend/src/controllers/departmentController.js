@@ -14,10 +14,7 @@ exports.createDepartment = async (req, res) => {
       });
     }
     
-<<<<<<< HEAD
     
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,
@@ -46,10 +43,6 @@ exports.createDepartment = async (req, res) => {
       detail: error.detail
     });
     
-<<<<<<< HEAD
-=======
-    // Handle specific error for admin already assigned
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (error.message && error.message.includes("Admin is already assigned")) {
       return res.status(400).json({
         success: false,
@@ -57,10 +50,6 @@ exports.createDepartment = async (req, res) => {
       });
     }
     
-<<<<<<< HEAD
-=======
-    // Handle foreign key constraint errors
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (error.code === '23503') {
       return res.status(400).json({
         success: false,
@@ -68,10 +57,6 @@ exports.createDepartment = async (req, res) => {
       });
     }
     
-<<<<<<< HEAD
-=======
-    // Handle unique constraint errors
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (error.code === '23505') {
       return res.status(400).json({
         success: false,
@@ -89,18 +74,9 @@ exports.createDepartment = async (req, res) => {
 
 exports.getAllDepartments = async (req, res) => {
   try {
-<<<<<<< HEAD
     const departments = await Department.findAllIncludingDeleted();
   
     
-=======
-    console.log("Getting all departments");
-    const departments = await Department.findAllIncludingDeleted();
-    console.log("Departments found:", departments.length);
-    console.log("First department (if any):", departments[0]);
-    
-    // Add debug information in the response
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     res.json({
       count: departments.length,
       departments: departments
@@ -140,10 +116,6 @@ exports.updateDepartment = async (req, res) => {
   try {
     const { department_name, department_type, admin_id } = req.body;
 
-<<<<<<< HEAD
-=======
-    // Check if the admin is already assigned to another department
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (admin_id) {
       const checkQuery = await pool.query(
         "SELECT id, department_name FROM departments WHERE admin_id = $1 AND id != $2 AND is_active = TRUE",
@@ -187,11 +159,7 @@ exports.updateDepartment = async (req, res) => {
 
 exports.deleteDepartment = async (req, res) => {
   try {
-<<<<<<< HEAD
     const { action } = req.query; 
-=======
-    const { action } = req.query; // Check if it's archive or delete
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     const department = await Department.delete(req.params.id, action);
     

@@ -9,10 +9,6 @@ import StudentsSection from './components/StudentsSection';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
-<<<<<<< HEAD
-=======
-// Cache management functions
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const cacheLandingContent = (content) => {
   try {
     const cacheData = {
@@ -25,10 +21,6 @@ const cacheLandingContent = (content) => {
   }
 };
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getCachedLandingContent = (maxAgeMinutes = 30) => {
   try {
     const cachedData = localStorage.getItem('cachedLandingContent');
@@ -37,12 +29,6 @@ const getCachedLandingContent = (maxAgeMinutes = 30) => {
     const { content, timestamp } = JSON.parse(cachedData);
     const now = new Date().getTime();
     const cacheAge = now - timestamp;
-<<<<<<< HEAD
-
-=======
-    
-    // Convert maxAgeMinutes to milliseconds
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (cacheAge < maxAgeMinutes * 60 * 1000) {
       return content;
     }
@@ -161,18 +147,10 @@ export default function ContentManagement() {
     try {
       const timestamp = new Date().getTime();
 
-<<<<<<< HEAD
-=======
-      // Fetch main content
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.get(`${API_URL}/content?t=${timestamp}`, {
         timeout: 5000
       });
 
-<<<<<<< HEAD
-=======
-      // Fetch student UI configuration
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const studentUIResponse = await axios.get(`${API_URL}/studentUI?t=${timestamp}`, {
         headers: {
           'Authorization': `Bearer ${Cookies.get('token')}`
@@ -347,10 +325,6 @@ export default function ContentManagement() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-<<<<<<< HEAD
-=======
-    // Handle carousel images (multiple files)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (type === 'heroCarousel') {
       const maxFiles = 5;
       
@@ -361,17 +335,9 @@ export default function ContentManagement() {
         return;
       }
 
-<<<<<<< HEAD
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-=======
-      // Validate each file
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        
-        // Validate file size
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (file.size > 5 * 1024 * 1024) {
           setSaveStatus(`Error: File ${file.name} is too large. Maximum size is 5MB.`);
           setTimeout(() => setSaveStatus(""), 3000);
@@ -379,10 +345,6 @@ export default function ContentManagement() {
           return;
         }
 
-<<<<<<< HEAD
-=======
-        // Validate file type
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedImageTypes.includes(file.type)) {
           setSaveStatus(`Error: Invalid image format for ${file.name}. Please use JPEG, PNG, GIF, or WebP.`);
@@ -392,7 +354,6 @@ export default function ContentManagement() {
         }
       }
 
-<<<<<<< HEAD
       const currentImages = landingContent.hero.carouselImages || [];
       const newImages = [];
 
@@ -400,18 +361,6 @@ export default function ContentManagement() {
         window.carouselFiles = [];
       }
 
-=======
-      // Store files in a way that can be accessed later for upload
-      const currentImages = landingContent.hero.carouselImages || [];
-      const newImages = [];
-      
-      // Create a temporary storage for files
-      if (!window.carouselFiles) {
-        window.carouselFiles = [];
-      }
-      
-      // Add new files to temporary storage
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const localUrl = URL.createObjectURL(file);
@@ -426,15 +375,8 @@ export default function ContentManagement() {
         newImages.push(localUrl);
       }
 
-<<<<<<< HEAD
       const updatedImages = [...currentImages, ...newImages];
 
-=======
-      // Update carousel images with URLs for preview
-      const updatedImages = [...currentImages, ...newImages];
-      
-      // Limit to 5 images total
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (updatedImages.length > 5) {
         setSaveStatus(`Error: Maximum 5 images allowed. You have ${updatedImages.length} images.`);
         setTimeout(() => setSaveStatus(""), 3000);
@@ -445,7 +387,6 @@ export default function ContentManagement() {
       updateHero('carouselImages', updatedImages);
       setSaveStatus(`Carousel images uploaded successfully! (${newImages.length} images) Click Save to apply changes.`);
       setTimeout(() => setSaveStatus(""), 3000);
-<<<<<<< HEAD
       e.target.value = '';
       return;
     }
@@ -454,18 +395,6 @@ export default function ContentManagement() {
     if (!file) return;
 
     const maxSize = file.type.startsWith('video/') ? 200 * 1024 * 1024 : 5 * 1024 * 1024;
-=======
-      e.target.value = ''; // Clear the input
-      return;
-    }
-
-    // Handle single file uploads (existing logic)
-    const file = files[0];
-    if (!file) return;
-
-    // Check file size based on file type
-    const maxSize = file.type.startsWith('video/') ? 200 * 1024 * 1024 : 5 * 1024 * 1024; // 200MB for videos, 5MB for images
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (file.size > maxSize) {
       const maxSizeMB = maxSize / (1024 * 1024);
       setSaveStatus(`Error: File is too large. Maximum size is ${maxSizeMB}MB.`);
@@ -474,10 +403,6 @@ export default function ContentManagement() {
       return;
     }
 
-<<<<<<< HEAD
-=======
-    // Validate file type
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
     
@@ -499,7 +424,6 @@ export default function ContentManagement() {
       
       try {
         setSaveStatus('Uploading background image...');
-<<<<<<< HEAD
 
         const formData = new FormData();
 
@@ -509,30 +433,10 @@ export default function ContentManagement() {
           type: 'poster', 
           use_landing_design: false,
           existing_background_image: null
-=======
-        
-        // Create form data for direct upload
-        const formData = new FormData();
-        
-        // Important: The server expects both the file and content data
-        formData.append('backgroundImage', file);
-        
-        // Add the content JSON data which is required by the server
-        const contentData = {
-          type: 'poster', // Default to poster type for background uploads
-          use_landing_design: false,
-          existing_background_image: null // We're uploading a new one
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         };
         
         formData.append('content', JSON.stringify(contentData));
         
-<<<<<<< HEAD
-
-=======
-        
-        // Get the token
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const token = Cookies.get('token');
         if (!token) {
           throw new Error('Authentication token not found');
@@ -627,7 +531,6 @@ export default function ContentManagement() {
         }
 
         const formData = new FormData();
-<<<<<<< HEAD
 
         const contentData = {
           type: 'poster', 
@@ -637,30 +540,13 @@ export default function ContentManagement() {
         
         formData.append('content', JSON.stringify(contentData));
         formData.append('removeBackground', 'true'); 
-=======
-        
-        // Add the content JSON data
-        const contentData = {
-          type: 'poster', // Keep as poster type but remove background
-          use_landing_design: false,
-          existing_background_image: null // Explicitly set to null
-        };
-        
-        formData.append('content', JSON.stringify(contentData));
-        formData.append('removeBackground', 'true'); // Important flag
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
         const response = await axios.post(
           `${API_URL}/studentUI`,
           formData,
           {
             headers: {
-<<<<<<< HEAD
               'Authorization': `Bearer ${token}`       
-=======
-              'Authorization': `Bearer ${token}`
-              // Don't manually set Content-Type with FormData
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             }
           }
         );
@@ -781,31 +667,15 @@ export default function ContentManagement() {
           type: landingContent.studentUI?.type || 'poster',
           use_landing_design: isLandingDesign || landingContent.studentUI?.use_landing_design || false
         };
-<<<<<<< HEAD
-
-=======
-        
-        // For landing design, we always remove the background image
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (isLandingDesign) {
           formData.append('removeBackground', 'true');
           contentData.existing_background_image = null;
         } 
-<<<<<<< HEAD
         else {
-=======
-        // For poster design, handle the background image
-        else {
-          // If we already have a background image path in the state that's not a blob URL
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (landingContent.studentUI?.backgroundImage && 
               !landingContent.studentUI.backgroundImage.startsWith('blob:')) {
             contentData.existing_background_image = landingContent.studentUI.backgroundImage;
           } 
-<<<<<<< HEAD
-=======
-          // If background image is explicitly null, remove it
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           else if (landingContent.studentUI?.backgroundImage === null) {
             formData.append('removeBackground', 'true');
           }
@@ -822,10 +692,6 @@ export default function ContentManagement() {
           }
         };
 
-<<<<<<< HEAD
-=======
-        // Special handling for landing design - use the direct endpoint
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (isLandingDesign) {
           
          const directResponse = await axios.post(
@@ -889,21 +755,11 @@ export default function ContentManagement() {
           formData.append('removeLogo', 'true');
         }
       } else if (section === 'header') {
-<<<<<<< HEAD
-=======
-        // Handle header section - preserve all existing content including colors
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         contentData = {
           bgColor: landingContent.header?.bgColor || "#0020C2",
           textColor: landingContent.header?.textColor || "#ffffff",
           backgroundImage: landingContent.header?.backgroundImage || null
         };
-<<<<<<< HEAD
-
-=======
-        
-        // Handle header background image upload
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (landingContent.header.backgroundImage && landingContent.header.backgroundImage.startsWith('blob:')) {
           try {
             const response = await fetch(landingContent.header.backgroundImage);
@@ -953,19 +809,10 @@ export default function ContentManagement() {
           formData.append('removeHeroPoster', 'true');
         }
 
-<<<<<<< HEAD
-=======
-        // Append carousel images if they exist
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (window.carouselFiles && window.carouselFiles.length > 0) {
           window.carouselFiles.forEach((fileData, index) => {
             formData.append(`carouselImage${index}`, fileData.file);
           });
-<<<<<<< HEAD
-
-=======
-          // Clear the temporary storage after adding to FormData
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           window.carouselFiles = [];
         }
       } else if (section === 'features') {
@@ -975,29 +822,15 @@ export default function ContentManagement() {
         const themeFeatureSectionBg = activeTheme?.colors?.featureSectionBg || "#f9fafb";
 
         contentData = {
-<<<<<<< HEAD
           ...landingContent.features,
           sectionBgColor: themeFeatureSectionBg,
           backgroundImage: landingContent.features.backgroundImage,
           columns: landingContent.features.columns.map(column => ({
             ...column, 
-=======
-          ...landingContent.features, // Preserve all existing content
-          sectionBgColor: themeFeatureSectionBg,
-          backgroundImage: landingContent.features.backgroundImage,
-          columns: landingContent.features.columns.map(column => ({
-            ...column, // Preserve all existing column properties
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             bgColor: themeFeatureBg,
             textColor: themeFeatureText
           }))
         };
-<<<<<<< HEAD
-
-=======
-        
-        // Handle features background image upload
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (landingContent.features.backgroundImage && landingContent.features.backgroundImage.startsWith('blob:')) {
           try {
             const response = await fetch(landingContent.features.backgroundImage);
@@ -1041,18 +874,10 @@ export default function ContentManagement() {
         });
       } else if (section === 'callToAction') {
         contentData = {
-<<<<<<< HEAD
           ...landingContent.callToAction, 
           backgroundImage: landingContent.callToAction.backgroundImage
         };
 
-=======
-          ...landingContent.callToAction, // Preserve all existing content
-          backgroundImage: landingContent.callToAction.backgroundImage
-        };
-        
-        // Handle CTA background image upload
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (landingContent.callToAction.backgroundImage && landingContent.callToAction.backgroundImage.startsWith('blob:')) {
           try {
             const response = await fetch(landingContent.callToAction.backgroundImage);
@@ -1064,10 +889,6 @@ export default function ContentManagement() {
           }
         }
 
-<<<<<<< HEAD
-=======
-        // Append CTA video file if selected
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const ctaVideoInput = document.querySelector('#cta-video-input');
         if (ctaVideoInput && ctaVideoInput.files.length > 0) {
           formData.append('ctaVideo', ctaVideoInput.files[0]);
@@ -1121,12 +942,6 @@ export default function ContentManagement() {
         formData,
         config
       );
-<<<<<<< HEAD
-
-=======
-      
-      // Trigger landing page refresh for all sections
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (response.data && response.data.content) {
         localStorage.setItem('contentUpdated', Date.now().toString());
         window.dispatchEvent(new StorageEvent('storage', {
@@ -1147,10 +962,6 @@ export default function ContentManagement() {
             imageUrl: response.data.content.imageUrl || null
           };
         } else if (section === 'features') {
-<<<<<<< HEAD
-=======
-          // Merge to preserve existing columns and fields when only background changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (response.data.content.columns) {
             newContent.features = {
               ...landingContent.features,
@@ -1207,22 +1018,10 @@ export default function ContentManagement() {
         setShowPreview(false);
 
         localStorage.setItem('landingContent', JSON.stringify(newContent));
-<<<<<<< HEAD
-
-=======
-        
-        // Clear file inputs after successful save
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const fileInputs = document.querySelectorAll('input[type="file"]');
         fileInputs.forEach(input => {
           input.value = '';
         });
-<<<<<<< HEAD
-
-=======
-      
-        // Set specific success messages based on section
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         let successMessage = '';
         switch (section) {
           case 'studentUI':
@@ -1252,12 +1051,6 @@ export default function ContentManagement() {
       }
     } catch (error) {
       console.error(`Error saving ${section}:`, error);
-<<<<<<< HEAD
-
-=======
-      
-      // Handle specific error cases
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let errorMessage = `Error saving ${section}. Please try again.`;
       if (error.status === 413 || error.response?.status === 413) {
         errorMessage = 'File too large. Please try a smaller video file (max 200MB).';
@@ -1276,10 +1069,6 @@ export default function ContentManagement() {
     setSaveStatus("Applying all changes...");
     
     try {
-<<<<<<< HEAD
-=======
-      // Save each section with proper validation
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const sections = ['header', 'features', 'hero', 'callToAction'];
       const results = [];
       
@@ -1293,10 +1082,6 @@ export default function ContentManagement() {
         }
       }
 
-<<<<<<< HEAD
-=======
-      // Check if all sections saved successfully
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const failedSections = results.filter(r => !r.success);
       
       if (failedSections.length === 0) {
@@ -1323,10 +1108,6 @@ export default function ContentManagement() {
     if (!url) return null;
     if (url.startsWith('blob:')) return url;
     if (url.startsWith('http')) return url;
-<<<<<<< HEAD
-=======
-    // If the URL already starts with a slash, don't add another one
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return `${API_URL}${url.startsWith('/') ? url : '/' + url}`;
   };
 
@@ -1496,16 +1277,6 @@ export default function ContentManagement() {
             >
               Engagement
             </button>
-<<<<<<< HEAD
-
-=======
-            {/*<button 
-              className={`px-3 py-2 text-sm ${activeTab === 'students' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-black'}`}
-              onClick={() => setActiveTab('students')}
-            >
-              Students UI
-            </button> */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <button 
               className={`px-3 py-2 text-sm ${activeTab === 'themes' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-black'}`}
               onClick={() => setActiveTab('themes')}
@@ -1534,10 +1305,6 @@ export default function ContentManagement() {
               />
             )}
             
-<<<<<<< HEAD
-=======
-            {/* Hero Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             {activeTab === 'hero' && (
               <HeroSection 
                 landingContent={landingContent}
@@ -1565,12 +1332,7 @@ export default function ContentManagement() {
                 handleFeatureCard1Upload={handleFeatureCard1Upload}
               />
             )}
-<<<<<<< HEAD
   
-=======
-            
-            {/* Call to Action Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             {activeTab === 'cta' && (
               <CTASection 
                 landingContent={landingContent}
@@ -1596,11 +1358,6 @@ export default function ContentManagement() {
               />
             )}
 
-<<<<<<< HEAD
-
-=======
-            {/* Students Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             {activeTab === 'students' && (
               <StudentsSection 
                 landingContent={landingContent}
@@ -1631,10 +1388,6 @@ export default function ContentManagement() {
               />
             )}
 
-<<<<<<< HEAD
-=======
-            {/* Page Background Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             {activeTab === 'backgrounds' && (
               <div className="space-y-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -1645,10 +1398,6 @@ export default function ContentManagement() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-<<<<<<< HEAD
-=======
-                  {/* Header Background */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <PageBackgroundSection
                     landingContent={landingContent}
                     setLandingContent={setLandingContent}
@@ -1657,10 +1406,6 @@ export default function ContentManagement() {
                     onSave={saveSectionContent}
                   />
 
-<<<<<<< HEAD
-=======
-                  {/* Hero Background */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <PageBackgroundSection
                     landingContent={landingContent}
                     setLandingContent={setLandingContent}
@@ -1669,10 +1414,6 @@ export default function ContentManagement() {
                     onSave={saveSectionContent}
                   />
 
-<<<<<<< HEAD
-=======
-                  {/* Features Background */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <PageBackgroundSection
                     landingContent={landingContent}
                     setLandingContent={setLandingContent}
@@ -1681,10 +1422,6 @@ export default function ContentManagement() {
                     onSave={saveSectionContent}
                   />
 
-<<<<<<< HEAD
-=======
-                  {/* CTA Background */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <PageBackgroundSection
                     landingContent={landingContent}
                     setLandingContent={setLandingContent}

@@ -9,10 +9,6 @@ const smsService = require('../services/smsService');
 const { logAction } = require('../middlewares/auditLogMiddleware');
 require("dotenv").config();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_TIME_MINUTES = 5;
 
@@ -60,24 +56,20 @@ exports.loginUser = async (req, res) => {
     if (superAdminResult.rows.length > 0) {
       user = superAdminResult.rows[0];
       role = "Super Admin";
-      // Set default department for Super Admin
       user.department = "Administrator";
-      user.canApproveElections = true; // Super Admin always can approve
+      user.canApproveElections = true;
     }
 
     if (!user) {
       user = await getAdminByEmail(email);
       role = "Admin";
-      
-      // Get department information for admin users
+
       if (user) {
         const adminQuery = "SELECT department FROM admins WHERE user_id = $1";
         const adminResult = await pool.query(adminQuery, [user.id]);
         if (adminResult.rows.length > 0) {
           user.department = adminResult.rows[0].department;
-          
-          // Check if this admin should have approval rights
-          // Only admins with "Administrator" department can approve elections
+
           user.canApproveElections = user.department === 'Administrator';
         } else {
           user.canApproveElections = false;
@@ -144,7 +136,6 @@ exports.loginUser = async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
       await handleFailedLogin(user.id);
-      // Log failed login with wrong password
       await logAction(
         { id: user.id, email: user.email, role },
         'LOGIN_FAILED',
@@ -156,14 +147,12 @@ exports.loginUser = async (req, res) => {
     }
     await resetFailedAttempts(user.id);
 
-    // Include studentId in token if user is a student
     const tokenPayload = { 
       id: user.id, 
       email: user.email, 
       role 
     };
     
-    // Include department and approval rights for admin and super admin users
     if ((role === "Admin" || role === "Super Admin") && user.department) {
       tokenPayload.department = user.department;
       tokenPayload.canApproveElections = user.canApproveElections || false;
@@ -200,7 +189,6 @@ exports.loginUser = async (req, res) => {
       response.studentId = studentId;
     }
 
-    // Log successful login
     await logAction(
       { id: user.id, email: user.email, role },
       'LOGIN',
@@ -254,10 +242,8 @@ exports.studentLogin = async (req, res) => {
     const { email, password } = req.body;
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
 
-    // Get student with both user and student info
     const student = await getStudentByEmail(email);
     if (!student) {
-      // Log failed student login
       await logAction(
         { id: 0, email, role: 'Student' },
         'LOGIN_FAILED',
@@ -270,7 +256,6 @@ exports.studentLogin = async (req, res) => {
 
     const isValidPassword = await bcrypt.compare(password, student.password);
     if (!isValidPassword) {
-      // Log failed student login with wrong password
       await logAction(
         { id: student.id, email: student.email, role: 'Student' },
         'LOGIN_FAILED',
@@ -284,7 +269,6 @@ exports.studentLogin = async (req, res) => {
 
     if (!student.student_id) {
       console.error("Student ID missing for student:", student.id);
-      // Log configuration error
       await logAction(
         { id: student.id, email: student.email, role: 'Student' },
         'LOGIN_FAILED',
@@ -306,7 +290,6 @@ exports.studentLogin = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // Log successful student login
     await logAction(
       { id: student.id, email: student.email, role: 'Student' },
       'LOGIN',
@@ -417,7 +400,7 @@ exports.verifyOTP = async (req, res) => {
 
 exports.checkFirstLogin = async (req, res) => {
   try {
-    const userId = req.userId; // From auth middleware
+    const userId = req.userId; 
     
     const query = "SELECT is_first_login FROM users WHERE id = $1";
     const result = await pool.query(query, [userId]);
@@ -700,7 +683,6 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// Phone registration and SMS OTP functions using your existing schema
 exports.registerPhone = async (req, res) => {
   try {
     console.log('Phone registration request:', req.body);
@@ -713,13 +695,10 @@ exports.registerPhone = async (req, res) => {
         message: 'User ID, email, and phone number are required'
       });
     }
-    
-    // Format phone number
+
     const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
-    console.log('Formatted phone:', formattedPhone);
     
     try {
-      // Check if user already has a phone number
       const existingPhoneResult = await pool.query(
         'SELECT phone_number FROM users WHERE id = $1',
         [userId]
@@ -740,7 +719,6 @@ exports.registerPhone = async (req, res) => {
         'UPDATE users SET phone_number = $1 WHERE id = $2',
         [formattedPhone, userId]
       );
-      console.log('Phone number updated for user:', userId);
       
     } catch (dbError) {
       console.error('Database error storing phone number:', dbError);
@@ -750,8 +728,7 @@ exports.registerPhone = async (req, res) => {
         error: dbError.message
       });
     }
-    
-    // Return success without sending OTP
+
     return res.status(200).json({
       success: true,
       message: `Phone number ${formattedPhone} registered successfully. Click "Send OTP" to receive verification code.`,
@@ -778,8 +755,7 @@ exports.verifySmsOtp = async (req, res) => {
         message: 'User ID and OTP are required'
       });
     }
-    
-    // Validate OTP format
+
     if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
       return res.status(400).json({
         success: false,
@@ -787,7 +763,6 @@ exports.verifySmsOtp = async (req, res) => {
       });
     }
     
-    // Get user's phone number
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
     const phoneNumber = phoneResult.rows[0]?.phone_number;
     
@@ -798,7 +773,6 @@ exports.verifySmsOtp = async (req, res) => {
       });
     }
     
-    // Security check: Ensure OTP was recently sent to this user
     const recentOtpQuery = `
       SELECT id, created_at FROM otps 
       WHERE user_id = $1 
@@ -810,66 +784,29 @@ exports.verifySmsOtp = async (req, res) => {
     const recentOtpResult = await pool.query(recentOtpQuery, [userId]);
     
     if (recentOtpResult.rows.length === 0) {
-      console.log('No recent OTP found for user:', userId);
       return res.status(400).json({
         success: false,
         message: 'No recent OTP found. Please request a new verification code.'
       });
     }
-    
-    // For development mode, still verify OTP but allow specific test OTPs
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Development mode OTP verification:', otp);
-      
-      // Only allow specific test OTPs in development mode for security
-      const allowedTestOTPs = ['123456', '000000', '111111'];
-      
-      if (allowedTestOTPs.includes(otp)) {
-        console.log('Test OTP accepted in development mode');
-        
-        // Mark phone as verified in users table
-        await pool.query(
-          'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
-          [userId]
-        );
-        
-        return res.status(200).json({
-          success: true,
-          message: 'Phone number verified successfully (development mode)',
-          phoneNumber: phoneNumber,
-          testMode: true
-        });
-      } else {
-        // In development, still try to verify with iProgSMS for other OTPs
-        console.log('Non-test OTP in development mode, verifying with iProgSMS...');
-      }
-    }
-    
-    // Use iProgSMS verify_otp endpoint for production and non-test OTPs in development
-    console.log('Verifying OTP with iProgSMS for phone:', phoneNumber);
+
     const verifyResult = await smsService.verifyOTP(phoneNumber, otp, userId);
     
     if (!verifyResult.success) {
       console.error('iProgSMS verification failed:', verifyResult);
-      
-      // SECURITY: No database fallback - OTP must be verified through iProgSMS
-      // This prevents security bypass where invalid OTPs could be accepted
-      console.log('OTP verification failed - no fallback for security reasons');
-      
-      // Increment attempts for failed verification
+
       await pool.query(
         'UPDATE otps SET attempts = attempts + 1 WHERE user_id = $1 AND verified = false',
         [userId]
       );
-      
-      // Handle specific error codes with appropriate HTTP status codes
+
       let statusCode = 400;
       if (verifyResult.code === 'OTP_EXPIRED') {
-        statusCode = 401; // Unauthorized for expired OTP
+        statusCode = 401;
       } else if (verifyResult.code === 'AUTH_FAILED') {
-        statusCode = 500; // Server error for API authentication issues
+        statusCode = 500; 
       } else if (verifyResult.code === 'INVALID_OTP') {
-        statusCode = 400; // Bad request for invalid OTP
+        statusCode = 400; 
       }
       
       return res.status(statusCode).json({
@@ -878,14 +815,12 @@ exports.verifySmsOtp = async (req, res) => {
         code: verifyResult.code
       });
     }
-    
-    // Mark phone as verified in users table
+
     await pool.query(
       'UPDATE users SET is_phone_verified = TRUE WHERE id = $1',
       [userId]
     );
-    
-    // Log successful verification
+
     await logAction(
       { id: userId, email: 'SMS_VERIFIED', role: 'SMS_VERIFICATION' },
       'SMS_VERIFIED',
@@ -910,9 +845,6 @@ exports.verifySmsOtp = async (req, res) => {
   }
 };
 
-// Resend SMS OTP function
-// Send SMS OTP after phone registration
-// Check if user has registered phone number
 exports.checkPhoneRegistration = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -923,8 +855,7 @@ exports.checkPhoneRegistration = async (req, res) => {
         message: 'User ID is required'
       });
     }
-    
-    // Check if user has a phone number
+
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
     const phoneNumber = phoneResult.rows[0]?.phone_number;
     
@@ -963,15 +894,9 @@ exports.sendSmsOtp = async (req, res) => {
       });
     }
     
-    // Check iProgSMS configuration
-    console.log('iProgSMS config check:');
-    console.log('IPROGSMS_API_KEY:', process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing');
-    console.log('IPROGSMS_SENDER_NAME:', process.env.IPROGSMS_SENDER_NAME ? process.env.IPROGSMS_SENDER_NAME : 'TrustElect');
-    
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
     const phoneNumber = phoneResult.rows[0]?.phone_number;
     
-    console.log('User phone number:', phoneNumber);
     
     if (!phoneNumber) {
       return res.status(400).json({
@@ -979,13 +904,10 @@ exports.sendSmsOtp = async (req, res) => {
         message: 'No phone number found for this user. Please register your phone number first.'
       });
     }
-    
-    // Generate 6-digit OTP
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('Generated SMS OTP:', otp);
     
     try {
-      // Store OTP in database
       const insertQuery = `
         INSERT INTO otps (user_id, otp, expires_at, verified, attempts, purpose)
         VALUES ($1, $2, NOW() + INTERVAL '5 minutes', $3, $4, $5)
@@ -998,7 +920,6 @@ exports.sendSmsOtp = async (req, res) => {
         0, 
         'verification'
       ]);
-      console.log('OTP stored in database successfully');
     } catch (dbError) {
       console.error('Database error storing OTP:', dbError);
       return res.status(500).json({
@@ -1007,18 +928,13 @@ exports.sendSmsOtp = async (req, res) => {
         error: dbError.message
       });
     }
-    
-    // Send SMS
-    console.log('Attempting to send SMS to:', phoneNumber);
+
     const smsResult = await smsService.sendOTPSMS(phoneNumber, otp);
-    console.log('SMS result:', smsResult);
     
     if (!smsResult.success) {
       console.error('SMS sending failed:', smsResult);
       
-      // If it's a configuration issue, return the OTP for testing
       if (smsResult.code === 'CONFIG_ERROR' || smsResult.code === 401 || smsResult.code === 402) {
-        console.log('iProgSMS configuration issue detected, returning OTP for testing');
         return res.status(200).json({
           success: true,
           message: `SMS verification code sent to ${phoneNumber}`,
@@ -1034,8 +950,7 @@ exports.sendSmsOtp = async (req, res) => {
         code: smsResult.code
       });
     }
-    
-    // In development mode, return OTP for testing
+
     if (process.env.NODE_ENV === 'development') {
       return res.status(200).json({
         success: true,
@@ -1060,259 +975,6 @@ exports.sendSmsOtp = async (req, res) => {
   }
 };
 
-// Test SMS with iProgSMS
-exports.testSms = async (req, res) => {
-  try {
-    console.log('Testing SMS with iProgSMS...');
-    
-    // Check iProgSMS configuration
-    const config = {
-      apiKey: process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing',
-      senderName: process.env.IPROGSMS_SENDER_NAME || 'TrustElect',
-      apiUrl: process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1'
-    };
-    
-    console.log('iProgSMS config:', config);
-    
-    if (!process.env.IPROGSMS_API_KEY) {
-      return res.status(400).json({
-        success: false,
-        message: 'iProgSMS configuration incomplete. Please set IPROGSMS_API_KEY in your .env file',
-        config: config
-      });
-    }
-    
-    // Test sending SMS
-    const testPhone = '09120083491'; // Your test number (09 format for iProgSMS)
-    const testMessage = 'Test from TrustElect - iProgSMS is working! 🎉';
-    
-    console.log('iProgSMS advantages:');
-    console.log('- Reliable SMS delivery');
-    console.log('- Philippines network coverage');
-    console.log('- Competitive pricing');
-    console.log('- Easy integration');
-    
-    console.log('Sending SMS from:', process.env.IPROGSMS_SENDER_NAME || 'TrustElect');
-    console.log('Sending SMS to:', testPhone);
-    console.log('Phone number length:', testPhone.length);
-    console.log('Phone number format check:', /^09[0-9]{9}$/.test(testPhone));
-    
-    const smsResult = await smsService.sendSMS(testPhone, testMessage);
-    
-    // Handle iProgSMS errors
-    if (!smsResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'SMS sending failed',
-        config: config,
-        error: smsResult.error,
-        code: smsResult.code,
-        provider: 'iProgSMS',
-        troubleshooting: {
-          step1: 'Check your iProgSMS API key',
-          step2: 'Verify you have sufficient credits',
-          step3: 'Check phone number format (09123456789)',
-          step4: 'Review iProgSMS account status'
-        },
-        response: smsResult.response
-      });
-    }
-    
-    return res.status(200).json({
-      success: true,
-      message: 'SMS test completed',
-      config: config,
-      smsResult: smsResult
-    });
-    
-  } catch (error) {
-    console.error('SMS test error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'SMS test failed',
-      error: error.message
-    });
-  }
-};
-
-<<<<<<< HEAD
-=======
-// Debug OTP SMS with detailed logging
-exports.debugOtpSms = async (req, res) => {
-  try {
-    console.log('=== DEBUG OTP SMS ===');
-    
-    const { phoneNumber } = req.body;
-    
-    if (!phoneNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone number is required'
-      });
-    }
-    
-    // Check iProgSMS configuration
-    const config = {
-      apiKey: process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing',
-      senderName: process.env.IPROGSMS_SENDER_NAME || 'TrustElect',
-      apiUrl: process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1'
-    };
-    
-    console.log('iProgSMS config:', config);
-    
-    if (!process.env.IPROGSMS_API_KEY) {
-      return res.status(400).json({
-        success: false,
-        message: 'iProgSMS configuration incomplete. Please set IPROGSMS_API_KEY in your .env file',
-        config: config
-      });
-    }
-    
-    console.log('Original phone number:', phoneNumber);
-    
-    // Test OTP SMS
-    const otpResult = await smsService.sendOTPSMS(phoneNumber, '123456');
-    
-    return res.status(200).json({
-      success: true,
-      message: 'Debug OTP SMS completed',
-      config: config,
-      originalPhone: phoneNumber,
-      otpResult: otpResult
-    });
-    
-  } catch (error) {
-    console.error('Debug OTP SMS error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Debug OTP SMS failed',
-      error: error.message
-    });
-  }
-};
-
-// Test iProgSMS API directly with curl command
-exports.testIprogSmsDirect = async (req, res) => {
-  try {
-    console.log('=== TEST IPROGSMS API DIRECTLY ===');
-    
-    const { phoneNumber } = req.body;
-    
-    if (!phoneNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone number is required'
-      });
-    }
-    
-    const config = {
-      apiKey: process.env.IPROGSMS_API_KEY ? 'Set' : 'Missing',
-      apiUrl: process.env.IPROGSMS_API_URL || 'https://sms.iprogtech.com/api/v1'
-    };
-    
-    if (!process.env.IPROGSMS_API_KEY) {
-      return res.status(400).json({
-        success: false,
-        message: 'iProgSMS configuration incomplete'
-      });
-    }
-    
-    const formattedNumber = phoneNumber.startsWith('09') ? phoneNumber : '0' + phoneNumber.replace(/^\+?63/, '');
-    const testOtp = '123456';
-    
-    // Test both endpoints with exact documentation format
-    const testData1 = {
-      api_token: process.env.IPROGSMS_API_KEY,
-      phone_number: formattedNumber,
-      otp: testOtp,
-      message: `Your TrustElect verification code is: ${testOtp}. Valid for 5 minutes.`
-    };
-    
-    const testData2 = {
-      api_token: process.env.IPROGSMS_API_KEY,
-      phone_number: formattedNumber,
-      message: `Your TrustElect verification code is: ${testOtp}. Valid for 5 minutes.`
-    };
-    
-    const results = [];
-    
-    // Test /otp endpoint
-    try {
-      console.log('Testing /otp endpoint...');
-      const response1 = await axios.post(
-        `${config.apiUrl}/otp`,
-        testData1,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        }
-      );
-      results.push({
-        endpoint: '/otp',
-        status: response1.status,
-        data: response1.data,
-        success: true
-      });
-    } catch (error) {
-      results.push({
-        endpoint: '/otp',
-        error: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        success: false
-      });
-    }
-    
-    // Test /otp/send_otp endpoint
-    try {
-      console.log('Testing /otp/send_otp endpoint...');
-      const response2 = await axios.post(
-        `${config.apiUrl}/otp/send_otp`,
-        testData2,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        }
-      );
-      results.push({
-        endpoint: '/otp/send_otp',
-        status: response2.status,
-        data: response2.data,
-        success: true
-      });
-    } catch (error) {
-      results.push({
-        endpoint: '/otp/send_otp',
-        error: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        success: false
-      });
-    }
-    
-    return res.status(200).json({
-      success: true,
-      message: 'Direct API test completed',
-      config: config,
-      phoneNumber: formattedNumber,
-      results: results
-    });
-    
-  } catch (error) {
-    console.error('Direct API test error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Direct API test failed',
-      error: error.message
-    });
-  }
-};
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
-
 exports.resendSmsOtp = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -1323,12 +985,6 @@ exports.resendSmsOtp = async (req, res) => {
         message: 'User ID is required'
       });
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Get user's phone number
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const phoneResult = await pool.query('SELECT phone_number FROM users WHERE id = $1', [userId]);
     const phoneNumber = phoneResult.rows[0]?.phone_number;
     
@@ -1338,12 +994,6 @@ exports.resendSmsOtp = async (req, res) => {
         message: 'No phone number found for this user'
       });
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Check for recent OTP attempts to prevent abuse
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const recentOtpQuery = `
       SELECT created_at, attempts FROM otps 
       WHERE user_id = $1 
@@ -1359,11 +1009,7 @@ exports.resendSmsOtp = async (req, res) => {
     if (recentOtpResult.rows.length > 0) {
       const recentOtp = recentOtpResult.rows[0];
       const timeSinceLastOtp = Math.floor((Date.now() - new Date(recentOtp.created_at).getTime()) / 1000);
-<<<<<<< HEAD
       const remainingCooldown = 120 - timeSinceLastOtp; 
-=======
-      const remainingCooldown = 120 - timeSinceLastOtp; // 2 minutes cooldown
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       
       if (remainingCooldown > 0) {
         return res.status(429).json({
@@ -1373,12 +1019,6 @@ exports.resendSmsOtp = async (req, res) => {
         });
       }
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Check for too many attempts in the last hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const attemptsQuery = `
       SELECT COUNT(*) as attempt_count FROM otps 
       WHERE user_id = $1 
@@ -1397,46 +1037,23 @@ exports.resendSmsOtp = async (req, res) => {
         retryAfter: 3600
       });
     }
-<<<<<<< HEAD
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('Resending SMS OTP:', otp);
  
-=======
-    
-    // Generate new 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('Resending SMS OTP:', otp);
-    
-    // Store new OTP in database
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const insertQuery = `
       INSERT INTO otps (user_id, phone_number, otp, expires_at, otp_type, verified, attempts, purpose)
       VALUES ($1, $2, $3, NOW() + INTERVAL '5 minutes', 'sms', FALSE, 0, 'verification')
     `;
     
     await pool.query(insertQuery, [userId, phoneNumber, otp]);
-<<<<<<< HEAD
 
     const smsResult = await smsService.sendOTPSMS(phoneNumber, otp);
 
-=======
-    
-    // Send SMS
-    console.log('Attempting to resend SMS to:', phoneNumber);
-    const smsResult = await smsService.sendOTPSMS(phoneNumber, otp);
-    console.log('Resend SMS result:', smsResult);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     if (!smsResult.success) {
       console.error('Resend SMS sending failed:', smsResult);
       
-<<<<<<< HEAD
-=======
-      // If it's a configuration issue, return the OTP for testing
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (smsResult.code === 'CONFIG_ERROR' || smsResult.code === 401 || smsResult.code === 402) {
-        console.log('iProgSMS configuration issue detected, returning OTP for testing');
         return res.status(200).json({
           success: true,
           message: `SMS verification code resent to ${phoneNumber}`,
@@ -1452,12 +1069,6 @@ exports.resendSmsOtp = async (req, res) => {
         code: smsResult.code
       });
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Log the resend action
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     await logAction(
       { id: userId, email: 'SMS_RESEND', role: 'SMS_RESEND' },
       'SMS_RESEND',
@@ -1465,12 +1076,6 @@ exports.resendSmsOtp = async (req, res) => {
       userId,
       { phoneNumber: phoneNumber, provider: 'iProgSMS' }
     );
-<<<<<<< HEAD
-
-=======
-    
-    // In development mode, return OTP for testing
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (process.env.NODE_ENV === 'development') {
       return res.status(200).json({
         success: true,
@@ -1494,18 +1099,10 @@ exports.resendSmsOtp = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-=======
-// Add a new logout endpoint
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.logoutUser = async (req, res) => {
   try {
     let userData = null;
     
-<<<<<<< HEAD
-=======
-    // First try to get user data from authenticated request
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user) {
       userData = { 
         id: req.user.id, 
@@ -1513,10 +1110,6 @@ exports.logoutUser = async (req, res) => {
         role: req.user.role || 'Unknown' 
       };
     } 
-<<<<<<< HEAD
-=======
-    // If not authenticated, try to get user info from request body
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     else if (req.body.userId || req.body.email) {
       userData = {
         id: req.body.userId || 0,
@@ -1524,12 +1117,6 @@ exports.logoutUser = async (req, res) => {
         role: req.body.role || 'Unknown'
       };
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Log the logout action if we have user data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (userData) {
       await logAction(
         userData,

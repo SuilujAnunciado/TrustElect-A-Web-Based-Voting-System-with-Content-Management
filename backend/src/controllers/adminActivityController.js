@@ -1,15 +1,8 @@
 const auditLogModel = require('../models/auditLogModel');
 
 /**
-<<<<<<< HEAD
-
  * @param {Object} req 
  * @param {Object} res 
-=======
- * Get admin activity logs with filtering and pagination
- * @param {Object} req - Request object
- * @param {Object} res - Response object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 exports.getAdminActivities = async (req, res) => {
   try {
@@ -26,7 +19,6 @@ exports.getAdminActivities = async (req, res) => {
 
     const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
-    // Base filter for admin roles
     const filterOptions = {
       user_role: 'admin,superadmin,Admin,SuperAdmin,Super Admin',
       limit: parseInt(limit, 10),
@@ -35,9 +27,7 @@ exports.getAdminActivities = async (req, res) => {
       sort_order,
       search
     };
-    
 
-    // Add date filtering based on timeframe
     const now = new Date();
     if (timeframe !== 'all') {
       switch (timeframe) {
@@ -57,12 +47,9 @@ exports.getAdminActivities = async (req, res) => {
       }
     }
 
-    // Add action filtering
     if (action !== 'all') {
       filterOptions.action = action;
     }
-
-    // Get activities and total count
     
     let activities, count;
     try {
@@ -90,7 +77,6 @@ exports.getAdminActivities = async (req, res) => {
       activeAdmins = 0;
     }
 
-    // Get most common action
     let mostCommonAction = 'N/A';
     try {
       const actionCountQuery = `
@@ -109,7 +95,6 @@ exports.getAdminActivities = async (req, res) => {
       console.error('Error getting most common action:', error);
     }
 
-    // Get activities today
     let activitiesToday = 0;
     try {
       const todayStart = new Date();
@@ -122,12 +107,10 @@ exports.getAdminActivities = async (req, res) => {
       `;
       const activitiesTodayResult = await auditLogModel.executeQuery(activitiesTodayQuery, [todayStart]);
       activitiesToday = parseInt(activitiesTodayResult.rows[0]?.count || 0);
-      console.log('Activities today:', activitiesToday);
     } catch (error) {
       console.error('Error getting activities today:', error);
     }
 
-    // Get admin details for each activity
     let activitiesWithDetails = [];
     try {
       activitiesWithDetails = await Promise.all(
@@ -205,9 +188,9 @@ exports.getAdminActivities = async (req, res) => {
 };
 
 /**
- * Get admin activity summary statistics
- * @param {Object} req - Request object
- * @param {Object} res - Response object
+ *
+ * @param {Object} req 
+ * @param {Object} res 
  */
 exports.getAdminActivitySummary = async (req, res) => {
   try {
@@ -218,7 +201,6 @@ exports.getAdminActivitySummary = async (req, res) => {
     let startDate;
     const now = new Date();
 
-    // Calculate start date based on timeframe
     switch (timeframe) {
       case 'today':
         startDate = new Date(now.setHours(0, 0, 0, 0));
@@ -235,7 +217,6 @@ exports.getAdminActivitySummary = async (req, res) => {
         startDate = null;
     }
 
-    // Base query conditions
     const baseConditions = `
       FROM audit_logs a
       JOIN users u ON a.user_id = u.id
@@ -245,14 +226,12 @@ exports.getAdminActivitySummary = async (req, res) => {
     `;
     const queryValues = startDate ? [startDate] : [];
 
-    // Get total activities
     const totalActivitiesResult = await auditLogModel.executeQuery(
       `SELECT COUNT(*) as count ${baseConditions}`,
       queryValues
     );
     const totalActivities = parseInt(totalActivitiesResult.rows[0]?.count || 0);
 
-    // Get active admins
     const activeAdminsResult = await auditLogModel.executeQuery(
       `SELECT COUNT(DISTINCT u.id) as count 
        FROM users u 
@@ -262,7 +241,6 @@ exports.getAdminActivitySummary = async (req, res) => {
     );
     const activeAdmins = parseInt(activeAdminsResult.rows[0]?.count || 0);
 
-    // Get most common action
     const mostCommonActionResult = await auditLogModel.executeQuery(
       `SELECT a.action, COUNT(*) as count ${baseConditions} 
        GROUP BY a.action ORDER BY count DESC LIMIT 1`,
@@ -270,7 +248,6 @@ exports.getAdminActivitySummary = async (req, res) => {
     );
     const mostCommonAction = mostCommonActionResult.rows[0]?.action || 'N/A';
 
-    // Get activities by type
     const actionTypesResult = await auditLogModel.executeQuery(
       `SELECT a.action, COUNT(*) as count ${baseConditions} 
        GROUP BY a.action ORDER BY count DESC`,

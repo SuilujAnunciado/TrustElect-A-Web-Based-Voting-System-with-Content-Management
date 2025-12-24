@@ -1,14 +1,7 @@
 const pool = require("../config/db");
 
-<<<<<<< HEAD
-
 exports.getVoterParticipation = async (req, res) => {
   try {
-=======
-exports.getVoterParticipation = async (req, res) => {
-  try {
-    // Get all elections with their overall stats
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const electionsQuery = `
       SELECT 
         e.id,
@@ -40,15 +33,8 @@ exports.getVoterParticipation = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
     const electionData = await Promise.all(elections.map(async (election) => {
       try {
-=======
-    // Get detailed data for each election
-    const electionData = await Promise.all(elections.map(async (election) => {
-      try {
-        // Get department statistics
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const departmentStatsQuery = `
           WITH all_departments AS (
             SELECT DISTINCT course_name as department
@@ -82,10 +68,6 @@ exports.getVoterParticipation = async (req, res) => {
 
         const { rows: departmentStats } = await pool.query(departmentStatsQuery, [election.id]);
 
-<<<<<<< HEAD
-=======
-        // Get voter details
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const votersQuery = `
           SELECT 
             s.student_number as student_id,
@@ -128,12 +110,6 @@ exports.getVoterParticipation = async (req, res) => {
           voters: voters.map(voter => {
             const firstName = voter.first_name ? voter.first_name.toString().trim() : '';
             const lastName = voter.last_name ? voter.last_name.toString().trim() : '';
-<<<<<<< HEAD
-
-=======
-            
-            // Build name from available parts
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             const nameParts = [];
             if (firstName && 
                 firstName.toLowerCase() !== 'undefined' && 

@@ -1,10 +1,6 @@
 const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const checkStudentNumberExists = async (studentNumber) => {
   const query = "SELECT COUNT(*) FROM students WHERE student_number = $1";
   const result = await pool.query(query, [studentNumber]);
@@ -28,10 +24,6 @@ const registerStudent = async (firstName, middleName, lastName, email, username,
   try {
     await client.query("BEGIN");
     
-<<<<<<< HEAD
-=======
-    // Get current academic term if not provided
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!academicTermId) {
       const currentTermQuery = `SELECT id FROM academic_terms WHERE is_current = TRUE LIMIT 1`;
       const currentTermResult = await client.query(currentTermQuery);
@@ -43,25 +35,14 @@ const registerStudent = async (firstName, middleName, lastName, email, username,
       }
     }
     
-<<<<<<< HEAD
-=======
-    // Check if user with this email already exists
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const existingUserQuery = `SELECT id FROM users WHERE email = $1 AND role_id = 3`;
     const existingUserResult = await client.query(existingUserQuery, [email]);
     
     let userId;
     
     if (existingUserResult.rows.length > 0) {
-<<<<<<< HEAD
       userId = existingUserResult.rows[0].id;
-=======
-      // User exists - use existing user_id for re-enrollment
-      userId = existingUserResult.rows[0].id;
-      console.log(`Re-enrolling existing user (ID: ${userId}) in new term`);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       
-      // Check if already enrolled in this specific term
       const duplicateCheck = await client.query(
         'SELECT id FROM students WHERE user_id = $1 AND academic_term_id = $2',
         [userId, academicTermId]
@@ -71,10 +52,6 @@ const registerStudent = async (firstName, middleName, lastName, email, username,
         throw new Error('Student is already enrolled in this academic term');
       }
     } else {
-<<<<<<< HEAD
-=======
-      // New user - create user account
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const userQuery = `
         INSERT INTO users (first_name, last_name, email, username, password_hash, role_id, created_by, is_email_verified, is_first_login, is_active)
         VALUES ($1, $2, $3, $4, $5, 3, $6, FALSE, TRUE, TRUE) RETURNING id;
@@ -82,7 +59,6 @@ const registerStudent = async (firstName, middleName, lastName, email, username,
       const userValues = [firstName, lastName, email, username, hashedPassword, createdBy];
       const userResult = await client.query(userQuery, userValues);
       userId = userResult.rows[0].id;
-      console.log(`Created new user (ID: ${userId})`);
     }
 
     if (courseId && !courseName) {
@@ -334,10 +310,6 @@ const bulkDeleteStudentsByCourse = async (courseName, isPermanent = false) => {
   try {
     await client.query("BEGIN");
 
-<<<<<<< HEAD
-=======
-    // Get students by course
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const studentsQuery = `
       SELECT s.id, s.user_id, s.first_name, s.last_name, s.student_number
       FROM students s
@@ -354,19 +326,11 @@ const bulkDeleteStudentsByCourse = async (courseName, isPermanent = false) => {
     const userIds = studentsResult.rows.map(s => s.user_id);
 
     if (isPermanent) {
-<<<<<<< HEAD
-=======
-      // Permanent deletion - remove from database completely
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await client.query(
         "DELETE FROM students WHERE course_name = $1",
         [courseName]
       );
       
-<<<<<<< HEAD
-=======
-      // Delete associated users
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (userIds.length > 0) {
         const userPlaceholders = userIds.map((_, index) => `$${index + 1}`).join(',');
         await client.query(
@@ -375,10 +339,6 @@ const bulkDeleteStudentsByCourse = async (courseName, isPermanent = false) => {
         );
       }
     } else {
-<<<<<<< HEAD
-=======
-      // Soft delete - mark as inactive
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await client.query(
         "UPDATE students SET is_active = false WHERE course_name = $1 AND is_active = true",
         [courseName]
@@ -407,10 +367,6 @@ const bulkDeleteArchivedStudentsByCourse = async (courseName) => {
   try {
     await client.query("BEGIN");
 
-<<<<<<< HEAD
-=======
-    // Get archived students by course
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const studentsQuery = `
       SELECT s.id, s.user_id, s.first_name, s.last_name, s.student_number
       FROM students s
@@ -425,20 +381,10 @@ const bulkDeleteArchivedStudentsByCourse = async (courseName) => {
 
     const userIds = studentsResult.rows.map(s => s.user_id);
 
-<<<<<<< HEAD
-=======
-    // Permanent deletion from database
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     await client.query(
       "DELETE FROM students WHERE course_name = $1 AND s.is_active = false",
       [courseName]
     );
-<<<<<<< HEAD
-
-=======
-    
-    // Delete associated users
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (userIds.length > 0) {
       const userPlaceholders = userIds.map((_, index) => `$${index + 1}`).join(',');
       await client.query(
@@ -469,10 +415,6 @@ const deleteAllStudents = async (isPermanent = false) => {
   try {
     await client.query("BEGIN");
 
-<<<<<<< HEAD
-=======
-    // Get all students
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const studentsQuery = `
       SELECT s.id, s.user_id, s.first_name, s.last_name, s.student_number, s.course_name
       FROM students s
@@ -488,15 +430,8 @@ const deleteAllStudents = async (isPermanent = false) => {
     const userIds = studentsResult.rows.map(s => s.user_id);
 
     if (isPermanent) {
-<<<<<<< HEAD
       await client.query("DELETE FROM students");
 
-=======
-      // Permanent deletion - remove from database completely
-      await client.query("DELETE FROM students");
-      
-      // Delete associated users
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (userIds.length > 0) {
         const userPlaceholders = userIds.map((_, index) => `$${index + 1}`).join(',');
         await client.query(
@@ -505,10 +440,6 @@ const deleteAllStudents = async (isPermanent = false) => {
         );
       }
     } else {
-<<<<<<< HEAD
-=======
-      // Soft delete - mark all as inactive
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await client.query("UPDATE students SET is_active = false WHERE is_active = true");
     }
 
@@ -530,10 +461,6 @@ const deleteAllStudents = async (isPermanent = false) => {
 };
 
 const generateStudentPassword = (lastName, studentNumber) => {
-<<<<<<< HEAD
-=======
-  // Format lastName to proper case (Title Case)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formattedLastName = lastName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
   const lastThreeDigits = studentNumber.slice(-3);
   const specialCharacter = "!";
@@ -544,12 +471,6 @@ const processBatchStudents = async (students, createdBy, academicTermId = null) 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-<<<<<<< HEAD
-
-=======
-    
-    // Get current academic term if not provided
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!academicTermId) {
       const currentTermQuery = `SELECT id FROM academic_terms WHERE is_current = TRUE LIMIT 1`;
       const currentTermResult = await client.query(currentTermQuery);
@@ -573,10 +494,6 @@ const processBatchStudents = async (students, createdBy, academicTermId = null) 
           throw new Error('Invalid student number format');
         }
 
-<<<<<<< HEAD
-=======
-        // Generate or use provided email
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         let email = student.email;
         if (!email) {
           const lastSixDigits = student.studentNumber.slice(-6);
@@ -590,22 +507,11 @@ const processBatchStudents = async (students, createdBy, academicTermId = null) 
           };
           
           normalizedLastName = normalizedLastName.replace(/[áéíóúüñçàèìòù]/g, match => charMap[match] || match);
-<<<<<<< HEAD
 
           email = `${normalizedLastName}.${lastSixDigits}@novaliches.sti.edu.ph`;
           
         }
 
-=======
-          
-          // Base email format
-          email = `${normalizedLastName}.${lastSixDigits}@novaliches.sti.edu.ph`;
-          
-          console.log(`Generated email for ${student.firstName} ${student.lastName}: ${email}`);
-        }
-
-        // Check if student already exists in THIS specific academic term by email
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const duplicateCheck = await client.query(
           `SELECT s.id FROM students s
            JOIN users u ON s.user_id = u.id
@@ -712,13 +618,8 @@ const processBatchStudents = async (students, createdBy, academicTermId = null) 
           student.gender,
           parsedBirthdate,
           createdBy,
-<<<<<<< HEAD
           null, 
           academicTermId 
-=======
-          null, // courseId
-          academicTermId // Pass the academic term ID
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         );
 
         results.success++;
@@ -748,46 +649,23 @@ const processBatchStudents = async (students, createdBy, academicTermId = null) 
 const changePassword = async (userId, currentPassword, newPassword) => {
   const client = await pool.connect();
   try {
-    console.log("Starting password change process for user:", userId);
     await client.query("BEGIN");
 
-<<<<<<< HEAD
-=======
-    // Get user's current password
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
-    console.log("Fetching user's current password");
     const userQuery = "SELECT password_hash FROM users WHERE id = $1 AND role_id = 3";
     const userResult = await client.query(userQuery, [userId]);
-    console.log("User query result:", userResult.rows.length > 0 ? "User found" : "User not found");
 
     if (userResult.rows.length === 0) {
       throw new Error("User not found");
     }
 
-<<<<<<< HEAD
-=======
-    // Verify current password
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
-    console.log("Verifying current password");
     const isPasswordValid = await bcrypt.compare(currentPassword, userResult.rows[0].password_hash);
-    console.log("Password verification result:", isPasswordValid ? "Valid" : "Invalid");
     
     if (!isPasswordValid) {
       throw new Error("Current password is incorrect");
     }
 
-<<<<<<< HEAD
-    console.log("Hashing new password");
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-=======
-    // Hash new password
-    console.log("Hashing new password");
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
-    console.log("Updating password in database");
     const updateQuery = `
       UPDATE users 
       SET password_hash = $1, updated_at = NOW() 
@@ -795,14 +673,12 @@ const changePassword = async (userId, currentPassword, newPassword) => {
       RETURNING id, email
     `;
     const updateResult = await client.query(updateQuery, [hashedPassword, userId]);
-    console.log("Update result:", updateResult.rows.length > 0 ? "Success" : "Failed");
 
     if (updateResult.rows.length === 0) {
       throw new Error("Failed to update password");
     }
 
     await client.query("COMMIT");
-    console.log("Password change completed successfully");
     return updateResult.rows[0];
   } catch (error) {
     await client.query("ROLLBACK");

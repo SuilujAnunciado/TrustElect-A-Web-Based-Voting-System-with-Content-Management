@@ -6,10 +6,6 @@ import { generatePdfReport } from '@/utils/pdfGenerator';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const AdminActivityReport = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('all');
   const [selectedAction, setSelectedAction] = useState('all');
@@ -40,10 +36,6 @@ const AdminActivityReport = () => {
       
       if (response.data.success) {
         const users = response.data.data?.users || [];
-<<<<<<< HEAD
-=======
-        // Filter out users with 'Unknown' name and only include admins and students
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const filteredUsers = users.filter(user => 
           user.first_name && 
           user.last_name && 
@@ -55,10 +47,6 @@ const AdminActivityReport = () => {
       }
     } catch (error) {
       console.error('Error fetching users:', error);
-<<<<<<< HEAD
-=======
-      // Fallback: try to get users from activities if API fails
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setAvailableUsers([]);
     }
   };
@@ -75,11 +63,7 @@ const AdminActivityReport = () => {
           params: {
             timeframe: selectedTimeframe,
             action: selectedAction !== 'all' ? selectedAction : undefined,
-<<<<<<< HEAD
             limit: 1000, 
-=======
-            limit: 1000, // Increased limit to get more data for client-side filtering
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             sort_by: 'created_at',
             sort_order: 'DESC'
           }
@@ -98,23 +82,19 @@ const AdminActivityReport = () => {
 
       let activities = activitiesResponse.data.data?.activities || [];
 
-      // Hide Root Admin/System Admin actions from admin views
       activities = activities.filter(activity => {
         const role = (activity.user_role || '').toLowerCase();
         return !(role === 'systemadmin' || role === 'super admin' || role === 'root admin' || role === 'superadmin');
       });
       
-      // Client-side filtering for user if backend filtering doesn't work properly
       if (selectedUser !== 'all') {
         const originalCount = activities.length;
         activities = activities.filter(activity => {
           const activityUserName = activity.admin_name || '';
           return activityUserName.toLowerCase().trim() === selectedUser.toLowerCase().trim();
         });
-        console.log(`Filtered activities for user "${selectedUser}": ${originalCount} -> ${activities.length}`);
       }
-      
-      // Client-side pagination
+
       const itemsPerPage = 100;
       const totalPages = Math.ceil(activities.length / itemsPerPage);
       const startIndex = (currentPage - 1) * itemsPerPage;
@@ -131,7 +111,6 @@ const AdminActivityReport = () => {
         }
       });
 
-      // Extract users from original activities (before filtering) and add to available users
       const originalActivities = activitiesResponse.data.data?.activities || [];
       const activityUsers = originalActivities
         .map(activity => ({
@@ -142,13 +121,11 @@ const AdminActivityReport = () => {
           role: activity.user_role || 'admin'
         }))
         .filter(user => user.first_name && user.last_name && user.first_name !== 'Unknown')
-        // Exclude root-level roles from dropdown as well
         .filter(user => {
           const role = (user.role || '').toLowerCase();
           return !(role === 'systemadmin' || role === 'super admin' || role === 'root admin' || role === 'superadmin');
         });
 
-      // Combine with existing users and remove duplicates
       setAvailableUsers(prevUsers => {
         const combinedUsers = [...prevUsers, ...activityUsers];
         const uniqueUsers = combinedUsers.filter((user, index, self) => 
@@ -159,8 +136,7 @@ const AdminActivityReport = () => {
     } catch (error) {
       console.error('Error fetching admin activity data:', error);
       setError(error.message || 'Failed to fetch admin activity data');
-      
-      // Set fallback data to prevent complete failure
+
       setData({
         activities: [],
         summary: {
@@ -385,7 +361,6 @@ const AdminActivityReport = () => {
       setLoading(true);
       setPdfStatus(null);
       
-      // Check if we have data to generate report
       if (!data.activities || data.activities.length === 0) {
         setPdfStatus({ type: 'error', message: 'No data available to generate report. Please try different filters.' });
         setTimeout(() => setPdfStatus(null), 5000);
@@ -407,15 +382,14 @@ const AdminActivityReport = () => {
           role_name: activity.user_role || 'N/A',
           action: activity.action || 'Unknown',
           entity_type: activity.entity_type || 'Unknown',
-          created_at: new Date(activity.created_at) // Convert string to Date object
+          created_at: new Date(activity.created_at) 
         }))
       };
 
-      const result = await generatePdfReport(10, reportData); // 10 is the report ID for Admin Activity
+      const result = await generatePdfReport(10, reportData); 
       
       if (result.success) {
         console.log('PDF generated successfully:', result.filename);
-        setPdfStatus({ type: 'success', message: 'PDF report generated successfully!' });
         setTimeout(() => setPdfStatus(null), 3000);
       } else {
         console.error('PDF generation failed:', result.message);

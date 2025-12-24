@@ -8,10 +8,6 @@ import { toast } from "react-hot-toast";
 import usePermissions from "@/hooks/usePermissions";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function ArchivedDepartmentsPage() {
   const router = useRouter();
   const [archivedDepartments, setArchivedDepartments] = useState([]);
@@ -32,19 +28,10 @@ export default function ArchivedDepartmentsPage() {
         throw new Error("No authentication token found");
       }
 
-<<<<<<< HEAD
-=======
-      // Try multiple endpoints to get archived departments
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let departmentsArray = [];
       let success = false;
 
       try {
-<<<<<<< HEAD
-
-=======
-        // First try admin archived endpoint
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const res = await axios.get("/api/admin/departments/archived", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -59,10 +46,6 @@ export default function ArchivedDepartmentsPage() {
         console.warn("Error on admin archived endpoint, trying fallback:", firstError.message);
         
         try {
-<<<<<<< HEAD
-=======
-          // Try superadmin archived endpoint as fallback
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const res = await axios.get("/api/superadmin/departments/archived", {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -76,10 +59,6 @@ export default function ArchivedDepartmentsPage() {
         } catch (secondError) {
           console.error("Error on superadmin archived endpoint:", secondError.message);
           
-<<<<<<< HEAD
-=======
-          // Try generic archived endpoint as last resort
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           try {
             const res = await axios.get("/api/departments/archived", {
               headers: {
@@ -93,10 +72,6 @@ export default function ArchivedDepartmentsPage() {
             success = true;
           } catch (thirdError) {
             console.error("Error on generic archived endpoint:", thirdError.message);
-<<<<<<< HEAD
-=======
-            // If all endpoints fail, return empty array instead of throwing error
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             departmentsArray = [];
             success = true;
           }
@@ -127,20 +102,10 @@ export default function ArchivedDepartmentsPage() {
   const confirmRestoreDepartment = async () => {
     try {
       const token = Cookies.get("token");
-<<<<<<< HEAD
-
-=======
-      
-      // Try multiple API endpoints
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let success = false;
       let response;
       
       try {
-<<<<<<< HEAD
-=======
-        // First try admin endpoint
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         response = await axios.patch(`/api/admin/departments/${selectedDepartmentId}/restore`, {}, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -149,10 +114,6 @@ export default function ArchivedDepartmentsPage() {
         console.warn("Error on first restore endpoint, trying fallback:", firstError.message);
         
         try {
-<<<<<<< HEAD
-=======
-          // Try superadmin endpoint as fallback
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           response = await axios.patch(`/api/superadmin/departments/${selectedDepartmentId}/restore`, {}, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -160,10 +121,6 @@ export default function ArchivedDepartmentsPage() {
         } catch (secondError) {
           console.error("Error on superadmin endpoint:", secondError.message);
           
-<<<<<<< HEAD
-=======
-          // Try generic endpoint as last resort
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           try {
             response = await axios.patch(`/api/departments/${selectedDepartmentId}/restore`, {}, {
               headers: { Authorization: `Bearer ${token}` },
@@ -194,18 +151,10 @@ export default function ArchivedDepartmentsPage() {
     try {
       const token = Cookies.get("token");
       
-<<<<<<< HEAD
-=======
-      // Try multiple API endpoints
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let success = false;
       let response;
       
       try {
-<<<<<<< HEAD
-=======
-        // First try admin endpoint
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         response = await axios.delete(`/api/admin/departments/${selectedDepartmentId}/permanent`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -214,10 +163,6 @@ export default function ArchivedDepartmentsPage() {
         console.warn("Error on first permanent delete endpoint, trying fallback:", firstError.message);
         
         try {
-<<<<<<< HEAD
-=======
-          // Try superadmin endpoint as fallback
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}/permanent`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -225,10 +170,6 @@ export default function ArchivedDepartmentsPage() {
         } catch (secondError) {
           console.error("Error on superadmin endpoint:", secondError.message);
           
-<<<<<<< HEAD
-=======
-          // Try generic endpoint as last resort
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           try {
             response = await axios.delete(`/api/departments/${selectedDepartmentId}/permanent`, {
               headers: { Authorization: `Bearer ${token}` },

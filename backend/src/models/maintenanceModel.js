@@ -1,9 +1,5 @@
 const pool = require("../config/db");
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getAllItems = async (tableName) => {
   const result = await pool.query(
     `SELECT id, name FROM ${tableName} ORDER BY name`
@@ -11,10 +7,6 @@ const getAllItems = async (tableName) => {
   return result.rows;
 };
 
-<<<<<<< HEAD
-=======
-// Special version for partylists that includes more fields
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getAllPartylists = async () => {
   const result = await pool.query(
     `SELECT id, name, slogan, advocacy, logo_url, created_at 
@@ -64,15 +56,8 @@ const deleteItem = async (tableName, id) => {
   return result.rows[0];
 };
 
-<<<<<<< HEAD
 const getCurrentSemester = async () => {
   try {
-=======
-// Get the current semester from settings
-const getCurrentSemester = async () => {
-  try {
-    // Check if the settings table exists first
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const tableCheck = await pool.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
@@ -80,10 +65,6 @@ const getCurrentSemester = async () => {
       );
     `);
     
-<<<<<<< HEAD
-=======
-    // If settings table doesn't exist, create it
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!tableCheck.rows[0].exists) {
       await pool.query(`
         CREATE TABLE settings (
@@ -93,39 +74,22 @@ const getCurrentSemester = async () => {
       `);
     }
     
-<<<<<<< HEAD
-=======
-    // Get current semester ID from settings
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const result = await pool.query(
       `SELECT value FROM settings WHERE key = 'current_semester'`
     );
     
     if (result.rows.length === 0) {
-<<<<<<< HEAD
       return null; 
     }
     
     const semesterId = result.rows[0].value;
 
-=======
-      return null; // No current semester set
-    }
-    
-    const semesterId = result.rows[0].value;
-    
-    // Get the semester details
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const semesterResult = await pool.query(
       `SELECT id, name FROM semesters WHERE id = $1`,
       [semesterId]
     );
     
     if (semesterResult.rows.length === 0) {
-<<<<<<< HEAD
-=======
-      // Clean up invalid reference
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await pool.query(
         `DELETE FROM settings WHERE key = 'current_semester'`
       );
@@ -161,10 +125,6 @@ const setCurrentSemester = async (semesterId) => {
   return getCurrentSemester();
 };
 
-<<<<<<< HEAD
-=======
-// Special version for creating partylists
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const createPartylistItem = async (name) => {
   const result = await pool.query(
     `INSERT INTO partylists (name) VALUES ($1) RETURNING id, name, slogan, advocacy, logo_url`,

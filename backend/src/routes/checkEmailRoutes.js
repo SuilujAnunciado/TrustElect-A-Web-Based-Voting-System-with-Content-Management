@@ -2,10 +2,6 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 
-<<<<<<< HEAD
-=======
-// Check if email already exists (for admin)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get('/check-email', async (req, res) => {
   try {
     const { email } = req.query;
@@ -17,18 +13,10 @@ router.get('/check-email', async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
     
     const userQuery = 'SELECT id FROM users WHERE email = $1 AND is_active = true';
     const userResult = await pool.query(userQuery, [email]);
 
-=======
-    // Check in users table (students)
-    const userQuery = 'SELECT id FROM users WHERE email = $1 AND is_active = true';
-    const userResult = await pool.query(userQuery, [email]);
-
-    // Check in admins table
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const adminQuery = 'SELECT id FROM admins WHERE email = $1 AND is_active = true';
     const adminResult = await pool.query(adminQuery, [email]);
 

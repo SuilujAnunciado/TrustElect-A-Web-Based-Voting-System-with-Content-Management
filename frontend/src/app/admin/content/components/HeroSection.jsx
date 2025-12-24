@@ -9,10 +9,7 @@ const HeroSection = ({
   handleFileUpload, 
   removeImage, 
   showPreview 
-<<<<<<< HEAD
   
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 }) => {
   return (
     <div className="space-y-4">

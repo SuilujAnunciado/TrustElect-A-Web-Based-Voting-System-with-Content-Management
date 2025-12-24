@@ -1,16 +1,9 @@
 const pool = require("../config/db");
 
-<<<<<<< HEAD
 
 /**
  * @param {Object} notification 
  * @returns {Promise<Object>} 
-=======
-/**
- * Create a new notification
- * @param {Object} notification - The notification data
- * @returns {Promise<Object>} The created notification
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const createNotification = async (notification) => {
   const { user_id, role, title, message, type, related_entity, entity_id } = notification;
@@ -61,16 +54,9 @@ const createNotificationForUsers = async (userIds, role, title, message, type, r
 };
 
 /**
-<<<<<<< HEAD
  * @param {Number} userId 
  * @param {Object} options 
  * @returns {Promise<Array>} 
-=======
- * Get notifications for a specific user
- * @param {Number} userId - User ID
- * @param {Object} options - Query options (limit, offset, isRead, includeRoleVariants)
- * @returns {Promise<Array>} List of notifications
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const getNotificationsByUser = async (userId, options = {}) => {
   const { 
@@ -114,13 +100,6 @@ const getNotificationsByUser = async (userId, options = {}) => {
               userRole = 'Unknown';
           }
         }
-<<<<<<< HEAD
-
-=======
-      
-        
-        // Create role variants based on determined role
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (userRole.toLowerCase().includes('super') && userRole.toLowerCase().includes('admin')) {
           roleVariants = ['Super Admin', 'SuperAdmin', 'super admin', 'superadmin', 'super_admin', 'SUPER ADMIN', 'Superadmin'];
         } else if (userRole.toLowerCase() === 'admin') {
@@ -184,11 +163,6 @@ const getNotificationsByUser = async (userId, options = {}) => {
       queryParams = [userIdInt, limitInt, offsetInt];
       
     }
-<<<<<<< HEAD
-
-=======
-    // Standard queries for normal cases
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     else if (isRead === undefined && roleVariants.length === 0) {
       query = `
         SELECT * FROM notifications 
@@ -236,9 +210,7 @@ const getNotificationsByUser = async (userId, options = {}) => {
     result = await pool.query(query, queryParams);
       
     if (result.rows.length === 0 && isSuperadminFix) {
-      console.log('No notifications found with standard query, trying direct role-based search...');
       
- 
       const directQuery = `
         SELECT * FROM notifications 
         WHERE role IN ('Super Admin', 'SuperAdmin', 'superadmin')
@@ -295,10 +267,6 @@ const getNotificationsByUser = async (userId, options = {}) => {
 };
 
 /**
-<<<<<<< HEAD
-=======
- * Count unread notifications for a user
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  * @param {Number} userId 
  * @returns {Promise<Number>} 
  */
@@ -313,10 +281,6 @@ const countUnreadNotifications = async (userId) => {
 };
 
 /**
-<<<<<<< HEAD
-=======
- * Mark a notification as read
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  * @param {Number} notificationId 
  * @param {Number} userId 
  * @returns {Promise<Object>}
@@ -334,14 +298,8 @@ const markNotificationAsRead = async (notificationId, userId) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Number} userId
  * @returns {Promise<Number>} 
-=======
- * Mark all notifications as read for a user
- * @param {Number} userId - User ID
- * @returns {Promise<Number>} Number of updated notifications
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const markAllNotificationsAsRead = async (userId) => {
   const query = `
@@ -356,17 +314,10 @@ const markAllNotificationsAsRead = async (userId) => {
 };
 
 /**
-<<<<<<< HEAD
 
  * @param {Number} notificationId
  * @param {Number} userId 
  * @returns {Promise<Boolean>} 
-=======
- * Delete a notification
- * @param {Number} notificationId - Notification ID
- * @param {Number} userId - User ID (for security check)
- * @returns {Promise<Boolean>} True if deleted, false otherwise
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const deleteNotification = async (notificationId, userId) => {
   const query = `
@@ -380,14 +331,8 @@ const deleteNotification = async (notificationId, userId) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Number} userId 
  * @returns {Promise<Number>} 
-=======
- * Delete all notifications for a user
- * @param {Number} userId - User ID
- * @returns {Promise<Number>} Number of deleted notifications
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const deleteAllNotifications = async (userId) => {
   const query = `
@@ -401,14 +346,8 @@ const deleteAllNotifications = async (userId) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {String} role 
  * @returns {Promise<Array>} 
-=======
- * Debug function to check notifications by role
- * @param {String} role - User role to check for
- * @returns {Promise<Array>} List of notifications for that role
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const debugGetNotificationsByRole = async (role) => {
   try {
@@ -435,18 +374,10 @@ const debugGetNotificationsByRole = async (role) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Number} userId 
  * @param {String} entityType 
  * @param {Number} entityId 
  * @returns {Promise<Number>} 
-=======
- * Mark all notifications as read that match a specific entity type and ID for a user
- * @param {Number} userId - User ID
- * @param {String} entityType - The entity type to match
- * @param {Number} entityId - The entity ID to match
- * @returns {Promise<Number>} Number of updated notifications
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const markNotificationsByEntityAsRead = async (userId, entityType, entityId) => {
   const query = `

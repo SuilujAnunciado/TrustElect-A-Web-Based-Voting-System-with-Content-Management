@@ -1,8 +1,4 @@
 "use client";
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import React, { useState, useEffect, useMemo } from 'react';
 import { Download, X, ChevronLeft, ChevronRight, Search, Users, Activity, Clock, Filter } from 'lucide-react';
 import axios from 'axios';
@@ -238,11 +234,7 @@ const AdminActivityDetail = ({ report, onClose, onDownload }) => {
     const isAdministratorDept = deptLc === 'administrator' || deptLc === 'administration' || deptLc === 'system';
     
     if (roleLc === 'admin' && isAdministratorDept) {
-<<<<<<< HEAD
       return 'bg-red-100 text-red-800';
-=======
-      return 'bg-red-100 text-red-800'; // System Admin color
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     }
     
     switch (roleLc) {
@@ -296,11 +288,7 @@ const AdminActivityDetail = ({ report, onClose, onDownload }) => {
     };
 
     try {
-<<<<<<< HEAD
       await generatePdfReport(10, reportData);
-=======
-      await generatePdfReport(10, reportData); // 10 is the report ID for Admin Activity
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error generating report:', error);
     }

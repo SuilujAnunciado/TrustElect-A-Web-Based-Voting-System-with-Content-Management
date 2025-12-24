@@ -13,7 +13,6 @@ const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '/images/default-avatar.png';
   if (imageUrl.startsWith('http')) return imageUrl;
   if (imageUrl.startsWith('blob:')) return imageUrl;
-<<<<<<< HEAD
 
   let cleanImageUrl = imageUrl;
   
@@ -30,28 +29,6 @@ const getImageUrl = (imageUrl) => {
     return `${BASE_URL}/uploads/candidates/${cleanImageUrl}`;
   }
 
-=======
-  
-  // Handle different image path formats
-  let cleanImageUrl = imageUrl;
-  
-  // Remove leading slashes
-  if (cleanImageUrl.startsWith('/')) {
-    cleanImageUrl = cleanImageUrl.substring(1);
-  }
-  
-  // If it already starts with uploads, use it directly
-  if (cleanImageUrl.startsWith('uploads/')) {
-    return `${BASE_URL}/${cleanImageUrl}`;
-  }
-  
-  // If it's just a filename, assume it's in candidates folder
-  if (!cleanImageUrl.includes('/')) {
-    return `${BASE_URL}/uploads/candidates/${cleanImageUrl}`;
-  }
-  
-  // Default case
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return `${BASE_URL}/uploads/candidates/${cleanImageUrl}`;
 };
 
@@ -68,18 +45,12 @@ const formatNameSimple = (lastName, firstName, fallback) => {
   return `${cap(lastName)}, ${cap(firstName)}`;
 };
 
-<<<<<<< HEAD
-=======
-// Helper functions moved outside the component to be accessible by generateElectionDetailPdf
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const formatDate = (dateString) => {
   if (!dateString) {
-    console.log('formatDate: No date string provided');
     return 'N/A';
   }
   
   try {
-<<<<<<< HEAD
 
     let dateObj;
     
@@ -90,52 +61,20 @@ const formatDate = (dateString) => {
       dateObj = new Date(dateString);
       
       if (isNaN(dateObj.getTime())) {
-=======
-    // Handle different date formats
-    let dateObj;
-    
-    // If it's already a Date object
-    if (dateString instanceof Date) {
-      dateObj = dateString;
-    }
-    // If it's a string, try to parse it
-    else if (typeof dateString === 'string') {
-      // Handle ISO date strings, MySQL datetime format, etc.
-      dateObj = new Date(dateString);
-      
-      // If that fails, try parsing common formats
-      if (isNaN(dateObj.getTime())) {
-        // Try parsing YYYY-MM-DD format
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const dateMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
         if (dateMatch) {
           dateObj = new Date(dateMatch[1], dateMatch[2] - 1, dateMatch[3]);
         }
       }
     }
-<<<<<<< HEAD
-
-=======
-    // Handle timestamp numbers
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     else if (typeof dateString === 'number') {
       dateObj = new Date(dateString);
     }
     else {
-<<<<<<< HEAD
       return 'N/A';
     }
 
     if (!dateObj || isNaN(dateObj.getTime())) {
-=======
-      console.log('formatDate: Unsupported date type:', typeof dateString, dateString);
-      return 'N/A';
-    }
-    
-    // Validate the date object
-    if (!dateObj || isNaN(dateObj.getTime())) {
-      console.log('formatDate: Invalid date after parsing:', dateString);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return 'N/A';
     }
     
@@ -152,15 +91,10 @@ const formatDate = (dateString) => {
 
 const formatDateTime = (dateString, timeString) => {
   if (!dateString) {
-<<<<<<< HEAD
-=======
-    console.log('formatDateTime: Missing date string');
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return 'N/A';
   }
   
   try {
-<<<<<<< HEAD
     const formattedDate = formatDate(dateString);
 
     if (formattedDate === 'N/A') {
@@ -168,20 +102,6 @@ const formatDateTime = (dateString, timeString) => {
     }
 
     if (timeString && timeString.trim() !== '') {
-=======
-    // First format the date
-    const formattedDate = formatDate(dateString);
-    
-    // If date formatting failed, return N/A
-    if (formattedDate === 'N/A') {
-      console.log('formatDateTime: Date formatting failed for:', dateString);
-      return 'N/A';
-    }
-    
-    // If we have a time string, append it
-    if (timeString && timeString.trim() !== '') {
-      // Clean up the time string
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const cleanTime = timeString.trim();
       return `${formattedDate} at ${cleanTime}`;
     }
@@ -205,12 +125,6 @@ const formatPercentage = (value) => {
 
 const calculateTurnout = (votesCast, totalVoters) => {
   if (!totalVoters || totalVoters === 0) return 0;
-<<<<<<< HEAD
-
-=======
-  
-  // Handle both string and number types
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   let votes = 0;
   let voters = 0;
   
@@ -231,22 +145,12 @@ const calculateTurnout = (votesCast, totalVoters) => {
   return (votes / voters) * 100;
 };
 
-<<<<<<< HEAD
-=======
-// Function to generate PDF for a single election
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const generateElectionDetailPdf = async (electionDetails) => {
   try {
     if (!electionDetails) {
       throw new Error('No election details provided');
     }
 
-<<<<<<< HEAD
-=======
-    console.log('Processing election details for PDF:', electionDetails);
-
-    // Prepare data for the PDF
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const reportData = {
       title: `${electionDetails.title || 'Election'} - Election Details`,
       description: `Detailed report for ${electionDetails.title || 'Unknown Election'} election`,
@@ -273,17 +177,8 @@ const generateElectionDetailPdf = async (electionDetails) => {
       }))
     };
 
-<<<<<<< HEAD
     const result = await generatePdfReport(11, reportData);
 
-=======
-    console.log('Generated report data for PDF:', reportData);
-
-    // Generate the PDF using report type 11 for Election Detail
-    const result = await generatePdfReport(11, reportData);
-    console.log('PDF generation result:', result);
-    
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return result;
   } catch (error) {
     console.error('Error generating election detail PDF:', error);
@@ -315,32 +210,12 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
       if (!response.ok) throw new Error('Failed to fetch election details');
       
       const data = await response.json();
-      console.log('Election details received:', data.election);
       
       if (!data.election) {
         throw new Error('No election data received from server');
       }
       
-      console.log('Date values detailed:', {
-        start_date: data.election.start_date,
-        start_date_type: typeof data.election.start_date,
-        end_date: data.election.end_date,
-        end_date_type: typeof data.election.end_date,
-        start_time: data.election.start_time,
-        end_time: data.election.end_time,
-        date_from: data.election.date_from,
-        date_to: data.election.date_to
-      });
-<<<<<<< HEAD
-
-=======
-      
-      // Test the formatting functions with the received data
-      console.log('Formatted dates test:', {
-        formatted_start: formatDateTime(data.election.start_date || data.election.date_from, data.election.start_time),
-        formatted_end: formatDateTime(data.election.end_date || data.election.date_to, data.election.end_time)
-      });
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
+     
       
       setElectionDetails(data.election);
     } catch (error) {
@@ -392,13 +267,7 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
     };
 
     try {
-<<<<<<< HEAD
       const result = await generatePdfReport(1, pdfData); 
-=======
-      console.log('Generating PDF with data:', pdfData);
-      const result = await generatePdfReport(1, pdfData); // 1 is the report ID for Election Summary
-      console.log('PDF generation result:', result);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       
       if (!result.success) {
         console.error('PDF generation failed:', result.message);
@@ -410,10 +279,6 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Function to handle downloading individual election details
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleDownloadElectionDetails = async () => {
     if (!electionDetails) {
       console.error('No election details available');
@@ -421,13 +286,7 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
     }
     
     try {
-<<<<<<< HEAD
       const result = await generateElectionDetailPdf(electionDetails);
-=======
-      console.log('Generating election detail PDF with data:', electionDetails);
-      const result = await generateElectionDetailPdf(electionDetails);
-      console.log('Election detail PDF generation result:', result);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       
       if (result && !result.success) {
         console.error('Election detail PDF generation failed:', result.message);
@@ -593,11 +452,7 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
             ) : null}
           </div>
 
-<<<<<<< HEAD
           {/* Election Details */}
-=======
-          {/* Election Details Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {selectedElection && electionDetails && (
             <div className="fixed inset-0 z-[60] flex items-center justify-center">
               <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto p-6 border border-gray-200">

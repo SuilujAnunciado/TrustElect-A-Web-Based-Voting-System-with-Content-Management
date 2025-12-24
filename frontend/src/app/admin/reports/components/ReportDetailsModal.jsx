@@ -67,9 +67,7 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
     };
 
     try {
-      console.log('Generating PDF with data:', reportData);
       const result = await generatePdfReport(report.id, reportData);
-      console.log('PDF generation result:', result);
       
       if (!result.success) {
         console.error('PDF generation failed:', result.message);
@@ -83,10 +81,6 @@ export default function ReportDetailsModal({ report, onClose, onDownload }) {
 
   const handleElectionClick = async (election) => {
     try {
-<<<<<<< HEAD
-=======
-      // Fetch detailed election data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const token = Cookies.get("token");
       const response = await axios.get(`${API_BASE}/elections/${election.id}/details`, {
         headers: { Authorization: `Bearer ${token}` }

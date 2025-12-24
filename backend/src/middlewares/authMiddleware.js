@@ -2,10 +2,6 @@ const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
 require("dotenv").config();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const verifyToken = async (req, res, next) => {
 
   let token = req.header("Authorization")?.replace("Bearer ", "") || req.cookies?.token;
@@ -157,7 +153,6 @@ const isSuperAdmin = allowRoles("Super Admin");
 const isAdmin = allowRoles("Admin");
 const isStudent = allowRoles("Student");
 
-<<<<<<< HEAD
 const canApproveElections = (req, res, next) => {
   const user = req.user;
 
@@ -165,27 +160,6 @@ const canApproveElections = (req, res, next) => {
     return next();
   }
   
-=======
-// Middleware to allow Super Admin or Admin with Administrator role to approve elections
-const canApproveElections = (req, res, next) => {
-  const user = req.user;
-  
-  console.log('Checking approval permissions for user:', {
-    id: user.id,
-    role: user.normalizedRole,
-    department: user.department,
-    canApproveElections: user.canApproveElections
-  });
-  
-  // Check if user has approval rights (set during login)
-  if (user.canApproveElections === true) {
-    console.log('User has approval rights - allowing election approval');
-    return next();
-  }
-  
-  // For users without approval rights, deny access
-  console.log('Access denied for election approval - user role:', user.normalizedRole, 'department:', user.department, 'canApproveElections:', user.canApproveElections);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return res.status(403).json({ 
     message: "Access denied. Only Super Admin or Administrator role admins can approve elections." 
   });

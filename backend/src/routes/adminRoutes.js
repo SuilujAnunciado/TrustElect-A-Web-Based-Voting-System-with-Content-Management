@@ -8,19 +8,11 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-<<<<<<< HEAD
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadsDir = path.join(__dirname, '../../uploads/admins');
 
-=======
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadsDir = path.join(__dirname, '../../uploads/admins');
-    // Ensure the directory exists
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
@@ -35,11 +27,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-<<<<<<< HEAD
   limits: { fileSize: 2 * 1024 * 1024 }, 
-=======
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   fileFilter: function (req, file, cb) {
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
@@ -49,20 +37,10 @@ const upload = multer({
   },
 });
 
-<<<<<<< HEAD
 router.get("/profile", verifyToken, isAdmin, getAdminProfile);
 router.post("/upload", verifyToken, isAdmin, upload.single("profilePic"), uploadAdminProfilePicture);
 
 router.get("/admins", verifyToken, (req, res, next) => {
-=======
-// Admin profile routes
-router.get("/profile", verifyToken, isAdmin, getAdminProfile);
-router.post("/upload", verifyToken, isAdmin, upload.single("profilePic"), uploadAdminProfilePicture);
-
-// Super admin routes (also accessible by admins for department management)
-router.get("/admins", verifyToken, (req, res, next) => {
-  // Allow both super admins and regular admins
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (req.user.role_id === 1 || req.user.role_id === 2) {
     next();
   } else {
@@ -70,10 +48,6 @@ router.get("/admins", verifyToken, (req, res, next) => {
   }
 }, getAllAdmins);
 
-<<<<<<< HEAD
-=======
-// Admin management routes for regular admins with permissions
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get("/manage-admins", verifyToken, isAdmin, checkPermission('adminManagement', 'view'), getAllAdmins);
 
 router.post(
@@ -109,10 +83,6 @@ router.put(
   "/admins/:id",
   verifyToken,
   (req, res, next) => {
-<<<<<<< HEAD
-=======
-    // Allow both super admins and regular admins
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role_id === 1 || req.user.role_id === 2) {
       next();
     } else {
@@ -149,10 +119,6 @@ router.delete("/admins/:id", verifyToken, isSuperAdmin, softDeleteAdmin);
 router.patch("/admins/:id/restore", verifyToken, isSuperAdmin, restoreAdmin);
 router.delete("/admins/:id/permanent-delete", verifyToken, isSuperAdmin, permanentlyDeleteAdmin);
 router.patch("/admins/:id/unlock", verifyToken, (req, res, next) => {
-<<<<<<< HEAD
-=======
-  // Allow both super admins and regular admins
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (req.user.role_id === 1 || req.user.role_id === 2) {
     next();
   } else {
@@ -162,10 +128,6 @@ router.patch("/admins/:id/unlock", verifyToken, (req, res, next) => {
 
 router.post("/admins/reset-password", verifyToken, isSuperAdmin, resetAdminPassword);
 
-<<<<<<< HEAD
-=======
-// Admin management routes for regular admins with permissions
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get("/manage-admins", verifyToken, isAdmin, checkPermission('adminManagement', 'view'), getAllAdmins);
 router.put(
   "/manage-admins/:id",
@@ -238,7 +200,6 @@ router.get("/protected", verifyToken, isSuperAdmin, (req, res) => {
   res.status(200).json({ message: "Welcome, Super Admin! This is a protected route." });
 });
 
-<<<<<<< HEAD
 router.get('/permissions', verifyToken, async (req, res) => {
   try {
     const adminId = req.user.id;
@@ -246,19 +207,6 @@ router.get('/permissions', verifyToken, async (req, res) => {
     const { getAdminPermissions } = require('../models/adminPermissionModel');
     const permissions = await getAdminPermissions(adminId);
 
-=======
-// Add admin's own permissions route
-router.get('/permissions', verifyToken, async (req, res) => {
-  try {
-    // The user ID is available from the JWT token in req.user.id
-    const adminId = req.user.id;
-    
-    // Use the existing getAdminPermissions function
-    const { getAdminPermissions } = require('../models/adminPermissionModel');
-    const permissions = await getAdminPermissions(adminId);
-    
-    // Format permissions for the frontend
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const formattedPermissions = {};
     permissions.forEach(perm => {
       formattedPermissions[perm.module] = {
@@ -276,9 +224,4 @@ router.get('/permissions', verifyToken, async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-=======
-// Department routes are handled by departmentRoutes.js with proper middleware
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 module.exports = router;

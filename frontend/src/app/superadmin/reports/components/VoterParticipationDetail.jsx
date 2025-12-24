@@ -1,8 +1,4 @@
 "use client";
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useState, useMemo, useEffect } from 'react';
 import { Download, X, Users, CheckCircle, XCircle, Search, ChevronLeft, ChevronRight, ArrowUp, Info } from "lucide-react";
 import { generatePdfReport } from '@/utils/pdfGenerator';
@@ -28,10 +24,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
   const [pageSize, setPageSize] = useState(10);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-<<<<<<< HEAD
-=======
-  // Initialize current election data on component mount
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (report.data.elections && report.data.elections.length > 0) {
       const initialElection = report.data.elections[0];
@@ -43,10 +35,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
   const processAndSetElectionData = (electionData) => {
     if (!electionData) return;
 
-<<<<<<< HEAD
-=======
-    // Normalize department stats from backend schema (eligible_voters, votes_cast, turnout)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const processedDepartmentStats = (electionData.department_stats || [])
       .map(stat => {
         const totalStudents = Math.max(0, parseInt(stat.eligible_voters) || 0);
@@ -69,11 +57,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
       ...electionData,
       id: electionData.id,
       title: electionData.title,
-<<<<<<< HEAD
-
-=======
-      // Use backend-provided rollups for accuracy
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       total_eligible_voters: parseInt(electionData.total_eligible_voters) || 0,
       total_votes_cast: parseInt(electionData.total_votes_cast) || 0,
       turnout_percentage: parseFloat(Number(electionData.turnout_percentage || 0).toFixed(1)),
@@ -94,10 +77,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
     setSelectedElection(newElectionId);
   };
 
-<<<<<<< HEAD
-=======
-  // Update current election data when selection changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (selectedElection && report.data.elections) {
       const election = report.data.elections.find(
@@ -139,10 +118,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
   };
 
   const formatVoterName = (voter) => {
-<<<<<<< HEAD
-=======
-    // Try the name field first (if it exists and is not the student ID)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (voter.name && 
         voter.name.trim() && 
         voter.name !== 'undefined undefined' && 
@@ -153,19 +128,10 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
         return cleanedName;
       }
     }
-<<<<<<< HEAD
 
     const firstName = (voter.first_name || '').toString().trim();
     const lastName = (voter.last_name || '').toString().trim();
 
-=======
-    
-    // Try first_name and last_name combination
-    const firstName = (voter.first_name || '').toString().trim();
-    const lastName = (voter.last_name || '').toString().trim();
-    
-    // Check if we have valid names (not undefined, null, or student ID)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const validFirstName = firstName && 
       firstName !== 'undefined' && 
       firstName !== 'null' && 
@@ -187,12 +153,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
     if (validLastName) {
       return cleanName(lastName);
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Try other potential name fields
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (voter.full_name && 
         voter.full_name.trim() && 
         voter.full_name !== voter.student_id) {
@@ -204,12 +164,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
         voter.student_name !== voter.student_id) {
       return cleanName(voter.student_name);
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Fallback to student ID
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return voter.student_id || 'Unknown Student';
   };
 
@@ -240,10 +194,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
       .sort((a, b) => b.turnout - a.turnout);
   }, [currentElectionData]);
 
-<<<<<<< HEAD
-=======
-  // Calculate voter participation across all elections with improved error handling
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const voterHistory = useMemo(() => {
     if (!Array.isArray(report.data.elections) || !currentElectionData) {
       return [];
@@ -251,10 +201,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
 
     const voterMap = new Map();
 
-<<<<<<< HEAD
-=======
-    // Initialize voter map with current election voters
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (Array.isArray(currentElectionData.voters)) {
       currentElectionData.voters.forEach(voter => {
         if (voter && voter.student_id) {
@@ -271,10 +217,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
       });
     }
 
-<<<<<<< HEAD
-=======
-    // Aggregate voting history across all elections
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     report.data.elections.forEach(election => {
       if (election && Array.isArray(election.voters)) {
         election.voters.forEach(voter => {
@@ -314,10 +256,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
     return Array.from(voterMap.values());
   }, [report.data.elections, currentElectionData]);
 
-<<<<<<< HEAD
-=======
-  // Filter and paginate voters with history
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const filteredAndPaginatedVoters = useMemo(() => {
     const term = (searchTerm || '').toLowerCase();
     const filtered = voterHistory.filter(voter => {
@@ -348,10 +286,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
     setCurrentPage(1);
   };
 
-<<<<<<< HEAD
-=======
-  // Scroll button functionality
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const handleScroll = (e) => {
       const scrollTop = e.target.scrollTop;
@@ -411,11 +345,7 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
     };
 
     try {
-<<<<<<< HEAD
       await generatePdfReport(8, reportData); 
-=======
-      await generatePdfReport(8, reportData); // 8 is the report ID for Voter Participation
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error generating report:', error);
     }
@@ -450,10 +380,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
         </div>
 
         <div id="voter-participation-container" className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-<<<<<<< HEAD
-=======
-          {/* Summary Cards */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -495,10 +421,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
             </div>
           </div>
 
-<<<<<<< HEAD
-=======
-          {/* Participation Chart */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-white p-4 rounded-lg border">
               <h3 className="text-lg font-semibold mb-4 text-black">Participation by Department</h3>
@@ -762,10 +684,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
               </table>
             </div>
 
-<<<<<<< HEAD
-=======
-            {/* Pagination */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="mt-4 flex items-center justify-between">
               <div className="text-sm text-black">
                 Showing {Math.min((currentPage - 1) * pageSize + 1, filteredAndPaginatedVoters.total)} to{' '}
@@ -823,10 +741,6 @@ export default function VoterParticipationDetail({ report, onClose, onDownload }
             </button>
           </div>
 
-<<<<<<< HEAD
-=======
-          {/* Scroll to Top Button */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <button
             onClick={scrollToTop}
             className={`fixed bottom-6 right-6 p-3 bg-[#01579B] text-white rounded-full shadow-lg transition-all duration-300 hover:bg-[#01416E] ${

@@ -12,11 +12,7 @@ export default function Sidebar() {
   const [superAdminName, setSuperAdminName] = useState("Super Admin");
   const [showImageModal, setShowImageModal] = useState(false);
 
-<<<<<<< HEAD
   
-=======
-  // Function to check if a route is active
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const isActiveRoute = (route) => {
     if (route === "/superadmin") {
       return pathname === "/superadmin";
@@ -190,23 +186,7 @@ export default function Sidebar() {
             onClick={() => router.push("/superadmin/reports")}
           >
             Reports
-<<<<<<< HEAD
           </button>        
-=======
-          </button>
-
-          <button 
-            className={`block w-full text-left p-3 rounded transition-colors ${
-              isActiveRoute("/superadmin/results") 
-                ? "bg-[#01579B] text-white shadow-md" 
-                : "hover:bg-[#01579B] hover:text-white"
-            }`} 
-            onClick={() => router.push("/superadmin/results")}
-          >
-            Results Verification
-          </button>
-        
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         </nav>
       </aside>
     </>

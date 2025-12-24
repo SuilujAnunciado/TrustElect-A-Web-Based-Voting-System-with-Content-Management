@@ -11,10 +11,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import stiLogo from "../../assets/sti_nova_logo.png";
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function LoginForm({ onClose }) {
   const API_URL = '';
   const [step, setStep] = useState(1);
@@ -55,15 +51,8 @@ export default function LoginForm({ onClose }) {
   const [smsCooldownActive, setSmsCooldownActive] = useState(false);
   const [smsCooldownTime, setSmsCooldownTime] = useState(0);
   
-<<<<<<< HEAD
   const [registerPhoneNumber, setRegisterPhoneNumber] = useState("");
   
-=======
-  // Phone registration for first-time login
-  const [registerPhoneNumber, setRegisterPhoneNumber] = useState("");
-  
-  // OTP visibility states
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [showOtp, setShowOtp] = useState(false);
   const [showSmsOtp, setShowSmsOtp] = useState(false);
   const [showResetOtp, setShowResetOtp] = useState(false);
@@ -120,19 +109,11 @@ export default function LoginForm({ onClose }) {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Global keyboard event handler
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
       if (e.key === 'Enter' && !loading) {
         e.preventDefault();
         
-<<<<<<< HEAD
-=======
-        // Determine which action to take based on current step and resetStep
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (step === 1) {
           handleLogin();
         } else if (step === 2) {
@@ -159,27 +140,14 @@ export default function LoginForm({ onClose }) {
       }
     };
 
-<<<<<<< HEAD
     window.addEventListener('keydown', handleGlobalKeyDown);
     
-=======
-    // Add global event listener
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    
-    // Cleanup
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyDown);
     };
   }, [step, resetStep, loading, email, password, otp, newPassword, confirmPassword, 
       forgotEmail, resetOtp, resetPassword, confirmResetPassword, useSmsOtp, 
       phoneNumber, smsOtp]);
-<<<<<<< HEAD
-
-=======
-  
-  // Cooldown timer effect
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     let interval;
     if (cooldownActive && cooldownTime > 0) {
@@ -196,13 +164,6 @@ export default function LoginForm({ onClose }) {
     }
     return () => clearInterval(interval);
   }, [cooldownActive, cooldownTime]);
-<<<<<<< HEAD
-
-=======
-  
-  
-  // SMS cooldown timer effect
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     let interval;
     if (smsCooldownActive && smsCooldownTime > 0) {
@@ -236,10 +197,6 @@ export default function LoginForm({ onClose }) {
 
     setLoading(true);
     try {
-<<<<<<< HEAD
-=======
-      // Updated: same-origin path + credentials
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.post(
         `/api/auth/login`,
         { email, password },
@@ -267,10 +224,6 @@ export default function LoginForm({ onClose }) {
       localStorage.setItem("email", email);
       localStorage.setItem("userId", user_id);
 
-<<<<<<< HEAD
-=======
-      // Updated: same-origin path + credentials
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const otpResponse = await axios.post(
         `/api/auth/request-otp`,
         { userId: user_id, email },
@@ -311,10 +264,6 @@ export default function LoginForm({ onClose }) {
     try {
       const userId = Cookies.get("userId");
 
-<<<<<<< HEAD
-=======
-      // Updated: same-origin path + credentials
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.post(
         `/api/auth/verify-otp`,
         { userId, otp },
@@ -327,10 +276,6 @@ export default function LoginForm({ onClose }) {
         if (role !== "Super Admin") {
           try {
             const token = Cookies.get("token");
-<<<<<<< HEAD
-=======
-            // Updated: same-origin path
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             const firstLoginCheckResponse = await axios.get(
               `/api/auth/check-first-login`,
               {
@@ -379,10 +324,6 @@ export default function LoginForm({ onClose }) {
       return;
     }
 
-<<<<<<< HEAD
-=======
-    // Check if phone number is provided
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!registerPhoneNumber.trim()) {
       setError("Phone number is required. Please enter your phone number to continue.");
       return;
@@ -393,12 +334,6 @@ export default function LoginForm({ onClose }) {
       const token = Cookies.get("token");
       const userId = Cookies.get("userId");
       const userEmail = Cookies.get("email");
-<<<<<<< HEAD
-
-=======
-      
-      // First register the phone number
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let normalizedPhone = registerPhoneNumber.replace(/\s/g, '');
       if (normalizedPhone.startsWith('09')) {
         normalizedPhone = '+63' + normalizedPhone.substring(1);
@@ -408,10 +343,6 @@ export default function LoginForm({ onClose }) {
         normalizedPhone = '+63' + normalizedPhone;
       }
 
-<<<<<<< HEAD
-=======
-      // Validate phone number format
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const phoneRegex = /^(\+63|63|0)?[9]\d{9}$/;
       if (!phoneRegex.test(normalizedPhone.replace(/\s/g, ''))) {
         setError("Please enter a valid Philippines phone number (e.g., +639123456789 or 09123456789).");
@@ -419,10 +350,6 @@ export default function LoginForm({ onClose }) {
         return;
       }
 
-<<<<<<< HEAD
-=======
-      // Register phone number
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const phoneResponse = await axios.post(
         `/api/auth/register-phone`,
         { userId, email: userEmail, phoneNumber: normalizedPhone },
@@ -434,12 +361,6 @@ export default function LoginForm({ onClose }) {
         setLoading(false);
         return;
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Then change the password
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.post(
         `/api/auth/change-first-password`,
         { newPassword },
@@ -452,24 +373,9 @@ export default function LoginForm({ onClose }) {
       );
       
       if (response.data.success) {
-<<<<<<< HEAD
         const role = Cookies.get("role") || localStorage.getItem("role");
         const token = Cookies.get("token") || localStorage.getItem("token");
-        console.log("User role before navigation:", role); 
-        console.log("Token exists:", !!token);
 
-=======
-        // Get the user role and check authentication status
-        const role = Cookies.get("role") || localStorage.getItem("role");
-        const token = Cookies.get("token") || localStorage.getItem("token");
-        console.log("User role before navigation:", role); // Debug log
-        console.log("Token exists:", !!token); // Debug log
-        
-        // DON'T clear authentication data - user should remain logged in
-        // Only clear form data and reset first login flag
-        
-        // Clear form data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setEmail("");
         setPassword("");
         setOtp("");
@@ -480,28 +386,14 @@ export default function LoginForm({ onClose }) {
         setError("");
         setResendMessage("");
 
-<<<<<<< HEAD
-=======
-        // Close the login modal first
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (onClose) {
           onClose();
         }
 
-<<<<<<< HEAD
         if (role) {
-          console.log("Navigating to dashboard for role:", role); 
           setTimeout(() => {
             navigateToDashboard(role);
           }, 100); 
-=======
-        // Navigate to dashboard based on role (with small delay to ensure modal closes)
-        if (role) {
-          console.log("Navigating to dashboard for role:", role); // Debug log
-          setTimeout(() => {
-            navigateToDashboard(role);
-          }, 100); // Small delay to ensure modal closes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         } else {
           console.error("No role found, redirecting to login");
           setError("Authentication error. Please login again.");
@@ -519,7 +411,6 @@ export default function LoginForm({ onClose }) {
   };
   
   const navigateToDashboard = (role) => {
-<<<<<<< HEAD
     
     if (role === "Super Admin") {
       router.push("/superadmin");
@@ -528,21 +419,6 @@ export default function LoginForm({ onClose }) {
     } else if (role === "Student") {
       router.push("/student");
     } else {
-=======
-    console.log("navigateToDashboard called with role:", role); // Debug log
-    
-    if (role === "Super Admin") {
-      console.log("Redirecting to Super Admin dashboard");
-      router.push("/superadmin");
-    } else if (role === "Admin") {
-      console.log("Redirecting to Admin dashboard");
-      router.push("/admin");
-    } else if (role === "Student") {
-      console.log("Redirecting to Student dashboard");
-      router.push("/student");
-    } else {
-      // Fallback: redirect to login if role is not recognized
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       console.warn("Unknown role:", role);
       setError("Authentication error. Please login again.");
       setStep(1);
@@ -561,10 +437,6 @@ export default function LoginForm({ onClose }) {
     try {
       const userId = Cookies.get("userId");
       const userEmail = Cookies.get("email");
-<<<<<<< HEAD
-=======
-      // Updated: same-origin path + credentials
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.post(
         `/api/auth/request-otp`,
         { userId, email: userEmail },
@@ -608,10 +480,6 @@ export default function LoginForm({ onClose }) {
     
     setLoading(true);
     try {
-<<<<<<< HEAD
-=======
-      // Updated: same-origin path
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.post(
         `/api/auth/forgot-password`,
         { email: forgotEmail },
@@ -644,10 +512,6 @@ export default function LoginForm({ onClose }) {
     
     setLoading(true);
     try {
-<<<<<<< HEAD
-=======
-      // Updated: same-origin path
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.post(
         `/api/auth/verify-reset-otp`,
         { email: forgotEmail, otp: resetOtp },
@@ -684,10 +548,6 @@ export default function LoginForm({ onClose }) {
     
     setLoading(true);
     try {
-<<<<<<< HEAD
-=======
-      // Updated: same-origin path
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.post(
         `/api/auth/reset-password`,
         { resetToken, newPassword: resetPassword },
@@ -725,10 +585,6 @@ export default function LoginForm({ onClose }) {
     setResendMessage("");
     setDevOtp("");
     try {
-<<<<<<< HEAD
-=======
-      // Updated: same-origin path + credentials
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const response = await axios.post(
         `/api/auth/forgot-password`,
         { email: forgotEmail },
@@ -751,22 +607,12 @@ export default function LoginForm({ onClose }) {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // SMS OTP handler functions
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleSmsOtpRequest = async () => {
     setError("");
     setSmsResendMessage("");
     setUseSmsOtp(true);
     setSmsOtp("");
     setSmsDevOtp("");
-<<<<<<< HEAD
-
-=======
-    
-    // Check if user already has a registered phone number
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     try {
       const userId = Cookies.get("userId");
       const response = await axios.post(
@@ -776,17 +622,9 @@ export default function LoginForm({ onClose }) {
       );
       
       if (response.data.success && response.data.hasPhone) {
-<<<<<<< HEAD
         setPhoneNumber(response.data.phoneNumber);
         setSmsResendMessage(response.data.message);
       } else {
-=======
-        // User already has a phone number, proceed with SMS OTP
-        setPhoneNumber(response.data.phoneNumber);
-        setSmsResendMessage(response.data.message);
-      } else {
-        // User doesn't have a phone number, show error
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setError("Please use email OTP first, then change your password and register your phone number for future SMS OTP use.");
         setUseSmsOtp(false);
         return;
@@ -800,10 +638,6 @@ export default function LoginForm({ onClose }) {
 
 
   const handleSendSmsOtp = async () => {
-<<<<<<< HEAD
-=======
-    // Check if cooldown is active
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (smsCooldownActive) {
       setSmsResendMessage(`Please wait ${smsCooldownTime} seconds before sending another code.`);
       return;
@@ -839,12 +673,6 @@ export default function LoginForm({ onClose }) {
       setError("SMS OTP must be exactly 6 digits.");
       return;
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Validate OTP format (only digits)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!/^\d{6}$/.test(smsOtp)) {
       setError("SMS OTP must contain only numbers.");
       return;
@@ -897,10 +725,6 @@ export default function LoginForm({ onClose }) {
       if (err.response && err.response.status === 400) {
         setError(err.response.data.message || "Invalid SMS verification code. Please check and try again.");
       } else if (err.response && err.response.status === 401) {
-<<<<<<< HEAD
-=======
-        // Handle OTP expiration specifically
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (err.response.data.code === 'OTP_EXPIRED') {
           setError("SMS verification code has expired. Please request a new one.");
         } else {
@@ -1062,10 +886,6 @@ export default function LoginForm({ onClose }) {
                 required
                 className="pr-16"
                 style={{
-<<<<<<< HEAD
-=======
-                  // Hide browser's default password reveal button completely
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   WebkitTextSecurity: showPassword ? 'none' : 'disc',
                 }}
                 autoComplete="current-password"
@@ -1159,10 +979,6 @@ export default function LoginForm({ onClose }) {
               )}
             </div>
 
-<<<<<<< HEAD
-=======
-            {/* SMS OTP Option */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="mt-4 text-center">
               <button 
                 type="button"
@@ -1451,10 +1267,6 @@ export default function LoginForm({ onClose }) {
                   {loading ? "Verifying..." : "Verify Code"}
                 </Button>
                 
-<<<<<<< HEAD
-=======
-                {/* Resend OTP button with cooldown */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="mt-4 text-center">
                   <button 
                     type="button"

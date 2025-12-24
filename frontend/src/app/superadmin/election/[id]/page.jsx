@@ -20,7 +20,6 @@ import { generatePdfReport } from '../../../../utils/pdfGenerator';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
-<<<<<<< HEAD
 
 const CHART_COLORS = [
   '#3b82f6', 
@@ -33,39 +32,17 @@ const CHART_COLORS = [
   '#f97316', 
   '#6366f1', 
   '#14b8a6', 
-=======
-const CHART_COLORS = [
-  '#3b82f6', // blue
-  '#ef4444', // red
-  '#10b981', // green
-  '#f59e0b', // amber
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#f97316', // orange
-  '#6366f1', // indigo
-  '#14b8a6', // teal
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 ];
 
 function formatNameSimple(lastName, firstName, fallback) {
   const cap = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
-<<<<<<< HEAD
 
   if (fallback && fallback.trim()) {
     const fallbackWords = fallback.trim().split(/\s+/);
-=======
-  
-  // Direct approach: If fallback exists and is a single word or short phrase, treat as group name
-  if (fallback && fallback.trim()) {
-    const fallbackWords = fallback.trim().split(/\s+/);
-    // If fallback is 1-2 words and doesn't contain common first/last name patterns, treat as group
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (fallbackWords.length <= 2 && !fallback.toLowerCase().includes(',')) {
       return cap(fallback.trim());
     }
   }
-<<<<<<< HEAD
 
   if (!firstName || firstName.trim() === '') {
     return cap(lastName || fallback || 'No Name');
@@ -75,20 +52,6 @@ function formatNameSimple(lastName, firstName, fallback) {
     return `${cap(lastName)}, ${cap(firstName)}`;
   }
 
-=======
-  
-  // If no first name, treat as group name (no comma)
-  if (!firstName || firstName.trim() === '') {
-    return cap(lastName || fallback || 'No Name');
-  }
-  
-  // For individual candidates with both names, add comma
-  if (lastName && firstName) {
-    return `${cap(lastName)}, ${cap(firstName)}`;
-  }
-  
-  // Fallback cases
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (!lastName && !firstName) return 'No Name';
   return cap(lastName || firstName || fallback || 'No Name');
 }
@@ -264,19 +227,10 @@ export default function ElectionDetailsPage() {
     }
 
     const now = new Date();
-<<<<<<< HEAD
   
     const endDate = new Date(election.date_to);
     const [endHour, endMinute] = election.end_time.split(':').map(Number);
 
-=======
-    
-    // Parse the end date and time properly
-    const endDate = new Date(election.date_to);
-    const [endHour, endMinute] = election.end_time.split(':').map(Number);
-    
-    // Set the end time with proper date and time
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const endTime = new Date(endDate);
     endTime.setHours(endHour, endMinute, 0, 0);
     
@@ -347,10 +301,6 @@ export default function ElectionDetailsPage() {
       
       let electionData = data.election;
 
-<<<<<<< HEAD
-=======
-      // Map creator information from the API response
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (data.creator_name) {
         electionData.creator_name = data.creator_name;
       }
@@ -364,10 +314,6 @@ export default function ElectionDetailsPage() {
         electionData.creator_role = 'Admin';
       }
 
-<<<<<<< HEAD
-=======
-      // Set system admin creator flag based on creator role from backend
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (electionData && electionData.creator_role) {
         setIsSystemAdminCreator(electionData.creator_role === 'SuperAdmin');
       } else {
@@ -398,43 +344,19 @@ export default function ElectionDetailsPage() {
       try {
         const completeElectionData = await fetchWithAuth(`/elections/${params.id}`);
         const eligibilityCriteriaResponse = await fetchWithAuth(`/elections/${params.id}/criteria`);
-<<<<<<< HEAD
 
         let precinctPrograms = {};
         let precincts = [];
 
-=======
-        
-        console.log("Complete election data:", completeElectionData);
-        console.log("Eligibility criteria response:", eligibilityCriteriaResponse);
-        
-        // Process precinct programs from different possible sources
-        let precinctPrograms = {};
-        let precincts = [];
-        
-        // Try to get from complete election data first (this is where the updated data should be)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (completeElectionData.eligible_voters) {
           precinctPrograms = completeElectionData.eligible_voters.precinctPrograms || completeElectionData.eligible_voters.precinct_programs || {};
           precincts = completeElectionData.eligible_voters.precinct || [];
         }
-<<<<<<< HEAD
-
-=======
-        
-        // If not found, try from eligibility criteria response
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (Object.keys(precinctPrograms).length === 0 && eligibilityCriteriaResponse.criteria) {
           precinctPrograms = eligibilityCriteriaResponse.criteria.precinctPrograms || eligibilityCriteriaResponse.criteria.precinct_programs || {};
           precincts = eligibilityCriteriaResponse.criteria.precincts || eligibilityCriteriaResponse.criteria.precinct || [];
 
         }
-<<<<<<< HEAD
-
-=======
-        
-        // If still not found, try from laboratoryPrecincts
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (Object.keys(precinctPrograms).length === 0 && completeElectionData.laboratoryPrecincts) {
           completeElectionData.laboratoryPrecincts.forEach(lp => {
             if (lp.laboratoryPrecinctId && lp.assignedCourses) {
@@ -484,13 +406,7 @@ export default function ElectionDetailsPage() {
     }
   }, [params.id]);
 
-<<<<<<< HEAD
   useEffect(() => {
-=======
-  // Auto-refresh effect for partial counting in fullscreen
-  useEffect(() => {
-    // Only start interval if we're in fullscreen and on partial counting tab
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (isFullScreen && activeTab === 'partial' && election?.status === 'ongoing') {
       
       intervalRef.current = setInterval(async () => {
@@ -499,11 +415,7 @@ export default function ElectionDetailsPage() {
         } catch (error) {
           console.error('Error during auto-refresh:', error);
         }
-<<<<<<< HEAD
       }, 1000); 
-=======
-      }, 1000); // Refresh every 1 second
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       
       return () => {
         if (intervalRef.current) {
@@ -526,11 +438,7 @@ export default function ElectionDetailsPage() {
         setCurrentPositionIndex(prev => 
           prev + 1 >= election.positions.length ? 0 : prev + 1
         );
-<<<<<<< HEAD
       }, 10000);
-=======
-      }, 10000); // Change position every 10 seconds
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       
       return () => {
         if (carouselIntervalRef.current) {
@@ -543,20 +451,12 @@ export default function ElectionDetailsPage() {
         clearInterval(carouselIntervalRef.current);
         carouselIntervalRef.current = null;
       }
-<<<<<<< HEAD
-=======
-      // Reset to first position when not in fullscreen
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!isFullScreen) {
         setCurrentPositionIndex(0);
       }
     }
   }, [isFullScreen, activeTab, election?.positions?.length]);
 
-<<<<<<< HEAD
-=======
-  // Update time remaining every second for ongoing elections
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (election && election.status === 'ongoing') {
       calculateTimeRemaining();
@@ -565,20 +465,12 @@ export default function ElectionDetailsPage() {
     }
   }, [election]);
 
-<<<<<<< HEAD
-=======
-  // Bulletin carousel effect
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (activeTab === 'bulletin' && bulletinData.voterCodes.length > 0 && bulletinData.candidateVotes.length > 0) {
       
       bulletinIntervalRef.current = setInterval(() => {
         setCurrentBulletinSlide(prev => prev === 0 ? 1 : 0);
-<<<<<<< HEAD
       }, 10000); 
-=======
-      }, 10000); // Change slide every 10 seconds
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       
       return () => {
         if (bulletinIntervalRef.current) {
@@ -594,20 +486,12 @@ export default function ElectionDetailsPage() {
     }
   }, [activeTab, bulletinData]);
 
-<<<<<<< HEAD
-=======
-  // Load bulletin data when tab is active
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (activeTab === 'bulletin' && bulletinData.voterCodes.length === 0 && bulletinData.candidateVotes.length === 0) {
       loadBulletinData();
     }
   }, [activeTab]);
 
-<<<<<<< HEAD
-=======
-  // Cleanup intervals on component unmount
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
@@ -687,17 +571,9 @@ export default function ElectionDetailsPage() {
       ...(criteria.year_levels || []), 
       ...(criteria.yearLevels || [])
     ]);
-<<<<<<< HEAD
 
     const precincts = criteria.precinct || [];
 
-=======
-    
-    // Get precincts from the merged data
-    const precincts = criteria.precinct || [];
-    
-    // Get precinctPrograms from the merged data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const precinctPrograms = criteria.precinctPrograms || {};
     
     return {
@@ -743,7 +619,6 @@ export default function ElectionDetailsPage() {
 
   const eligibilityCriteria = getEligibilityCriteria();
 
-<<<<<<< HEAD
   const calculateYAxisDomain = (chartData) => {
     if (!chartData || chartData.length === 0) return [0, 10];
 
@@ -755,23 +630,6 @@ export default function ElectionDetailsPage() {
       return [0, Math.max(maxVotes + 1, 5)];
     }
 
-=======
-  // Helper function to calculate Y-axis domain for better scaling
-  const calculateYAxisDomain = (chartData) => {
-    if (!chartData || chartData.length === 0) return [0, 10];
-    
-    // Ensure all vote counts are numbers
-    const voteCounts = chartData.map(d => Number(d.votes) || 0);
-    const maxVotes = Math.max(...voteCounts);
-    const minVotes = Math.min(...voteCounts);
-    
-    // If all votes are the same, add some padding
-    if (maxVotes === minVotes) {
-      return [0, Math.max(maxVotes + 1, 5)];
-    }
-    
-    // Add 10% padding to the top for better visualization, minimum 1
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const padding = Math.max(1, Math.ceil(maxVotes * 0.1));
     return [0, maxVotes + padding];
   };
@@ -780,24 +638,12 @@ export default function ElectionDetailsPage() {
     if (!positions || positions.length === 0) return [];
 
     return positions.map(position => {
-<<<<<<< HEAD
       const sortedCandidates = [...(position.candidates || [])].sort((a, b) => {
-=======
-      // Sort candidates: first by tie_breaker_message (if exists), then by vote count
-      const sortedCandidates = [...(position.candidates || [])].sort((a, b) => {
-        // If one has tie_breaker_message and the other doesn't, prioritize the one with tie_breaker_message
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const aHasTieBreaker = !!(a.tie_breaker_message && a.tie_breaker_message.trim());
         const bHasTieBreaker = !!(b.tie_breaker_message && b.tie_breaker_message.trim());
         
         if (aHasTieBreaker && !bHasTieBreaker) return -1;
         if (!aHasTieBreaker && bHasTieBreaker) return 1;
-<<<<<<< HEAD
-
-=======
-        
-        // If both have or both don't have tie_breaker_message, sort by vote count
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         return (b.vote_count || 0) - (a.vote_count || 0);
       });
 
@@ -817,10 +663,6 @@ export default function ElectionDetailsPage() {
     });
   };
 
-<<<<<<< HEAD
-=======
-  // Function to detect tied votes for a position
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const detectTiedVotes = (position) => {
     if (!position || !position.candidates || position.candidates.length === 0) return null;
     
@@ -831,24 +673,12 @@ export default function ElectionDetailsPage() {
     if (sortedCandidates.length === 0) return null;
     
     const maxVotes = sortedCandidates[0].vote_count || 0;
-<<<<<<< HEAD
     if (maxVotes === 0) return null;
 
     const tiedCandidates = sortedCandidates.filter(c => (c.vote_count || 0) === maxVotes);
 
     if (tiedCandidates.length >= 2) {
       
-=======
-    if (maxVotes === 0) return null; // No votes yet
-    
-    // Find all candidates with the maximum vote count
-    const tiedCandidates = sortedCandidates.filter(c => (c.vote_count || 0) === maxVotes);
-    
-    // Only return tied candidates if there are 2 or more with the same max votes
-    // and they are the top candidates (potential winners)
-    if (tiedCandidates.length >= 2) {
-      // Check if any of the tied candidates already has a tie_breaker_message (already resolved)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const hasResolvedTie = tiedCandidates.some(c => c.tie_breaker_message);
       
       if (!hasResolvedTie) {
@@ -863,10 +693,6 @@ export default function ElectionDetailsPage() {
     return null;
   };
 
-<<<<<<< HEAD
-=======
-  // Function to handle tie-breaker selection
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleTieBreakerSelect = (position, candidate) => {
     const tieInfo = detectTiedVotes(position);
     if (!tieInfo) return;
@@ -878,10 +704,6 @@ export default function ElectionDetailsPage() {
     setTieBreakerModalOpen(true);
   };
 
-<<<<<<< HEAD
-=======
-  // Function to save tie-breaker
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleSaveTieBreaker = async () => {
     if (!selectedTieBreakerWinner || !tieBreakerMessage.trim()) {
       toast.error('Please select a winner and enter a tie-breaker message');
@@ -914,12 +736,6 @@ export default function ElectionDetailsPage() {
       setTieBreakerModalOpen(false);
       setTieBreakerMessage('');
       setSelectedTieBreakerWinner(null);
-<<<<<<< HEAD
-
-=======
-      
-      // Refresh election data to show updated results
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await fetchElectionData();
     } catch (error) {
       console.error('Error saving tie-breaker:', error);
@@ -953,11 +769,6 @@ export default function ElectionDetailsPage() {
           const errorData = await response.json();
           errorMessage = errorData.message || errorMessage;
         } catch (_) {
-<<<<<<< HEAD
-
-=======
-          // ignore parse errors
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         }
         throw new Error(errorMessage);
       }
@@ -977,10 +788,6 @@ export default function ElectionDetailsPage() {
   const hasResults = election.positions && election.positions.length > 0 && 
     (election.status === 'ongoing' || election.status === 'completed');
 
-<<<<<<< HEAD
-=======
-  // Check if current user is Super Admin (can edit any election)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const isCurrentUserSuperAdmin = Cookies.get('role') === 'Super Admin';
   
   const isSuperAdminCreator =
@@ -992,25 +799,14 @@ export default function ElectionDetailsPage() {
   const getTop3AndOtherCandidates = (candidates) => {
     if (!candidates || candidates.length === 0) return { top3: [], others: [] };
     
-<<<<<<< HEAD
     const sortedCandidates = [...candidates].sort((a, b) => {
 
-=======
-    // Sort candidates: first by tie_breaker_message (if exists), then by vote count
-    const sortedCandidates = [...candidates].sort((a, b) => {
-      // If one has tie_breaker_message and the other doesn't, prioritize the one with tie_breaker_message
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const aHasTieBreaker = !!(a.tie_breaker_message && a.tie_breaker_message.trim());
       const bHasTieBreaker = !!(b.tie_breaker_message && b.tie_breaker_message.trim());
       
       if (aHasTieBreaker && !bHasTieBreaker) return -1;
       if (!aHasTieBreaker && bHasTieBreaker) return 1;
-<<<<<<< HEAD
  
-=======
-      
-      // If both have or both don't have tie_breaker_message, sort by vote count
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return (b.vote_count || 0) - (a.vote_count || 0);
     });
     
@@ -1039,10 +835,6 @@ export default function ElectionDetailsPage() {
     return sortedCandidates.slice(0, 3);
   };
 
-<<<<<<< HEAD
-=======
-  // Pagination functions
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const goToNextPosition = () => {
     if (election?.positions && currentPositionPage < election.positions.length - 1) {
       setCurrentPositionPage(prev => prev + 1);
@@ -1067,14 +859,8 @@ export default function ElectionDetailsPage() {
     }
   };
 
-<<<<<<< HEAD
   const goToNextCodesPage = () => {
     const codesPerPage = 50; 
-=======
-  // Bulletin pagination functions
-  const goToNextCodesPage = () => {
-    const codesPerPage = 50; // 50 codes per page
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const totalPages = Math.ceil(bulletinData.voterCodes.length / codesPerPage);
     if (currentCodesPage < totalPages - 1) {
       setCurrentCodesPage(prev => prev + 1);
@@ -1140,10 +926,6 @@ export default function ElectionDetailsPage() {
     
     const interval = setInterval(() => {
       setBulletinCarouselIndex(prev => {
-<<<<<<< HEAD
-=======
-        // Calculate total items for carousel
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const voterPages = Math.ceil(bulletinData.voterCodes.length / 50);
         const candidateItems = election?.positions?.reduce((total, position) => {
           return total + (position.candidates?.length || 0);
@@ -1154,11 +936,7 @@ export default function ElectionDetailsPage() {
         
         return (prev + 1) % totalItems;
       });
-<<<<<<< HEAD
     }, 5000); 
-=======
-    }, 5000); // 5 seconds interval
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     setBulletinCarouselInterval(interval);
   };
@@ -1174,10 +952,6 @@ export default function ElectionDetailsPage() {
   const getBulletinCarouselContent = () => {
     const voterPages = Math.ceil(bulletinData.voterCodes.length / 50);
     
-<<<<<<< HEAD
-=======
-    // Calculate total candidate pages (including pagination for candidates with 40+ votes)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let totalCandidatePages = 0;
     const candidatePageMap = [];
     
@@ -1202,20 +976,12 @@ export default function ElectionDetailsPage() {
     const winnerPages = election?.positions?.length || 0;
     
     if (bulletinCarouselIndex < voterPages) {
-<<<<<<< HEAD
-=======
-      // Voter codes pages
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return {
         type: 'voter-codes',
         page: bulletinCarouselIndex,
         title: `Voter Codes - Page ${bulletinCarouselIndex + 1} of ${voterPages}`
       };
     } else if (bulletinCarouselIndex < voterPages + totalCandidatePages) {
-<<<<<<< HEAD
-=======
-      // Per candidate views with pagination
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let candidatePageIndex = bulletinCarouselIndex - voterPages;
       let currentPage = 0;
       
@@ -1235,11 +1001,7 @@ export default function ElectionDetailsPage() {
         candidatePageIndex -= candidateInfo.totalPages;
       }
     } else {
-<<<<<<< HEAD
   
-=======
-      // Top 3 winners
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const winnerIndex = bulletinCarouselIndex - voterPages - totalCandidatePages;
       return {
         type: 'top3-winners',
@@ -1251,24 +1013,13 @@ export default function ElectionDetailsPage() {
 
   const handleGenerateReport = async () => {
     try {
-<<<<<<< HEAD
 
       const electionDetails = await fetchWithAuth(`/elections/${params.id}/details`);
 
-=======
-      // Fetch election details first
-      const electionDetails = await fetchWithAuth(`/elections/${params.id}/details`);
-      
-      // Initialize data as empty
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let ballotData = { positions: [] };
       let resultsData = { positions: [] };
       let candidateVotes = [];
 
-<<<<<<< HEAD
-=======
-      // Helper to resolve candidate course with cross-reference to candidate votes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const resolveCourse = (cand, votesByName) => {
         const direct = cand.course || cand.courseAbbrev || cand.course_abbrev || cand.courseCode || cand.course_code || cand.courseShort || cand.course_short || cand.program || cand.courseName || cand.course_name || cand.department || cand.dept || (cand.student && (cand.student.course || cand.student.program));
         if (direct && (`${direct}`).trim() !== '') return direct;
@@ -1281,10 +1032,6 @@ export default function ElectionDetailsPage() {
         return '';
       };
 
-<<<<<<< HEAD
-=======
-      // Preload candidate votes for lookup
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       try {
         const candidateVotesResponse = await fetchWithAuth(`/elections/${params.id}/votes-per-candidate`);
         candidateVotes = candidateVotesResponse.data?.positions || [];
@@ -1297,10 +1044,6 @@ export default function ElectionDetailsPage() {
         });
       });
 
-<<<<<<< HEAD
-=======
-      // Use existing election data which has complete candidate information
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (election.positions && election.positions.length > 0) {
         ballotData = {
           positions: election.positions.map(pos => ({
@@ -1328,21 +1071,11 @@ export default function ElectionDetailsPage() {
         };
       }
 
-<<<<<<< HEAD
-=======
-      // Try to fetch results data (optional - election might not have results yet)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       try {
           resultsData = await fetchWithAuth(`/elections/completed/${params.id}/results`);
       } catch (resultsError) {
         console.warn('No results found for this election:', resultsError.message);
-<<<<<<< HEAD
         if (election.positions && election.positions.length > 0) {
-=======
-        // Use existing election positions with vote counts if available
-        if (election.positions && election.positions.length > 0) {
-          // Sort candidates by vote count to determine winners and ranks
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           resultsData = {
             positions: election.positions.map(pos => {
               const sortedCandidates = (pos.candidates || []).sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
@@ -1357,11 +1090,7 @@ export default function ElectionDetailsPage() {
                   vote_count: candidate.vote_count || 0,
                   vote_percentage: election.voter_count ? ((candidate.vote_count / election.voter_count) * 100).toFixed(2) : '0.00',
                   rank: index + 1,
-<<<<<<< HEAD
                   is_winner: index === 0 && candidate.vote_count > 0,
-=======
-                  is_winner: index === 0 && candidate.vote_count > 0, // First place is winner if they have votes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   status: index === 0 && candidate.vote_count > 0 ? 'Winner' : 'Candidate'
                 }))
               };
@@ -1370,11 +1099,6 @@ export default function ElectionDetailsPage() {
         }
       }
 
-<<<<<<< HEAD
-=======
-
-      // Try to fetch candidate votes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       try {
         const candidateVotesResponse = await fetchWithAuth(`/elections/${params.id}/votes-per-candidate`);
         candidateVotes = candidateVotesResponse.data?.positions || [];
@@ -1383,10 +1107,6 @@ export default function ElectionDetailsPage() {
         candidateVotes = [];
       }
 
-<<<<<<< HEAD
-=======
-      // Prepare report data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const reportData = {
         title: "Comprehensive Election Report",
         description: "Complete election details including ballot information, final results, and election bulletin codes",
@@ -1453,10 +1173,6 @@ export default function ElectionDetailsPage() {
         generated_at: new Date().toLocaleString()
       };
 
-<<<<<<< HEAD
-=======
-      // Generate PDF report
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await generatePdfReport(15, reportData);
       toast.success('Election report generated successfully!');
     } catch (error) {
@@ -1494,11 +1210,6 @@ export default function ElectionDetailsPage() {
       setArchiveModalOpen(false);
       setElectionToArchive(null);
       
-<<<<<<< HEAD
-
-=======
-      // Refresh the page to show updated status
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       window.location.reload();
     } catch (error) {
       console.error('Error archiving election:', error);
@@ -1526,11 +1237,7 @@ export default function ElectionDetailsPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-<<<<<<< HEAD
         body: JSON.stringify({ autoDeleteDays: null }) 
-=======
-        body: JSON.stringify({ autoDeleteDays: null }) // No auto-delete from main page
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       });
 
       if (!response.ok) {
@@ -1541,12 +1248,6 @@ export default function ElectionDetailsPage() {
       toast.success('Election moved to deleted folder');
       setSoftDeleteModalOpen(false);
       setElectionToSoftDelete(null);
-<<<<<<< HEAD
-
-=======
-      
-      // Redirect to elections list
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       router.push('/superadmin/election');
     } catch (error) {
       console.error('Error deleting election:', error);
@@ -1587,10 +1288,6 @@ export default function ElectionDetailsPage() {
             {election.needs_approval && !isSuperAdminCreator ? 'NEEDS APPROVAL' : election.status.toUpperCase()}
           </span>
           
-<<<<<<< HEAD
-=======
-          {/* Generate Report Button - Always visible */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <button
             onClick={handleGenerateReport}
             className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
@@ -1610,10 +1307,6 @@ export default function ElectionDetailsPage() {
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Election
                 </Link>
-<<<<<<< HEAD
-=======
-                {/* Ballot edit, Archive, and Delete buttons removed as requested */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               </>
             ) : (
               <div className="flex items-center px-4 py-2 bg-gray-200 text-gray-600 rounded cursor-not-allowed">
@@ -2176,10 +1869,6 @@ export default function ElectionDetailsPage() {
             
             {election.positions && election.positions.length > 0 ? (
               <>
-<<<<<<< HEAD
-=======
-                {/* Pagination controls for results */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 {election.positions.length > 1 && (
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
@@ -2208,10 +1897,6 @@ export default function ElectionDetailsPage() {
                   </div>
                 )}
 
-<<<<<<< HEAD
-=======
-                {/* Current position results */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 {(() => {
                   const position = formatResultsData(election.positions)[currentPositionPage];
                   if (!position) return null;
@@ -2221,12 +1906,6 @@ export default function ElectionDetailsPage() {
                   return (
                 <div key={position.id} className="mb-8 border-b pb-6">
                   <h3 className="text-lg font-medium text-black mb-4">{position.name}</h3>
-<<<<<<< HEAD
-
-=======
-                  
-                  {/* Tie-breaker alert */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   {tieInfo && election.status === 'completed' && (isSystemAdminCreator || isCurrentUserSuperAdmin) && (
                     <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
                       <div className="flex items-center justify-between">
@@ -2242,12 +1921,6 @@ export default function ElectionDetailsPage() {
                       </div>
                     </div>
                   )}
-<<<<<<< HEAD
-
-=======
-                  
-                  {/* Winner banner (for completed elections) */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   {election.status === 'completed' && position.sortedCandidates.length > 0 && (
                     <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
                       <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
@@ -2306,12 +1979,6 @@ export default function ElectionDetailsPage() {
                       </div>
                     </div>
                   )}
-<<<<<<< HEAD
-
-=======
-                  
-                  {/* Results chart */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <div className="h-72 mb-6">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
@@ -2380,19 +2047,10 @@ export default function ElectionDetailsPage() {
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
-<<<<<<< HEAD
 
                   <div className="space-y-3">
                     {position.sortedCandidates.map((candidate, index) => {
                       const isTied = tieInfo && tieInfo.tiedCandidates.some(c => c.id === candidate.id);
-=======
-                  
-                  {/* Candidates sorted by votes */}
-                  <div className="space-y-3">
-                    {position.sortedCandidates.map((candidate, index) => {
-                      const isTied = tieInfo && tieInfo.tiedCandidates.some(c => c.id === candidate.id);
-                      // Winner is the first candidate (index 0) after sorting, which prioritizes tie_breaker_message
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                       const hasTieBreaker = !!(candidate.tie_breaker_message && candidate.tie_breaker_message.trim());
                       const isWinner = index === 0 && election.status === 'completed';
                       
@@ -2500,7 +2158,7 @@ export default function ElectionDetailsPage() {
         </>
       ) : activeTab === 'partial' ? (
         <div ref={partialCountingRef} className={`${isFullScreen ? 'fixed inset-0 bg-gray-100 z-50 overflow-hidden hide-scrollbar' : ''}`}>
-          {/* Vote Summary Section */}
+          {/* Vote Summary */}
           <div className={`bg-white rounded-lg shadow-lg ${isFullScreen ? 'sticky top-0 z-10 mx-6 mt-6 mb-8 p-8' : 'p-4 mb-6'}`}>
             <div className="flex items-center justify-between">
               <div className={`flex items-center ${isFullScreen ? 'space-x-16' : 'space-x-8'}`}>
@@ -2551,10 +2209,6 @@ export default function ElectionDetailsPage() {
             </div>
           </div>
 
-<<<<<<< HEAD
-=======
-          {/* Partial Counting Results */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className={`bg-white rounded-lg shadow-lg ${isFullScreen ? 'mx-6 mb-6 p-8' : 'p-6'}`}>
             <div className="flex justify-between items-center mb-8">
               <div className="flex items-center gap-4">
@@ -2583,14 +2237,8 @@ export default function ElectionDetailsPage() {
 
             {election.positions && election.positions.length > 0 ? (
               election.positions.length > 1 ? (
-<<<<<<< HEAD
                 <div className="space-y-8">
      
-=======
-                // Carousel mode for fullscreen with multiple positions
-                <div className="space-y-8">
-                  {/* Position indicator */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <div className="flex justify-center items-center gap-4 mb-8">
                     <div className="flex items-center gap-2">
                       {election.positions.map((_, index) => (
@@ -2608,10 +2256,6 @@ export default function ElectionDetailsPage() {
                     </div>
                   </div>
 
-<<<<<<< HEAD
-=======
-                  {/* Current position display */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   {(() => {
                     const position = election.positions[currentPositionIndex];
                     const { top3, others } = getTop3AndOtherCandidates(position.candidates || []);
@@ -2622,10 +2266,6 @@ export default function ElectionDetailsPage() {
                           {position.name}
                         </h3>
 
-<<<<<<< HEAD
-=======
-                        {/* Top 3 Candidates - Compact display */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                         {top3.length > 0 && (
                           <div className="grid grid-cols-3 gap-8 mb-8">
                             {top3.map((candidate, index) => (
@@ -2693,11 +2333,7 @@ export default function ElectionDetailsPage() {
                           </div>
                         )}
 
-<<<<<<< HEAD
           
-=======
-                        {/* Other Candidates - Compact grid */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                         {others.length > 0 && (
                           <div>
                             <h4 className="font-bold text-black mb-6 text-2xl text-center">Other Candidates</h4>
@@ -2748,15 +2384,9 @@ export default function ElectionDetailsPage() {
                   })()}
                 </div>
               ) : (
-<<<<<<< HEAD
                 
                 <div className="space-y-10">
                  
-=======
-                // Regular mode for non-fullscreen or single position
-                <div className="space-y-10">
-                  {/* Pagination controls for partial counting */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   {election.positions.length > 1 && (
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
@@ -2785,11 +2415,7 @@ export default function ElectionDetailsPage() {
                     </div>
                   )}
 
-<<<<<<< HEAD
             
-=======
-                  {/* Current position display */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   {election.positions[currentPositionPage] && (() => {
                     const position = election.positions[currentPositionPage];
                     const { top3, others } = getTop3AndOtherCandidates(position.candidates || []);
@@ -2800,7 +2426,6 @@ export default function ElectionDetailsPage() {
                           {position.name}
                         </h3>
 
-                        {/* Top 3 Candidates */}
                         {top3.length > 0 && (
                           <div className={`mb-8 ${isFullScreen ? 'grid grid-cols-3 gap-12' : 'space-y-3'}`}>
                             {top3.map((candidate, index) => (
@@ -2940,10 +2565,6 @@ export default function ElectionDetailsPage() {
         </div>
       ) : activeTab === 'bulletin' ? (
         <div ref={bulletinFullScreenRef} className={`bg-white rounded-lg shadow p-6 ${isBulletinFullScreen ? 'fixed inset-0 bg-gray-100 z-50 overflow-y-auto' : ''}`}>
-<<<<<<< HEAD
-=======
-          {/* Election Info Header - Only in fullscreen */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {isBulletinFullScreen && (
             <div className="text-center mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg">
               <h1 className="text-4xl font-bold text-black mb-2">{election.title}</h1>
@@ -2984,10 +2605,6 @@ export default function ElectionDetailsPage() {
             </div>
           </div>
 
-<<<<<<< HEAD
-=======
-          {/* Bulletin Tabs - Only show in non-fullscreen mode */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {!isBulletinFullScreen && (
             <div className="mb-6 border-b border-gray-200">
               <div className="flex space-x-8">
@@ -3042,11 +2659,7 @@ export default function ElectionDetailsPage() {
               </div>
             </div>
           ) : isBulletinFullScreen ? (
-<<<<<<< HEAD
    
-=======
-            /* Fullscreen Carousel Mode */
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="space-y-6">
               {(() => {
                 const carouselContent = getBulletinCarouselContent();
@@ -3301,11 +2914,7 @@ export default function ElectionDetailsPage() {
               })()}
             </div>
           ) : (
-<<<<<<< HEAD
           
-=======
-            /* Regular Tab Mode */
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="space-y-6">
               {/* Voter Codes Tab */}
               {bulletinActiveTab === 'voter-codes' && (
@@ -3448,12 +3057,7 @@ export default function ElectionDetailsPage() {
                                 </div>
                               </div>
                             </div>
-<<<<<<< HEAD
                    
-=======
-                            
-                            {/* Voter Codes for this candidate */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                             <div className="mt-3">
                               <h5 className="text-sm font-medium text-gray-700 mb-2">
                                 Voter Codes ({candidateVoters.length}):
@@ -3489,11 +3093,7 @@ export default function ElectionDetailsPage() {
                 </div>
               )}
 
-<<<<<<< HEAD
            
-=======
-              {/* Top 3 Winners - Only in fullscreen */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               {isBulletinFullScreen && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
                   <h3 className={`font-bold text-black mb-6 text-center ${isBulletinFullScreen ? 'text-2xl' : ''}`}>
@@ -3653,10 +3253,6 @@ export default function ElectionDetailsPage() {
       ) : null}
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* Archive Confirmation Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {archiveModalOpen && (
         <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
@@ -3694,10 +3290,6 @@ export default function ElectionDetailsPage() {
         </div>
       )}
 
-<<<<<<< HEAD
-=======
-      {/* Soft Delete Confirmation Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {softDeleteModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
@@ -3735,10 +3327,6 @@ export default function ElectionDetailsPage() {
         </div>
       )}
 
-<<<<<<< HEAD
-=======
-      {/* Remove Candidate Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {removeCandidateModalOpen && candidateToRemove && (
         <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
@@ -3781,11 +3369,7 @@ export default function ElectionDetailsPage() {
         </div>
       )}
 
-<<<<<<< HEAD
       {/* Tie-Breaker */}
-=======
-      {/* Tie-Breaker Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {tieBreakerModalOpen && (
         <div className="fixed inset-0  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">

@@ -8,10 +8,6 @@ import { Trash } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function DeletedDepartmentsPage() {
   const router = useRouter();
   const [deletedDepartments, setDeletedDepartments] = useState([]);
@@ -163,10 +159,6 @@ export default function DeletedDepartmentsPage() {
         console.warn("Error on admin permanent delete endpoint, trying fallback:", firstError.message);
         
         try {
-<<<<<<< HEAD
-=======
-          // Try superadmin endpoint as fallback
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           response = await axios.delete(`/api/superadmin/departments/${selectedDepartmentId}/permanent`, {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
@@ -198,10 +190,6 @@ export default function DeletedDepartmentsPage() {
   useEffect(() => {
     fetchDeletedDepartments();
     
-<<<<<<< HEAD
-=======
-    // Check if there's an existing auto-delete timer
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const existingTimer = localStorage.getItem('autoDeleteTimer');
     if (existingTimer) {
       setAutoDeleteEnabled(true);
@@ -227,10 +215,6 @@ export default function DeletedDepartmentsPage() {
         Back
       </button>
 
-<<<<<<< HEAD
-=======
-      {/* Auto-Delete Controls */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex items-center gap-4 mb-3">
           <h3 className="text-sm font-semibold text-black">Auto-Delete Settings:</h3>

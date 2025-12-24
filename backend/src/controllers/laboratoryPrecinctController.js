@@ -8,10 +8,6 @@ const {
   getStudentLaboratoryAssignment
 } = require("../models/laboratoryPrecinctModel");
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const handleResponse = (res, promise) => {
   promise
     .then(data => {
@@ -36,15 +32,7 @@ exports.addIPAddress = async (req, res) => {
   try {
     const { id: laboratoryPrecinctId } = req.params;
     const ipData = req.body;
-<<<<<<< HEAD
  
-=======
-    
-    console.log('Controller - Adding IP address for precinct:', laboratoryPrecinctId);
-    console.log('Controller - IP data received:', ipData);
-    
-    // Validate IP data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!ipData.ip_type) {
       return res.status(400).json({
         success: false,

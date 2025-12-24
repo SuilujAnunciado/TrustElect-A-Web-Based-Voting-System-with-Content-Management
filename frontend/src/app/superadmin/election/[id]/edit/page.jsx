@@ -8,10 +8,6 @@ import axios from "axios";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function EditElectionPage() {
   const router = useRouter();
   const params = useParams();
@@ -58,10 +54,6 @@ export default function EditElectionPage() {
   const [eligibleCount, setEligibleCount] = useState(0);
   const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
 
-<<<<<<< HEAD
-=======
-  // Sorting functions to match create election page
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const sortPrecincts = (a, b) => {
     const extractNumber = (str) => parseInt(str.match(/\d+/)?.[0] || '0');
     const aNum = extractNumber(a);
@@ -100,26 +92,10 @@ export default function EditElectionPage() {
     return a.localeCompare(b);
   };
 
-<<<<<<< HEAD
-=======
-  // Add helper function to check if all items are selected
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const areAllSelected = (selectedItems, allItems) => {
     return selectedItems.length === allItems.length;
   };
 
-<<<<<<< HEAD
-=======
-  // Remove the restriction - allow same program to be assigned to multiple precincts
-  // const isProgramAssignedToOtherPrecinct = (program, currentPrecinct) => {
-  //   return Object.entries(electionData.eligibleVoters.precinctPrograms)
-  //     .some(([precinct, programs]) => 
-  //       precinct !== currentPrecinct && programs.includes(program)
-  //     );
-  // };
-
-  // Add function to toggle program selection visibility
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const toggleProgramSelection = (precinct) => {
     setVisibleProgramSelections(prev => ({
       ...prev,
@@ -127,10 +103,6 @@ export default function EditElectionPage() {
     }));
   };
 
-<<<<<<< HEAD
-=======
-  // Add function to handle precinct program changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handlePrecinctProgramChange = (precinct, program) => {
     setElectionData(prev => {
       const precinctPrograms = { ...prev.eligibleVoters.precinctPrograms };
@@ -144,12 +116,7 @@ export default function EditElectionPage() {
       } else {
         precinctPrograms[precinct] = [...precinctPrograms[precinct], program];
       }
-<<<<<<< HEAD
  
-=======
-      
-      // Remove empty precinct entries
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (precinctPrograms[precinct].length === 0) {
         delete precinctPrograms[precinct];
       }
@@ -164,26 +131,14 @@ export default function EditElectionPage() {
     });
   };
 
-<<<<<<< HEAD
-=======
-  // Format date to YYYY-MM-DD for date input
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatDateForInput = (dateString) => {
     if (!dateString) return "";
     
     try {
-<<<<<<< HEAD
    
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return "";
 
-=======
-      // Make sure we have a valid date string
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "";
-      
-      // Format to YYYY-MM-DD
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -194,15 +149,10 @@ export default function EditElectionPage() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Format time for time input (convert HH:MM:SS or any time format to HH:MM)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatTimeForInput = (timeString) => {
     if (!timeString) return "";
     
     try {
-<<<<<<< HEAD
   
       if (timeString.includes('T')) {
       
@@ -218,26 +168,6 @@ export default function EditElectionPage() {
         return timeString;
       }
 
-=======
-      // Handle both time-only strings and full datetime strings
-      if (timeString.includes('T')) {
-        // Extract time from datetime
-        timeString = timeString.split('T')[1];
-      }
-      
-      // If timeString contains seconds (HH:MM:SS)
-      if (timeString.split(':').length > 2) {
-        // Return HH:MM format (remove seconds)
-        return timeString.substring(0, 5);
-      }
-      
-      // If it's already in HH:MM format
-      if (/^\d{2}:\d{2}$/.test(timeString)) {
-        return timeString;
-      }
-      
-      // Handle other formats by creating a date object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const date = new Date(`2000-01-01T${timeString}`);
       if (!isNaN(date.getTime())) {
         return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -250,20 +180,10 @@ export default function EditElectionPage() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Fetch election data and form options
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(prev => ({ ...prev, initial: true }));
-<<<<<<< HEAD
-
-=======
-        
-        // Fetch election details
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const token = Cookies.get("token");
         const electionResponse = await axios.get(
           `${API_BASE}/elections/${electionId}/details`,
@@ -280,10 +200,6 @@ export default function EditElectionPage() {
 
         const election = electionResponse.data.election;
 
-<<<<<<< HEAD
-=======
-        // Get eligibility criteria
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         let eligibilityResponse;
         try {
           eligibilityResponse = await axios.get(
@@ -298,10 +214,6 @@ export default function EditElectionPage() {
           console.error("Error fetching eligibility criteria:", err);
         }
 
-<<<<<<< HEAD
-=======
-        // Map API response fields to our expected structure
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const criteria = eligibilityResponse?.data?.criteria || eligibilityResponse?.data || {};
 
         const eligibleVoters = {
@@ -312,15 +224,6 @@ export default function EditElectionPage() {
           precinct: criteria.precincts || criteria.precinct || [],
           precinctPrograms: criteria.precinctPrograms || criteria.precinct_programs || {}
         };
-<<<<<<< HEAD
-
-=======
-        
-        console.log("Loaded eligible voters:", eligibleVoters);
-        
-
-        // Format dates and times for the form
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const formattedDateFrom = formatDateForInput(election.date_from);
         const formattedDateTo = formatDateForInput(election.date_to);
         const formattedStartTime = formatTimeForInput(election.start_time);
@@ -342,10 +245,6 @@ export default function EditElectionPage() {
 
         setOriginalElectionData(formattedElectionData);
 
-<<<<<<< HEAD
-=======
-        // Fetch current semester from maintenance
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         try {
           const currentSemesterResponse = await axios.get(
             `${API_BASE}/maintenance/current-semester`,
@@ -361,10 +260,6 @@ export default function EditElectionPage() {
           }
         } catch (err) {
           console.error("Error fetching current semester:", err);
-<<<<<<< HEAD
-=======
-          // Fallback to localStorage if API fails
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           try {
             const storedSemester = localStorage.getItem('currentSemester');
             if (storedSemester) {
@@ -375,10 +270,6 @@ export default function EditElectionPage() {
           }
         }
 
-<<<<<<< HEAD
-=======
-        // Fetch maintenance data (options for dropdowns)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const endpoints = [
           { key: 'programs', url: 'programs' },
           { key: 'electionTypes', url: 'election-types' },
@@ -398,11 +289,7 @@ export default function EditElectionPage() {
         
         const data = endpoints.reduce((acc, endpoint, index) => {
           if (endpoint.key === 'precincts') {
-<<<<<<< HEAD
          
-=======
-            // For precincts, keep the full objects with id and name
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             acc[endpoint.key] = responses[index].data.data;
           } else {
             acc[endpoint.key] = responses[index].data.data.map(item => item.name);
@@ -412,16 +299,8 @@ export default function EditElectionPage() {
 
         setMaintenanceData(data);
 
-<<<<<<< HEAD
         if (criteria.precinctPrograms && Object.keys(criteria.precinctPrograms).length > 0) {
        
-=======
-        // Process precinct programs if they exist
-        if (criteria.precinctPrograms && Object.keys(criteria.precinctPrograms).length > 0) {
-          console.log("Found existing precinct programs:", criteria.precinctPrograms);
-          
-          // Update the eligibleVoters with existing precinct programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           setElectionData(prev => ({
             ...prev,
             eligibleVoters: {
@@ -431,10 +310,6 @@ export default function EditElectionPage() {
           }));
         }
 
-<<<<<<< HEAD
-=======
-        // Fetch eligible voter count
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         fetchEligibleCount(eligibleVoters);
         
       } catch (err) {
@@ -450,10 +325,6 @@ export default function EditElectionPage() {
     }
   }, [electionId]);
 
-<<<<<<< HEAD
-=======
-  // Update eligible voter count whenever selection changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const hasFilters = Object.values(electionData.eligibleVoters).some(arr => arr.length > 0);
     if (hasFilters) {
@@ -463,32 +334,16 @@ export default function EditElectionPage() {
     }
   }, [electionData.eligibleVoters]);
 
-<<<<<<< HEAD
-=======
-  // Fetch the eligible voters count based on criteria
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const fetchEligibleCount = async (eligibleVoters) => {
     try {
       setLoading(prev => ({ ...prev, eligibility: true }));
       const token = Cookies.get("token");
-<<<<<<< HEAD
 
       const allProgramsSelected = areAllSelected(eligibleVoters.programs, maintenanceData.programs);
       const allYearLevelsSelected = areAllSelected(eligibleVoters.yearLevels, maintenanceData.yearLevels);
       const allGendersSelected = areAllSelected(eligibleVoters.gender, maintenanceData.genders);
 
       const optimizedEligibleVoters = {
-=======
-      
-      // Determine if all options for each category are selected
-      const allProgramsSelected = areAllSelected(eligibleVoters.programs, maintenanceData.programs);
-      const allYearLevelsSelected = areAllSelected(eligibleVoters.yearLevels, maintenanceData.yearLevels);
-      const allGendersSelected = areAllSelected(eligibleVoters.gender, maintenanceData.genders);
-      
-      // Create a modified eligible voters object to fix the count
-      const optimizedEligibleVoters = {
-        // If all items are selected, send empty array to backend to indicate "all"
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         programs: allProgramsSelected ? [] : eligibleVoters.programs,
         yearLevels: allYearLevelsSelected ? [] : eligibleVoters.yearLevels,
         gender: allGendersSelected ? [] : eligibleVoters.gender,
@@ -516,26 +371,15 @@ export default function EditElectionPage() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Form validation
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const validateForm = () => {
     const errors = {};
     
     if (!electionData.title) errors.title = "Title is required";
     if (!electionData.date_from) errors.date_from = "Start date is required";
     if (!electionData.date_to) errors.date_to = "End date is required";
-<<<<<<< HEAD
 
     if (electionData.status === 'ongoing') {
 
-=======
-    
-    // For ongoing elections, we need different validation
-    if (electionData.status === 'ongoing') {
-      // For ongoing elections, the combined date and time of end should be in the future
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const now = new Date();
       const endDateTime = new Date(`${electionData.date_to}T${electionData.end_time || '23:59'}`);
       
@@ -543,10 +387,6 @@ export default function EditElectionPage() {
         errors.end_time = "The combined end date and time must be in the future";
       }
     } else {
-<<<<<<< HEAD
-=======
-      // Normal validation for upcoming elections
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const startDateTime = new Date(`${electionData.date_from}T${electionData.start_time || '00:00'}`);
       const endDateTime = new Date(`${electionData.date_to}T${electionData.end_time || '23:59'}`);
       
@@ -559,10 +399,6 @@ export default function EditElectionPage() {
     return Object.keys(errors).length === 0;
   };
 
-<<<<<<< HEAD
-=======
-  // Validate voter criteria
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const validateVoterCriteria = () => {
     const newCriteriaErrors = {};
     const { eligibleVoters } = electionData;
@@ -571,51 +407,26 @@ export default function EditElectionPage() {
     if (eligibleVoters.yearLevels.length === 0) newCriteriaErrors.yearLevels = "Select at least one year level";
     if (eligibleVoters.gender.length === 0) newCriteriaErrors.gender = "Select at least one gender";
     if (eligibleVoters.precinct.length === 0) newCriteriaErrors.precinct = "Select at least one precinct";
-<<<<<<< HEAD
-
-=======
-    
-    // Validate that each selected precinct has at least one program assigned
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     eligibleVoters.precinct.forEach(precinct => {
       if (!eligibleVoters.precinctPrograms[precinct]?.length) {
         newCriteriaErrors.precinct = `Assign at least one program to ${precinct}`;
       }
     });
     
-<<<<<<< HEAD
-=======
-    // Semester is now read-only, so we don't validate it
-    // We'll preserve whatever was selected previously
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     setCriteriaErrors(newCriteriaErrors);
     return Object.keys(newCriteriaErrors).length === 0;
   };
 
-<<<<<<< HEAD
-=======
-  // Handle input changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleChange = (e) => {
     const { name, value } = e.target;
     setElectionData(prev => ({ ...prev, [name]: value }));
   };
 
-<<<<<<< HEAD
   const handleCheckboxChange = (category, value) => {
     if (category === 'semester') return;
     
     setElectionData(prev => {
-=======
-  // Handle checkbox changes for eligibility criteria
-  const handleCheckboxChange = (category, value) => {
-    // Don't allow changing semester
-    if (category === 'semester') return;
-    
-    setElectionData(prev => {
-      // Special handling for precinct - initialize precinctPrograms when precinct is selected
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (category === 'precinct') {
         const currentValues = prev.eligibleVoters[category];
         const newValues = currentValues.includes(value)
@@ -623,21 +434,11 @@ export default function EditElectionPage() {
           : [...currentValues, value];
         
         const precinctPrograms = { ...prev.eligibleVoters.precinctPrograms };
-<<<<<<< HEAD
-=======
-        
-        // If adding a precinct, initialize its programs array if it doesn't exist
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (!currentValues.includes(value)) {
           if (!precinctPrograms[value]) {
             precinctPrograms[value] = [];
           }
         } else {
-<<<<<<< HEAD
-
-=======
-          // If removing a precinct, remove its programs too
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           delete precinctPrograms[value];
         }
         
@@ -650,12 +451,6 @@ export default function EditElectionPage() {
           }
         };
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Normal checkbox behavior for other categories
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const currentValues = prev.eligibleVoters[category];
       const newValues = currentValues.includes(value)
         ? currentValues.filter(item => item !== value)
@@ -679,13 +474,7 @@ export default function EditElectionPage() {
     }
   };
 
-<<<<<<< HEAD
   const toggleAll = (category, items) => {
-=======
-  // Toggle all checkboxes in a category
-  const toggleAll = (category, items) => {
-    // Skip semester from the "Select All" functionality
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (category === 'semester') return;
     
     setElectionData(prev => {
@@ -696,19 +485,11 @@ export default function EditElectionPage() {
         const precinctPrograms = { ...prev.eligibleVoters.precinctPrograms };
         
         if (allSelected) {
-<<<<<<< HEAD
-=======
-          // If deselecting all, clear all precinct programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           Object.keys(precinctPrograms).forEach(precinct => {
             delete precinctPrograms[precinct];
           });
         } else {
-<<<<<<< HEAD
          
-=======
-          // If selecting all, initialize empty programs array for each precinct
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           items.forEach(precinct => {
             if (!precinctPrograms[precinct]) {
               precinctPrograms[precinct] = [];
@@ -744,10 +525,6 @@ export default function EditElectionPage() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Handle form submission
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -779,22 +556,10 @@ export default function EditElectionPage() {
         end_time: electionData.end_time,
         date_to: electionData.date_to
       };
-<<<<<<< HEAD
-
-=======
-      
-      // Only include start date/time for upcoming elections
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (electionData.status !== 'ongoing') {
         updatePayload.date_from = electionData.date_from;
         updatePayload.start_time = electionData.start_time;
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Update election basic details first
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const updateResponse = await axios.put(
         `${API_BASE}/elections/${electionId}`,
         updatePayload,
@@ -806,10 +571,6 @@ export default function EditElectionPage() {
         }
       );
       
-<<<<<<< HEAD
-=======
-      // Always update eligibility criteria
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const allProgramsSelected = areAllSelected(electionData.eligibleVoters.programs, maintenanceData.programs);
       const allYearLevelsSelected = areAllSelected(electionData.eligibleVoters.yearLevels, maintenanceData.yearLevels);
       const allGendersSelected = areAllSelected(electionData.eligibleVoters.gender, maintenanceData.genders);
@@ -838,12 +599,6 @@ export default function EditElectionPage() {
       
       setSuccess(true);
       toast.success('Election updated successfully!');
-<<<<<<< HEAD
-
-=======
-      
-      // Auto redirect after success
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setTimeout(() => {
         router.push(`/superadmin/election/${electionId}`);
       }, 1500);
@@ -931,11 +686,6 @@ export default function EditElectionPage() {
 
       {!error && (
         <form onSubmit={handleSubmit} className="space-y-6">
-<<<<<<< HEAD
-
-=======
-          {/* Super Admin has full access to edit any election regardless of creator or status */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -1145,11 +895,7 @@ export default function EditElectionPage() {
                   )}
                 </div>
 
-<<<<<<< HEAD
                 {/* Semester */}
-=======
-                {/* Semester (read-only) */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="border-b pb-4">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="font-medium text-black">Semester</h3>
@@ -1228,10 +974,6 @@ export default function EditElectionPage() {
                   )}
                 </div>
 
-<<<<<<< HEAD
-=======
-                {/* Precinct with Course Assignment */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="border-b pb-4 last:border-b-0">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="font-medium text-black">Precinct</h3>

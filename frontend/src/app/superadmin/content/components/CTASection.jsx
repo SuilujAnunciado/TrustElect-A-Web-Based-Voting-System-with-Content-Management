@@ -1,10 +1,6 @@
 "use client"
 import { useState } from 'react';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const CTASection = ({ 
   landingContent, 
   updateCTA, 
@@ -79,12 +75,6 @@ const CTASection = ({
           />
         </div>
         
-<<<<<<< HEAD
-
-=======
-       
-        {/* Color pickers for CTA section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-black mb-1">
@@ -168,12 +158,6 @@ const CTASection = ({
             Display this section
           </label>
         </div>
-<<<<<<< HEAD
-
-=======
-        
-        {/* CTA preview */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {showPreview && (
           <div className="border rounded overflow-hidden">
             <div className="bg-gray-100 px-3 py-2 border-b flex justify-between items-center">
@@ -183,10 +167,6 @@ const CTASection = ({
             <div className="p-4">
               {landingContent.callToAction.enabled ? (
                 <div className="space-y-4">
-<<<<<<< HEAD
-=======
-                  {/* Title above the video */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <div className="text-center">
                     <h3 
                       className="text-2xl font-bold drop-shadow-2xl"
@@ -196,10 +176,6 @@ const CTASection = ({
                     </h3>
                   </div>
 
-<<<<<<< HEAD
-=======
-                  {/* Video container - Same aspect ratio as hero */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   {landingContent.callToAction.videoUrl ? (
                     <div 
                       className="w-full aspect-video rounded-lg overflow-hidden shadow-sm"

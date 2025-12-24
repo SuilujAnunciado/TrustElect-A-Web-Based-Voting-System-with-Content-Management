@@ -1,8 +1,4 @@
 "use client";
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useState, useEffect } from 'react';
 import { Download, X, Clock, Users, Activity, BarChart2, RefreshCw, AlertTriangle } from "lucide-react";
 import { generatePdfReport } from '@/utils/pdfGenerator';
@@ -29,31 +25,16 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [isDateFiltered, setIsDateFiltered] = useState(false);
-<<<<<<< HEAD
 
   useEffect(() => {
 
     if (report.data && Object.keys(report.data).length > 0) {
       setCurrentData(report.data);
     } else {
-=======
-  
-  // Ensure data is loaded immediately on component mount
-  useEffect(() => {
-    // If report data is already available, use it
-    if (report.data && Object.keys(report.data).length > 0) {
-      setCurrentData(report.data);
-    } else {
-      // Otherwise fetch data for the default timeframe
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       fetchDataForTimeframe(selectedTimeframe);
     }
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Fetch data based on selected timeframe
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const fetchDataForTimeframe = async (timeframe) => {
     setIsLoading(true);
     try {
@@ -77,19 +58,11 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Handle timeframe change
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleTimeframeChange = (newTimeframe) => {
     setSelectedTimeframe(newTimeframe);
     fetchDataForTimeframe(newTimeframe);
   };
 
-<<<<<<< HEAD
-=======
-  // Filter data by date range
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const filterDataByDateRange = (data, dateFrom, dateTo) => {
     if (!dateFrom && !dateTo) return data;
     
@@ -108,20 +81,12 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
     });
   };
 
-<<<<<<< HEAD
-=======
-  // Handle date filter change
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleDateFilterChange = (fromDate, toDate) => {
     setDateFrom(fromDate);
     setDateTo(toDate);
     setIsDateFiltered(!!(fromDate || toDate));
   };
 
-<<<<<<< HEAD
-=======
-  // Clear date filter
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const clearDateFilter = () => {
     setDateFrom('');
     setDateTo('');
@@ -143,12 +108,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
     else if (hourNum < 12) timeStr = `${hourNum}:00 AM`;
     else if (hourNum === 12) timeStr = '12:00 PM';
     else timeStr = `${hourNum - 12}:00 PM`;
-<<<<<<< HEAD
-
-=======
-    
-    // Add date if provided
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (date) {
       const dateObj = new Date(date);
       const dateStr = dateObj.toLocaleDateString('en-US', { 
@@ -162,31 +121,17 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
   };
 
   const formatTimeForChart = (hour, date = null, timestamp = null) => {
-<<<<<<< HEAD
     if (timestamp) {
       const dateObj = new Date(timestamp);
 
       if (selectedTimeframe === '24h') {
 
-=======
-    // If we have a timestamp, use it for the most accurate display
-    if (timestamp) {
-      const dateObj = new Date(timestamp);
-      
-      // For different timeframes, show different levels of detail
-      if (selectedTimeframe === '24h') {
-        // For 24h view, just show the hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         return dateObj.toLocaleTimeString('en-US', { 
           hour: 'numeric',
           minute: '2-digit',
           hour12: true
         });
       } else if (selectedTimeframe === '7d') {
-<<<<<<< HEAD
-=======
-        // For 7d view, show day and time
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         return `${dateObj.toLocaleDateString('en-US', { 
           weekday: 'short',
           month: 'numeric',
@@ -196,31 +141,17 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
           hour12: true
         })}`;
       } else {
-<<<<<<< HEAD
-=======
-        // For 30d view, show month and day
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         return dateObj.toLocaleDateString('en-US', { 
           month: 'short',
           day: 'numeric'
         });
       }
     }
-<<<<<<< HEAD
 
     if (hour === undefined || hour === null) return '12 AM';
     const hourNum = parseInt(hour);
     if (isNaN(hourNum)) return '12 AM';
 
-=======
-    
-    // Fallback to the old method if no timestamp is available
-    if (hour === undefined || hour === null) return '12 AM';
-    const hourNum = parseInt(hour);
-    if (isNaN(hourNum)) return '12 AM';
-    
-    // Show date if available
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let prefix = '';
     if (date) {
       const dateObj = new Date(date);
@@ -229,12 +160,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
         day: 'numeric'
       })} `;
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Format hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let timeStr = '';
     if (hourNum === 0) timeStr = '12 AM';
     else if (hourNum < 12) timeStr = `${hourNum} AM`;
@@ -248,12 +173,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
     if (active && payload && payload.length) {
       const value = payload[0].value || 0;
       const dataPoint = payload[0].payload;
-<<<<<<< HEAD
-
-=======
-      
-      // Use the accurate timestamp information from the data point
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let displayInfo = {
         title: '',
         subtitle: '',
@@ -264,10 +183,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
         const dateObj = new Date(dataPoint.timestamp);
         
         if (selectedTimeframe === '24h') {
-<<<<<<< HEAD
-=======
-          // Show hour and minute for 24h view
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           displayInfo.title = dateObj.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -279,10 +194,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             hour12: true
           });
         } else if (selectedTimeframe === '7d') {
-<<<<<<< HEAD
-=======
-          // Show weekday, date and time for 7d view
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           displayInfo.title = dateObj.toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'short',
@@ -295,10 +206,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             hour12: true
           });
         } else if (selectedTimeframe === '30d' || selectedTimeframe === '60d' || selectedTimeframe === '90d') {
-<<<<<<< HEAD
-=======
-          // Show full date for multi-day views
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           displayInfo.title = dateObj.toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'long',
@@ -323,11 +230,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
           </div>
           {dataPoint?.isSampleData && (
             <p className="text-xs text-yellow-600 mt-1">
-<<<<<<< HEAD
                No activity during this period
-=======
-              ℹ️ No activity during this period
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             </p>
           )}
         </div>
@@ -411,12 +314,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
       data.forEach((item, index) => {
         const dayOfMonth = item.hour || 0;
         const count = Math.round(item.count || 0);
-<<<<<<< HEAD
-
-=======
-        
-        // Find the correct date for this day of month
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         let targetDate = null;
         for (let i = 0; i < 30; i++) {
           const checkDate = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
@@ -427,35 +324,19 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
         }
         
         if (targetDate && count > 0) {
-<<<<<<< HEAD
 
           const hours = [8, 10, 12, 14, 16, 18, 20]; 
-=======
-          // Distribute the count across different times of day
-          // Use different hours based on the day to create variety
-          const hours = [8, 10, 12, 14, 16, 18, 20]; // Common activity hours
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hourIndex = index % hours.length;
           const selectedHour = hours[hourIndex];
           
           processedData.push({
-<<<<<<< HEAD
             hour: selectedHour,
-=======
-            hour: selectedHour, // Use varied hours instead of all 12 PM
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             count: count,
             date: targetDate.toISOString().split('T')[0],
             timestamp: targetDate.toISOString()
           });
         }
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Sort by date and hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       processedData.sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
         if (dateCompare === 0) {
@@ -538,29 +419,14 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
       return item;
     }).sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
   };
-<<<<<<< HEAD
 
   let processedLoginData = isDataReset ? [] : processRawData(currentData.login_activity || [], selectedTimeframe);
   let processedVotingData = isDataReset ? [] : processRawData(currentData.voting_activity || [], selectedTimeframe);
 
-=======
-  
-  // Process data based on selected timeframe with improved accuracy
-  let processedLoginData = isDataReset ? [] : processRawData(currentData.login_activity || [], selectedTimeframe);
-  let processedVotingData = isDataReset ? [] : processRawData(currentData.voting_activity || [], selectedTimeframe);
-  
-  // Apply date range filter if active
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (isDateFiltered && !isDataReset) {
     processedLoginData = filterDataByDateRange(processedLoginData, dateFrom, dateTo);
     processedVotingData = filterDataByDateRange(processedVotingData, dateFrom, dateTo);
   }
-<<<<<<< HEAD
-
-=======
-  
-  // Fallback to original data structure if new processing returns empty data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (processedLoginData.length === 0 && currentData.login_activity && currentData.login_activity.length > 0) {
     processedLoginData = validateData(currentData.login_activity);
   }
@@ -568,29 +434,16 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
   if (processedVotingData.length === 0 && currentData.voting_activity && currentData.voting_activity.length > 0) {
     processedVotingData = validateData(currentData.voting_activity);
   }
-<<<<<<< HEAD
 
   const loginPeak = findPeakHour(processedLoginData);
   const votingPeak = findPeakHour(processedVotingData);
 
-=======
-  
-  // Find peak hours from processed data
-  const loginPeak = findPeakHour(processedLoginData);
-  const votingPeak = findPeakHour(processedVotingData);
-
-  // Calculate data consistency metrics
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const totalLogins = processedLoginData.reduce((sum, item) => sum + item.count, 0);
   const totalDistinctVoters = processedVotingData.reduce((sum, item) => sum + item.count, 0);
   const totalVotes = currentData.summary?.total_votes || 0;
   const voterTurnout = totalLogins > 0 ? ((totalDistinctVoters / totalLogins) * 100).toFixed(1) : 0;
   const avgVotesPerVoter = totalDistinctVoters > 0 ? (totalVotes / totalDistinctVoters).toFixed(2) : 0;
 
-<<<<<<< HEAD
-=======
-  // Chart configurations with improved color contrast and data validation
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const chartConfig = {
     login: {
       gradient: {
@@ -643,11 +496,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
     };
 
     try {
-<<<<<<< HEAD
       await generatePdfReport(7, reportData); 
-=======
-      await generatePdfReport(7, reportData); // 7 is the report ID for System Load
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error generating report:', error);
     }
@@ -667,17 +516,9 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
       if (response.ok) {
         toast.success('System load data has been reset successfully!');
         setShowResetConfirm(false);
-<<<<<<< HEAD
 
         setIsDataReset(true);
         
-=======
-        
-        // Set data reset flag to show empty state immediately
-        setIsDataReset(true);
-        
-        // Refresh the page to show updated data after a short delay
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setTimeout(() => {
           window.location.reload();
         }, 1500);
@@ -729,10 +570,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             </div>
           </div>
 
-<<<<<<< HEAD
-=======
-          {/* Date Range Filter */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div className="flex items-center gap-4 mb-3">
               <h3 className="text-sm font-semibold text-black">Filter by Date Range:</h3>
@@ -775,10 +612,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             </div>
           </div>
 
-<<<<<<< HEAD
-=======
-          {/* Empty State Message */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {isDataReset && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
               <div className="flex items-center gap-3">
@@ -793,10 +626,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             </div>
           )}
 
-<<<<<<< HEAD
-=======
-          {/* Loading Indicator */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {isLoading && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <div className="flex items-center gap-3">
@@ -806,10 +635,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             </div>
           )}
 
-<<<<<<< HEAD
-=======
-          {/* Summary Cards */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -864,10 +689,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             </div>
           </div>
 
-<<<<<<< HEAD
-=======
-          {/* Quick Stats Row */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
               <p className="text-xs text-gray-600 mb-1">Active Users</p>
@@ -891,14 +712,8 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
             </div>
           </div>
 
-<<<<<<< HEAD
           <div className="space-y-6">
 
-=======
-          {/* Usage Charts */}
-          <div className="space-y-6">
-            {/* Login Activity Chart */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               {isDataReset || processedLoginData.length === 0 ? (
                 <div className="h-[350px] flex items-center justify-center">
@@ -1015,11 +830,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
               )}
             </div>
 
-<<<<<<< HEAD
             {/* Voting Activity */}
-=======
-            {/* Voting Activity Chart */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               {isDataReset || processedVotingData.length === 0 ? (
                 <div className="h-[350px] flex items-center justify-center">
@@ -1150,10 +961,6 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* Reset Confirmation Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showResetConfirm && (
         <div className="fixed inset-0 z-60 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
@@ -1176,11 +983,7 @@ export default function SystemLoadDetail({ report, onClose, onDownload }) {
                   <li>Start fresh data collection for tomorrow's testing</li>
                 </ul>
                 <p className="text-red-600 font-medium mt-3">
-<<<<<<< HEAD
                   This action cannot be undone!
-=======
-                  ⚠️ This action cannot be undone!
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 </p>
               </div>
 

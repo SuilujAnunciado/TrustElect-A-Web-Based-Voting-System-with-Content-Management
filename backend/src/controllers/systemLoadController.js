@@ -1,9 +1,5 @@
 const pool = require('../config/db');
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const getSystemLoad = async (req, res) => {
   try {
     const { timeframe = '24h' } = req.query;
@@ -12,10 +8,6 @@ const getSystemLoad = async (req, res) => {
     let dateFormat;
     let extractField;
 
-<<<<<<< HEAD
-=======
-    // Set the time interval and grouping based on timeframe
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     switch (timeframe) {
       case '7d':
         interval = 'INTERVAL \'7 days\'';
@@ -41,21 +33,13 @@ const getSystemLoad = async (req, res) => {
         extractField = 'DAY';
         dateFormat = 'YYYY-MM-DD';
         break;
-<<<<<<< HEAD
       default: 
-=======
-      default: // 24h
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         interval = 'INTERVAL \'24 hours\'';
         grouping = 'date_trunc(\'hour\', al.created_at)';
         extractField = 'HOUR';
         dateFormat = 'YYYY-MM-DD HH24:MI:SS';
     }
 
-<<<<<<< HEAD
-=======
-    // Get login activity with timestamps for accurate date filtering
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const loginQuery = `
       WITH hourly_logins AS (
         SELECT 
@@ -79,10 +63,6 @@ const getSystemLoad = async (req, res) => {
       FROM hourly_logins
     `;
 
-<<<<<<< HEAD
-=======
-    // Get voting activity with accurate distinct voter counting
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const votingQuery = `
       WITH hourly_votes AS (
         SELECT 
@@ -108,10 +88,6 @@ const getSystemLoad = async (req, res) => {
       FROM hourly_votes
     `;
 
-<<<<<<< HEAD
-=======
-    // Get peak hours and counts with better timeframe handling
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const peakStatsQuery = `
       WITH login_stats AS (
         SELECT 
@@ -156,10 +132,6 @@ const getSystemLoad = async (req, res) => {
       pool.query(peakStatsQuery)
     ]);
 
-<<<<<<< HEAD
-=======
-    // Validate query results
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!loginActivity.rows || !votingActivity.rows || !peakStats.rows || peakStats.rows.length === 0) {
       console.warn('Warning: One or more query results are empty', {
         loginActivityRows: loginActivity?.rows?.length || 0,
@@ -168,10 +140,6 @@ const getSystemLoad = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
-=======
-    // Calculate total votes (all votes, not just distinct voters)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const totalVotesResult = await pool.query(`
       SELECT COUNT(*) as total_votes
       FROM votes v
@@ -184,10 +152,6 @@ const getSystemLoad = async (req, res) => {
 
     const totalVotes = parseInt(totalVotesResult?.rows?.[0]?.total_votes) || 0;
 
-<<<<<<< HEAD
-=======
-    // Transform the data with proper timestamp information
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const response = {
       summary: {
         peak_login_hour: peakStats.rows[0]?.peak_login_hour || 'N/A',

@@ -5,12 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Calendar, Clock, CheckCircle, Users, CalendarRange, BarChart } from 'lucide-react';
 import Cookies from 'js-cookie';
 
-<<<<<<< HEAD
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
-=======
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''; // Remove '/api'
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 async function fetchWithAuth(url, options = {}) {
   const token = Cookies.get('token');
@@ -64,12 +60,7 @@ const ElectionCard = ({ election, onClick }) => {
       const timeParts = timeStr.includes(':') ? timeStr.split(':') : [timeStr, '00'];
       const hours = parseInt(timeParts[0], 10);
       const minutes = parseInt(timeParts[1], 10);
-<<<<<<< HEAD
  
-=======
-      
-      // FIX: Remove the +1 from day
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const dateObj = new Date(year, month - 1, day, hours, minutes);
       
       if (isNaN(dateObj.getTime())) return 'Invalid date';

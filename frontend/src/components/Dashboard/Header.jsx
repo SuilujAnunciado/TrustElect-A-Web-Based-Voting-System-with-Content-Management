@@ -14,10 +14,7 @@ export default function Header() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
   const { logoUrl, isLoading: logoLoading } = useLogo();
 
-<<<<<<< HEAD
   
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleLogout = async () => {
     try {
       const token = Cookies.get("token");
@@ -83,7 +80,6 @@ export default function Header() {
                 const fallbackUrl = fallbackUrls[index];
                 img.src = `${fallbackUrl}?timestamp=${new Date().getTime()}`;
                 img.onload = () => {
-                  console.log('Logo loaded successfully with fallback URL:', fallbackUrl);
                 };
                 img.onerror = () => {
                   console.error('Logo fallback URL failed:', fallbackUrl);
@@ -94,7 +90,6 @@ export default function Header() {
               tryNextFallback(0);
             }}
             onLoad={() => {
-              console.log('Logo loaded successfully:', logoUrl);
             }}
           />
         ) : (

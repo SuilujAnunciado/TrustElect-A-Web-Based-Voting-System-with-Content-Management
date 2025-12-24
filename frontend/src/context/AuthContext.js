@@ -18,13 +18,8 @@ export default function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const router = useRouter();
 
-<<<<<<< HEAD
   
   useEffect(() => {
-=======
-  useEffect(() => {
-    // Check for token in cookies
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const storedToken = Cookies.get("token");
     const storedRole = Cookies.get("role");
     const storedUserId = Cookies.get("userId");
@@ -42,18 +37,10 @@ export default function AuthProvider({ children }) {
     setUser(userData);
     setToken(authToken);
     
-<<<<<<< HEAD
-=======
-    // Store in cookies
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     Cookies.set("token", authToken, { path: "/", secure: false, sameSite: "strict" });
     Cookies.set("role", userData.role, { path: "/", secure: false, sameSite: "strict" });
     Cookies.set("userId", userData.id, { path: "/", secure: false, sameSite: "strict" });
 
-<<<<<<< HEAD
-=======
-    // Redirect based on role
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     switch (userData.role) {
       case "Super Admin":
         router.push("/superadmin");
@@ -73,10 +60,6 @@ export default function AuthProvider({ children }) {
     setUser(null);
     setToken(null);
     
-<<<<<<< HEAD
-=======
-    // Remove from cookies
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     Cookies.remove("token", { path: "/" });
     Cookies.remove("role", { path: "/" });
     Cookies.remove("userId", { path: "/" });

@@ -1,8 +1,4 @@
 "use client";
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useState, useEffect } from "react";
 import { Download, X, Calendar, Filter, Users, BarChart2, ImageIcon } from "lucide-react";
 import { generatePdfReport } from '@/utils/pdfGenerator';
@@ -11,21 +7,12 @@ export default function UpcomingElectionDetail({ report, onClose, onDownload }) 
   const [activeTab, setActiveTab] = useState("summary");
   const [selectedElection, setSelectedElection] = useState(null);
 
-<<<<<<< HEAD
-=======
-  // Set initial selected election when component mounts
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (report?.data?.upcoming_elections?.length > 0) {
       setSelectedElection(report.data.upcoming_elections[0]);
     }
   }, [report]);
 
-<<<<<<< HEAD
-
-=======
-  // Update selected election when switching tabs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tab === "details" && !selectedElection && report?.data?.upcoming_elections?.length > 0) {
@@ -108,11 +95,7 @@ export default function UpcomingElectionDetail({ report, onClose, onDownload }) 
     };
 
     try {
-<<<<<<< HEAD
       await generatePdfReport(5, reportData); 
-=======
-      await generatePdfReport(5, reportData); // 5 is the report ID for Upcoming Elections
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error generating report:', error);
     }

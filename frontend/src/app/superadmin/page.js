@@ -9,10 +9,6 @@ import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
 import { generatePdfReport } from '@/utils/pdfGenerator';
 import toast from 'react-hot-toast';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 async function fetchWithAuth(url, options = {}) {
@@ -79,20 +75,11 @@ const DeleteConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isDele
 };
 
 const ElectionCard = ({ election, onClick, onDeleteClick, activeTab }) => {
-<<<<<<< HEAD
-
-=======
-  // Determine if the creator is a superadmin
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const isSuperAdminCreator =
     election.created_by === 1 ||
     (election.created_by && election.created_by.id === 1) ||
     election.created_by_role === 'SuperAdmin';
 
-<<<<<<< HEAD
-=======
-  // Only show 'NEEDS APPROVAL' if in the to_approve tab
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const displayStatus = activeTab === 'to_approve' && election.needs_approval && !isSuperAdminCreator
     ? 'to_approve'
     : election.status;
@@ -243,18 +230,10 @@ export default function SuperAdminDashboard() {
   const [dateTo, setDateTo] = useState('');
   const [isDateFiltered, setIsDateFiltered] = useState(false);
 
-<<<<<<< HEAD
-=======
-  // Load elections data for a specific tab with pagination
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadElectionsForTab = useCallback(async (tabId, page = 1, limit = 10) => {
     try {
       
       if (tabId === 'to_approve') {
-<<<<<<< HEAD
-=======
-        // Pending approval elections don't use pagination yet
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const response = await fetch(`${API_BASE}/elections/pending-approval`, {
           headers: {
             'Authorization': `Bearer ${Cookies.get('token')}`,
@@ -264,12 +243,6 @@ export default function SuperAdminDashboard() {
         
         if (response.ok) {
           const data = await response.json();
-<<<<<<< HEAD
-
-=======
-          
-          // Update pending count
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           setPendingApprovals(data);
           setPendingCount(data.length);
           
@@ -288,10 +261,6 @@ export default function SuperAdminDashboard() {
           return { data: [], pagination: { page: 1, limit, total: 0, totalPages: 0, hasMore: false } };
         }
       } else {
-<<<<<<< HEAD
-=======
-        // Regular status tabs use pagination
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const response = await fetch(`${API_BASE}/elections/status/${tabId}?page=${page}&limit=${limit}`, {
           headers: {
             'Authorization': `Bearer ${Cookies.get('token')}`,
@@ -302,11 +271,7 @@ export default function SuperAdminDashboard() {
         if (response.ok) {
           const result = await response.json();
           return {
-<<<<<<< HEAD
             data: result.data || result || [], 
-=======
-            data: result.data || result || [], // Handle both new and old API response formats
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             pagination: result.pagination || { 
               page, 
               limit, 
@@ -326,10 +291,6 @@ export default function SuperAdminDashboard() {
     }
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Load all elections data with pagination
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadElections = useCallback(async (status) => {
     try {
       setIsLoading(true);
@@ -337,22 +298,10 @@ export default function SuperAdminDashboard() {
       
       const result = await loadElectionsForTab(status, 1, 10);
       setElections(result.data || []);
-<<<<<<< HEAD
-
-=======
-      
-      // Update pagination state
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setPaginationState(prev => ({
         ...prev,
         [status]: result.pagination
       }));
-<<<<<<< HEAD
-
-=======
-      
-      // Update allElections state
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setAllElections(prev => ({
         ...prev,
         [status]: result.data || []
@@ -486,10 +435,6 @@ export default function SuperAdminDashboard() {
     }
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Filter data by date range
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const filterDataByDateRange = (data, dateFrom, dateTo) => {
     if (!dateFrom && !dateTo) return data;
     
@@ -508,119 +453,61 @@ export default function SuperAdminDashboard() {
     });
   };
 
-<<<<<<< HEAD
-=======
-  // Handle date filter change
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleDateFilterChange = (fromDate, toDate) => {
     setDateFrom(fromDate);
     setDateTo(toDate);
     setIsDateFiltered(!!(fromDate || toDate));
   };
 
-<<<<<<< HEAD
-=======
-  // Clear date filter
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const clearDateFilter = () => {
     setDateFrom('');
     setDateTo('');
     setIsDateFiltered(false);
   };
-<<<<<<< HEAD
-
-=======
-  
-  // Helper function to enhance data with proper time information
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const enhanceTimeData = (data, timeframe) => {
     if (!Array.isArray(data) || data.length === 0) return [];
     
     const now = new Date();
     
     return data.map((item, index) => {
-<<<<<<< HEAD
       let timestamp = item.timestamp;
       let date = item.date;
       let hour = item.hour || 0;
 
-=======
-      // Extract or create timestamp information
-      let timestamp = item.timestamp;
-      let date = item.date;
-      let hour = item.hour || 0;
-      
-      // If we have a timestamp, use it directly
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (timestamp) {
         const dateObj = new Date(timestamp);
         date = dateObj.toISOString().split('T')[0];
         hour = dateObj.getHours();
       } 
-<<<<<<< HEAD
       else if (date) {
         timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
       } 
       else {
-=======
-      // If we have a date but no timestamp, create one
-      else if (date) {
-        timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
-      } 
-      // If we only have hour, create date and timestamp based on timeframe
-      else {
-        // For 24h, use today's date with the specified hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (timeframe === '24h') {
           date = now.toISOString().split('T')[0];
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
         } 
-<<<<<<< HEAD
         else if (timeframe === '7d') {
           const dayOffset = index % 7;
-=======
-        // For 7d, distribute across the past 7 days
-        else if (timeframe === '7d') {
-          const dayOffset = index % 7; // Use index for deterministic distribution
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
           date = targetDate.toISOString().split('T')[0];
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
         }
-<<<<<<< HEAD
         else if (timeframe === '30d') {
           const dayOffset = (index * 7 + Math.floor(index / 3)) % 30; 
-=======
-        // For 30d, distribute across the past 30 days with better distribution
-        else if (timeframe === '30d') {
-          // Use a more deterministic distribution for 30 days
-          const dayOffset = (index * 7 + Math.floor(index / 3)) % 30; // Better distribution
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
           date = targetDate.toISOString().split('T')[0];
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           hour = hours[index % hours.length];
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
         } else if (timeframe === '60d') {
-<<<<<<< HEAD
-=======
-          // For 60d, distribute across the past 60 days
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           data.forEach((item, index) => {
             const count = Math.round(item.count || 0);
             
             if (count > 0) {
-<<<<<<< HEAD
               const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
               const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
 
-=======
-              // Distribute data points across the past 60 days
-              const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
-              const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-              
-              // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               const hours = [8, 10, 12, 14, 16, 18, 20, 22];
               const selectedHour = hours[index % hours.length];
               
@@ -632,12 +519,6 @@ export default function SuperAdminDashboard() {
               });
             }
           });
-<<<<<<< HEAD
-
-=======
-          
-          // Sort by date and hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           processedData.sort((a, b) => {
             const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
             if (dateCompare === 0) {
@@ -646,24 +527,12 @@ export default function SuperAdminDashboard() {
             return dateCompare;
           });
         } else if (timeframe === '90d') {
-<<<<<<< HEAD
-=======
-          // For 90d, distribute across the past 90 days
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           data.forEach((item, index) => {
             const count = Math.round(item.count || 0);
             
             if (count > 0) {
-<<<<<<< HEAD
               const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
               const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-=======
-              // Distribute data points across the past 90 days
-              const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
-              const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-              
-              // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               const hours = [8, 10, 12, 14, 16, 18, 20, 22];
               const selectedHour = hours[index % hours.length];
               
@@ -675,12 +544,6 @@ export default function SuperAdminDashboard() {
               });
             }
           });
-<<<<<<< HEAD
-
-=======
-          
-          // Sort by date and hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           processedData.sort((a, b) => {
             const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
             if (dateCompare === 0) {
@@ -689,11 +552,6 @@ export default function SuperAdminDashboard() {
             return dateCompare;
           });
         }
-<<<<<<< HEAD
-
-=======
-        // Fallback for other timeframes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         else {
           const dayOffset = Math.floor(Math.random() * 30);
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
@@ -701,12 +559,6 @@ export default function SuperAdminDashboard() {
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
         }
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Return enhanced data item with complete time information
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return {
         ...item,
         hour,
@@ -716,10 +568,6 @@ export default function SuperAdminDashboard() {
                typeof item.login_count === 'number' && !isNaN(item.login_count) ? item.login_count :
                typeof item.vote_count === 'number' && !isNaN(item.vote_count) ? item.vote_count :
                typeof item.activity_count === 'number' && !isNaN(item.activity_count) ? item.activity_count : 0),
-<<<<<<< HEAD
-=======
-        // Add formatted display values for better readability
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         displayTime: new Date(timestamp).toLocaleTimeString('en-US', { 
           hour: '2-digit', 
           minute: '2-digit',
@@ -739,11 +587,6 @@ export default function SuperAdminDashboard() {
     setShowLiveVoteModal(true);
   };
 
-<<<<<<< HEAD
-=======
-
-  // Helper functions for system load data processing
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatNumber = (num) => {
     if (num === undefined || num === null || isNaN(num)) return '0';
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -759,12 +602,6 @@ export default function SuperAdminDashboard() {
     else if (hourNum < 12) timeStr = `${hourNum}:00 AM`;
     else if (hourNum === 12) timeStr = '12:00 PM';
     else timeStr = `${hourNum - 12}:00 PM`;
-<<<<<<< HEAD
-
-=======
-    
-    // Add date if provided
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (date) {
       const dateObj = new Date(date);
       const dateStr = dateObj.toLocaleDateString('en-US', { 
@@ -781,12 +618,6 @@ export default function SuperAdminDashboard() {
     if (hour === undefined || hour === null) return '12 AM';
     const hourNum = parseInt(hour);
     if (isNaN(hourNum)) return '12 AM';
-<<<<<<< HEAD
-
-=======
-    
-    // Always show time on X-axis, regardless of timeframe
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let timeStr = '';
     if (hourNum === 0) timeStr = '12 AM';
     else if (hourNum < 12) timeStr = `${hourNum} AM`;
@@ -828,40 +659,19 @@ export default function SuperAdminDashboard() {
     }));
   };
 
-<<<<<<< HEAD
   const processRawData = (rawData, timeframe) => {
     if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
     return rawData.map((item) => {
       if (item.timestamp) {
-=======
-  // Improved data processing with accurate date handling
-  const processRawData = (rawData, timeframe) => {
-    if (!Array.isArray(rawData) || rawData.length === 0) return [];
-    
-    // Return data with accurate timestamp information from backend
-    return rawData.map((item) => {
-      // Use timestamp from backend if available
-      if (item.timestamp) {
-        // Use backend-provided day/month/year to avoid timezone issues
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const day = item.day || parseInt(item.timestamp.split('T')[0].split('-')[2]);
         const month = item.month || parseInt(item.timestamp.split('T')[0].split('-')[1]);
         const year = item.year || parseInt(item.timestamp.split('T')[0].split('-')[0]);
         const hour = item.hour || 0;
-<<<<<<< HEAD
 
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const displayDate = `${monthNames[month - 1]} ${day}, ${year}`;
 
-=======
-        
-        // Create display date from backend values (not from Date object to avoid timezone shift)
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const displayDate = `${monthNames[month - 1]} ${day}, ${year}`;
-        
-        // Format hour for display
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
         const displayPeriod = hour < 12 ? 'AM' : 'PM';
         const displayTime = `${displayHour}:00 ${displayPeriod}`;
@@ -895,11 +705,7 @@ export default function SuperAdminDashboard() {
       processedData = data.map(item => ({
         hour: item.hour || 0,
         count: Math.round(typeof item.count === 'number' && !isNaN(item.count) ? item.count : 0),
-<<<<<<< HEAD
         date: now.toISOString().split('T')[0],
-=======
-        date: now.toISOString().split('T')[0], // Use current date for 24h
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         timestamp: now.toISOString()
       }));
     } else if (timeframe === '7d') {
@@ -912,11 +718,7 @@ export default function SuperAdminDashboard() {
         const date = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
         
         processedData.push({
-<<<<<<< HEAD
           hour: hour,
-=======
-          hour: hour, // Keep the actual hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           count: count,
           date: date.toISOString().split('T')[0],
           timestamp: date.toISOString()
@@ -931,25 +733,13 @@ export default function SuperAdminDashboard() {
         return dateCompare;
       });
     } else if (timeframe === '30d') {
-<<<<<<< HEAD
-=======
-      // For 30d, create a more comprehensive distribution across 30 days
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       data.forEach((item, index) => {
         const count = Math.round(item.count || 0);
         
         if (count > 0) {
-<<<<<<< HEAD
           const dayOffset = (index * 7 + Math.floor(index / 3)) % 30;
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
 
-=======
-          // Distribute data points across the past 30 days
-          const dayOffset = (index * 7 + Math.floor(index / 3)) % 30; // Better distribution
-          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-          
-          // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           const selectedHour = hours[index % hours.length];
           
@@ -961,12 +751,6 @@ export default function SuperAdminDashboard() {
           });
         }
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Sort by date and hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       processedData.sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
         if (dateCompare === 0) {
@@ -975,24 +759,12 @@ export default function SuperAdminDashboard() {
         return dateCompare;
       });
     } else if (timeframe === '60d') {
-<<<<<<< HEAD
-=======
-      // For 60d, distribute across the past 60 days
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       data.forEach((item, index) => {
         const count = Math.round(item.count || 0);
         
         if (count > 0) {
-<<<<<<< HEAD
           const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-=======
-          // Distribute data points across the past 60 days
-          const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
-          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-          
-          // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           const selectedHour = hours[index % hours.length];
           
@@ -1004,12 +776,6 @@ export default function SuperAdminDashboard() {
           });
         }
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Sort by date and hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       processedData.sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
         if (dateCompare === 0) {
@@ -1018,25 +784,13 @@ export default function SuperAdminDashboard() {
         return dateCompare;
       });
     } else if (timeframe === '90d') {
-<<<<<<< HEAD
-=======
-      // For 90d, distribute across the past 90 days
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       data.forEach((item, index) => {
         const count = Math.round(item.count || 0);
         
         if (count > 0) {
-<<<<<<< HEAD
           const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
 
-=======
-          // Distribute data points across the past 90 days
-          const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
-          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-          
-          // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           const selectedHour = hours[index % hours.length];
           
@@ -1048,12 +802,6 @@ export default function SuperAdminDashboard() {
           });
         }
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Sort by date and hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       processedData.sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
         if (dateCompare === 0) {
@@ -1113,11 +861,6 @@ export default function SuperAdminDashboard() {
     let isMounted = true;
     
     const initializeDashboard = async () => {
-<<<<<<< HEAD
-
-=======
-      // Check if already loaded
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (dataLoaded) {
         setIsLoading(false);
         return;
@@ -1126,7 +869,6 @@ export default function SuperAdminDashboard() {
       try {
         setIsLoading(true);
         setError(null);
-<<<<<<< HEAD
 
         await loadStats();
         
@@ -1134,19 +876,6 @@ export default function SuperAdminDashboard() {
           setIsLoading(false);
         }
 
-=======
-        
-        
-        // Phase 1: Load critical stats first (fast)
-        await loadStats();
-        
-        if (isMounted) {
-          // Show UI with just stats data to improve perceived performance
-          setIsLoading(false);
-        }
-        
-        // Phase 2: Load current tab data (medium priority)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const currentTabResult = await loadElectionsForTab(activeTab, 1, 10);
         
         if (isMounted) {
@@ -1160,7 +889,6 @@ export default function SuperAdminDashboard() {
             [activeTab]: currentTabResult.pagination
           }));
         }
-<<<<<<< HEAD
 
         setTimeout(async () => {
           if (isMounted) {
@@ -1169,19 +897,6 @@ export default function SuperAdminDashboard() {
 
             await loadTotalUniqueVoters();
  
-=======
-        
-        // Phase 3: Load remaining data in background (low priority)
-        setTimeout(async () => {
-          if (isMounted) {
-            // Load pending approvals
-            await loadPendingApprovals();
-            
-            // Load total voters count
-            await loadTotalUniqueVoters();
-            
-            // Load other tabs data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             const otherTabs = ['ongoing', 'upcoming', 'completed', 'to_approve'].filter(tab => tab !== activeTab);
             
             for (const tab of otherTabs) {
@@ -1197,12 +912,6 @@ export default function SuperAdminDashboard() {
                 }));
               }
             }
-<<<<<<< HEAD
-
-=======
-            
-            // Load optional visualization data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             await Promise.allSettled([
               loadSystemLoadData('7d'),
               loadLiveVoteCount().catch(err => {
@@ -1225,40 +934,20 @@ export default function SuperAdminDashboard() {
     };
     
     initializeDashboard();
-<<<<<<< HEAD
 
     const intervals = [];
 
-=======
-    
-    // Set up intervals for auto-refresh (only after initial load)
-    const intervals = [];
-    
-    // Refresh pending approvals every 15 seconds
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     intervals.push(setInterval(() => {
       if (isMounted) {
         loadPendingApprovals();
       }
     }, 15000));
-<<<<<<< HEAD
-
-=======
-    
-    // Refresh stats every 30 seconds (high priority data)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     intervals.push(setInterval(() => {
       if (isMounted) {
         loadStats().catch(err => {
         });
       }
     }, 30000));
-<<<<<<< HEAD
-
-=======
-    
-    // Refresh active tab data every 1 minute
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     intervals.push(setInterval(() => {
       if (isMounted && dataLoaded) {
         loadElectionsForTab(activeTab, 1, 10)
@@ -1274,14 +963,9 @@ export default function SuperAdminDashboard() {
             }));
           })
           .catch(err => {
-            console.log(`[SuperAdmin] Error refreshing ${activeTab} elections:`, err.message);
           });
       }
-<<<<<<< HEAD
     }, 60000)); 
-=======
-    }, 60000)); // 1 minute
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     return () => {
       isMounted = false;
@@ -1298,19 +982,10 @@ export default function SuperAdminDashboard() {
     loadSystemLoadData
   ]);
 
-<<<<<<< HEAD
   useEffect(() => {
     if (allElections && allElections[activeTab]) {
       setElections(allElections[activeTab] || []);
 
-=======
-  // Handle tab change - update elections when tab changes and load data if needed
-  useEffect(() => {
-    if (allElections && allElections[activeTab]) {
-      setElections(allElections[activeTab] || []);
-      
-      // If this tab has no data yet, load it
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (allElections[activeTab].length === 0 && !isLoading) {
         loadElectionsForTab(activeTab, 1, 10)
           .then(result => {
@@ -1330,12 +1005,6 @@ export default function SuperAdminDashboard() {
       }
     }
   }, [activeTab, allElections, isLoading, loadElectionsForTab]);
-<<<<<<< HEAD
-
-=======
-  
-  // Function to load more elections for the current tab
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadMoreElections = async () => {
     const currentPagination = paginationState[activeTab];
     if (!currentPagination.hasMore || isLoadingMore) return;
@@ -1347,10 +1016,6 @@ export default function SuperAdminDashboard() {
       const result = await loadElectionsForTab(activeTab, nextPage, currentPagination.limit);
       
       if (result.data.length > 0) {
-<<<<<<< HEAD
-=======
-        // Append new data to existing data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const updatedElections = [...allElections[activeTab], ...result.data];
         
         setElections(updatedElections);
@@ -1358,12 +1023,6 @@ export default function SuperAdminDashboard() {
           ...prev,
           [activeTab]: updatedElections
         }));
-<<<<<<< HEAD
-
-=======
-        
-        // Update pagination state
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setPaginationState(prev => ({
           ...prev,
           [activeTab]: result.pagination
@@ -1407,30 +1066,15 @@ export default function SuperAdminDashboard() {
       await fetchWithAuth(`/elections/${electionToDelete.id}`, {
         method: 'DELETE'
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Update the allElections state to remove the deleted election
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setAllElections(prev => ({
         ...prev,
         completed: prev.completed.filter(e => e.id !== electionToDelete.id)
       }));
       
-<<<<<<< HEAD
       if (activeTab === 'completed') {
         setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       }
 
-=======
-      // Update the current elections view if we're on the completed tab
-      if (activeTab === 'completed') {
-        setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
-      }
-      
-      // Update stats immediately and refresh
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await loadStats();
       
       setActionMessage({
@@ -1510,10 +1154,6 @@ export default function SuperAdminDashboard() {
       <div className="bg-white rounded-lg shadow mb-6 p-1">
         <div className="flex">
           {statusTabs.map(tab => {
-<<<<<<< HEAD
-=======
-            // Use actual elections count instead of stats
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             const count = allElections[tab.id] ? allElections[tab.id].length : 0;
             const hasPending = tab.id === 'to_approve' && count > 0;
             
@@ -1620,10 +1260,6 @@ export default function SuperAdminDashboard() {
             )}
           </div>
           
-<<<<<<< HEAD
-=======
-          {/* Load More Button */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {paginationState[activeTab]?.hasMore && (
             <div className="mt-8 flex justify-center">
               <button
@@ -1647,12 +1283,6 @@ export default function SuperAdminDashboard() {
               </button>
             </div>
           )}
-<<<<<<< HEAD
-
-=======
-          
-          {/* Loading indicator for background data loading */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {isLoading && elections.length > 0 && (
             <div className="mt-4 flex justify-center">
               <div className="flex items-center text-sm text-gray-500">
@@ -1663,12 +1293,6 @@ export default function SuperAdminDashboard() {
           )}
         </>
       )}
-<<<<<<< HEAD
-
-=======
-      
-      {/* Live Vote Count Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {activeTab === 'ongoing' && elections.length > 0 && liveVoteData && (
         <div className="mt-8 bg-gray-50 rounded-lg shadow-lg p-6 border border-gray-200">
           <div className="flex justify-between items-center mb-6">
@@ -1741,10 +1365,6 @@ export default function SuperAdminDashboard() {
         </div>
       )}
 
-<<<<<<< HEAD
-=======
-      {/* System Load Reports - Direct Display */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="mt-8 bg-white rounded-lg shadow-lg p-6 border border-gray-200">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-black flex items-center">
@@ -1770,10 +1390,6 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-<<<<<<< HEAD
-=======
-        {/* Date Range Filter */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex items-center gap-4 mb-3">
             <h3 className="text-sm font-semibold text-black">Filter by Date Range:</h3>
@@ -1816,10 +1432,6 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-<<<<<<< HEAD
-=======
-        {/* Loading Indicator */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {isSystemLoadLoading && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div className="flex items-center gap-3">
@@ -1832,31 +1444,17 @@ export default function SuperAdminDashboard() {
 
         {systemLoadData ? (
           <>
-<<<<<<< HEAD
 
             {(() => {
 
               let processedLoginData = processRawData(systemLoadData.login_activity || [], selectedTimeframe);
               let processedVotingData = processRawData(systemLoadData.voting_activity || [], selectedTimeframe);
    
-=======
-            {/* Process data */}
-            {(() => {
-              // Use accurate backend timestamp data processing
-              let processedLoginData = processRawData(systemLoadData.login_activity || [], selectedTimeframe);
-              let processedVotingData = processRawData(systemLoadData.voting_activity || [], selectedTimeframe);
-              
-              // Apply date range filter if active
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               if (isDateFiltered) {
                 processedLoginData = filterDataByDateRange(processedLoginData, dateFrom, dateTo);
                 processedVotingData = filterDataByDateRange(processedVotingData, dateFrom, dateTo);
               }
               
-<<<<<<< HEAD
-=======
-              // Fallback to original data structure if new processing returns empty data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               if (processedLoginData.length === 0 && systemLoadData.login_activity && systemLoadData.login_activity.length > 0) {
                 processedLoginData = validateData(systemLoadData.login_activity);
               }
@@ -1864,12 +1462,6 @@ export default function SuperAdminDashboard() {
               if (processedVotingData.length === 0 && systemLoadData.voting_activity && systemLoadData.voting_activity.length > 0) {
                 processedVotingData = validateData(systemLoadData.voting_activity);
               }
-<<<<<<< HEAD
-
-=======
-              
-              // Calculate data consistency metrics
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               const totalLogins = processedLoginData.reduce((sum, item) => sum + item.count, 0);
               const totalDistinctVoters = processedVotingData.reduce((sum, item) => sum + item.count, 0);
               const totalVotes = systemLoadData.summary?.total_votes || 0;
@@ -1920,10 +1512,6 @@ export default function SuperAdminDashboard() {
 
               return (
                 <>
-<<<<<<< HEAD
-=======
-                  {/* Summary Cards */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
@@ -1969,10 +1557,6 @@ export default function SuperAdminDashboard() {
                     </div>
                   </div>
 
-<<<<<<< HEAD
-=======
-                  {/* Usage Charts */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <div className="space-y-4">
                     {/* Login Activity Chart */}
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
@@ -2147,10 +1731,6 @@ export default function SuperAdminDashboard() {
         isDeleting={isDeleting}
       />
 
-<<<<<<< HEAD
-=======
-      {/* Live Vote Count Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showLiveVoteModal && selectedElection && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="bg-gray-50 rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-auto border border-gray-300">
@@ -2168,10 +1748,6 @@ export default function SuperAdminDashboard() {
                  </button>
               </div>
 
-<<<<<<< HEAD
-=======
-              {/* Summary Statistics */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-all duration-200">
                   <div className="flex items-center justify-between">
@@ -2214,10 +1790,6 @@ export default function SuperAdminDashboard() {
                 </div>
               </div>
 
-<<<<<<< HEAD
-=======
-              {/* Participation Progress Bar */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="mb-8 bg-white p-6 rounded-lg shadow-md border border-gray-200">
                 <h3 className="text-lg font-bold text-black mb-4">Participation Progress</h3>
                 <div className="space-y-4">
@@ -2380,10 +1952,6 @@ export default function SuperAdminDashboard() {
                 </div>
               )}
 
-<<<<<<< HEAD
-=======
-              {/* Participation by Course/Program */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               {selectedElection.votes_by_program && selectedElection.votes_by_program.length > 0 && (
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mt-6">
                   <h3 className="text-lg font-bold text-black mb-4">Participation by Course/Program</h3>

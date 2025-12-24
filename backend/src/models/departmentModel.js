@@ -1,15 +1,9 @@
 const pool = require("../config/db");
 
-<<<<<<< HEAD
 
 class Department {
   static async create({ department_name, department_type, admin_id, created_by }) {
 
-=======
-class Department {
-  static async create({ department_name, department_type, admin_id, created_by }) {
-    // Check if admin is already assigned to another department
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (admin_id) {
       const checkQuery = `
         SELECT id, department_name FROM departments 

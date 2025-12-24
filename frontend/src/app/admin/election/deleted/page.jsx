@@ -12,10 +12,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const RestoreConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isRestoring }) => {
   if (!isOpen) return null;
 
-<<<<<<< HEAD
   
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
@@ -145,10 +142,6 @@ export default function DeletedElectionsPage() {
       setLoading(true);
       setError("");
       
-<<<<<<< HEAD
-=======
-      // Use the main elections endpoint (same pattern as superadmin)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const data = await fetchWithAuth('/elections');
       
       if (data.success === false) {
@@ -156,10 +149,6 @@ export default function DeletedElectionsPage() {
         return;
       }
       
-<<<<<<< HEAD
-=======
-      // Filter for deleted elections on the frontend (same as superadmin)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const allElections = data.data || [];
       const deletedElections = allElections.filter(election => 
         election.is_deleted === true
@@ -184,10 +173,6 @@ export default function DeletedElectionsPage() {
     } else if (!permissionsLoading) {
       setLoading(false);
     }
-<<<<<<< HEAD
-=======
-    // Check existing auto-delete timer
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const existingTimer = localStorage.getItem('electionAutoDeleteTimer:admin');
     if (existingTimer) {
       setAutoDeleteEnabled(true);
@@ -203,11 +188,7 @@ export default function DeletedElectionsPage() {
   };
 
   const handleRestoreClick = (election, e) => {
-<<<<<<< HEAD
     e.stopPropagation();
-=======
-    e.stopPropagation(); // Prevent row click
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!hasPermission('elections', 'edit')) {
       alert("You don't have permission to restore elections");
       return;
@@ -217,11 +198,7 @@ export default function DeletedElectionsPage() {
   };
 
   const handleDeleteClick = (election, e) => {
-<<<<<<< HEAD
     e.stopPropagation(); 
-=======
-    e.stopPropagation(); // Prevent row click
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!hasPermission('elections', 'delete')) {
       alert("You don't have permission to delete elections");
       return;
@@ -240,10 +217,6 @@ export default function DeletedElectionsPage() {
         method: 'POST'
       });
       
-<<<<<<< HEAD
-=======
-      // Update the elections state to remove the restored election
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToRestore.id));
       
       toast.success(`Election "${electionToRestore.title}" was successfully restored.`);
@@ -268,10 +241,6 @@ export default function DeletedElectionsPage() {
         method: 'DELETE'
       });
       
-<<<<<<< HEAD
-=======
-      // Update the elections state to remove the deleted election
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       
       toast.success(`Election "${electionToDelete.title}" was permanently deleted.`);
@@ -286,10 +255,6 @@ export default function DeletedElectionsPage() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Auto-delete flow (mirrors Deleted Admins page behavior)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const enableAutoDelete = () => {
     if (!hasPermission('elections', 'delete')) {
       alert("You don't have permission to enable auto-delete");
@@ -399,10 +364,6 @@ export default function DeletedElectionsPage() {
     return `${diffDays} days remaining`;
   };
 
-<<<<<<< HEAD
-=======
-  // Show loading state while permissions are being checked
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (loading || permissionsLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center p-6 bg-gray-50 min-h-screen">
@@ -410,12 +371,6 @@ export default function DeletedElectionsPage() {
       </div>
     );
   }
-<<<<<<< HEAD
-
-=======
-  
-  // Only show access denied if permissions have loaded and user definitely doesn't have permission
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (!permissionsLoading && !hasPermission('elections', 'view')) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -627,10 +582,6 @@ export default function DeletedElectionsPage() {
         </>
       )}
 
-<<<<<<< HEAD
-=======
-      {/* Restore Confirmation Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <RestoreConfirmationModal 
         isOpen={restoreModalOpen}
         election={electionToRestore}
@@ -639,10 +590,6 @@ export default function DeletedElectionsPage() {
         isRestoring={isRestoring}
       />
 
-<<<<<<< HEAD
-=======
-      {/* Permanent Delete Confirmation Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <PermanentDeleteConfirmationModal 
         isOpen={deleteModalOpen}
         election={electionToDelete}

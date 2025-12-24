@@ -12,10 +12,6 @@ import PartylistDetails from "../../superadmin/maintenance/components/PartylistD
 import PositionManager from "../../superadmin/maintenance/components/PositionManager";
 import LaboratoryPrecinctManager from "./components/LaboratoryPrecinctManager";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const API_ENDPOINTS = {
   programs: "programs",
   electionTypes: "election-types",
@@ -65,10 +61,6 @@ const AdminMaintenancePage = () => {
     { id: "positions", label: "Positions" },
   ];
 
-<<<<<<< HEAD
-=======
-  // Check permissions on component mount
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (!permissionsLoading && !hasPermission('maintenance', 'view')) {
       toast.error("You don't have permission to access maintenance");
@@ -90,15 +82,9 @@ const AdminMaintenancePage = () => {
     } else if (activeTab === "positions") {
       fetchElectionTypes();
     } else if (activeTab === "laboratoryPrecincts") {
-<<<<<<< HEAD
       fetchItems(); 
     } else if (activeTab !== "partylists" && activeTab !== "positions" && activeTab !== "laboratoryPrecincts") {
       fetchItems(); 
-=======
-      fetchItems(); // This will fetch precincts when laboratoryPrecincts tab is active
-    } else if (activeTab !== "partylists" && activeTab !== "positions" && activeTab !== "laboratoryPrecincts") {
-      fetchItems(); // Fetch items for other tabs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     }
   }, [activeTab]);
 
@@ -113,18 +99,10 @@ const AdminMaintenancePage = () => {
           "/api/admin/departments",
           { headers: { Authorization: `Bearer ${token}` } }
         );
-<<<<<<< HEAD
         const departments = response.data.departments || response.data || [];
         const activeDepartments = departments.filter(dept => {
           const isDeleted = dept.is_deleted === true;
           const isActive = dept.is_active !== false; 
-=======
-        // Transform and filter out archived/deleted departments
-        const departments = response.data.departments || response.data || [];
-        const activeDepartments = departments.filter(dept => {
-          const isDeleted = dept.is_deleted === true;
-          const isActive = dept.is_active !== false; // treat null/undefined as active true
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           return isActive && !isDeleted;
         });
         setItems(activeDepartments.map(dept => ({
@@ -133,10 +111,6 @@ const AdminMaintenancePage = () => {
           department_type: dept.department_type
         })));
       } else if (activeTab === "laboratoryPrecincts") {
-<<<<<<< HEAD
-=======
-        // Fetch precincts for laboratory precinct management
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         response = await axios.get(
           "/api/maintenance/precincts",
           { headers: { Authorization: `Bearer ${token}` } }
@@ -415,10 +389,6 @@ const AdminMaintenancePage = () => {
       return;
     }
 
-<<<<<<< HEAD
-=======
-    // Find the partylist to get its name for confirmation
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const partylist = partylistList.find(p => p.id === id);
     if (!partylist) {
       toast.error("Partylist not found");
@@ -455,10 +425,6 @@ const AdminMaintenancePage = () => {
       return;
     }
 
-<<<<<<< HEAD
-=======
-    // Find the partylist to get its name for confirmation
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const partylist = archivedPartylistList.find(p => p.id === id);
     if (!partylist) {
       toast.error("Partylist not found");
@@ -496,10 +462,6 @@ const AdminMaintenancePage = () => {
       return;
     }
 
-<<<<<<< HEAD
-=======
-    // Find the partylist to get its name for confirmation
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const partylist = archivedPartylistList.find(p => p.id === id);
     if (!partylist) {
       toast.error("Partylist not found");
@@ -539,10 +501,6 @@ const AdminMaintenancePage = () => {
     setSelectedPartylist(null);
   };
 
-<<<<<<< HEAD
-=======
-  // Don't render if permissions are loading or user doesn't have permission
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (permissionsLoading) {
     return (
       <div className="flex justify-center items-center h-64">

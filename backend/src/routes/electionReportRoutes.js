@@ -4,21 +4,12 @@ const {verifyToken, isSuperAdmin, isAdmin} = require('../middlewares/authMiddlew
 
 const electionReportController = require('../controllers/electionReportController');
 
-<<<<<<< HEAD
-=======
-// Super Admin routes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get('/summary', 
   verifyToken, 
   isSuperAdmin, 
   electionReportController.getElectionSummary
 );
 
-<<<<<<< HEAD
-
-=======
-// Admin routes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get('/admin/summary', 
   verifyToken, 
   isAdmin, 
@@ -31,10 +22,6 @@ router.get('/details/:id',
   electionReportController.getElectionDetails
 );
 
-<<<<<<< HEAD
-=======
-// New route for upcoming elections report
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get('/upcoming-elections',
   verifyToken,
   isSuperAdmin,

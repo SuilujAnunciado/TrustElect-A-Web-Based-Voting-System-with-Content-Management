@@ -10,12 +10,8 @@ if (!fs.existsSync(uploadDir)) {
 
 const createPartylist = async (req, res) => {
   try {
-<<<<<<< HEAD
   
   
-=======
-    
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const { name, slogan, advocacy } = req.body;
     const logoFile = req.file;
 
@@ -27,16 +23,6 @@ const createPartylist = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
-=======
-    console.log('Creating partylist with data:', {
-      name,
-      slogan: slogan || '',
-      advocacy: advocacy || '',
-      logoFile: logoFile ? logoFile.filename : 'none'
-    });
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     try {
 
       const partylistData = {
@@ -46,18 +32,8 @@ const createPartylist = async (req, res) => {
         logo: logoFile 
       };
 
-<<<<<<< HEAD
 
       const partylist = await partylistModel.createPartylist(partylistData);
-=======
-      console.log('Calling partylistModel.createPartylist with:', {
-        name: partylistData.name,
-        hasLogo: !!partylistData.logo
-      });
-
-      const partylist = await partylistModel.createPartylist(partylistData);
-      console.log('Partylist created successfully:', partylist);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
       res.status(201).json({
         success: true,
@@ -76,10 +52,6 @@ const createPartylist = async (req, res) => {
             WHERE table_name = 'partylists'
           );
         `);
-<<<<<<< HEAD
-=======
-        console.log('Partylists table exists:', checkTable.rows[0].exists);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         
         if (checkTable.rows[0].exists) {
 
@@ -103,10 +75,6 @@ const createPartylist = async (req, res) => {
               is_active BOOLEAN DEFAULT TRUE
             );
           `);
-<<<<<<< HEAD
-=======
-          console.log('Created partylists table');
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  
           const result = await pool.query(
             `INSERT INTO partylists (name, slogan, advocacy, logo_url) 
@@ -121,10 +89,6 @@ const createPartylist = async (req, res) => {
           );
           
           const partylist = result.rows[0];
-<<<<<<< HEAD
-=======
-          console.log('Direct insert successful:', partylist);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           
           return res.status(201).json({
             success: true,

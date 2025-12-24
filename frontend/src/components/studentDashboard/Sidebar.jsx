@@ -12,10 +12,6 @@ export default function Sidebar() {
   const [studentName, setStudentName] = useState("Student");
   const [showImageModal, setShowImageModal] = useState(false);
 
-<<<<<<< HEAD
-=======
-  // Function to check if a route is active
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const isActiveRoute = (route) => {
     if (route === "/student") {
       return pathname === "/student";
@@ -23,10 +19,7 @@ export default function Sidebar() {
     return pathname.startsWith(route);
   };
 
-<<<<<<< HEAD
   
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const fetchProfile = async () => {
     try {
       const token = Cookies.get("token");
@@ -36,20 +29,10 @@ export default function Sidebar() {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
-<<<<<<< HEAD
-
-=======
-    
-      // Update Sidebar Name
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const firstName = res.data.firstName || "";
       const lastName = res.data.lastName || "";
       setStudentName(`${firstName} ${lastName}`);
   
-<<<<<<< HEAD
-=======
-      // Handle both absolute and relative URLs, prevent duplicate query strings
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const rawUrl = res.data.profile_picture || null;
       const baseProfileUrl = rawUrl ? rawUrl.split("?")[0] : null;
       const isAbsolute = baseProfileUrl && /^https?:\/\//i.test(baseProfileUrl);
@@ -59,10 +42,6 @@ export default function Sidebar() {
       setProfilePic(imageUrl);
     } catch (error) {
       console.error("Error fetching student profile:", error);
-<<<<<<< HEAD
-=======
-      // Set fallback image on error
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setProfilePic("https://via.placeholder.com/80");
     }
   };
@@ -106,12 +85,6 @@ export default function Sidebar() {
             </div>
           </div>
         )}
-<<<<<<< HEAD
-
-=======
-        
-        {/* Navigation */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
           <button 
             className={`block w-full text-left p-3 rounded transition-colors ${

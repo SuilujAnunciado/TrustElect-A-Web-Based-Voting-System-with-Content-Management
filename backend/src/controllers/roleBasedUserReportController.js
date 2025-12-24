@@ -3,13 +3,8 @@ const RoleBasedUserReport = require('../models/roleBasedUserReportModel');
 const getRoleBasedUserSummary = async (req, res) => {
   try {
     const summary = await RoleBasedUserReport.getRoleBasedUserSummary();
-<<<<<<< HEAD
 
     
-=======
-    
-    // Flatten the users array from all roles
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const allUsers = summary.reduce((acc, role) => {
       if (role.users) {
         acc.push(...role.users);

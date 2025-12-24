@@ -7,18 +7,11 @@ const MrMsSTIPositionSelector = ({ value, onChange, usedPositions = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-<<<<<<< HEAD
-=======
-  // Filter out already used positions
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const availablePositions = mrMsSTIPositions.filter(
     position => !usedPositions.includes(position)
   );
 
-<<<<<<< HEAD
   
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {

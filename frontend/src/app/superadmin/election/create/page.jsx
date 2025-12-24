@@ -8,10 +8,6 @@ import axios from "axios";
 
 const CURRENT_SEMESTER_KEY = "trustElect_currentSemester";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const sortPrecincts = (a, b) => {
   const extractNumber = (str) => parseInt(str.match(/\d+/)?.[0] || '0');
   const aNum = extractNumber(a);
@@ -256,15 +252,8 @@ export default function CreateElectionPage() {
   const [totalRegisteredVoters, setTotalRegisteredVoters] = useState(0);
   const [showBackConfirmation, setShowBackConfirmation] = useState(false);
 
-<<<<<<< HEAD
   const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
 
-=======
-  // Add state for managing visibility of program selections
-  const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
-
-  // Add function to toggle visibility
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const toggleProgramSelection = (precinct) => {
     setVisibleProgramSelections(prev => ({
       ...prev,
@@ -379,12 +368,6 @@ export default function CreateElectionPage() {
       try {
         setLoading(prev => ({ ...prev, form: true }));
         const token = Cookies.get("token");
-<<<<<<< HEAD
-
-=======
-        
-        // Check if required fields are selected
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const hasRequiredSelections = 
           eventData.eligibleVoters.programs.length > 0 &&
           eventData.eligibleVoters.yearLevels.length > 0 &&
@@ -454,12 +437,6 @@ export default function CreateElectionPage() {
     if (eligibleVoters.gender.length === 0) newCriteriaErrors.gender = "Select at least one gender";
     if (eligibleVoters.semester.length === 0) newCriteriaErrors.semester = "Select a semester";
     if (eligibleVoters.precinct.length === 0) newCriteriaErrors.precinct = "Select at least one precinct";
-<<<<<<< HEAD
-
-=======
-    
-    // Validate that each selected precinct has at least one program assigned
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     eligibleVoters.precinct.forEach(precinct => {
       if (!eligibleVoters.precinctPrograms[precinct]?.length) {
         newCriteriaErrors.precinct = `Assign at least one program to ${precinct}`;
@@ -527,12 +504,6 @@ export default function CreateElectionPage() {
       } else {
         precinctPrograms[precinct] = [...precinctPrograms[precinct], program];
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Remove empty precinct entries
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (precinctPrograms[precinct].length === 0) {
         delete precinctPrograms[precinct];
       }
@@ -565,21 +536,12 @@ export default function CreateElectionPage() {
             : [...currentValues, value];
 
         if (category === 'programs') {
-<<<<<<< HEAD
-
-=======
-            // Reset year levels when changing programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             return {
                 ...prev,
                 eligibleVoters: {
                     ...prev.eligibleVoters,
                     [category]: newValues,
-<<<<<<< HEAD
                     yearLevels: [] 
-=======
-                    yearLevels: [] // Reset year levels when changing programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 }
             };
         }
@@ -611,20 +573,12 @@ export default function CreateElectionPage() {
         const newValues = allSelected ? [] : [...items];
         
         if (category === 'programs') {
-<<<<<<< HEAD
-=======
-            // Reset year levels when toggling all programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             return {
                 ...prev,
                 eligibleVoters: {
                     ...prev.eligibleVoters,
                     [category]: newValues,
-<<<<<<< HEAD
                     yearLevels: [] 
-=======
-                    yearLevels: [] // Reset year levels when changing programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 }
             };
         }
@@ -741,13 +695,7 @@ export default function CreateElectionPage() {
     return a.localeCompare(b);
   };
 
-<<<<<<< HEAD
   useEffect(() => {
-=======
-  // Add a useEffect to trigger UI refresh when programs change
-  useEffect(() => {
-    // Force re-render when programs change
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const forceUpdate = {};
     setEventData(prev => ({...prev, ...forceUpdate}));
   }, [eventData.eligibleVoters.programs]);
@@ -923,20 +871,6 @@ export default function CreateElectionPage() {
                       {Number(eligibleCount).toLocaleString()} registered voters count
                   </p>
                 </div>
-<<<<<<< HEAD
-
-=======
-                {/* 
-                {eligibleCount > 0 && (
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">Percentage of Total</p>
-                    <p className="font-medium text-blue-800">
-                      {((eligibleCount / totalRegisteredVoters) * 100).toFixed(1)}%
-                    </p>
-                  </div>
-                )}
-                */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               </div>
             </div>
 

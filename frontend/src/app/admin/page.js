@@ -12,10 +12,6 @@ import toast from 'react-hot-toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 async function fetchWithAuth(url, options = {}) {
   const token = Cookies.get('token');
   const response = await fetch(`/api${url}`, {
@@ -30,10 +26,6 @@ async function fetchWithAuth(url, options = {}) {
   return response.json();
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const statusTabs = [
   { id: 'ongoing', name: 'Ongoing Elections', icon: <Clock className="w-4 h-4" /> },
   { id: 'upcoming', name: 'Upcoming Elections', icon: <Calendar className="w-4 h-4" /> },
@@ -84,13 +76,12 @@ const DeleteConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isDele
 };
 
 const ElectionCard = ({ election, onClick, onDeleteClick, canDelete, activeTab }) => {
-  // Determine if the creator is a superadmin
+
   const isSuperAdminCreator =
     election.created_by === 1 ||
     (election.created_by && election.created_by.id === 1) ||
     election.created_by_role === 'SuperAdmin';
 
-  // Only show 'NEEDS APPROVAL' if in the to_approve tab and not created by superadmin
   const displayStatus = activeTab === 'to_approve' && election.needs_approval && !isSuperAdminCreator
     ? 'to_approve'
     : election.status;
@@ -141,7 +132,7 @@ const ElectionCard = ({ election, onClick, onDeleteClick, canDelete, activeTab }
   
   return (
     <div className="border rounded-lg overflow-hidden shadow-md hover:shadow-2xl transition-all duration-200 bg-white">
-      {/* Status Banner */}
+
       <div className={`w-full py-2 px-4 flex items-center justify-between ${statusColors[displayStatus]}`}>
         <div className="flex items-center">
           {statusIcons[displayStatus]}
@@ -152,7 +143,6 @@ const ElectionCard = ({ election, onClick, onDeleteClick, canDelete, activeTab }
         
       </div>
 
-      {/* Content */}
       <div className="p-5" onClick={() => onClick(election.id)}>
         <h3 className="font-bold text-xl text-black mb-2 truncate">{election.title}</h3>
         <p className="text-gray-600 mb-4 text-sm line-clamp-2 h-10">{election.description}</p>
@@ -229,28 +219,13 @@ export default function AdminDashboard() {
   const [landingContent, setLandingContent] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-<<<<<<< HEAD
   const canApproveElections = useCallback(() => {
     const userRole = Cookies.get('role');
     
 
-=======
-  // Memoize canApproveElections to prevent unnecessary re-renders
-  const canApproveElections = useCallback(() => {
-    const userRole = Cookies.get('role');
-    
-    // Super Admin always has access
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (userRole === 'Super Admin') {
-      console.log('User is Super Admin - can approve elections');
       return true;
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Check Admin users using the canApproveElections flag from token
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (userRole === 'Admin') {
       const token = Cookies.get('token');
       if (token) {
@@ -258,44 +233,23 @@ export default function AdminDashboard() {
           const tokenData = JSON.parse(atob(token.split('.')[1]));
           const canApprove = tokenData.canApproveElections;
           const department = tokenData.department;
-<<<<<<< HEAD
 
           if (canApprove === true) {
             return true;
           }
 
-=======
-          
-          console.log('Admin user department:', department, 'canApproveElections:', canApprove);
-          
-          // Use the canApproveElections flag set during login
-          if (canApprove === true) {
-            console.log('Admin has approval rights - can approve elections');
-            return true;
-          }
-          
-          console.log('Admin does not have approval rights - cannot approve elections');
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           return false;
         } catch (error) {
           console.error('Error parsing token for approval check:', error);
           return false;
         }
       } else {
-        console.log('No token found for admin user');
         return false;
       }
     }
-<<<<<<< HEAD
 
     return false;
   }, []);
-=======
-    
-    console.log('User is not Super Admin or Admin - cannot approve elections');
-    return false;
-  }, []); // Empty dependency array since we only depend on cookies
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [totalUniqueVoters, setTotalUniqueVoters] = useState(0);
   const [liveVoteData, setLiveVoteData] = useState(null);
   const [showLiveVoteModal, setShowLiveVoteModal] = useState(false);
@@ -310,10 +264,6 @@ export default function AdminDashboard() {
   const [dateTo, setDateTo] = useState('');
   const [isDateFiltered, setIsDateFiltered] = useState(false);
 
-<<<<<<< HEAD
-=======
-  // Load UI design - simplified and memoized
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadUIDesign = useCallback(async () => {
     try {
       const token = Cookies.get('token');
@@ -359,18 +309,10 @@ export default function AdminDashboard() {
     }
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Load elections data for a specific tab with pagination
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadElectionsForTab = useCallback(async (tabId, page = 1, limit = 10) => {
     try {
       
       if (tabId === 'to_approve') {
-<<<<<<< HEAD
-=======
-        // Pending approval elections don't use pagination yet
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const response = await fetch(`/api/elections/admin-pending-approval`, {
           headers: {
             'Authorization': `Bearer ${Cookies.get('token')}`,
@@ -380,23 +322,11 @@ export default function AdminDashboard() {
         
         if (response.ok) {
           const data = await response.json();
-<<<<<<< HEAD
           const canApprove = canApproveElections();
 
           const filteredData = canApprove 
             ? data 
             : data.filter(election => {
-=======
-          // Cache the approval permission check to avoid repeated calls
-          const canApprove = canApproveElections();
-          
-          // If user can approve elections, show all pending approvals
-          // Otherwise, filter to only include elections created by the current admin
-          const filteredData = canApprove 
-            ? data 
-            : data.filter(election => {
-                // Exclude elections created by system admin
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 return !(election.created_by === 1 || 
                         (election.created_by && election.created_by.id === 1) ||
                         election.created_by_role === 'SuperAdmin');
@@ -417,10 +347,6 @@ export default function AdminDashboard() {
           return { data: [], pagination: { page: 1, limit, total: 0, totalPages: 0, hasMore: false } };
         }
       } else {
-<<<<<<< HEAD
-=======
-        // Regular status tabs use pagination
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const response = await fetch(`/api/elections/status/${tabId}?page=${page}&limit=${limit}`, {
           headers: {
             'Authorization': `Bearer ${Cookies.get('token')}`,
@@ -445,21 +371,11 @@ export default function AdminDashboard() {
     }
   }, [canApproveElections]);
 
-<<<<<<< HEAD
-=======
-  // Load all elections data - now uses pagination and loads tabs incrementally
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadAllElections = useCallback(async () => {
     try {
       const statuses = ['ongoing', 'upcoming', 'completed', 'to_approve'];
       const results = {};
       const paginationInfo = {};
-<<<<<<< HEAD
-
-=======
-      
-      // Load first page of each tab sequentially to avoid overwhelming the server
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       for (const status of statuses) {
         const result = await loadElectionsForTab(status, 1, 10);
         results[status] = result.data;
@@ -476,10 +392,6 @@ export default function AdminDashboard() {
     }
   }, [loadElectionsForTab]);
 
-<<<<<<< HEAD
-=======
-  // Load pending approvals only (for background refresh)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadPendingApprovals = useCallback(async () => {
     try {
       const response = await fetch(`/api/elections/admin-pending-approval`, {
@@ -491,24 +403,12 @@ export default function AdminDashboard() {
       
       if (response.ok) {
         const data = await response.json();
-<<<<<<< HEAD
         const canApprove = canApproveElections();
         
 
         const filteredData = canApprove 
           ? data 
           : data.filter(election => {
-=======
-        // Cache the approval permission check to avoid repeated calls
-        const canApprove = canApproveElections();
-        
-        // If user can approve elections, show all pending approvals
-        // Otherwise, filter to only include elections created by the current admin
-        const filteredData = canApprove 
-          ? data 
-          : data.filter(election => {
-              // Exclude elections created by system admin
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               return !(election.created_by === 1 || 
                       (election.created_by && election.created_by.id === 1) ||
                       election.created_by_role === 'SuperAdmin');
@@ -524,19 +424,10 @@ export default function AdminDashboard() {
     }
   }, [canApproveElections]);
 
-<<<<<<< HEAD
   const loadStats = useCallback(async () => {
     try {
       const token = Cookies.get('token');
 
-=======
-  // Load stats - memoized
-  const loadStats = useCallback(async () => {
-    try {
-      const token = Cookies.get('token');
-      
-      // Load election stats only (remove superadmin endpoint for admin users)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const electionsResponse = await fetch(`/api/elections/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -549,12 +440,6 @@ export default function AdminDashboard() {
       }
       
       const electionsData = await electionsResponse.json();
-<<<<<<< HEAD
-
-=======
-      
-      // Set stats without total_students for admin users
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const statsData = electionsData || [];
       setStats(statsData);
       return statsData;
@@ -565,10 +450,6 @@ export default function AdminDashboard() {
     }
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Load total unique voters - use students endpoint for admin users
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadTotalUniqueVoters = useCallback(async () => {
     try {
       const token = Cookies.get('token');
@@ -581,11 +462,6 @@ export default function AdminDashboard() {
       
       if (response.ok) {
         const data = await response.json();
-<<<<<<< HEAD
-
-=======
-        // Count active students
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const activeStudents = data.students ? data.students.filter(student => student.is_active !== false) : [];
         setTotalUniqueVoters(activeStudents.length);
       } else {
@@ -609,10 +485,6 @@ export default function AdminDashboard() {
     }
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Load live vote count for ongoing elections (optional feature)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadLiveVoteCount = useCallback(async () => {
     try {
       const response = await fetchWithAuth('/elections/live-vote-count');
@@ -620,19 +492,11 @@ export default function AdminDashboard() {
       setRefreshTime(new Date());
       return response;
     } catch (err) {
-<<<<<<< HEAD
-=======
-      // Set empty data instead of null to prevent UI errors
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setLiveVoteData([]);
       return [];
     }
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Load system load data with enhanced time-based information
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadSystemLoadData = useCallback(async (timeframe = '7d') => {
     try {
       setIsSystemLoadLoading(true);
@@ -672,10 +536,6 @@ export default function AdminDashboard() {
     }
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Filter data by date range
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const filterDataByDateRange = (data, dateFrom, dateTo) => {
     if (!dateFrom && !dateTo) return data;
     
@@ -694,61 +554,31 @@ export default function AdminDashboard() {
     });
   };
 
-<<<<<<< HEAD
-=======
-  // Handle date filter change
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleDateFilterChange = (fromDate, toDate) => {
     setDateFrom(fromDate);
     setDateTo(toDate);
     setIsDateFiltered(!!(fromDate || toDate));
   };
 
-<<<<<<< HEAD
-=======
-  // Clear date filter
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const clearDateFilter = () => {
     setDateFrom('');
     setDateTo('');
     setIsDateFiltered(false);
   };
-<<<<<<< HEAD
 
   const processRawData = (rawData, timeframe) => {
     if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
     return rawData.map((item) => {
       if (item.timestamp) {
-=======
-  
-  // Improved data processing with accurate date handling
-  const processRawData = (rawData, timeframe) => {
-    if (!Array.isArray(rawData) || rawData.length === 0) return [];
-    
-    // Return data with accurate timestamp information from backend
-    return rawData.map((item) => {
-      // Use timestamp from backend if available
-      if (item.timestamp) {
-        // Use backend-provided day/month/year to avoid timezone issues
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const day = item.day || parseInt(item.timestamp.split('T')[0].split('-')[2]);
         const month = item.month || parseInt(item.timestamp.split('T')[0].split('-')[1]);
         const year = item.year || parseInt(item.timestamp.split('T')[0].split('-')[0]);
         const hour = item.hour || 0;
-<<<<<<< HEAD
 
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const displayDate = `${monthNames[month - 1]} ${day}, ${year}`;
 
-=======
-        
-        // Create display date from backend values (not from Date object to avoid timezone shift)
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const displayDate = `${monthNames[month - 1]} ${day}, ${year}`;
-        
-        // Format hour for display
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
         const displayPeriod = hour < 12 ? 'AM' : 'PM';
         const displayTime = `${displayHour}:00 ${displayPeriod}`;
@@ -769,120 +599,59 @@ export default function AdminDashboard() {
       return item;
     }).sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
   };
-<<<<<<< HEAD
-
-=======
-  
-  // Helper function to enhance data with proper time information
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const enhanceTimeData = (data, timeframe) => {
     if (!Array.isArray(data) || data.length === 0) return [];
     
     const now = new Date();
     
     return data.map((item, index) => {
-<<<<<<< HEAD
       let timestamp = item.timestamp;
       let date = item.date;
       let hour = item.hour || 0;
 
-=======
-      // Extract or create timestamp information
-      let timestamp = item.timestamp;
-      let date = item.date;
-      let hour = item.hour || 0;
-      
-      // If we have a timestamp, use it directly
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (timestamp) {
         const dateObj = new Date(timestamp);
         date = dateObj.toISOString().split('T')[0];
         hour = dateObj.getHours();
       } 
-<<<<<<< HEAD
       else if (date) {
         timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
       } 
       else {
-=======
-      // If we have a date but no timestamp, create one
-      else if (date) {
-        timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
-      } 
-      // If we only have hour, create date and timestamp based on timeframe
-      else {
-        // For 24h, use today's date with the specified hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (timeframe === '24h') {
           date = now.toISOString().split('T')[0];
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
         } 
-<<<<<<< HEAD
         else if (timeframe === '7d') {
           const dayOffset = index % 7;
-=======
-        // For 7d, distribute across the past 7 days
-        else if (timeframe === '7d') {
-          const dayOffset = index % 7; // Use index for deterministic distribution
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
           date = targetDate.toISOString().split('T')[0];
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
         }
-<<<<<<< HEAD
         else if (timeframe === '30d') {
           const dayOffset = (index * 7 + Math.floor(index / 3)) % 30;
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
           date = targetDate.toISOString().split('T')[0];
-=======
-        // For 30d, distribute across the past 30 days with better distribution
-        else if (timeframe === '30d') {
-          // Use a more deterministic distribution for 30 days
-          const dayOffset = (index * 7 + Math.floor(index / 3)) % 30; // Better distribution
-          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-          date = targetDate.toISOString().split('T')[0];
-          // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           hour = hours[index % hours.length];
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
         } else if (timeframe === '60d') {
-<<<<<<< HEAD
           const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
           
-=======
-          // For 60d, distribute across the past 60 days
-          const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
-          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-          
-          // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           const selectedHour = hours[index % hours.length];
           
           timestamp = new Date(`${targetDate.toISOString().split('T')[0]}T${selectedHour.toString().padStart(2, '0')}:00:00`).toISOString();
         } else if (timeframe === '90d') {
-<<<<<<< HEAD
           const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
           
-=======
-          // For 90d, distribute across the past 90 days
-          const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
-          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-          
-          // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           const selectedHour = hours[index % hours.length];
           
           timestamp = new Date(`${targetDate.toISOString().split('T')[0]}T${selectedHour.toString().padStart(2, '0')}:00:00`).toISOString();
         }
-<<<<<<< HEAD
-=======
-        // Fallback for other timeframes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         else {
           const dayOffset = Math.floor(Math.random() * 30);
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
@@ -890,12 +659,6 @@ export default function AdminDashboard() {
           timestamp = new Date(`${date}T${hour.toString().padStart(2, '0')}:00:00`).toISOString();
         }
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Return enhanced data item with complete time information
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return {
         ...item,
         hour,
@@ -905,10 +668,6 @@ export default function AdminDashboard() {
                typeof item.login_count === 'number' && !isNaN(item.login_count) ? item.login_count :
                typeof item.vote_count === 'number' && !isNaN(item.vote_count) ? item.vote_count :
                typeof item.activity_count === 'number' && !isNaN(item.activity_count) ? item.activity_count : 0),
-<<<<<<< HEAD
-=======
-        // Add formatted display values for better readability
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         displayTime: new Date(timestamp).toLocaleTimeString('en-US', { 
           hour: '2-digit', 
           minute: '2-digit',
@@ -923,37 +682,18 @@ export default function AdminDashboard() {
     });
   };
 
-<<<<<<< HEAD
-=======
-  // Optimized initialization effect with incremental loading
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     let isMounted = true;
     
     const initializeDashboard = async () => {
-<<<<<<< HEAD
       if (permissionsLoading) {
         return;
       }
 
-=======
-      // Wait for permissions to load
-      if (permissionsLoading) {
-        return;
-      }
-      
-      // Check if already loaded
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (dataLoaded) {
         setIsLoading(false);
         return;
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Check permissions
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!hasPermission('elections', 'view')) {
         setIsLoading(false);
         return;
@@ -962,7 +702,6 @@ export default function AdminDashboard() {
       try {
         setIsLoading(true);
         setError(null);
-<<<<<<< HEAD
 
         await loadStats();
         
@@ -970,19 +709,6 @@ export default function AdminDashboard() {
           setIsLoading(false);
         }
 
-=======
-        
-        
-        // Phase 1: Load critical stats first (fast)
-        await loadStats();
-        
-        if (isMounted) {
-          // Show UI with just stats data to improve perceived performance
-          setIsLoading(false);
-        }
-        
-        // Phase 2: Load current tab data (medium priority)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const currentTabResult = await loadElectionsForTab(activeTab, 1, 10);
         
         if (isMounted) {
@@ -996,17 +722,9 @@ export default function AdminDashboard() {
             [activeTab]: currentTabResult.pagination
           }));
         }
-<<<<<<< HEAD
 
         setTimeout(async () => {
           if (isMounted) {
-=======
-        
-        // Phase 3: Load other tabs data in background (low priority)
-        setTimeout(async () => {
-          if (isMounted) {
-            // Load other tabs data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             const otherTabs = ['ongoing', 'upcoming', 'completed', 'to_approve'].filter(tab => tab !== activeTab);
             
             for (const tab of otherTabs) {
@@ -1022,12 +740,6 @@ export default function AdminDashboard() {
                 }));
               }
             }
-<<<<<<< HEAD
-
-=======
-            
-            // Load live vote count
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             loadLiveVoteCount().catch(err => {
               console.error('Error loading live vote count:', err);
             });
@@ -1048,30 +760,16 @@ export default function AdminDashboard() {
     };
     
     initializeDashboard();
-<<<<<<< HEAD
 
     const intervals = [];
 
-=======
-    
-    // Set up intervals for auto-refresh (only after initial load)
-    const intervals = [];
-    
-    // Refresh stats every minute (high priority data)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     intervals.push(setInterval(() => {
       if (isMounted) {
         loadStats().catch(err => {
         });
       }
-<<<<<<< HEAD
     }, 60000)); 
 
-=======
-    }, 60000)); // 1 minute
-    
-    // Refresh active tab data every 2 minutes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     intervals.push(setInterval(() => {
       if (isMounted && dataLoaded) {
         loadElectionsForTab(activeTab, 1, 10)
@@ -1089,11 +787,7 @@ export default function AdminDashboard() {
           .catch(err => {
           });
       }
-<<<<<<< HEAD
     }, 120000));
-=======
-    }, 120000)); // 2 minutes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     return () => {
       isMounted = false;
@@ -1108,23 +802,12 @@ export default function AdminDashboard() {
     loadStats
   ]);
 
-<<<<<<< HEAD
   useEffect(() => {
     if (dataLoaded && !isLoading) {
-=======
-  // Load background data after initial load is complete
-  useEffect(() => {
-    if (dataLoaded && !isLoading) {
-      // Load UI design and total voters count in background
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       Promise.allSettled([
         loadUIDesign(),
         loadTotalUniqueVoters()
       ]).then(() => {
-<<<<<<< HEAD
-=======
-        // Load system load data after UI design is loaded
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         loadSystemLoadData('7d').catch(err => {
           console.error('Error loading system load data:', err);
         });
@@ -1132,19 +815,10 @@ export default function AdminDashboard() {
     }
   }, [dataLoaded, isLoading, loadUIDesign, loadTotalUniqueVoters, loadSystemLoadData]);
 
-<<<<<<< HEAD
   useEffect(() => {
     if (allElections && allElections[activeTab]) {
       setElections(allElections[activeTab] || []);
 
-=======
-  // Handle tab change - update elections when tab changes and load data if needed
-  useEffect(() => {
-    if (allElections && allElections[activeTab]) {
-      setElections(allElections[activeTab] || []);
-      
-      // If this tab has no data yet, load it
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (allElections[activeTab].length === 0 && !isLoading) {
         loadElectionsForTab(activeTab, 1, 10)
           .then(result => {
@@ -1164,12 +838,6 @@ export default function AdminDashboard() {
       }
     }
   }, [activeTab, allElections, isLoading, loadElectionsForTab]);
-<<<<<<< HEAD
-
-=======
-  
-  // Function to load more elections for the current tab
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const loadMoreElections = async () => {
     const currentPagination = paginationState[activeTab];
     if (!currentPagination.hasMore || isLoadingMore) return;
@@ -1181,10 +849,6 @@ export default function AdminDashboard() {
       const result = await loadElectionsForTab(activeTab, nextPage, currentPagination.limit);
       
       if (result.data.length > 0) {
-<<<<<<< HEAD
-=======
-        // Append new data to existing data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const updatedElections = [...allElections[activeTab], ...result.data];
         
         setElections(updatedElections);
@@ -1192,12 +856,6 @@ export default function AdminDashboard() {
           ...prev,
           [activeTab]: updatedElections
         }));
-<<<<<<< HEAD
-
-=======
-        
-        // Update pagination state
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setPaginationState(prev => ({
           ...prev,
           [activeTab]: result.pagination
@@ -1210,10 +868,6 @@ export default function AdminDashboard() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Ensure user ID is available from token - run once
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const userId = ensureUserIdFromToken();
   }, []);
@@ -1223,12 +877,6 @@ export default function AdminDashboard() {
       console.error('Invalid election ID:', electionId);
       return;
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Check if user has permission to view election details
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!hasPermission('elections', 'view')) {
       setActionMessage({
         type: 'error',
@@ -1244,10 +892,6 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteClick = (election) => {
-<<<<<<< HEAD
-=======
-    // Check if user has permission to delete elections
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!hasPermission('elections', 'delete')) {
       setActionMessage({
         type: 'error',
@@ -1266,10 +910,6 @@ export default function AdminDashboard() {
   const handleDeleteConfirm = async () => {
     if (!electionToDelete) return;
     
-<<<<<<< HEAD
-=======
-    // Double-check delete permission
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!hasPermission('elections', 'delete')) {
       setActionMessage({
         type: 'error',
@@ -1298,31 +938,15 @@ export default function AdminDashboard() {
       await fetchWithAuth(`/elections/${electionToDelete.id}`, {
         method: 'DELETE'
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Update the allElections state to remove the deleted election
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setAllElections(prev => ({
         ...prev,
         completed: prev.completed.filter(e => e.id !== electionToDelete.id)
       }));
-<<<<<<< HEAD
 
       if (activeTab === 'completed') {
         setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       }
 
-=======
-      
-      // Update the current elections view if we're on the completed tab
-      if (activeTab === 'completed') {
-        setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
-      }
-      
-      // Update stats immediately and refresh
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await loadStats();
       
       setActionMessage({
@@ -1346,25 +970,12 @@ export default function AdminDashboard() {
     }
   };
 
-<<<<<<< HEAD
   const handleViewLiveVoteCount = async (election) => {
     setSelectedElection(election);
     setShowLiveVoteModal(true);
     await loadLiveVoteCount();
   };
 
-=======
-  // Handle live vote count modal
-  const handleViewLiveVoteCount = async (election) => {
-    setSelectedElection(election);
-    setShowLiveVoteModal(true);
-    // Load live vote data when modal is opened
-    await loadLiveVoteCount();
-  };
-
-
-  // Helper functions for system load reports
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatNumber = (num) => {
     if (num === undefined || num === null || isNaN(num)) return '0';
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -1380,12 +991,6 @@ export default function AdminDashboard() {
     else if (hourNum < 12) timeStr = `${hourNum}:00 AM`;
     else if (hourNum === 12) timeStr = '12:00 PM';
     else timeStr = `${hourNum - 12}:00 PM`;
-<<<<<<< HEAD
-
-=======
-    
-    // Add date if provided
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (date) {
       const dateObj = new Date(date);
       const dateStr = dateObj.toLocaleDateString('en-US', { 
@@ -1457,7 +1062,6 @@ export default function AdminDashboard() {
       processedData = data.map(item => ({
         hour: item.hour || 0,
         count: Math.round(typeof item.count === 'number' && !isNaN(item.count) ? item.count : 0),
-<<<<<<< HEAD
         date: now.toISOString().split('T')[0],
         timestamp: now.toISOString()
       }));
@@ -1466,39 +1070,16 @@ export default function AdminDashboard() {
         const hour = item.hour || 0;
         const count = Math.round(item.count || 0);
 
-=======
-        date: now.toISOString().split('T')[0], // Use current date for 24h
-        timestamp: now.toISOString()
-      }));
-    } else if (timeframe === '7d') {
-      // For 7d, backend returns hourly data - show all hours with their actual times
-      // Map each data point to a specific time slot
-      data.forEach((item, index) => {
-        const hour = item.hour || 0;
-        const count = Math.round(item.count || 0);
-        
-        // Calculate which day this hour belongs to (distribute across 7 days)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const dayOffset = index % 7;
         const date = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
         
         processedData.push({
-<<<<<<< HEAD
           hour: hour, 
-=======
-          hour: hour, // Keep the actual hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           count: count,
           date: date.toISOString().split('T')[0],
           timestamp: date.toISOString()
         });
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Sort by date and hour for proper display
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       processedData.sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
         if (dateCompare === 0) {
@@ -1507,25 +1088,13 @@ export default function AdminDashboard() {
         return dateCompare;
       });
     } else if (timeframe === '30d') {
-<<<<<<< HEAD
-=======
-      // For 30d, create a more comprehensive distribution across 30 days
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       data.forEach((item, index) => {
         const count = Math.round(item.count || 0);
         
         if (count > 0) {
-<<<<<<< HEAD
           const dayOffset = (index * 7 + Math.floor(index / 3)) % 30; 
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
 
-=======
-          // Distribute data points across the past 30 days
-          const dayOffset = (index * 7 + Math.floor(index / 3)) % 30; // Better distribution
-          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-          
-          // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           const selectedHour = hours[index % hours.length];
           
@@ -1537,12 +1106,6 @@ export default function AdminDashboard() {
           });
         }
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Sort by date and hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       processedData.sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
         if (dateCompare === 0) {
@@ -1551,25 +1114,13 @@ export default function AdminDashboard() {
         return dateCompare;
       });
     } else if (timeframe === '60d') {
-<<<<<<< HEAD
-=======
-      // For 60d, distribute across the past 60 days
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       data.forEach((item, index) => {
         const count = Math.round(item.count || 0);
         
         if (count > 0) {
-<<<<<<< HEAD
           const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
 
-=======
-          // Distribute data points across the past 60 days
-          const dayOffset = (index * 13 + Math.floor(index / 5)) % 60;
-          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-          
-          // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           const selectedHour = hours[index % hours.length];
           
@@ -1581,12 +1132,6 @@ export default function AdminDashboard() {
           });
         }
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Sort by date and hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       processedData.sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
         if (dateCompare === 0) {
@@ -1595,24 +1140,12 @@ export default function AdminDashboard() {
         return dateCompare;
       });
     } else if (timeframe === '90d') {
-<<<<<<< HEAD
-=======
-      // For 90d, distribute across the past 90 days
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       data.forEach((item, index) => {
         const count = Math.round(item.count || 0);
         
         if (count > 0) {
-<<<<<<< HEAD
           const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
           const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-=======
-          // Distribute data points across the past 90 days
-          const dayOffset = (index * 19 + Math.floor(index / 4)) % 90;
-          const targetDate = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
-          
-          // Use different hours throughout the day for variety
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const hours = [8, 10, 12, 14, 16, 18, 20, 22];
           const selectedHour = hours[index % hours.length];
           
@@ -1624,12 +1157,6 @@ export default function AdminDashboard() {
           });
         }
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Sort by date and hour
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       processedData.sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
         if (dateCompare === 0) {
@@ -1648,12 +1175,6 @@ export default function AdminDashboard() {
     if (!stats || !Array.isArray(stats)) {
       return 0;
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Find the stat with matching status
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const stat = stats.find(s => s.status === status);
     
     if (stat) {
@@ -1669,10 +1190,6 @@ export default function AdminDashboard() {
     return 0;
   };
 
-<<<<<<< HEAD
-=======
-  // Format image URL helper function
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatImageUrl = (url) => {
     if (!url) return null;
     if (url.startsWith('blob:')) return url;
@@ -1688,22 +1205,11 @@ export default function AdminDashboard() {
     
     return `${API_BASE}${url.startsWith('/') ? url : '/' + url}`;
   };
-<<<<<<< HEAD
-
-=======
-  
-  // Landing page layout component for when landing design is selected
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const LandingPageLayout = () => {
     if (!landingContent) return null;
     
     return (
       <div className="landing-page-container">
-<<<<<<< HEAD
-
-=======
-        {/* Hero Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <section 
           className="text-white py-12 px-6"
           style={{
@@ -1745,11 +1251,6 @@ export default function AdminDashboard() {
     );
   }
 
-<<<<<<< HEAD
-=======
-
-  // If the user doesn't have permission to view elections, show an access denied message
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (!hasPermission('elections', 'view')) {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen">
@@ -1787,12 +1288,6 @@ export default function AdminDashboard() {
           {actionMessage.text}
         </div>
       )}
-<<<<<<< HEAD
-
-=======
-      
-      {/* Stats Cards */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-medium mb-2 text-black">Total Elections</h3>
@@ -1823,10 +1318,6 @@ export default function AdminDashboard() {
       <div className="bg-white rounded-lg shadow-lg mb-6 p-1">
         <div className="flex">
           {statusTabs.map(tab => {
-<<<<<<< HEAD
-=======
-            // Use actual elections count instead of stats
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             const count = allElections[tab.id] ? allElections[tab.id].length : 0;
             const hasPending = tab.id === 'to_approve' && count > 0;
             
@@ -1934,12 +1425,6 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-<<<<<<< HEAD
-
-=======
-          
-          {/* Load More Button */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {paginationState[activeTab]?.hasMore && (
             <div className="mt-8 flex justify-center">
               <button
@@ -1963,12 +1448,6 @@ export default function AdminDashboard() {
               </button>
             </div>
           )}
-<<<<<<< HEAD
-
-=======
-          
-          {/* Loading indicator for background data loading */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {isLoading && elections.length > 0 && (
             <div className="mt-4 flex justify-center">
               <div className="flex items-center text-sm text-gray-500">
@@ -1979,12 +1458,6 @@ export default function AdminDashboard() {
           )}
         </>
       )}
-<<<<<<< HEAD
-
-=======
-      
-      {/* Live Vote Count Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {activeTab === 'ongoing' && elections.length > 0 && liveVoteData && liveVoteData.length > 0 && (
         <div className="mt-8 bg-gray-50 rounded-lg shadow-lg p-6 border border-gray-200">
           <div className="flex justify-between items-center mb-6">
@@ -2046,11 +1519,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-<<<<<<< HEAD
-      {/* System Load Reports*/}
-=======
-      {/* System Load Reports - Direct Display */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="mt-8 bg-white rounded-lg shadow-lg p-6 border border-gray-200">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-black flex items-center">
@@ -2076,7 +1544,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Date Range Filter */}
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex items-center gap-4 mb-3">
             <h3 className="text-sm font-semibold text-black">Filter by Date Range:</h3>
@@ -2119,10 +1586,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-<<<<<<< HEAD
-=======
-        {/* Loading Indicator */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {isSystemLoadLoading && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div className="flex items-center gap-3">
@@ -2135,31 +1598,15 @@ export default function AdminDashboard() {
 
         {systemLoadData ? (
           <>
-<<<<<<< HEAD
 
             {(() => {
               let processedLoginData = processRawData(systemLoadData.login_activity || [], selectedTimeframe);
               let processedVotingData = processRawData(systemLoadData.voting_activity || [], selectedTimeframe);
 
-=======
-            {/* Process data */}
-            {(() => {
-              // Use accurate backend timestamp data processing
-              let processedLoginData = processRawData(systemLoadData.login_activity || [], selectedTimeframe);
-              let processedVotingData = processRawData(systemLoadData.voting_activity || [], selectedTimeframe);
-              
-              // Apply date range filter if active
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               if (isDateFiltered) {
                 processedLoginData = filterDataByDateRange(processedLoginData, dateFrom, dateTo);
                 processedVotingData = filterDataByDateRange(processedVotingData, dateFrom, dateTo);
               }
-<<<<<<< HEAD
-
-=======
-              
-              // Fallback to original data structure if new processing returns empty data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               if (processedLoginData.length === 0 && systemLoadData.login_activity && systemLoadData.login_activity.length > 0) {
                 processedLoginData = validateData(systemLoadData.login_activity);
               }
@@ -2167,12 +1614,6 @@ export default function AdminDashboard() {
               if (processedVotingData.length === 0 && systemLoadData.voting_activity && systemLoadData.voting_activity.length > 0) {
                 processedVotingData = validateData(systemLoadData.voting_activity);
               }
-<<<<<<< HEAD
-
-=======
-              
-              // Calculate data consistency metrics
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               const totalLogins = processedLoginData.reduce((sum, item) => sum + item.count, 0);
               const totalDistinctVoters = processedVotingData.reduce((sum, item) => sum + item.count, 0);
               const totalVotes = systemLoadData.summary?.total_votes || 0;
@@ -2269,10 +1710,6 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-<<<<<<< HEAD
-=======
-                  {/* Usage Charts */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   <div className="space-y-4">
                     {/* Login Activity Chart */}
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
@@ -2472,10 +1909,6 @@ export default function AdminDashboard() {
         isDeleting={isDeleting}
       />
 
-<<<<<<< HEAD
-=======
-      {/* Live Vote Count Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {showLiveVoteModal && selectedElection && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="bg-gray-50 rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-auto border border-gray-300">
@@ -2494,11 +1927,7 @@ export default function AdminDashboard() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-<<<<<<< HEAD
                 {/* Voter Participation  */}
-=======
-                {/* Voter Participation Overview */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                   <h3 className="text-xl font-bold text-black mb-4 flex items-center">
                     <Users className="w-5 h-5 mr-2" />
@@ -2552,12 +1981,7 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                 </div>
-<<<<<<< HEAD
                 
-=======
-
-                {/* Votes by Position */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                   <h3 className="text-xl font-bold text-black mb-4 flex items-center">
                     <BarChart className="w-5 h-5 mr-2" />

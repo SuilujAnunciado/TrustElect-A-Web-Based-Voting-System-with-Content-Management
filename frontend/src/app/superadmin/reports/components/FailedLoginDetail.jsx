@@ -1,8 +1,4 @@
 "use client";
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useState, useEffect } from 'react';
 import { X, Download, Shield, Lock, AlertTriangle, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { generatePdfReport } from '@/utils/pdfGenerator';
@@ -80,19 +76,11 @@ export default function FailedLoginDetail({ report, onClose, onDownload }) {
       if (response.data && response.data.success) {
         setFilteredData(response.data.data);
       } else {
-<<<<<<< HEAD
         setFilteredData(report.data); 
       }
     } catch (error) {
       console.error('Error fetching filtered data:', error);
       setFilteredData(report.data);
-=======
-        setFilteredData(report.data); // Fallback to original data
-      }
-    } catch (error) {
-      console.error('Error fetching filtered data:', error);
-      setFilteredData(report.data); // Fallback to original data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } finally {
       setLoading(false);
     }
@@ -104,11 +92,7 @@ export default function FailedLoginDetail({ report, onClose, onDownload }) {
     } else {
       setFilteredData(report.data);
     }
-<<<<<<< HEAD
     setCurrentPage(1); 
-=======
-    setCurrentPage(1); // Reset to first page when filter changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   }, [timeFilter]);
 
   const handleTimeFilterChange = (filter) => {
@@ -149,10 +133,6 @@ export default function FailedLoginDetail({ report, onClose, onDownload }) {
     };
 
     try {
-<<<<<<< HEAD
-=======
-      // Use report ID 3 for Failed Login Report
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await generatePdfReport(3, reportData);
     } catch (error) {
       console.error('Error generating report:', error);
@@ -162,11 +142,6 @@ export default function FailedLoginDetail({ report, onClose, onDownload }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-full max-w-5xl mx-4 flex flex-col max-h-[90vh]">
-<<<<<<< HEAD
-
-=======
-        {/* Fixed Header */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="p-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
@@ -196,18 +171,10 @@ export default function FailedLoginDetail({ report, onClose, onDownload }) {
           </div>
         </div>
 
-<<<<<<< HEAD
         <div className="p-6 overflow-y-auto flex-grow">
           {report.data ? (
             <>
     
-=======
-        {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto flex-grow">
-          {report.data ? (
-            <>
-              {/* Time Filter Buttons */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Calendar className="h-5 w-5 text-gray-500" />
@@ -235,10 +202,6 @@ export default function FailedLoginDetail({ report, onClose, onDownload }) {
                 </div>
               </div>
 
-<<<<<<< HEAD
-=======
-              {/* Summary Cards */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
                   <div className="flex justify-between items-start mb-4">
@@ -269,10 +232,6 @@ export default function FailedLoginDetail({ report, onClose, onDownload }) {
                 </div>
               </div>
 
-<<<<<<< HEAD
-=======
-              {/* Recent Failed Attempts Table */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-8">
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex justify-between items-center">
@@ -323,12 +282,6 @@ export default function FailedLoginDetail({ report, onClose, onDownload }) {
                     </tbody>
                   </table>
                 </div>
-<<<<<<< HEAD
-
-=======
-                
-                {/* Pagination */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 {getTotalPages() > 1 && (
                   <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                     <div className="flex items-center justify-between">

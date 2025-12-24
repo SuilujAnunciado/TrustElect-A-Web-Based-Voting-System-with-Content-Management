@@ -16,10 +16,7 @@ export default function EditStudentModal({ student, onClose }) {
     gender: student.gender || "Male",
   });
 
-<<<<<<< HEAD
   
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [courses, setCourses] = useState([]);
   const [yearLevels, setYearLevels] = useState([]);
   const [errors, setErrors] = useState({});

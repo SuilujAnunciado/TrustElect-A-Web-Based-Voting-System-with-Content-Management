@@ -1,8 +1,4 @@
 "use client";
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 import { useState, useMemo, useEffect } from 'react';
 import { X, Download, Users, ArrowUpRight, ArrowDownRight, Activity, ChevronLeft, ChevronRight, ArrowUp } from 'lucide-react';
 import { generatePdfReport } from '@/utils/pdfGenerator';
@@ -14,31 +10,17 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   useEffect(() => {
-<<<<<<< HEAD
     const handleScroll = (e) => {
       const scrollTop = e.target.scrollTop;
       setShowScrollButton(scrollTop > 300); 
     };
 
-=======
-    // Function to handle scroll event
-    const handleScroll = (e) => {
-      const scrollTop = e.target.scrollTop;
-      setShowScrollButton(scrollTop > 300); // Show button when scrolled down 300px
-    };
-
-    // Add scroll event listener to the modal content
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const modalContent = document.getElementById('role-based-detail-content');
     if (modalContent) {
       modalContent.addEventListener('scroll', handleScroll);
     }
 
     return () => {
-<<<<<<< HEAD
-=======
-      // Cleanup scroll event listener
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (modalContent) {
         modalContent.removeEventListener('scroll', handleScroll);
       }
@@ -60,10 +42,6 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
   };
 
   const calculatePercentage = (value, total) => {
-<<<<<<< HEAD
-=======
-    // Parse the values and remove commas if they exist
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const parsedValue = parseFloat(String(value).replace(/,/g, '')) || 0;
     const parsedTotal = parseFloat(String(total).replace(/,/g, '')) || 0;
     
@@ -71,10 +49,6 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
     return ((parsedValue / parsedTotal) * 100).toFixed(2);
   };
 
-<<<<<<< HEAD
-=======
-  // Filter users based on search term
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const filteredUsers = useMemo(() => {
     if (!report.data?.users) return [];
     return report.data.users.filter(user => 
@@ -85,10 +59,6 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
     );
   }, [report.data?.users, searchTerm]);
 
-<<<<<<< HEAD
-=======
-  // Pagination logic
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const totalPages = Math.ceil(filteredUsers.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
@@ -101,42 +71,23 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
   const handlePageSizeChange = (event) => {
     const newPageSize = parseInt(event.target.value);
     setPageSize(newPageSize);
-<<<<<<< HEAD
     setCurrentPage(1); 
-=======
-    setCurrentPage(1); // Reset to first page when changing page size
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   };
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
-<<<<<<< HEAD
     setCurrentPage(1); 
   };
 
-=======
-    setCurrentPage(1); // Reset to first page when searching
-  };
-
-  // Generate page numbers for pagination
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
     
     if (totalPages <= maxVisiblePages) {
-<<<<<<< HEAD
-=======
-      // Show all pages if total pages are less than max visible
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-<<<<<<< HEAD
-=======
-      // Show pages with ellipsis
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (currentPage <= 3) {
         for (let i = 1; i <= 4; i++) {
           pageNumbers.push(i);
@@ -189,11 +140,7 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
     };
 
     try {
-<<<<<<< HEAD
       await generatePdfReport(2, reportData); 
-=======
-      await generatePdfReport(2, reportData); // 2 is the report ID for Role Based User
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error generating report:', error);
     }
@@ -234,11 +181,6 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
         <div id="role-based-detail-content" className="p-6 max-h-[70vh] overflow-y-auto relative">
           {report.data ? (
             <>
-<<<<<<< HEAD
-
-=======
-              {/* Summary Cards */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
                   <div className="flex justify-between items-start mb-4">
@@ -296,10 +238,6 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
                 </div>
               </div>
 
-<<<<<<< HEAD
-=======
-              {/* Role Distribution Table */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-8">
                 <div className="p-6 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-black">User Distribution by Role</h3>
@@ -341,10 +279,6 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
                 </div>
               </div>
 
-<<<<<<< HEAD
-=======
-              {/* Users List Table */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex justify-between items-center mb-4">
@@ -418,11 +352,7 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
                     </tbody>
                   </table>
                 </div>
-<<<<<<< HEAD
  
-=======
-                {/* Pagination Controls */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="px-6 py-4 border-t border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-black">
@@ -472,10 +402,6 @@ export default function RoleBasedUserDetail({ report, onClose, onDownload }) {
                 </div>
               </div>
 
-<<<<<<< HEAD
-=======
-              {/* Scroll to Top Button */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <button
                 onClick={scrollToTop}
                 className={`fixed bottom-6 right-6 p-3 bg-[#01579B] text-white rounded-full shadow-lg transition-all duration-300 hover:bg-[#01416E] ${

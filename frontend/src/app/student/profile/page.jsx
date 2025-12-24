@@ -7,10 +7,6 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function StudentProfilePage() {
   const router = useRouter();
   const [profilePic, setProfilePic] = useState("https://via.placeholder.com/100");
@@ -27,10 +23,6 @@ export default function StudentProfilePage() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
-<<<<<<< HEAD
-=======
-  // Password change states
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -45,10 +37,6 @@ export default function StudentProfilePage() {
     fetchProfile();
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Fetch Student Profile
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const fetchProfile = async () => {
     try {
       const token = Cookies.get("token");
@@ -58,13 +46,10 @@ export default function StudentProfilePage() {
         return;
       }
 
-      console.log("Fetching latest profile...");
       const res = await axios.get("/api/students/profile", {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
-
-      console.log("Latest Profile Data:", res.data);
 
       setFirstName(res.data.firstName || "");
       setLastName(res.data.lastName || "");
@@ -73,10 +58,6 @@ export default function StudentProfilePage() {
       setCourseName(res.data.courseName || "");
       setYearLevel(res.data.yearLevel || "");
 
-<<<<<<< HEAD
-=======
-      // Handle both absolute and relative URLs, prevent duplicate query strings
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const rawUrl = res.data.profile_picture || null;
       const baseProfileUrl = rawUrl ? rawUrl.split("?")[0] : null;
       const isAbsolute = baseProfileUrl && /^https?:\/\//i.test(baseProfileUrl);
@@ -92,10 +73,6 @@ export default function StudentProfilePage() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Handle file selection
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -106,10 +83,6 @@ export default function StudentProfilePage() {
     setUploadError("");
   };
 
-<<<<<<< HEAD
-=======
-  // Handle saving profile picture
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleSaveProfilePicture = async () => {
     if (!selectedFile) return;
 
@@ -128,7 +101,6 @@ export default function StudentProfilePage() {
         withCredentials: true,
       });
 
-      console.log("Upload response:", res.data);
 
       if (!res.data.filePath) {
         setUploadError("Error: Missing file path in response");
@@ -136,10 +108,6 @@ export default function StudentProfilePage() {
         return;
       }
 
-<<<<<<< HEAD
-=======
-      // Handle both absolute and relative URLs from upload response
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const cleanPath = (res.data.url || res.data.filePath || "").split("?")[0];
       const isAbsolute = /^https?:\/\//i.test(cleanPath);
       const finalBase = isAbsolute ? cleanPath : `https://trustelectonline.com${cleanPath}`;
@@ -149,13 +117,6 @@ export default function StudentProfilePage() {
       setPreviewImage(null);
       setSelectedFile(null);
       setUploadSuccess(true);
-<<<<<<< HEAD
-
-=======
-      console.log("Profile Picture Updated:", uploadImageUrl);
-      
-      // Trigger profile update event for sidebar
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       window.dispatchEvent(new Event("profileUpdated"));
     } catch (error) {
       setUploadError("Failed to upload image. Please try again.");
@@ -163,10 +124,6 @@ export default function StudentProfilePage() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Cancel upload
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleCancelUpload = () => {
     setPreviewImage(null);
     setSelectedFile(null);
@@ -174,10 +131,6 @@ export default function StudentProfilePage() {
   };
 
   const validatePassword = (password) => {
-<<<<<<< HEAD
-=======
-    // At least 8 characters, one uppercase, one number, one special character
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
     return regex.test(password);
   };
@@ -224,12 +177,6 @@ export default function StudentProfilePage() {
           withCredentials: true
         }
       );
-<<<<<<< HEAD
-
-=======
-      
-      // Clear password fields
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -241,11 +188,7 @@ export default function StudentProfilePage() {
       console.error("Error changing password:", error);
       if (error.response?.status === 401) {
         setPasswordError("Current password is incorrect");
-<<<<<<< HEAD
         setCurrentPassword("");
-=======
-        setCurrentPassword(""); // Clear current password field for security
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       } else if (error.response?.status === 400) {
         setPasswordError(error.response.data.message || "Invalid password format");
       } else if (error.response?.status === 404) {
@@ -356,11 +299,7 @@ export default function StudentProfilePage() {
             </div>
           </div>
 
-<<<<<<< HEAD
           {/* Change Password*/}
-=======
-          {/* Password Change Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="mt-8 border-t pt-4">
             <button 
               onClick={() => setShowPasswordSection(!showPasswordSection)}

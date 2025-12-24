@@ -8,10 +8,6 @@ import usePermissions from "@/hooks/usePermissions";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 import { toast } from "react-hot-toast";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function ArchivedStudents() {
   const router = useRouter();
   const [students, setStudents] = useState([]);
@@ -22,37 +18,21 @@ export default function ArchivedStudents() {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [userRole, setUserRole] = useState(null);
 
-<<<<<<< HEAD
-=======
-  // Batch delete states (only for superadmin)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [showBatchDeleteModal, setShowBatchDeleteModal] = useState(false);
   const [selectedCourseForDelete, setSelectedCourseForDelete] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [courses, setCourses] = useState([]);
 
-<<<<<<< HEAD
-=======
-  // Delete all archived students states (only for superadmin)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   const { hasPermission } = usePermissions();
 
-<<<<<<< HEAD
-=======
-  // Utility function to format names properly (Title Case)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatName = (name) => {
     if (!name) return '';
     return name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
   };
 
-<<<<<<< HEAD
-=======
-  // Utility function to format full name display
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const formatFullName = (lastName, firstName, middleName) => {
     const formattedLastName = formatName(lastName);
     const formattedFirstName = formatName(firstName);
@@ -69,10 +49,6 @@ export default function ArchivedStudents() {
         withCredentials: true,
       });
 
-<<<<<<< HEAD
-=======
-      // Handle different response structures
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let studentsData;
       if (res.data && res.data.students && Array.isArray(res.data.students)) {
         studentsData = res.data.students;
@@ -85,10 +61,6 @@ export default function ArchivedStudents() {
       const archivedStudents = studentsData.filter((student) => !student.is_active);
       setStudents(archivedStudents);
       
-<<<<<<< HEAD
-=======
-      // Extract unique courses from archived students
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const uniqueCourses = [...new Set(archivedStudents.map(student => student.course_name))];
       setCourses(uniqueCourses);
       
@@ -144,10 +116,6 @@ export default function ArchivedStudents() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Batch delete archived students by course (superadmin only)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleBatchDeleteArchived = async () => {
     if (!selectedCourseForDelete) {
       toast.error("Please select a course to delete archived students from.");
@@ -173,11 +141,7 @@ export default function ArchivedStudents() {
         toast.success(response.data.message || "Archived students deleted successfully.");
         setShowBatchDeleteModal(false);
         setSelectedCourseForDelete("");
-<<<<<<< HEAD
         fetchArchivedStudents(); 
-=======
-        fetchArchivedStudents(); // Refresh the student list
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       } else {
         toast.error(response.data.message || "Failed to delete archived students.");
       }
@@ -189,10 +153,6 @@ export default function ArchivedStudents() {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // Delete all archived students function (superadmin only)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const handleDeleteAllArchivedStudents = async () => {
     const confirmMessage = `Are you sure you want to PERMANENTLY DELETE ALL ${students.length} archived students? This action cannot be undone and will remove all data permanently.`;
 
@@ -209,11 +169,7 @@ export default function ArchivedStudents() {
       if (response.data.success) {
         toast.success(response.data.message || "All archived students deleted successfully.");
         setShowDeleteAllModal(false);
-<<<<<<< HEAD
         fetchArchivedStudents();
-=======
-        fetchArchivedStudents(); // Refresh the student list
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       } else {
         toast.error(response.data.message || "Failed to delete all archived students.");
       }
@@ -226,10 +182,6 @@ export default function ArchivedStudents() {
   };
 
   useEffect(() => {
-<<<<<<< HEAD
-=======
-    // Get user role from token
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const token = Cookies.get('token');
     if (token) {
       try {
@@ -251,12 +203,6 @@ export default function ArchivedStudents() {
         <button onClick={() => router.push("/admin/students")} className="bg-[#01579B] text-white px-4 py-2 rounded">
           Back
         </button>
-<<<<<<< HEAD
-
-=======
-        
-        {/* Batch delete operations - Only for superadmin */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {userRole === 'superadmin' && hasPermission('users', 'delete') && (
           <>
             <button 
@@ -303,10 +249,6 @@ export default function ArchivedStudents() {
                   {hasPermission('users', 'edit') && (
                     <button onClick={() => restoreStudent(student.id)} className="bg-green-500 text-white px-3 py-1 rounded">Restore</button>
                   )}
-<<<<<<< HEAD
-=======
-                  {/* Permanent delete - Only for superadmin */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   {userRole === 'superadmin' && hasPermission('users', 'delete') && (
                     <button onClick={() => confirmPermanentDelete(student.id)} className="bg-red-700 text-white px-3 py-1 rounded">Permanently Delete</button>
                   )}
@@ -347,10 +289,6 @@ export default function ArchivedStudents() {
         isLoading={isDeleting}
       />
 
-<<<<<<< HEAD
-=======
-      {/* Batch Delete Modal - Only for superadmin */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {userRole === 'superadmin' && showBatchDeleteModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-md">
@@ -412,10 +350,6 @@ export default function ArchivedStudents() {
         </div>
       )}
 
-<<<<<<< HEAD
-=======
-      {/* Delete All Archived Students Modal - Only for superadmin */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {userRole === 'superadmin' && showDeleteAllModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-md">

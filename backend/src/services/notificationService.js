@@ -7,10 +7,6 @@ const { addElectionNotificationToQueue } = require('./emailQueueService');
 const pool = require('../config/db');
 
 /**
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  * @param {string} role 
  * @returns {string} 
  */
@@ -34,10 +30,6 @@ const normalizeRole = (role) => {
   return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
 };
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const NOTIFICATION_TYPES = {
   INFO: 'info',
   SUCCESS: 'success',
@@ -64,10 +56,6 @@ const notifyElectionNeedsApproval = async (election) => {
       return [];
     }
     
-<<<<<<< HEAD
-=======
-    // Check if the election creator is a superadmin
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const { rows: creatorRows } = await pool.query(`
       SELECT role_id FROM users WHERE id = $1
     `, [election.created_by]);
@@ -75,16 +63,8 @@ const notifyElectionNeedsApproval = async (election) => {
     const isCreatorSuperAdmin = creatorRows.length > 0 && creatorRows[0].role_id === 1;
     
     if (isCreatorSuperAdmin) {
-<<<<<<< HEAD
       const promises = [];
       
-=======
-      // If created by superadmin, don't send approval notifications
-      // Instead, send informational notifications to other superadmins and admins
-      const promises = [];
-      
-      // Notify other superadmins (excluding the creator)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const { rows: otherSuperadminUsers } = await pool.query(`
         SELECT id FROM users 
         WHERE role_id = 1 AND id != $1 AND active = true
@@ -104,12 +84,6 @@ const notifyElectionNeedsApproval = async (election) => {
           )
         );
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Notify all admins
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const { rows: adminUsers } = await pool.query(`
         SELECT u.id FROM users u 
         JOIN admins a ON u.email = a.email 
@@ -134,10 +108,6 @@ const notifyElectionNeedsApproval = async (election) => {
       const results = await Promise.all(promises);
       return results.flat();
     } else {
-<<<<<<< HEAD
-=======
-      // Original logic for admin-created elections that need approval
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const { rows: superadminUsers } = await pool.query(`
         SELECT id FROM users 
         WHERE role_id = 1
@@ -450,12 +420,6 @@ const notifyStudentsAboutElection = async (election) => {
     }
 
     const normalizedRole = normalizeRole('Student');
-<<<<<<< HEAD
-
-=======
-    
-    // Create in-app notifications
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const notifications = await createNotificationForUsers(
       studentUserIds,
       normalizedRole,
@@ -465,12 +429,6 @@ const notifyStudentsAboutElection = async (election) => {
       RELATED_ENTITIES.ELECTION,
       election.id
     );
-<<<<<<< HEAD
-=======
-
-    // Add email notifications to queue for processing
-    console.log(`📧 Adding ${studentEmails.length} election notification emails to queue...`);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     for (let i = 0; i < studentEmails.length; i++) {
       const email = studentEmails[i];
@@ -487,18 +445,10 @@ const notifyStudentsAboutElection = async (election) => {
       addElectionNotificationToQueue(userId, email, electionData);
     }
 
-<<<<<<< HEAD
     
     return notifications;
   } catch (error) {
     console.error('Error in notifyStudentsAboutElection:', error);
-=======
-    console.log(`📧 All election notification emails added to queue for processing`);
-    
-    return notifications;
-  } catch (error) {
-    console.error('❌ Error in notifyStudentsAboutElection:', error);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return [];
   }
 };
@@ -600,14 +550,8 @@ const notifyElectionStatusChange = async (election, previousStatus) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Object} election 
  * @returns {Promise<Array>} 
-=======
- * Send a notification to students about election results
- * @param {Object} election - The election object
- * @returns {Promise<Array>} The created notifications
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const notifyStudentsAboutElectionResults = async (election) => {
   try {
@@ -689,66 +633,9 @@ const notifyStudentsAboutElectionResults = async (election) => {
 /**
  * @returns {Promise<Array>}
  */
-<<<<<<< HEAD
 
 
 module.exports = {
-=======
-const debugSendTestToSuperadmins = async () => {
-  try {
-    const { rows: superadmins } = await pool.query(`
-      SELECT id FROM users WHERE role_id = 1
-    `);
-    
-    if (superadmins.length === 0) {
-      console.warn('No superadmins found to send test notification');
-      const { rows: directSuperadmins } = await pool.query(`
-        SELECT id FROM superadmins
-      `);
-      
-      if (directSuperadmins.length > 0) {
-        const superadminIds = directSuperadmins.map(admin => admin.id);
-        
-        const result = await createNotificationForUsers(
-          superadminIds,
-          normalizeRole('SuperAdmin'),
-          'Test Notification',
-          'This is a test notification to verify superadmin notifications are working.',
-          NOTIFICATION_TYPES.INFO,
-          null,
-          null
-        );
-        
-        return result;
-      }
-      
-      return [];
-    }
-    
-    const superadminIds = superadmins.map(admin => admin.id);
-    
-    const result = await createNotificationForUsers(
-      superadminIds,
-      normalizeRole('SuperAdmin'),
-      'Test Notification',
-      'This is a test notification to verify superadmin notifications are working.',
-      NOTIFICATION_TYPES.INFO,
-      null,
-      null
-    );
-    
-    return result;
-  } catch (error) {
-    console.error('Error sending test notification to superadmins:', error);
-    console.error(error.stack);
-    throw error;
-  }
-};
-
-module.exports = {
-  NOTIFICATION_TYPES,
-  RELATED_ENTITIES,
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   normalizeRole,
   notifyElectionNeedsApproval,
   notifyElectionApproved,
@@ -757,8 +644,4 @@ module.exports = {
   notifyStudentsAboutElection,
   notifyElectionStatusChange,
   notifyStudentsAboutElectionResults,
-<<<<<<< HEAD
-=======
-  debugSendTestToSuperadmins
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 };

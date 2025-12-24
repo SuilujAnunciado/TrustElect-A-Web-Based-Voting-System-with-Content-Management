@@ -9,21 +9,12 @@ const uploadDir = {
   videos: path.join(__dirname, '../../uploads/videos')
 };
 
-<<<<<<< HEAD
-=======
-// Create directories if they don't exist
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 Object.values(uploadDir).forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 });
 
-<<<<<<< HEAD
-
-=======
-// Configure multer storage
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let uploadDir;
@@ -33,10 +24,6 @@ const storage = multer.diskStorage({
       uploadDir = path.join(__dirname, '../../uploads/images');
     }
     
-<<<<<<< HEAD
-=======
-    // Create directory if it doesn't exist
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -49,15 +36,10 @@ const storage = multer.diskStorage({
   }
 });
 
-<<<<<<< HEAD
-=======
-// Configure multer upload with more specific settings
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const upload = multer({
   storage: storage,
   fileFilter: function (req, file, cb) {
-    
-    // Accept images and videos
+
     if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
       cb(null, true);
     } else {
@@ -65,21 +47,12 @@ const upload = multer({
     }
   },
   limits: {
-<<<<<<< HEAD
     fileSize: 200 * 1024 * 1024, 
     fieldSize: 200 * 1024 * 1024, 
     fieldNameSize: 100, 
     files: 10, 
     parts: 20,
     headerPairs: 2000 
-=======
-    fileSize: 200 * 1024 * 1024, // 200MB limit for videos
-    fieldSize: 200 * 1024 * 1024, // 200MB limit for field size
-    fieldNameSize: 100, // 100 bytes for field name
-    files: 10, // Maximum number of files
-    parts: 20, // Maximum number of parts
-    headerPairs: 2000 // Maximum number of header key=>value pairs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   }
 });
 
@@ -88,7 +61,6 @@ const normalizeFilePath = (filePath) => {
   return filePath.replace(/\\/g, '/');
 };
 
-<<<<<<< HEAD
 const isValidColorFormat = (color) => {
   if (!color) return false;
 
@@ -98,21 +70,6 @@ const isValidColorFormat = (color) => {
   const rgbRegex = /^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/;
   if (rgbRegex.test(color)) return true;
 
-=======
-// Helper function to validate color format
-const isValidColorFormat = (color) => {
-  if (!color) return false;
-  
-  // Check if it's a valid hex color
-  const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-  if (hexRegex.test(color)) return true;
-  
-  // Check if it's a valid RGB color
-  const rgbRegex = /^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/;
-  if (rgbRegex.test(color)) return true;
-  
-  // Check if it's a valid RGBA color
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const rgbaRegex = /^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[01]?\d*\.?\d+\s*\)$/;
   if (rgbaRegex.test(color)) return true;
   
@@ -120,15 +77,9 @@ const isValidColorFormat = (color) => {
 };
 
 /**
-<<<<<<< HEAD
 
  * @param {Object} req 
  * @param {Object} res 
-=======
- * Get all content sections
- * @param {Object} req - Request object
- * @param {Object} res - Response object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const getAllContent = async (req, res) => {
   try {
@@ -184,10 +135,6 @@ const updateSectionContent = async (req, res) => {
     { name: 'ctaBackground', maxCount: 1 }
   ];
   
-<<<<<<< HEAD
-=======
-  // Support up to 10 feature cards and carousel images
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   for (let i = 0; i < 10; i++) {
     uploadFields.push({ name: `featureImage${i}`, maxCount: 1 });
     uploadFields.push({ name: `carouselImage${i}`, maxCount: 5 });
@@ -197,21 +144,6 @@ const updateSectionContent = async (req, res) => {
   
   uploadMiddleware(req, res, async (err) => {
     if (err) {
-<<<<<<< HEAD
-
-=======
-      console.error('=== MULTER ERROR ===');
-      console.error('Error during file upload:', err);
-      console.error('Error code:', err.code);
-      console.error('Error field:', err.field);
-      console.error('Error message:', err.message);
-      console.error('Request headers:', req.headers);
-      console.error('Content-Type:', req.headers['content-type']);
-      console.error('Content-Length:', req.headers['content-length']);
-      console.error('==================');
-      
-      // Handle specific multer errors
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({ 
           error: 'File too large. Maximum size is 200MB.',
@@ -252,10 +184,6 @@ const updateSectionContent = async (req, res) => {
       }
   
       
-<<<<<<< HEAD
-=======
-      // Get content data from request body with better error handling
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let contentData;
       if (!req.body.content) {
         console.error('Missing content field in request body');
@@ -277,10 +205,6 @@ const updateSectionContent = async (req, res) => {
         });
       }
       
-<<<<<<< HEAD
-=======
-      // Validate contentData is an object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (!contentData || typeof contentData !== 'object') {
         console.error('Content data is not a valid object:', contentData);
         return res.status(400).json({ 
@@ -289,19 +213,11 @@ const updateSectionContent = async (req, res) => {
         });
       }
       
-<<<<<<< HEAD
-=======
-      // Handle file uploads based on section
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (section === 'logo') {
         const logoFile = req.files?.logo?.[0];
         if (logoFile) {
           const fileUrl = `/uploads/images/${logoFile.filename}`;
           
-<<<<<<< HEAD
-=======
-          // Add missing media saving functionality
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           try {
             const logoMedia = await contentModel.saveMedia({
               filename: logoFile.filename,
@@ -317,17 +233,9 @@ const updateSectionContent = async (req, res) => {
             contentData.imageUrl = fileUrl;
           } catch (error) {
             console.error('Error saving logo media:', error);
-<<<<<<< HEAD
             contentData.imageUrl = fileUrl;
           }
         } else if (req.body.removeLogo === 'true') {
-=======
-            // Still set the URL even if media save fails
-            contentData.imageUrl = fileUrl;
-          }
-        } else if (req.body.removeLogo === 'true') {
-          // If removing logo, delete the old file if it exists
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (contentData.imageUrl) {
             const oldFilePath = path.join(__dirname, '../../', contentData.imageUrl);
             if (fs.existsSync(oldFilePath)) {
@@ -390,10 +298,6 @@ const updateSectionContent = async (req, res) => {
           contentData.posterImage = null;
         }
 
-<<<<<<< HEAD
-=======
-        // Handle carousel images
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const carouselImages = [];
         for (let i = 0; i < 10; i++) {
           const carouselFile = req.files?.[`carouselImage${i}`]?.[0];
@@ -424,10 +328,6 @@ const updateSectionContent = async (req, res) => {
           contentData.carouselImages = carouselImages;
         }
 
-<<<<<<< HEAD
-=======
-        // Validate and set default colors
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (contentData.bgColor && !isValidColorFormat(contentData.bgColor)) {
           contentData.bgColor = "#1e40af"; 
         }
@@ -435,10 +335,6 @@ const updateSectionContent = async (req, res) => {
           contentData.textColor = "#ffffff"; 
         }
         
-<<<<<<< HEAD
-=======
-        // Handle hero background image
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const heroBackgroundFile = req.files?.heroBackground?.[0];
         if (heroBackgroundFile) {
           const backgroundUrl = normalizeFilePath(`/uploads/images/${heroBackgroundFile.filename}`);
@@ -498,12 +394,6 @@ const updateSectionContent = async (req, res) => {
             }
           }
         }
-<<<<<<< HEAD
-
-=======
-        
-        // Handle features background image
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const featuresBackgroundFile = req.files?.featuresBackground?.[0];
         if (featuresBackgroundFile) {
           const backgroundUrl = normalizeFilePath(`/uploads/images/${featuresBackgroundFile.filename}`);
@@ -527,20 +417,12 @@ const updateSectionContent = async (req, res) => {
         }
       } else if (section === 'callToAction') {
         
-<<<<<<< HEAD
-=======
-        // Process CTA video if uploaded or handle removal
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const ctaVideoFile = req.files?.ctaVideo?.[0];
         if (ctaVideoFile) {
         
           
           const videoUrl = normalizeFilePath(`/uploads/videos/${ctaVideoFile.filename}`);
           
-<<<<<<< HEAD
-=======
-          // Save media to database
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           try {
             const videoMedia = await contentModel.saveMedia({
               filename: ctaVideoFile.filename,
@@ -570,10 +452,6 @@ const updateSectionContent = async (req, res) => {
           contentData.textColor = "#ffffff";
         }
         
-<<<<<<< HEAD
-=======
-        // Handle CTA background image
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const ctaBackgroundFile = req.files?.ctaBackground?.[0];
         if (ctaBackgroundFile) {
           const backgroundUrl = normalizeFilePath(`/uploads/images/${ctaBackgroundFile.filename}`);
@@ -596,10 +474,6 @@ const updateSectionContent = async (req, res) => {
           }
         }
       } else if (section === 'header') {
-<<<<<<< HEAD
-=======
-        // Handle header background image
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const headerBackgroundFile = req.files?.headerBackground?.[0];
         if (headerBackgroundFile) {
           const backgroundUrl = normalizeFilePath(`/uploads/images/${headerBackgroundFile.filename}`);
@@ -623,11 +497,6 @@ const updateSectionContent = async (req, res) => {
         }
       }
 
-<<<<<<< HEAD
-=======
-
-      // Update the content in the database
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const updatedContent = await contentModel.updateSectionContent(section, contentData);
       
       
@@ -649,15 +518,9 @@ const updateSectionContent = async (req, res) => {
 };
 
 /**
-<<<<<<< HEAD
 
  * @param {Object} req 
  * @param {Object} res -
-=======
- * Get all media files
- * @param {Object} req - Request object
- * @param {Object} res - Response object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const getAllMedia = async (req, res) => {
   try {
@@ -671,15 +534,9 @@ const getAllMedia = async (req, res) => {
 };
 
 /**
-<<<<<<< HEAD
 
  * @param {Object} req 
  * @param {Object} res 
-=======
- * Delete a media file
- * @param {Object} req - Request object
- * @param {Object} res - Response object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const deleteMedia = async (req, res) => {
   try {
@@ -713,15 +570,9 @@ const deleteMedia = async (req, res) => {
 };
 
 /**
-<<<<<<< HEAD
 
  * @param {Object} req 
  * @param {Object} res 
-=======
- * Get the active theme
- * @param {Object} req - Request object
- * @param {Object} res - Response object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const getActiveTheme = async (req, res) => {
   try {
@@ -739,15 +590,9 @@ const getActiveTheme = async (req, res) => {
 };
 
 /**
-<<<<<<< HEAD
 
  * @param {Object} req 
  * @param {Object} res 
-=======
- * Set a theme as active
- * @param {Object} req - Request object
- * @param {Object} res - Response object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const setActiveTheme = async (req, res) => {
   try {
@@ -774,15 +619,9 @@ const setActiveTheme = async (req, res) => {
 };
 
 /**
-<<<<<<< HEAD
  
  * @param {Object} req 
  * @param {Object} res 
-=======
- * Create a new theme
- * @param {Object} req - Request object
- * @param {Object} res - Response object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const createTheme = async (req, res) => {
   try {
@@ -805,14 +644,8 @@ const createTheme = async (req, res) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
-=======
- * Get all themes
- * @param {Object} req - Request object
- * @param {Object} res - Response object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 
 const getAllThemes = async (req, res) => {
@@ -980,14 +813,8 @@ const deleteTheme = async (req, res) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Object} req 
  * @param {Object} res 
-=======
- * Upload background image for a specific section
- * @param {Object} req - Request object
- * @param {Object} res - Response object
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const uploadBackground = async (req, res) => {
   try {

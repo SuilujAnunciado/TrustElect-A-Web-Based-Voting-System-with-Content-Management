@@ -5,15 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Calendar, Clock, Users, CheckCircle, XCircle, AlertCircle, CalendarRange, BarChart, Award } from 'lucide-react';
 import Cookies from 'js-cookie';
 
-<<<<<<< HEAD
 const API_BASE = '/api'; 
-=======
-// Replace this line:
-// const API_BASE = '/api';
-
-// With this:
-const API_BASE = '/api'; // Use relative path for proxy
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 async function fetchWithAuth(url, options = {}) {
   const token = Cookies.get('token');
@@ -24,10 +16,7 @@ async function fetchWithAuth(url, options = {}) {
     throw new Error('Authentication required. Please log in again.');
   }
   
-<<<<<<< HEAD
   
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   try {
     const response = await fetch(`${API_BASE}${url}`, {
       ...options,
@@ -38,17 +27,9 @@ async function fetchWithAuth(url, options = {}) {
       },
       credentials: 'include'
     });
-<<<<<<< HEAD
 
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-=======
-    
-    // Check if the response is JSON
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      // If not JSON, try to get the text content for error details
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const textContent = await response.text();
       console.error("Non-JSON response:", textContent);
       throw new Error('Invalid response format from server');
@@ -83,15 +64,7 @@ const ElectionCard = ({ election, onClick }) => {
   const parseElectionDate = (dateStr, timeStr) => {
     try {
       if (!dateStr || !timeStr) return 'Date not set';
-<<<<<<< HEAD
  
-=======
-      
-      // Debug logging to help identify the issue
-      console.log('Parsing date:', { dateStr, timeStr });
-      
-      // Handle both date formats: "2024-01-15" and "2024-01-15T00:00:00.000Z"
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let datePart = dateStr;
       if (dateStr.includes('T')) {
         datePart = dateStr.split('T')[0];
@@ -102,13 +75,6 @@ const ElectionCard = ({ election, onClick }) => {
       const timeParts = timeStr.includes(':') ? timeStr.split(':') : [timeStr, '00'];
       const hours = parseInt(timeParts[0], 10);
       const minutes = parseInt(timeParts[1], 10);
-<<<<<<< HEAD
-
-=======
-      
-      // Create date object in local timezone (Philippines)
-      // This ensures we don't have timezone conversion issues
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const dateObj = new Date(year, month - 1, day + 1, hours, minutes);
       
       if (isNaN(dateObj.getTime())) return 'Invalid date';
@@ -122,12 +88,6 @@ const ElectionCard = ({ election, onClick }) => {
         hour12: true,
         timeZone: 'Asia/Manila'
       }).format(dateObj);
-<<<<<<< HEAD
-
-=======
-      
-      console.log('Formatted date:', formatted);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return formatted;
     } catch (error) {
       console.error('Date parsing error:', error);
@@ -249,10 +209,6 @@ export default function StudentDashboard() {
   const [landingContent, setLandingContent] = useState(null);
   const router = useRouter();
 
-<<<<<<< HEAD
-=======
-  // Fetch UI configuration and landing content if needed
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const fetchUIConfig = async () => {
       try {
@@ -261,26 +217,12 @@ export default function StudentDashboard() {
         
         if (response && response.content) {
 
-<<<<<<< HEAD
           const updatedConfig = {
             ...response.content,
-=======
-          
-          // Always fix inconsistencies client-side
-          const updatedConfig = {
-            ...response.content,
-            // If type is landing, force use_landing_design to true
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             use_landing_design: response.content.type === 'landing' ? true : response.content.use_landing_design
           };
           
           setUiConfig(updatedConfig);
-<<<<<<< HEAD
-
-=======
-          
-          // Check if we should use landing design
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const shouldUseLandingDesign = updatedConfig.type === 'landing' || updatedConfig.use_landing_design === true;
           
           if (shouldUseLandingDesign) {
@@ -294,20 +236,12 @@ export default function StudentDashboard() {
               if (landingData && landingData.content) {
                 setLandingContent(landingData.content);
               } else {
-<<<<<<< HEAD
-=======
-                // If content is directly in the response
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 setLandingContent(landingData);
               }
             } catch (err) {
               console.error('Error fetching landing content:', err);
             }
           } else {
-<<<<<<< HEAD
-=======
-            // Clear landing content if landing design is disabled
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             if (landingContent) {
               setLandingContent(null);
             }
@@ -341,12 +275,6 @@ export default function StudentDashboard() {
         }
         
         setAllElections(data);
-<<<<<<< HEAD
-
-=======
-        
-        // Filter elections based on the active tab
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const filtered = data.filter(election => election.status === activeTab);
         
         setFilteredElements(filtered);
@@ -363,10 +291,6 @@ export default function StudentDashboard() {
     loadElections();
   }, []);
 
-<<<<<<< HEAD
-=======
-  // Update filtered elections when active tab changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const filtered = allElections.filter(election => election.status === activeTab);
     setFilteredElements(filtered);
@@ -379,35 +303,16 @@ export default function StudentDashboard() {
       if (!election) {
         throw new Error('Election not found');
       }
-<<<<<<< HEAD
-
-=======
-      
-      // If election is completed, redirect to results page
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (election.status === 'completed') {
         router.push(`/student/elections/${electionId}/results`);
         return;
       }
-<<<<<<< HEAD
-
-=======
-      
-      // If student has already voted, show receipt
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (election.has_voted) {
         router.push(`/student/elections/${electionId}/receipt`);
         return;
       }
-<<<<<<< HEAD
 
       if (election.status === 'ongoing') {
-=======
-  
-      // For ongoing elections
-      if (election.status === 'ongoing') {
-        // If ballot exists, proceed to voting
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (election.ballot_exists) {
           router.push(`/student/elections/${electionId}/vote`);
           return;
@@ -453,18 +358,8 @@ export default function StudentDashboard() {
       return {};
     }
 
-<<<<<<< HEAD
     const useLandingDesign = uiConfig.type === 'landing' || uiConfig.use_landing_design === true;
 
-=======
-
-    // For safety, always check both type and use_landing_design flag
-    // We prioritize type='landing' even if use_landing_design is false
-    const useLandingDesign = uiConfig.type === 'landing' || uiConfig.use_landing_design === true;
-    
-    
-    // Using a single style approach for both designs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (uiConfig.background_image && !useLandingDesign) {
       const imageUrl = formatImageUrl(uiConfig.background_image);
       
@@ -489,19 +384,11 @@ export default function StudentDashboard() {
     };
   };
 
-<<<<<<< HEAD
-=======
-  // Landing page layout component for when landing design is selected
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const LandingPageLayout = () => {
     if (!landingContent) return null;
     
     return (
       <div className="landing-page-container">
-<<<<<<< HEAD
-=======
-        {/* Hero Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <section 
           className="text-white py-12 px-6 relative"
           style={{
@@ -572,10 +459,6 @@ export default function StudentDashboard() {
           </section>
         )}
 
-<<<<<<< HEAD
-=======
-        {/* Call to Action Section if enabled */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {landingContent.callToAction?.enabled && (
           <section 
             className="py-12 px-6"
@@ -609,22 +492,11 @@ export default function StudentDashboard() {
       className="min-h-screen relative"
       style={getBackgroundStyle()}
     >
-<<<<<<< HEAD
-
-=======
-      {/* Apply landing page design as background first if enabled */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {(uiConfig?.type === 'landing' || uiConfig?.use_landing_design === true) && landingContent && (
         <div className="absolute inset-0 z-0 overflow-auto">
           <LandingPageLayout />
         </div>
       )}
-<<<<<<< HEAD
-
-=======
-      
-      {/* Main content container - always on top */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="mb-8 bg-white/90 p-6 rounded-lg shadow-lg">
           <h1 className="text-2xl font-bold text-black mb-2">Elections Dashboard</h1>
@@ -635,8 +507,7 @@ export default function StudentDashboard() {
             {error}
           </div>
         )}
-        
-        {/* Status Tabs */}
+
         <div className="flex border-b mb-6 bg-white/90 rounded-t-lg">
           {statusTabs.map(tab => (
             <button
@@ -657,11 +528,7 @@ export default function StudentDashboard() {
           ))}
         </div>
 
-<<<<<<< HEAD
         {/* Elections */}
-=======
-        {/* Elections Grid */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         {loading ? (
           <div className="flex justify-center items-center h-64 bg-white/90 rounded-lg">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>

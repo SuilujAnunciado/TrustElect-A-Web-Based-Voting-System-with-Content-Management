@@ -1,10 +1,6 @@
 "use client"
 import { useState } from 'react';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const ThemesSection = ({ 
   themes, 
   setThemes, 
@@ -115,10 +111,6 @@ const ThemesSection = ({
                       }
                       const updatedThemes = themes.filter(t => t.id !== theme.id);
                       setThemes(updatedThemes);
-<<<<<<< HEAD
-=======
-                      // Save to localStorage
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                       saveThemes(updatedThemes);
                       setSaveStatus("Theme deleted");
                       setTimeout(() => setSaveStatus(""), 3000);
@@ -199,12 +191,6 @@ const ThemesSection = ({
           ))}
         </div>
       </div>
-<<<<<<< HEAD
-
-=======
-      
-      {/* Edit Theme Form (shows only when editing) */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {editingTheme && (
         <EditThemeForm 
           theme={editingTheme}
@@ -218,12 +204,6 @@ const ThemesSection = ({
           applyThemeColors={applyThemeColors}
         />
       )}
-<<<<<<< HEAD
-
-=======
-      
-      {/* Create New Theme Form */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {!editingTheme && (
         <ThemeCreationForm 
           newTheme={newTheme}
@@ -236,24 +216,13 @@ const ThemesSection = ({
         />
       )}
       
-<<<<<<< HEAD
       {!editingTheme && <ColorPreview newTheme={newTheme} />}
       
-=======
-      {/* Color Preview Section */}
-      {!editingTheme && <ColorPreview newTheme={newTheme} />}
-      
-      {/* Theme UI Preview */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {!editingTheme && <ThemeUIPreview newTheme={newTheme} />}
     </div>
   );
 }
 
-<<<<<<< HEAD
-=======
-// Theme Creation Form Component
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const ThemeCreationForm = ({ 
   newTheme,
   setNewTheme,
@@ -277,12 +246,6 @@ const ThemeCreationForm = ({
             className="w-full px-3 py-2 border rounded-md text-black"
           />
         </div>
-<<<<<<< HEAD
-
-=======
-        
-        {/* Color pickers for theme */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-3">
           <div className="space-y-3">
             <ColorPickerField 

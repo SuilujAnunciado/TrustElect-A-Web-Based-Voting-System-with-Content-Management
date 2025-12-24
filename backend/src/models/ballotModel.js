@@ -1,9 +1,5 @@
 const pool = require("../config/db");
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const publishBallot = async (ballotId) => {
   const { rows: [ballot] } = await pool.query(
     `UPDATE ballots 

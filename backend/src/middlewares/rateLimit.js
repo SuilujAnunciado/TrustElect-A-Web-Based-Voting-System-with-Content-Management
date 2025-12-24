@@ -9,10 +9,6 @@ exports.loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, 
   max: 100, 

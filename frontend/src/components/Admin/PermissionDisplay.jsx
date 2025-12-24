@@ -10,10 +10,6 @@ export default function PermissionDisplay() {
   const [forceRefresh, setForceRefresh] = useState(0);
   const [error, setError] = useState(null);
 
-<<<<<<< HEAD
-=======
- 
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (permissions && typeof permissions === 'object') {
       const filteredModules = Object.keys(permissions).filter(

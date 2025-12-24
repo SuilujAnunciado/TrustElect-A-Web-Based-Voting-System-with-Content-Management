@@ -2,11 +2,6 @@ const nodemailer = require('nodemailer');
 const pool = require('../config/db');
 const { generateUniqueCode } = require('../utils/verificationCodeGenerator');
 
-<<<<<<< HEAD
-=======
-
-// Gmail transporter for OTP emails (unchanged)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const gmailTransporter = nodemailer.createTransport({
   service: 'gmail',
   host: 'smtp.gmail.com',
@@ -21,11 +16,6 @@ const gmailTransporter = nodemailer.createTransport({
   }
 });
 
-<<<<<<< HEAD
-
-=======
-// Hostinger transporter for notifications
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const hostingerTransporter = nodemailer.createTransport({
   host: process.env.HOSTINGER_EMAIL_HOST,
   port: parseInt(process.env.HOSTINGER_EMAIL_PORT),
@@ -37,21 +27,12 @@ const hostingerTransporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false
   },
-<<<<<<< HEAD
 
   pool: true,
   maxConnections: 1,
   maxMessages: 1, 
   rateLimit: 1, 
   rateDelta: 1000 
-=======
-  // Connection pooling settings to avoid rate limiting
-  pool: true,
-  maxConnections: 1, // Only 1 connection at a time
-  maxMessages: 1, // Only 1 message per connection
-  rateLimit: 1, // 1 email per second
-  rateDelta: 1000 // 1 second between emails
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 });
 
 const logEmailStatus = async (userId, email, emailType, status, messageId = null, errorMessage = null, isSystemAccount = false, recipientEmail = null) => {
@@ -79,10 +60,6 @@ const getFormattedPhTime = (date) => {
 const isSystemAccount = async (email) => {
   if (!email) return false;
 
-<<<<<<< HEAD
-=======
-  // Only systemadmin.00000 will be treated as special system account for email forwarding
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const isSuperAdmin = email.toLowerCase() === 'systemadmin.00000@novaliches.sti.edu.ph';
   
   if (isSuperAdmin) {
@@ -120,10 +97,6 @@ const getAdminForwardingEmail = async (originalEmail) => {
       return process.env.ADMIN_EMAIL || 'louielouie457@gmail.com';
     }
     
-<<<<<<< HEAD
-=======
-    // All other accounts receive emails directly
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     return originalEmail;
   } catch (error) {
     console.error('Error fetching admin forwarding email:', error);
@@ -217,7 +190,6 @@ const sendOTPEmail = async (userId, email, otp, purpose = 'login') => {
     }
 
     const info = await gmailTransporter.sendMail(mailOptions);
-    console.log(`OTP ${otp} successfully sent to ${email}`);
 
     await logEmailStatus(
       userId, 
@@ -238,11 +210,6 @@ const sendOTPEmail = async (userId, email, otp, purpose = 'login') => {
       isSystemAccount: isSuperAdmin
     };
   } catch (error) {
-<<<<<<< HEAD
-=======
-    console.error(`❌ ERROR SENDING OTP ${otp} to ${email}:`, error.message);
-    console.error('Error stack:', error.stack);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     try {
       const isSuperAdmin = email.toLowerCase() === 'systemadmin.00000@novaliches.sti.edu.ph';
@@ -277,37 +244,6 @@ const testConnection = async () => {
   }
 };
 
-<<<<<<< HEAD
-=======
-const testHostingerConnection = async () => {
-  try {
-    const result = await hostingerTransporter.verify();
-    return { success: true };
-  } catch (error) {
-    console.error('Hostinger connection failed:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-const testSystemAccount = async (email) => {
-  const isSuperAdmin = email.toLowerCase() === 'systemadmin.00000@novaliches.sti.edu.ph';
-  
-  if (isSuperAdmin) {
-    const forwardingEmail = await getAdminForwardingEmail(email);
-    console.log(`Email "${email}" is a superadmin account. OTPs will be sent to ${forwardingEmail}`);
-    return { 
-      isSystemAccount: true,
-      recipientEmail: forwardingEmail
-    };
-  } else {
-    console.log(`Email "${email}" is a regular account. OTPs will be sent directly to ${email}`);
-    return { 
-      isSystemAccount: false,
-      recipientEmail: email
-    };
-  }
-};
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
 
 const sendVoteReceiptEmail = async (userId, email, receiptData) => {
@@ -333,10 +269,6 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
 
     const subject = isSuperAdmin ? `[${originalEmail}] Vote Receipt - ${receiptData.electionTitle}` : `Your Vote Receipt - ${receiptData.electionTitle}`;
 
-<<<<<<< HEAD
-=======
-    // Generate selections HTML
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const selectionsHtml = receiptData.selections.map(selection => {
       const candidatesHtml = selection.candidates.map(candidate => `
         <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; margin: 10px 0;">
@@ -475,13 +407,7 @@ const sendVoteReceiptEmail = async (userId, email, receiptData) => {
       text: `Vote Receipt - ${receiptData.electionTitle}\n\nVerification Code: ${verificationCode}\nReceipt ID: ${receiptData.voteToken}\nVote Date: ${voteDate}\n\nThank you for voting!`
     };
 
-<<<<<<< HEAD
     const info = await hostingerTransporter.sendMail(mailOptions);
-=======
-    // Send email using Hostinger for notifications
-    const info = await hostingerTransporter.sendMail(mailOptions);
-    console.log(`Vote receipt email successfully sent to ${email}`);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     
     return { 
       success: true, 
@@ -507,15 +433,8 @@ const sendElectionNotification = async (userId, email, electionData) => {
       recipientEmail = await getAdminForwardingEmail(originalEmail);
     }
 
-<<<<<<< HEAD
     let userName = '';
     try {
-=======
-    // Fetch user's name from database
-    let userName = '';
-    try {
-      // First try to get from users table
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const userQuery = `
         SELECT u.first_name, u.last_name, u.role_id
         FROM users u
@@ -527,10 +446,6 @@ const sendElectionNotification = async (userId, email, electionData) => {
         const user = userResult.rows[0];
         userName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
         
-<<<<<<< HEAD
-=======
-        // If user is a student, try to get name from students table (might have more complete name)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (user.role_id === 3) {
           const studentQuery = `
             SELECT s.first_name, s.last_name
@@ -546,27 +461,8 @@ const sendElectionNotification = async (userId, email, electionData) => {
       }
     } catch (nameError) {
       console.error('Error fetching user name for election notification:', nameError);
-<<<<<<< HEAD
     }
 
-=======
-      // Continue without name - will use generic greeting
-    }
-
-    console.log('📧 Election data received:', {
-      title: electionData.title,
-      startDate: electionData.startDate,
-      endDate: electionData.endDate,
-      startTime: electionData.startTime,
-      endTime: electionData.endTime,
-      startDateType: typeof electionData.startDate,
-      endDateType: typeof electionData.endDate,
-      startTimeType: typeof electionData.startTime,
-      endTimeType: typeof electionData.endTime,
-      startDateConstructor: electionData.startDate?.constructor?.name,
-      endDateConstructor: electionData.endDate?.constructor?.name
-    });
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     const formatElectionDate = (dateStr, timeStr) => {
       try {
@@ -689,10 +585,6 @@ const sendElectionNotification = async (userId, email, electionData) => {
     };
 
     const info = await hostingerTransporter.sendMail(mailOptions);
-<<<<<<< HEAD
-=======
-    console.log(`Election notification successfully sent to ${email}`);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     await logEmailStatus(
       userId, 
@@ -713,10 +605,6 @@ const sendElectionNotification = async (userId, email, electionData) => {
       isSystemAccount: isSuperAdmin
     };
   } catch (error) {
-<<<<<<< HEAD
-=======
-    console.error(`❌ ERROR SENDING ELECTION NOTIFICATION to ${email}:`, error.message);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     throw new Error(`Failed to send election notification: ${error.message}`);
   }
 };
@@ -726,9 +614,7 @@ module.exports = {
   sendVoteReceiptEmail,
   sendElectionNotification,
   testConnection,
-  testHostingerConnection,
   isSystemAccount,
-  testSystemAccount,
   checkIfAdminEmail,
   getAdminForwardingEmail
 };

@@ -18,10 +18,7 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-<<<<<<< HEAD
   
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (admin) {
       fetchPermissions();
@@ -40,27 +37,11 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
       });
       
       if (response.data && response.data.permissions) {
-<<<<<<< HEAD
         const formattedPermissions = { ...permissions };
-
-        console.log('Received permissions from API:', response.data.permissions);
         
         Object.entries(response.data.permissions).forEach(([module, perms]) => {
           if (module === 'reports' || module === 'notifications') return;
 
-=======
-        // Convert from API format to our state format
-        const formattedPermissions = { ...permissions };
-        
-        // Debug: Log the received permissions
-        console.log('Received permissions from API:', response.data.permissions);
-        
-        Object.entries(response.data.permissions).forEach(([module, perms]) => {
-          // Skip reports and notifications modules
-          if (module === 'reports' || module === 'notifications') return;
-          
-          // Map module names to ensure consistency
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           let mappedModule = module;
           if (module === 'maintenance' || module === 'Maintenance') {
             mappedModule = 'maintenance';
@@ -68,20 +49,10 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
             mappedModule = 'adminManagement';
           }
           
-<<<<<<< HEAD
-=======
-          // Ensure the module exists in our permissions structure
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (formattedPermissions.hasOwnProperty(mappedModule)) {
             formattedPermissions[mappedModule] = perms;
           }
         });
-<<<<<<< HEAD
-
-=======
-        
-        // Ensure adminManagement module exists with default values if not present
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (!formattedPermissions.adminManagement) {
           formattedPermissions.adminManagement = { 
             canView: false, 
@@ -90,12 +61,6 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
             canDelete: false 
           };
         }
-<<<<<<< HEAD
-
-=======
-        
-        // Ensure maintenance module exists with default values if not present
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (!formattedPermissions.maintenance) {
           formattedPermissions.maintenance = { 
             canView: false, 
@@ -104,12 +69,6 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
             canDelete: false 
           };
         }
-<<<<<<< HEAD
-
-=======
-        
-        // Ensure all required modules exist with default values
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const requiredModules = ['users', 'elections', 'departments', 'adminManagement', 'maintenance'];
         requiredModules.forEach(module => {
           if (!formattedPermissions[module]) {
@@ -121,24 +80,11 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
             };
           }
         });
-<<<<<<< HEAD
-
-=======
-        
-        // Debug: Log the final formatted permissions
-        console.log('Final formatted permissions:', formattedPermissions);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setPermissions(formattedPermissions);
       }
     } catch (error) {
       console.error("Error fetching permissions:", error);
       setError("Failed to fetch permissions. Please try again.");
-<<<<<<< HEAD
-
-=======
-      
-      // Fallback: Ensure maintenance module is always available
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setPermissions(prev => ({
         ...prev,
         maintenance: { 
@@ -187,26 +133,12 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
     }));
   };
 
-<<<<<<< HEAD
-=======
-  // Function to validate permissions after saving
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const validatePermissions = async (adminId) => {
     try {
       const token = Cookies.get("token");
       
-<<<<<<< HEAD
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
-=======
-      // More robust URL construction
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-      
-
-      
-      // Instead of calling an API that doesn't exist, we'll return success
-      // and rely on the save operation's success
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return true;
     } catch (error) {
       console.error('Error validating permissions:', error);
@@ -231,11 +163,7 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             },
-<<<<<<< HEAD
             timeout: 15000
-=======
-            timeout: 15000 // 15 seconds timeout
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           }
         );
 
@@ -257,17 +185,9 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
         
         const responseData = await fetchResponse.json();
       }
-<<<<<<< HEAD
 
       await validatePermissions(admin.id);
 
-=======
-      
-      // Validate that permissions were saved correctly
-      await validatePermissions(admin.id);
-      
-      // Store in localStorage and trigger refresh
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       try {
         const updateTimestamp = Date.now().toString();
         localStorage.setItem(`admin_permissions_updated_${admin.id}`, updateTimestamp);
@@ -276,19 +196,10 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
         if (currentUserId === admin.id.toString()) {
         }
         
-<<<<<<< HEAD
         setTimeout(() => {
           triggerGlobalPermissionsRefresh();
         }, 500);
 
-=======
-        // Trigger refresh with a small delay
-        setTimeout(() => {
-          triggerGlobalPermissionsRefresh();
-        }, 500);
-        
-        // Dispatch event for real-time updates
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const event = new CustomEvent('admin-permissions-updated', {
           detail: { 
             adminId: admin.id, 
@@ -300,29 +211,15 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
       } catch (storageError) {
         console.warn('Could not store permission update timestamp:', storageError);
       }
-<<<<<<< HEAD
 
       toast?.success?.("Admin permissions updated successfully");
 
-=======
-      
-      // Show success message
-      toast?.success?.("Admin permissions updated successfully");
-      
-      // Wait 50ms before closing to ensure all events are processed
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setTimeout(() => {
         onSave && onSave(permissions);
         onClose();
       }, 50);
     } catch (error) {
       console.error("Error saving permissions:", error);
-<<<<<<< HEAD
-
-=======
-      
-      // More detailed error logging
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (error.response) {
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
@@ -332,12 +229,6 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
       } else {
         console.error('Error message:', error.message);
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Show a more specific error message
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (error.message && error.message.includes('Network Error')) {
         setError("Network error. Please check your connection to the server and try again.");
       } else {
@@ -354,10 +245,6 @@ const AdminPermissionsModal = ({ admin, onClose, onSave }) => {
         <h2 className="text-xl font-bold mb-4">Manage Permissions for {admin.first_name} {admin.last_name}</h2>
         
         {Object.entries(permissions).map(([module, perms]) => {
-<<<<<<< HEAD
-=======
-          // Skip if module doesn't have proper structure
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           if (!perms || typeof perms !== 'object') return null;
           
           return (

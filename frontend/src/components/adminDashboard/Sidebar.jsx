@@ -6,11 +6,6 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import usePermissions from "../../hooks/usePermissions";
 
-<<<<<<< HEAD
-=======
-// Remove API_BASE usage - use relative paths instead
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -19,11 +14,7 @@ export default function Sidebar() {
   const [showImageModal, setShowImageModal] = useState(false);
   const { hasPermission, permissionsLoading } = usePermissions();
 
-<<<<<<< HEAD
   
-=======
-  // Function to check if a route is active
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const isActiveRoute = (route) => {
     if (route === "/admin") {
       return pathname === "/admin";
@@ -41,18 +32,10 @@ export default function Sidebar() {
         withCredentials: true,
       });
     
-<<<<<<< HEAD
-=======
-      // Update Sidebar Name
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const firstName = res.data.firstName || "";
       const lastName = res.data.lastName || "";
       setAdminName(`${firstName} ${lastName}`);
   
-<<<<<<< HEAD
-=======
-      // Handle both absolute and relative URLs, prevent duplicate query strings
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const rawUrl = res.data.profile_picture || null;
       const baseProfileUrl = rawUrl ? rawUrl.split("?")[0] : null;
       const isAbsolute = baseProfileUrl && /^https?:\/\//i.test(baseProfileUrl);
@@ -62,10 +45,6 @@ export default function Sidebar() {
       setProfilePic(imageUrl);
     } catch (error) {
       console.error("Error fetching admin profile:", error);
-<<<<<<< HEAD
-=======
-      // Set fallback image on error
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setProfilePic("https://via.placeholder.com/80");
     }
   };
@@ -113,10 +92,6 @@ export default function Sidebar() {
           </div>
         )}
       
-<<<<<<< HEAD
-=======
-        {/* Navigation */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <nav className="flex-1 p-4 space-y-4">
           <button 
             className={`block w-full text-left p-3 rounded transition-colors ${
@@ -139,10 +114,6 @@ export default function Sidebar() {
             Profile
           </button>
           
-<<<<<<< HEAD
-=======
-          {/* Only show Elections if user has permission */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {!permissionsLoading && hasPermission('elections', 'view') && (
             <button 
               className={`block w-full text-left p-3 rounded transition-colors ${
@@ -156,10 +127,6 @@ export default function Sidebar() {
             </button>
           )}
 
-<<<<<<< HEAD
-=======
-           {/* Only show Admin Management if user has permission */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {!permissionsLoading && hasPermission('adminManagement', 'view') && (
             <button 
               className={`block w-full text-left p-3 rounded transition-colors ${
@@ -172,12 +139,6 @@ export default function Sidebar() {
               Admin Management
             </button>
           )}
-<<<<<<< HEAD
-
-=======
-          
-          {/* Only show Students if user has permission */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {!permissionsLoading && hasPermission('users', 'view') && (
             <button 
               className={`block w-full text-left p-3 rounded transition-colors ${
@@ -190,12 +151,6 @@ export default function Sidebar() {
               Students Management
             </button>
           )}
-<<<<<<< HEAD
-
-=======
-          
-          {/* Only show Departments if user has permission */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {!permissionsLoading && hasPermission('departments', 'view') && (
             <button 
               className={`block w-full text-left p-3 rounded transition-colors ${
@@ -208,12 +163,6 @@ export default function Sidebar() {
               Departments Management
             </button>
           )}
-<<<<<<< HEAD
-
-=======
-          
-          {/* Only show Content Management if user has permission */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {!permissionsLoading && hasPermission('cms', 'view') && (
             <button 
               className={`block w-full text-left p-3 rounded transition-colors ${
@@ -226,10 +175,6 @@ export default function Sidebar() {
               Content Management
             </button>
           )}
-<<<<<<< HEAD
-=======
-          {/* Only show Audit Logs if user has permission */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {!permissionsLoading && hasPermission('auditLog', 'view') && (
             <button 
               className={`block w-full text-left p-3 rounded transition-colors ${
@@ -243,10 +188,6 @@ export default function Sidebar() {
             </button>
           )}    
 
-<<<<<<< HEAD
-=======
-          {/* Only show Maintenance if user has permission */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {!permissionsLoading && hasPermission('maintenance', 'view') && (
             <button 
               className={`block w-full text-left p-3 rounded transition-colors ${
@@ -260,11 +201,6 @@ export default function Sidebar() {
             </button>
           )}
 
-<<<<<<< HEAD
-=======
-          {/* Only show Reports if user has permission */}
-          {/* Reports button - always visible for admins */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             <button 
               className={`block w-full text-left p-3 rounded transition-colors ${
                 isActiveRoute("/admin/reports") 

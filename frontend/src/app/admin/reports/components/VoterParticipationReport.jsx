@@ -20,10 +20,6 @@ import {
   Cell
 } from 'recharts';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const VOTERS_PER_PAGE = 10;
 
@@ -33,16 +29,9 @@ export default function VoterParticipationReport() {
   const [error, setError] = useState(null);
   const [selectedElection, setSelectedElection] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-<<<<<<< HEAD
   const [voterFilter, setVoterFilter] = useState('all'); 
   const { token } = useAuth();
 
-=======
-  const [voterFilter, setVoterFilter] = useState('all'); // 'all', 'voted', 'not_voted'
-  const { token } = useAuth();
-
-  // Process data for charts
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const chartData = useMemo(() => {
     if (!selectedElection?.department_stats || selectedElection.department_stats.length === 0) {
       return {
@@ -52,10 +41,6 @@ export default function VoterParticipationReport() {
       };
     }
 
-<<<<<<< HEAD
-=======
-    // Sort departments by eligible voters (for bar chart length)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const sortedStats = [...selectedElection.department_stats].sort((a, b) => b.eligible_voters - a.eligible_voters);
     
     const barChartData = sortedStats.map(stat => ({
@@ -66,10 +51,6 @@ export default function VoterParticipationReport() {
       turnout: parseFloat(stat.turnout) || 0
     }));
 
-<<<<<<< HEAD
-=======
-    // Calculate overall statistics
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const totalEligible = selectedElection.department_stats.reduce((sum, stat) => sum + (parseInt(stat.eligible_voters) || 0), 0);
     const totalVoted = selectedElection.department_stats.reduce((sum, stat) => sum + (parseInt(stat.votes_cast) || 0), 0);
     const overallTurnout = totalEligible > 0 ? ((totalVoted / totalEligible) * 100).toFixed(1) : 0;
@@ -87,11 +68,7 @@ export default function VoterParticipationReport() {
         percentage: 100 - parseFloat(overallTurnout), 
         color: '#DC2626' 
       }
-<<<<<<< HEAD
     ].filter(item => item.value > 0); 
-=======
-    ].filter(item => item.value > 0); // Only show segments with data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
     return {
       barChartData,
@@ -109,10 +86,6 @@ export default function VoterParticipationReport() {
   }, []);
 
   useEffect(() => {
-<<<<<<< HEAD
-=======
-    // Reset to first page when election changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setCurrentPage(1);
   }, [selectedElection?.id]);
 
@@ -152,19 +125,11 @@ export default function VoterParticipationReport() {
   const getUniqueVoters = () => {
     if (!selectedElection?.voters) return [];
     
-<<<<<<< HEAD
-=======
-    // Deduplicate voters by student_id, keeping the most recent entry
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let uniqueVoters = selectedElection.voters.reduce((acc, voter) => {
       const existingVoter = acc.find(v => v.student_id === voter.student_id);
       if (!existingVoter) {
         acc.push(voter);
       } else {
-<<<<<<< HEAD
-=======
-        // If voter already exists, keep the one with vote_date (voted) or the most recent
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         if (voter.vote_date && !existingVoter.vote_date) {
           const index = acc.findIndex(v => v.student_id === voter.student_id);
           acc[index] = voter;
@@ -173,10 +138,6 @@ export default function VoterParticipationReport() {
       return acc;
     }, []);
 
-<<<<<<< HEAD
-=======
-    // Apply voter filter
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (voterFilter === 'voted') {
       uniqueVoters = uniqueVoters.filter(voter => voter.has_voted);
     } else if (voterFilter === 'not_voted') {
@@ -204,11 +165,7 @@ export default function VoterParticipationReport() {
 
   const handleFilterChange = (filter) => {
     setVoterFilter(filter);
-<<<<<<< HEAD
     setCurrentPage(1); 
-=======
-    setCurrentPage(1); // Reset to first page when filter changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   };
 
   const handleDownload = async () => {
@@ -236,11 +193,7 @@ export default function VoterParticipationReport() {
         }))
       };
 
-<<<<<<< HEAD
       await generatePdfReport(8, reportData); 
-=======
-      await generatePdfReport(8, reportData); // 8 is the report ID for Voter Participation Report
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (error) {
       console.error('Error downloading report:', error);
     }
@@ -295,10 +248,6 @@ export default function VoterParticipationReport() {
 
       {selectedElection && (
         <div className="space-y-6">
-<<<<<<< HEAD
-=======
-          {/* Overall Statistics Cards */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -439,11 +388,6 @@ export default function VoterParticipationReport() {
                     />
                   </PieChart>
                 </ResponsiveContainer>
-<<<<<<< HEAD
-
-=======
-                {/* Custom Legend Below Chart */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                 <div className="flex justify-center gap-6 mt-4">
                   {chartData.pieChartData.map((entry, index) => (
                     <div key={index} className="flex items-center gap-2">

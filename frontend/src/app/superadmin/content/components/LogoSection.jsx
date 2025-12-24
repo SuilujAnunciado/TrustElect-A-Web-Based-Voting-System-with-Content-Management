@@ -1,10 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const LogoSection = ({ 
   landingContent, 
   updateLogo, 
@@ -17,20 +13,11 @@ const LogoSection = ({
   const [currentLogo, setCurrentLogo] = useState(null);
 
   useEffect(() => {
-<<<<<<< HEAD
     if (landingContent?.logo?.imageUrl) {
       setCurrentLogo(formatImageUrl(landingContent.logo.imageUrl));
     } else {
 
       const defaultLogo = '/images/sti-logo.png'; 
-=======
-    // Check if there's a logo in the landing content
-    if (landingContent?.logo?.imageUrl) {
-      setCurrentLogo(formatImageUrl(landingContent.logo.imageUrl));
-    } else {
-      // If no logo in landing content, check if there's a default logo
-      const defaultLogo = '/images/sti-logo.png'; // Default STI logo path
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setCurrentLogo(defaultLogo);
     }
   }, [landingContent?.logo?.imageUrl, formatImageUrl]);
@@ -51,10 +38,6 @@ const LogoSection = ({
   };
 
   const handleRemoveLogo = () => {
-<<<<<<< HEAD
-=======
-    // When removing logo, set back to default STI logo
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const defaultLogo = '/images/sti-logo.png';
     setCurrentLogo(defaultLogo);
     removeImage('logo', 0);
@@ -73,10 +56,6 @@ const LogoSection = ({
       </div>
       
       <div className="grid grid-cols-1 gap-6">
-<<<<<<< HEAD
-=======
-        {/* Current Logo Display */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div>
           <label className="block text-sm font-medium text-black mb-2">
             Current Logo
@@ -89,10 +68,6 @@ const LogoSection = ({
                   alt="Current Site Logo"
                   className="max-h-full max-w-full object-contain"
                   onError={(e) => {
-<<<<<<< HEAD
-=======
-                    // If image fails to load, show default STI logo
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                     e.target.onerror = null;
                     e.target.src = '/images/sti-logo.png';
                   }}
@@ -102,10 +77,6 @@ const LogoSection = ({
           </div>
         </div>
 
-<<<<<<< HEAD
-=======
-        {/* Logo Upload Section */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div>
           <label className="block text-sm font-medium text-black mb-2">
             Update Logo

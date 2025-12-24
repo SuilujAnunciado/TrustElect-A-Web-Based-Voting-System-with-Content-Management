@@ -12,7 +12,6 @@ import { BASE_URL } from '@/config';
 const API_BASE = '/api';
 
 const CHART_COLORS = [
-<<<<<<< HEAD
   '#3b82f6', 
   '#ef4444',
   '#10b981', 
@@ -23,18 +22,6 @@ const CHART_COLORS = [
   '#f97316', 
   '#6366f1', 
   '#14b8a6',
-=======
-  '#3b82f6', // blue
-  '#ef4444', // red
-  '#10b981', // green
-  '#f59e0b', // amber
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#f97316', // orange
-  '#6366f1', // indigo
-  '#14b8a6', // teal
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 ];
 
 export default function ElectionResultsPage({ params }) {
@@ -52,19 +39,13 @@ export default function ElectionResultsPage({ params }) {
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/default-candidate.png';
-<<<<<<< HEAD
  
-=======
-
-    
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (imageUrl.startsWith('http')) {
       return imageUrl;
     }
     
     if (imageUrl.startsWith('/uploads')) {
       const finalUrl = `${BASE_URL}${imageUrl}`;
-      console.log('Using uploads URL:', finalUrl);
       return finalUrl;
     }
 
@@ -98,20 +79,10 @@ export default function ElectionResultsPage({ params }) {
 
   const formatResultsData = (positions) => {
     if (!positions || positions.length === 0) return [];
-<<<<<<< HEAD
 
     return positions.map(position => {
       let sortedCandidates = [...(position.candidates || [])];
 
-=======
-    
-    // Create formatted data for each position
-    return positions.map(position => {
-      // Sort candidates by vote count in descending order
-      let sortedCandidates = [...(position.candidates || [])];
-      
-      // Apply the current sort order for this position
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (sortOrder[position.id] === 'asc') {
         sortedCandidates.sort((a, b) => (a.vote_count || 0) - (b.vote_count || 0));
       } else {
@@ -321,12 +292,7 @@ export default function ElectionResultsPage({ params }) {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-<<<<<<< HEAD
             
-=======
-              
-              {/* Candidates sorted by votes */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               <div className="space-y-4">
                 {position.sortedCandidates.map((candidate, index) => (
                   <div 

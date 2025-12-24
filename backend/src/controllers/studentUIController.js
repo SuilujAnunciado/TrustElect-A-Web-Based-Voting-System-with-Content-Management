@@ -33,20 +33,10 @@ class StudentUIController {
 
   static async updateConfig(req, res) {
     try {
-<<<<<<< HEAD
-=======
-      console.log('Updating student UI config...');
-      console.log('Request body:', req.body);
-      console.log('File:', req.file);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 
       let contentData;
       try {
         contentData = JSON.parse(req.body.content);
-<<<<<<< HEAD
-=======
-        console.log('Parsed content data:', contentData);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       } catch (error) {
         console.error('Error parsing content data:', error);
         return res.status(400).json({ message: 'Invalid content data format' });
@@ -60,10 +50,6 @@ class StudentUIController {
       const currentConfig = await StudentUIModel.getConfig();
 
       if (req.file) {
-<<<<<<< HEAD
-=======
-        console.log('Processing uploaded file:', req.file.originalname);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  
         backgroundImage = `/uploads/images/${req.file.filename}`;
 
@@ -74,18 +60,10 @@ class StudentUIController {
           return res.status(500).json({ message: 'Failed to save uploaded file' });
         }
       } else if (existing_background_image && !req.body.removeBackground) {
-<<<<<<< HEAD
-=======
-        console.log('Using existing background image:', existing_background_image);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         backgroundImage = existing_background_image;
       }
 
       if (req.body.removeBackground === 'true' || type === 'landing') {
-<<<<<<< HEAD
-=======
-        console.log('Background removal requested or landing design selected');
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         backgroundImage = null;
       }
 
@@ -97,10 +75,6 @@ class StudentUIController {
             const oldImagePath = path.join(__dirname, '../../', currentConfig.background_image.substring(1));
             await fs.access(oldImagePath); 
             await fs.unlink(oldImagePath);
-<<<<<<< HEAD
-=======
-            console.log('Deleted old background image:', currentConfig.background_image);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           }
         } catch (err) {
           console.error('Error deleting old background image:', err);

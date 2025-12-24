@@ -6,10 +6,6 @@ import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import axios from "axios";
 
-<<<<<<< HEAD
-=======
-// Helper for 12-hour time format
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const formatTime = (time24h) => {
   if (!time24h) return "";
   const [hours, minutes] = time24h.split(":");
@@ -19,10 +15,6 @@ const formatTime = (time24h) => {
   return `${hour12}:${minutes} ${period}`;
 };
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const PreviewModal = ({ 
   electionData, 
   eligibleCount, 
@@ -236,10 +228,6 @@ export default function CreateElectionPage() {
     },
   });
   
-<<<<<<< HEAD
-=======
-  // Maintenance data states
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const [maintenanceData, setMaintenanceData] = useState({
     programs: [],
     electionTypes: [],
@@ -261,15 +249,8 @@ export default function CreateElectionPage() {
   const [totalRegisteredVoters, setTotalRegisteredVoters] = useState(0);
   const [showBackConfirmation, setShowBackConfirmation] = useState(false);
 
-<<<<<<< HEAD
   const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
 
-=======
-  // Add state for managing visibility of program selections
-  const [visibleProgramSelections, setVisibleProgramSelections] = useState({});
-
-  // Add the areAllSelected helper function before the useEffect
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const areAllSelected = (selectedItems, allItems) => {
     if (!selectedItems || !allItems) return false;
     if (selectedItems.length !== allItems.length) return false;
@@ -277,18 +258,10 @@ export default function CreateElectionPage() {
            selectedItems.every(item => allItems.includes(item));
   };
 
-<<<<<<< HEAD
-=======
-  // Function to get current time in HH:MM format
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
   };
 
-<<<<<<< HEAD
-=======
-  // Update start time when date changes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     if (eventData.dateFrom === new Date().toISOString().split('T')[0]) {
       setEventData(prev => ({
@@ -327,10 +300,6 @@ export default function CreateElectionPage() {
             );
             
             if (category === 'precincts') {
-<<<<<<< HEAD
-=======
-              // Keep full objects for precincts to access IDs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
               maintenanceResults[category] = response.data.data;
             } else {
               maintenanceResults[category] = response.data.data.map(item => item.name);
@@ -341,10 +310,6 @@ export default function CreateElectionPage() {
           }
         });
         
-<<<<<<< HEAD
-=======
-        // Fetch current semester
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const currentSemesterRequest = axios.get(
           "/api/maintenance/current-semester",
           { headers: { Authorization: `Bearer ${token}` } }
@@ -362,10 +327,6 @@ export default function CreateElectionPage() {
           }));
         }
         
-<<<<<<< HEAD
-=======
-        // Set current semester if available
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const currentSemesterResponse = await currentSemesterRequest;
         if (currentSemesterResponse.data.success && currentSemesterResponse.data.data) {
           const currentSemesterName = currentSemesterResponse.data.data.name;
@@ -395,12 +356,6 @@ export default function CreateElectionPage() {
       try {
         setIsLoading(true);
         const token = Cookies.get("token");
-<<<<<<< HEAD
-
-=======
-        
-        // Check if required fields are selected
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const hasRequiredSelections = 
           eventData.eligibleVoters.programs.length > 0 &&
           eventData.eligibleVoters.yearLevels.length > 0 &&
@@ -411,21 +366,11 @@ export default function CreateElectionPage() {
           return;
         }
         
-<<<<<<< HEAD
-=======
-        // Determine if all options for each category are selected using the helper function
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const allProgramsSelected = areAllSelected(eventData.eligibleVoters.programs, maintenanceData.programs);
         const allYearLevelsSelected = areAllSelected(eventData.eligibleVoters.yearLevels, maintenanceData.yearLevels);
         const allGendersSelected = areAllSelected(eventData.eligibleVoters.gender, maintenanceData.genders);
         
-<<<<<<< HEAD
         const optimizedEligibleVoters = {
-=======
-        // Create a modified eligible voters object - key to fixing the count
-        const optimizedEligibleVoters = {
-          // If all items are selected, send empty array to backend to indicate "all"
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           programs: allProgramsSelected ? [] : eventData.eligibleVoters.programs,
           yearLevels: allYearLevelsSelected ? [] : eventData.eligibleVoters.yearLevels,
           gender: allGendersSelected ? [] : eventData.eligibleVoters.gender,
@@ -467,10 +412,6 @@ export default function CreateElectionPage() {
   }, [eventData.eligibleVoters, maintenanceData]);
 
   useEffect(() => {
-<<<<<<< HEAD
-=======
-    // Fetch total registered voters (all filters empty)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const fetchTotalRegisteredVoters = async () => {
       try {
         const token = Cookies.get("token");
@@ -513,10 +454,6 @@ export default function CreateElectionPage() {
     if (eligibleVoters.semester.length === 0) newCriteriaErrors.semester = "Select a semester";
     if (eligibleVoters.precinct.length === 0) newCriteriaErrors.precinct = "Select at least one precinct";
     
-<<<<<<< HEAD
-=======
-    // Validate that each selected precinct has at least one program assigned
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     eligibleVoters.precinct.forEach(precinct => {
       if (!eligibleVoters.precinctPrograms[precinct]?.length) {
         newCriteriaErrors.precinct = `Assign at least one program to ${precinct}`;
@@ -532,10 +469,6 @@ export default function CreateElectionPage() {
     setEventData(prev => ({ ...prev, [name]: value }));
   };
 
-<<<<<<< HEAD
-=======
-  // Add function to check if a program is already assigned to another precinct
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const isProgramAssignedToOtherPrecinct = (program, currentPrecinct) => {
     return Object.entries(eventData.eligibleVoters.precinctPrograms)
       .some(([precinct, programs]) => 
@@ -543,10 +476,6 @@ export default function CreateElectionPage() {
       );
   };
 
-<<<<<<< HEAD
-=======
-  // Add function to toggle program selection visibility
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const toggleProgramSelection = (precinct) => {
     setVisibleProgramSelections(prev => ({
       ...prev,
@@ -555,10 +484,6 @@ export default function CreateElectionPage() {
   };
 
   const handlePrecinctProgramChange = (precinct, program) => {
-<<<<<<< HEAD
-=======
-    // Check if program is already assigned to another precinct
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!eventData.eligibleVoters.precinctPrograms[precinct]?.includes(program) &&
         isProgramAssignedToOtherPrecinct(program, precinct)) {
       toast.error(`${program} is already assigned to another precinct`);
@@ -577,12 +502,6 @@ export default function CreateElectionPage() {
       } else {
         precinctPrograms[precinct] = [...precinctPrograms[precinct], program];
       }
-<<<<<<< HEAD
-
-=======
-      
-      // Remove empty precinct entries
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (precinctPrograms[precinct].length === 0) {
         delete precinctPrograms[precinct];
       }
@@ -615,20 +534,12 @@ export default function CreateElectionPage() {
         : [...currentValues, value];
 
       if (category === 'programs') {
-<<<<<<< HEAD
-=======
-        // Reset year levels when changing programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         return {
           ...prev,
           eligibleVoters: {
             ...prev.eligibleVoters,
             [category]: newValues,
-<<<<<<< HEAD
             yearLevels: [] 
-=======
-            yearLevels: [] // Reset year levels when changing programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           }
         };
       }
@@ -660,20 +571,12 @@ export default function CreateElectionPage() {
       const newValues = allSelected ? [] : [...items];
       
       if (category === 'programs') {
-<<<<<<< HEAD
-=======
-        // Reset year levels when toggling all programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         return {
           ...prev,
           eligibleVoters: {
             ...prev.eligibleVoters,
             [category]: newValues,
-<<<<<<< HEAD
             yearLevels: [] 
-=======
-            yearLevels: [] // Reset year levels when changing programs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           }
         };
       }
@@ -720,12 +623,6 @@ export default function CreateElectionPage() {
       setIsLoading(true);
       setApiError(null);
       const token = Cookies.get("token");
-<<<<<<< HEAD
-
-=======
-      
-      // Use the same optimization for creation endpoint
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const allProgramsSelected = areAllSelected(eventData.eligibleVoters.programs, maintenanceData.programs);
       const allYearLevelsSelected = areAllSelected(eventData.eligibleVoters.yearLevels, maintenanceData.yearLevels);
       const allGendersSelected = areAllSelected(eventData.eligibleVoters.gender, maintenanceData.genders);
@@ -739,13 +636,7 @@ export default function CreateElectionPage() {
         precinctPrograms: eventData.eligibleVoters.precinctPrograms
       };
   
-<<<<<<< HEAD
       const laboratoryPrecincts = eventData.eligibleVoters.precinct.map(precinct => {
-=======
-      // Prepare laboratory precincts data
-      const laboratoryPrecincts = eventData.eligibleVoters.precinct.map(precinct => {
-        // Find the precinct ID from the maintenance data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const precinctData = maintenanceData.precincts.find(p => p.name === precinct);
         return {
           laboratoryPrecinctId: precinctData?.id || precinct,
@@ -1057,10 +948,6 @@ export default function CreateElectionPage() {
           </div>
         </div>
 
-<<<<<<< HEAD
-=======
-        {/* Eligible Voters */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="space-y-6">
           <div>
             <div className="flex justify-between items-center mb-4">

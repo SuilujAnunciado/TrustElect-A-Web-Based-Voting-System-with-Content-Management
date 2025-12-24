@@ -13,7 +13,6 @@ const { verifyToken } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
-<<<<<<< HEAD
 router.use(verifyToken);
 
 
@@ -29,30 +28,6 @@ router.put("/markReadByEntity", markReadByEntity);
 
 router.delete("/:id", deleteNotification);
 
-=======
-// All notification routes require authentication
-router.use(verifyToken);
-
-// Get all notifications for the current user
-router.get("/", getNotifications);
-
-// Get count of unread notifications
-router.get("/unread-count", getUnreadCount);
-
-// Mark a notification as read
-router.put("/:id/read", markAsRead);
-
-// Mark all notifications as read
-router.put("/read-all", markAllAsRead);
-
-// Mark notifications as read by entity type and ID
-router.put("/markReadByEntity", markReadByEntity);
-
-// Delete a notification
-router.delete("/:id", deleteNotification);
-
-// Delete all notifications
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.delete("/", deleteAllNotifications);
 
 

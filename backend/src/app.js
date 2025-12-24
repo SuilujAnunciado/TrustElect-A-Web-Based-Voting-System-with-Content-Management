@@ -2,10 +2,6 @@ require("dotenv").config();
 
 process.env.TZ = 'Asia/Manila';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -65,18 +61,10 @@ const profilesDir = path.join(uploadsDir, 'profiles');
   }
 });
 
-<<<<<<< HEAD
-=======
-// Environment-aware CORS configuration
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const corsOrigins = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ['https://www.trustelectonline.com', 'https://trustelectonline.com'];
 
-<<<<<<< HEAD
-=======
-// Add localhost for development
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const allowedOrigins = [
   ...corsOrigins,
   'http://localhost:3000',
@@ -310,7 +298,6 @@ app.use('/api/partylists', partylistRoutes);
 app.use('/api/partylist-candidates', partylistCandidateRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
   setHeaders: (res, filePath) => {
-    console.log('Serving static file:', filePath);
     res.set('Cross-Origin-Resource-Policy', 'cross-origin');
     res.set('Access-Control-Allow-Origin', '*');
 
@@ -404,7 +391,6 @@ app.get('/uploads/images/:filename', (req, res) => {
 
     
     if (!fs.existsSync(imagePath)) {
-      console.log('Image not found:', imagePath);
       return res.status(404).json({ error: 'Image not found' });
     }
 
@@ -479,7 +465,6 @@ app.get('/uploads/partylists/:filename', (req, res) => {
 
     
     if (!fs.existsSync(imagePath)) {
-      console.log('Partylist image not found:', imagePath);
       return res.status(404).json({ error: 'Partylist image not found' });
     }
 

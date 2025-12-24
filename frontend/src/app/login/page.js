@@ -5,10 +5,6 @@ import { useRouter } from "next/navigation";
 import LoginForm from "@/components/Auth/LoginForm";
 import { Button } from "@/components/ui/button";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function Home() {
   const [showLogin, setShowLogin] = useState(false);
 

@@ -28,10 +28,6 @@ const {
     getVoterVerificationCodes,
     getVotesPerCandidate,
     setTieBreaker,
-<<<<<<< HEAD
-=======
-    // Archive and Delete functionality
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     archiveElection,
     restoreArchivedElection,
     softDeleteElection,
@@ -48,16 +44,9 @@ const { verifyToken, isSuperAdmin, isAdmin, isStudent, verifyStudentRecord, canA
 const electionStatusService = require('../services/electionStatusService');
 const router = express.Router();
 
-<<<<<<< HEAD
 router.get("/public/status/:status", getElectionsByStatus);
 
 
-=======
-// Public routes for landing page (no authentication required)
-router.get("/public/status/:status", getElectionsByStatus);
-
-// Election creation and management
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post("/", verifyToken, createElection);
 router.post("/preview-voters", verifyToken, previewEligibleVoters);
 router.get("/", verifyToken, getElections);
@@ -65,17 +54,9 @@ router.get("/status/:status", verifyToken, getElectionsByStatus);
 router.get("/stats", verifyToken, getElectionStats);
 router.post("/update-statuses", verifyToken, updateElectionStatuses);
 
-<<<<<<< HEAD
 router.get("/pending-approval", verifyToken, isSuperAdmin, getPendingApprovalElections);
 router.get("/admin-pending-approval", verifyToken, isAdmin, getPendingApprovalElections);
 
-=======
-// Get elections pending approval (these need to come BEFORE /:id routes)
-router.get("/pending-approval", verifyToken, isSuperAdmin, getPendingApprovalElections);
-router.get("/admin-pending-approval", verifyToken, isAdmin, getPendingApprovalElections);
-
-// DEBUG: Check IP detection - MUST be before /:id routes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get("/debug-ip", (req, res) => {
   const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                    req.headers['x-real-ip'] ||
@@ -96,12 +77,6 @@ router.get("/debug-ip", (req, res) => {
   if (cleanIP === '::1') {
     cleanIP = '127.0.0.1';
   }
-<<<<<<< HEAD
-
-=======
-  
-  // Get all possible IP variations
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const possibleIPs = [
     clientIP,
     cleanIP,
@@ -137,22 +112,12 @@ router.get("/debug-ip", (req, res) => {
   });
 });
 
-<<<<<<< HEAD
-=======
-// DEBUG: Check IP validation for specific election
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get("/debug-ip-validation/:electionId", verifyToken, isStudent, async (req, res) => {
   try {
     const studentId = req.user?.studentId;
     const electionId = req.params.electionId;
     
     const { pool } = require('../config/db');
-<<<<<<< HEAD
-
-=======
-    
-    // Get client IP
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                      req.headers['x-real-ip'] ||
                      req.connection.remoteAddress ||
@@ -167,12 +132,6 @@ router.get("/debug-ip-validation/:electionId", verifyToken, isStudent, async (re
     if (cleanIP === '::1') {
       cleanIP = '127.0.0.1';
     }
-<<<<<<< HEAD
-
-=======
-    
-    // Check student assignment
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const studentAssignment = await pool.query(`
       SELECT 
         s.course_name,
@@ -218,10 +177,6 @@ router.get("/debug-ip-validation/:electionId", verifyToken, isStudent, async (re
   }
 });
 
-<<<<<<< HEAD
-=======
-// Routes with :id parameter
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get('/:id/voters', verifyToken, getElectionVoters);
 router.get('/:id/details', verifyToken, getElectionDetails);
 router.get('/:id/criteria', verifyToken, getElectionEligibilityCriteria);
@@ -255,32 +210,17 @@ router.get("/:id/voter-codes", verifyToken, getVoterVerificationCodes);
 router.get("/:id/votes-per-candidate", verifyToken, getVotesPerCandidate);
 router.post("/:id/tie-breaker", verifyToken, setTieBreaker);
 
-<<<<<<< HEAD
-=======
-// Archive and Delete functionality routes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post("/:id/archive", verifyToken, archiveElection);
 router.post("/:id/restore-archive", verifyToken, restoreArchivedElection);
 router.post("/:id/soft-delete", verifyToken, softDeleteElection);
 router.post("/:id/restore-delete", verifyToken, restoreDeletedElection);
 router.delete("/:id/permanent", verifyToken, permanentDeleteElection);
 
-<<<<<<< HEAD
 router.get("/archived", verifyToken, getArchivedElections);
 router.get("/deleted", verifyToken, getDeletedElections);
 
 router.post("/cleanup-auto-delete", verifyToken, isSuperAdmin, cleanupAutoDeleteElections);
 
-=======
-// Get archived and deleted elections
-router.get("/archived", verifyToken, getArchivedElections);
-router.get("/deleted", verifyToken, getDeletedElections);
-
-// Cleanup auto-delete elections (for cron job and manual cleanup)
-router.post("/cleanup-auto-delete", verifyToken, isSuperAdmin, cleanupAutoDeleteElections);
-
-// Ballot routes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get("/ballot/:id/student", verifyToken, isStudent, getBallotForStudent);
 
 module.exports = router;

@@ -1,88 +1,5 @@
 const pool = require("../config/db");
 
-<<<<<<< HEAD
-=======
-// Test endpoint to debug issues
-exports.testVotingTimeEndpoint = async (req, res) => {
-  try {
-    
-    // Test database connection
-    const testQuery = await pool.query('SELECT 1 as test');
-    
-    // Test table existence
-    const tableCheck = await pool.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public' 
-      AND table_name IN ('eligible_voters', 'elections', 'students', 'users', 'audit_logs', 'votes')
-      ORDER BY table_name
-    `);
-    
-    
-    // Test basic data counts
-    const counts = {};
-    try {
-      const eligibleVotersCount = await pool.query('SELECT COUNT(*) as count FROM eligible_voters');
-      counts.eligible_voters = eligibleVotersCount.rows[0].count;
-    } catch (e) {
-      counts.eligible_voters = 'Error: ' + e.message;
-    }
-    
-    try {
-      const electionsCount = await pool.query('SELECT COUNT(*) as count FROM elections');
-      counts.elections = electionsCount.rows[0].count;
-    } catch (e) {
-      counts.elections = 'Error: ' + e.message;
-    }
-    
-    try {
-      const studentsCount = await pool.query('SELECT COUNT(*) as count FROM students');
-      counts.students = studentsCount.rows[0].count;
-    } catch (e) {
-      counts.students = 'Error: ' + e.message;
-    }
-    
-    try {
-      const usersCount = await pool.query('SELECT COUNT(*) as count FROM users');
-      counts.users = usersCount.rows[0].count;
-    } catch (e) {
-      counts.users = 'Error: ' + e.message;
-    }
-    
-    try {
-      const auditLogsCount = await pool.query('SELECT COUNT(*) as count FROM audit_logs');
-      counts.audit_logs = auditLogsCount.rows[0].count;
-    } catch (e) {
-      counts.audit_logs = 'Error: ' + e.message;
-    }
-    
-    try {
-      const votesCount = await pool.query('SELECT COUNT(*) as count FROM votes');
-      counts.votes = votesCount.rows[0].count;
-    } catch (e) {
-      counts.votes = 'Error: ' + e.message;
-    }
-    
-    res.json({
-      success: true,
-      message: 'Voting time endpoint test completed',
-      database_connection: 'OK',
-      available_tables: tableCheck.rows.map(r => r.table_name),
-      table_counts: counts
-    });
-    
-  } catch (error) {
-    console.error('Test endpoint error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Test endpoint failed',
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
-};
-
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 exports.getVotingTimeData = async (req, res) => {
   try {
     const { page = 1, limit = 100, status } = req.query;
@@ -90,13 +7,8 @@ exports.getVotingTimeData = async (req, res) => {
 
     console.log('Fetching voting time data with params:', { page, limit, offset, status });
 
-<<<<<<< HEAD
-=======
-    // Try a simple query first to test database connectivity
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     try {
       const testQuery = await pool.query('SELECT 1 as test');
-      console.log('Database connection test passed');
     } catch (dbError) {
       console.error('Database connection test failed:', dbError);
       return res.status(500).json({
@@ -106,10 +18,6 @@ exports.getVotingTimeData = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
-=======
-    // Check if tables exist
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let tableExists = false;
     try {
       const tableCheck = await pool.query(`
@@ -137,10 +45,6 @@ exports.getVotingTimeData = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
-=======
-    // Build status filter condition
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let statusFilter = '';
     if (status === 'voted') {
       statusFilter = 'AND EXISTS(SELECT 1 FROM votes v WHERE v.student_id = ev.student_id AND v.election_id = ev.election_id)';
@@ -148,10 +52,6 @@ exports.getVotingTimeData = async (req, res) => {
       statusFilter = 'AND NOT EXISTS(SELECT 1 FROM votes v WHERE v.student_id = ev.student_id AND v.election_id = ev.election_id)';
     }
 
-<<<<<<< HEAD
-=======
-    // Get total count for pagination
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let totalCount = 0;
     try {
       const countQuery = `
@@ -170,10 +70,6 @@ exports.getVotingTimeData = async (req, res) => {
       totalCount = 0;
     }
 
-<<<<<<< HEAD
-=======
-    // Simplified query with better error handling
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let result;
     try {
       const query = `
@@ -241,19 +137,10 @@ exports.getVotingTimeData = async (req, res) => {
       `;
 
       result = await pool.query(query, [limit, offset]);
-<<<<<<< HEAD
 
     } catch (queryError) {
       console.error('Main query failed:', queryError);
 
-=======
-      console.log('Query result rows:', result.rows.length);
-    } catch (queryError) {
-      console.error('Main query failed:', queryError);
-      
-      // Return sample data as fallback for testing
-      console.log('Returning sample data as fallback');
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const sampleData = [
         {
           student_id: 1,
@@ -303,16 +190,9 @@ exports.getVotingTimeData = async (req, res) => {
         original_error: queryError.message
       });
     }
-<<<<<<< HEAD
 
     const processedData = result.rows.map(row => {
 
-=======
-    
-    // Process the results to add calculated fields
-    const processedData = result.rows.map(row => {
-      // Calculate session duration
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let sessionDuration = '—';
       if (row.login_time && row.vote_submitted_time) {
         const loginTime = new Date(row.login_time);
@@ -325,10 +205,6 @@ exports.getVotingTimeData = async (req, res) => {
         }
       }
 
-<<<<<<< HEAD
-=======
-      // Format device/browser info
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let deviceBrowserInfo = '—';
       if (row.user_agent) {
         let os = 'Unknown OS';
@@ -382,18 +258,9 @@ exports.getVotingTimeData = async (req, res) => {
 exports.getVotingTimeDataByElection = async (req, res) => {
   try {
     const { electionId } = req.params;
-<<<<<<< HEAD
     const { page = 1, limit = 100, status } = req.query;
     const offset = (page - 1) * limit;
 
-=======
-    const { page = 1, limit = 100, status } = req.query; // Added status filter
-    const offset = (page - 1) * limit;
-
-    console.log('Fetching voting time data for election:', { electionId, page, limit, status, offset });
-
-    // Validate election ID
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (!electionId || isNaN(parseInt(electionId))) {
       return res.status(400).json({
         success: false,
@@ -401,7 +268,6 @@ exports.getVotingTimeDataByElection = async (req, res) => {
       });
     }
 
-    // Check if election exists
     const electionCheck = await pool.query('SELECT id, title FROM elections WHERE id = $1', [electionId]);
     if (electionCheck.rows.length === 0) {
       return res.status(404).json({
@@ -411,13 +277,6 @@ exports.getVotingTimeDataByElection = async (req, res) => {
     }
 
     const election = electionCheck.rows[0];
-<<<<<<< HEAD
-
-=======
-    console.log('Election found:', election.title);
-
-    // Build status filter condition
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let statusFilter = '';
     if (status === 'voted') {
       statusFilter = 'AND EXISTS(SELECT 1 FROM votes v WHERE v.student_id = ev.student_id AND v.election_id = ev.election_id)';
@@ -425,10 +284,6 @@ exports.getVotingTimeDataByElection = async (req, res) => {
       statusFilter = 'AND NOT EXISTS(SELECT 1 FROM votes v WHERE v.student_id = ev.student_id AND v.election_id = ev.election_id)';
     }
 
-<<<<<<< HEAD
-=======
-    // Get total count for pagination
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let totalCount = 0;
     try {
       const countQuery = `
@@ -440,19 +295,11 @@ exports.getVotingTimeDataByElection = async (req, res) => {
       `;
       const countResult = await pool.query(countQuery, [electionId]);
       totalCount = parseInt(countResult.rows[0].total);
-<<<<<<< HEAD
-=======
-      console.log('Total count for election:', totalCount);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     } catch (countError) {
       console.error('Count query failed:', countError);
       totalCount = 0;
     }
 
-<<<<<<< HEAD
-=======
-    // Get voting time data for specific election
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     let result;
     try {
       const query = `
@@ -520,53 +367,10 @@ exports.getVotingTimeDataByElection = async (req, res) => {
       `;
 
       result = await pool.query(query, [electionId, limit, offset]);
-<<<<<<< HEAD
     } catch (queryError) {
       console.error('Main query failed for election:', queryError);
 
-=======
-      console.log('Query result rows for election:', result.rows.length);
-    } catch (queryError) {
-      console.error('Main query failed for election:', queryError);
-      
-      // Return sample data as fallback for testing
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
-      console.log('Returning sample data as fallback for election');
-      const sampleData = [
-        {
-          student_id: 1,
-          election_id: parseInt(electionId),
-          election_title: election.title,
-          voter_id: "102001",
-          first_name: "John",
-          last_name: "Doe",
-          course_name: "Computer Science",
-          login_time: "2025-01-21T08:02:14.000Z",
-          vote_submitted_time: "2025-01-21T08:04:45.000Z",
-          ip_address: "192.168.1.20",
-          user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          status: "Voted",
-          session_duration: "2m 31s",
-          device_browser_info: "192.168.1.20 Windows / Chrome"
-        },
-        {
-          student_id: 2,
-          election_id: parseInt(electionId),
-          election_title: election.title,
-          voter_id: "102002",
-          first_name: "Jane",
-          last_name: "Smith",
-          course_name: "Information Technology",
-          login_time: "2025-01-21T08:10:32.000Z",
-          vote_submitted_time: null,
-          ip_address: null,
-          user_agent: null,
-          status: "Not Voted",
-          session_duration: "—",
-          device_browser_info: "—"
-        }
-      ];
-      
+   
       return res.json({
         success: true,
         data: sampleData,
@@ -582,13 +386,7 @@ exports.getVotingTimeDataByElection = async (req, res) => {
       });
     }
     
-<<<<<<< HEAD
     const processedData = result.rows.map(row => {
-=======
-    // Process the results to add calculated fields
-    const processedData = result.rows.map(row => {
-      // Calculate session duration
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let sessionDuration = '—';
       if (row.login_time && row.vote_submitted_time) {
         const loginTime = new Date(row.login_time);
@@ -601,10 +399,6 @@ exports.getVotingTimeDataByElection = async (req, res) => {
         }
       }
 
-<<<<<<< HEAD
-=======
-      // Format device/browser info
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       let deviceBrowserInfo = '—';
       if (row.user_agent) {
         let os = 'Unknown OS';

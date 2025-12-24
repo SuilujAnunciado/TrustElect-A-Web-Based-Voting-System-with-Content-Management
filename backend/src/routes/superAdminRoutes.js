@@ -15,10 +15,6 @@ const path = require("path");
 const fs = require("fs");
 const router = express.Router();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = path.join(__dirname, "../../uploads/profiles");
@@ -33,10 +29,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-<<<<<<< HEAD
-=======
-//If no superadmin exist
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post(
   "/register-super-admin",
   [
@@ -66,20 +58,10 @@ router.get("/profile", verifyToken, isSuperAdmin, getSuperAdminProfile);
 
 router.put("/profile", verifyToken, isSuperAdmin, updateSuperAdminProfile);
 
-<<<<<<< HEAD
 router.post("/upload", verifyToken, isSuperAdmin, upload.single("profilePic"), uploadProfilePicture);
 
 router.post('/test-notifications', verifyToken, async (req, res) => {
   try {
-=======
-// Remove the duplicate upload handler and use only the controller
-router.post("/upload", verifyToken, isSuperAdmin, upload.single("profilePic"), uploadProfilePicture);
-
-// Debug route to test superadmin notifications
-router.post('/test-notifications', verifyToken, async (req, res) => {
-  try {
-    // Only allow superadmins to use this route
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     if (req.user.role !== 'SuperAdmin') {
       return res.status(403).json({ 
         success: false, 

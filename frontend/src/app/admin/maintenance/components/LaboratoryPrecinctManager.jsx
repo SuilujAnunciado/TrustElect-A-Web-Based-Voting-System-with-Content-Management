@@ -5,10 +5,6 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { toast } from 'react-hot-toast';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const LaboratoryPrecinctManager = ({ precincts = [] }) => {
   const [laboratoryPrecincts, setLaboratoryPrecincts] = useState([]);
   const [selectedLab, setSelectedLab] = useState(null);
@@ -27,10 +23,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
   const [showIPs, setShowIPs] = useState({});
 
   useEffect(() => {
-<<<<<<< HEAD
-=======
-    // Convert precincts to laboratory precincts format
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const labPrecincts = precincts.map(precinct => ({
       id: precinct.id,
       name: precinct.name,
@@ -39,22 +31,12 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
     }));
     setLaboratoryPrecincts(labPrecincts);
     
-<<<<<<< HEAD
-=======
-    // Also fetch IP data for each precinct
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     fetchIPDataForPrecincts(labPrecincts);
   }, [precincts]);
 
   const fetchIPDataForPrecincts = async (precincts) => {
     try {
       const token = Cookies.get('token');
-<<<<<<< HEAD
-
-=======
-      
-      // Fetch IP data for all precincts
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const ipPromises = precincts.map(async (precinct) => {
         try {
           const response = await axios.get(`/api/laboratory-precincts/${precinct.id}`, {
@@ -89,12 +71,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       const response = await axios.get('/api/laboratory-precincts', {
         headers: { Authorization: `Bearer ${token}` }
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Merge with existing precincts
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const existingPrecincts = precincts.map(precinct => ({
         id: precinct.id || precinct,
         name: precinct.name || precinct,
@@ -111,10 +87,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       setLaboratoryPrecincts(mergedPrecincts);
     } catch (error) {
       console.error('Error fetching laboratory precincts:', error);
-<<<<<<< HEAD
-=======
-      // Fallback to just using precincts
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const labPrecincts = precincts.map(precinct => ({
         id: precinct.id || precinct,
         name: precinct.name || precinct,
@@ -157,10 +129,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
   const handleAddIP = async () => {
     if (!selectedLab) return;
 
-<<<<<<< HEAD
-=======
-    // Prepare data based on IP type to satisfy database constraints
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const ipData = {
       ip_type: newIP.ip_type,
       ip_address: newIP.ip_type === 'single' ? newIP.ip_address : null,
@@ -177,10 +145,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       
       toast.success('IP address added successfully');
       
-<<<<<<< HEAD
-=======
-      // Refresh both the detailed IP list and the precinct overview
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       fetchIPAddresses(selectedLab.id);
       fetchIPDataForPrecincts(laboratoryPrecincts);
       
@@ -205,12 +169,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
     try {
       const token = Cookies.get('token');
       const ipList = bulkIPs.split('\n').map(ip => ip.trim()).filter(ip => ip);
-<<<<<<< HEAD
-
-=======
-      
-      // Add each IP address
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       for (const ip of ipList) {
         const ipData = {
           ip_type: 'single',
@@ -226,10 +184,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       
       toast.success(`${ipList.length} IP addresses added successfully`);
       
-<<<<<<< HEAD
-=======
-      // Refresh both the detailed IP list and the precinct overview
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       fetchIPAddresses(selectedLab.id);
       fetchIPDataForPrecincts(laboratoryPrecincts);
       
@@ -251,12 +205,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       });
       
       toast.success('IP address deleted successfully');
-<<<<<<< HEAD
-
-=======
-      
-      // Refresh both the detailed IP list and the precinct overview
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       fetchIPAddresses(selectedLab.id);
       fetchIPDataForPrecincts(laboratoryPrecincts);
     } catch (error) {
@@ -277,10 +225,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
       
       toast.success('IP address status updated');
       
-<<<<<<< HEAD
-=======
-      // Refresh both the detailed IP list and the precinct overview
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       fetchIPAddresses(selectedLab.id);
       fetchIPDataForPrecincts(laboratoryPrecincts);
     } catch (error) {
@@ -305,10 +249,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
         <p className="text-sm text-black">Click on a laboratory to manage its IP addresses</p>
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* Laboratory Grid - Display as columns */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {laboratoryPrecincts.map((lab) => (
           <div
@@ -339,10 +279,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
               </button>
             </div>
 
-<<<<<<< HEAD
-=======
-            {/* Show IP addresses if toggled */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             {showIPs[lab.id] && (
               <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
                 <div className="text-black mb-2">IP Addresses:</div>
@@ -363,10 +299,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
         ))}
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* Selected Laboratory Details */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       {selectedLab && (
         <div className="bg-gray-50 p-6 rounded-lg">
           <div className="flex justify-between items-center mb-4">
@@ -483,10 +415,6 @@ const LaboratoryPrecinctManager = ({ precincts = [] }) => {
             </div>
           )}
 
-<<<<<<< HEAD
-=======
-          {/* Bulk Add IPs Form */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           {showBulkAdd && (
             <div className="mb-6 p-4 bg-white rounded-lg border">
               <h4 className="font-semibold mb-3 text-black">Bulk Add IP Addresses</h4>

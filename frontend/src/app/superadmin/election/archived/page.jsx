@@ -8,10 +8,6 @@ import { toast } from 'react-hot-toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const RestoreConfirmationModal = ({ isOpen, election, onCancel, onConfirm, isRestoring }) => {
   if (!isOpen) return null;
 
@@ -148,10 +144,6 @@ export default function ArchivedElectionsPage() {
         return;
       }
       
-<<<<<<< HEAD
-=======
-      // Filter for archived elections on the frontend (is_active = false, is_deleted = false)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const allElections = data.data || [];
       const archivedElections = allElections.filter(election => 
         election.is_active === false && 
@@ -181,21 +173,13 @@ export default function ArchivedElectionsPage() {
   };
 
   const handleRestoreClick = (election, e) => {
-<<<<<<< HEAD
     e.stopPropagation(); 
-=======
-    e.stopPropagation(); // Prevent row click
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setElectionToRestore(election);
     setRestoreModalOpen(true);
   };
 
   const handleDeleteClick = (election, e) => {
-<<<<<<< HEAD
     e.stopPropagation(); 
-=======
-    e.stopPropagation(); // Prevent row click
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setElectionToDelete(election);
     setDeleteModalOpen(true);
   };
@@ -209,12 +193,6 @@ export default function ArchivedElectionsPage() {
       await fetchWithAuth(`/elections/${electionToRestore.id}/restore-archive`, {
         method: 'POST'
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Update the elections state to remove the restored election
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToRestore.id));
       
       toast.success(`Election "${electionToRestore.title}" was successfully restored.`);
@@ -238,12 +216,6 @@ export default function ArchivedElectionsPage() {
       await fetchWithAuth(`/elections/${electionToDelete.id}/permanent`, {
         method: 'DELETE'
       });
-<<<<<<< HEAD
-
-=======
-      
-      // Update the elections state to remove the deleted election
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setElections(prev => prev.filter(e => e.id !== electionToDelete.id));
       
       toast.success(`Election "${electionToDelete.title}" was permanently deleted.`);
@@ -426,10 +398,6 @@ export default function ArchivedElectionsPage() {
         </>
       )}
 
-<<<<<<< HEAD
-=======
-      {/* Restore Confirmation Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <RestoreConfirmationModal 
         isOpen={restoreModalOpen}
         election={electionToRestore}
@@ -438,10 +406,6 @@ export default function ArchivedElectionsPage() {
         isRestoring={isRestoring}
       />
 
-<<<<<<< HEAD
-=======
-      {/* Permanent Delete Confirmation Modal */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <PermanentDeleteConfirmationModal 
         isOpen={deleteModalOpen}
         election={electionToDelete}

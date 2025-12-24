@@ -27,10 +27,6 @@ if (!fs.existsSync(uploadDir)) {
 fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 const storage = multer.diskStorage({
 destination: (req, file, cb) => {
   cb(null, uploadDir);
@@ -43,25 +39,15 @@ filename: (req, file, cb) => {
 });
 
 const fileFilter = (req, file, cb) => {
-console.log('File filter check:', {
-  originalname: file.originalname,
-  mimetype: file.mimetype,
-  fieldname: file.fieldname
-});
 
-<<<<<<< HEAD
-=======
-// Check both file extension and MIME type
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
+
 const allowedExtensions = /\.(jpg|jpeg|png|gif|webp)$/i;
 const allowedMimeTypes = /^image\/(jpeg|jpg|png|gif|webp)$/i;
 
 if (!allowedExtensions.test(file.originalname) && !allowedMimeTypes.test(file.mimetype)) {
-  console.log('File rejected:', file.originalname, file.mimetype);
   return cb(new Error('Only image files are allowed!'), false);
 }
 
-console.log('File accepted:', file.originalname);
 cb(null, true);
 };
 
@@ -69,12 +55,8 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
-<<<<<<< HEAD
+    fileSize: 10 * 1024 * 1024, 
     files: 1 
-=======
-    files: 1 // Only allow 1 file at a time
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   }
 });
 
@@ -126,29 +108,15 @@ const deleteImageFile = async (imagePath) => {
 
 exports.uploadCandidateImage = async (req, res) => {
 try {
-  console.log('Upload request received:', {
-    hasFile: !!req.file,
-    fileSize: req.file?.size,
-    fileName: req.file?.originalname,
-    fileType: req.file?.mimetype,
-    body: req.body
-  });
-
+  
   if (!req.file) {
-    console.log('No file in request');
     return res.status(400).json({ 
       success: false,
       message: "No file uploaded" 
     });
   }
 
-<<<<<<< HEAD
   if (req.file.size > 10 * 1024 * 1024) {
-=======
-  // Validate file size (additional check)
-  if (req.file.size > 10 * 1024 * 1024) {
-    // Delete the uploaded file if it's too large
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const fs = require('fs');
     const path = require('path');
     const filePath = path.join(__dirname, '../../uploads/candidates', req.file.filename);
@@ -172,10 +140,6 @@ try {
 } catch (error) {
   console.error("Error uploading candidate image:", error);
   
-<<<<<<< HEAD
-=======
-  // Handle multer errors specifically
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   if (error.code === 'LIMIT_FILE_SIZE') {
     return res.status(413).json({ 
       success: false,
@@ -211,10 +175,6 @@ exports.createBallot = async (req, res) => {
         positions
       }, client);
 
-<<<<<<< HEAD
-=======
-      // Only set needs_approval = TRUE if the election was created by an admin (not superadmin)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await client.query(
         `UPDATE elections 
          SET needs_approval = TRUE 
@@ -233,17 +193,9 @@ exports.createBallot = async (req, res) => {
         try {
           await notificationService.notifyBallotCreated(req.user.id, election);
           
-<<<<<<< HEAD
           if (election.needs_approval) {
             const notificationResult = await notificationService.notifyElectionNeedsApproval(election);
           } else {
-=======
-          // Only send approval notifications if the election needs approval
-          if (election.needs_approval) {
-            const notificationResult = await notificationService.notifyElectionNeedsApproval(election);
-          } else {
-            // For superadmin-created elections, notify students that ballot is ready
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             await notificationService.notifyStudentsAboutElection(election);
           }
         } catch (notifError) {

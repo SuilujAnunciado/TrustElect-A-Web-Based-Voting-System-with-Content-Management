@@ -13,11 +13,7 @@ function formatImageUrl(url) {
   if (!url) return null;
   if (url.startsWith("blob:") || url.startsWith("http")) return url;
   if (url.startsWith("/api/") || url.startsWith("/uploads/")) {
-<<<<<<< HEAD
     return `${API_BASE}${url}`; 
-=======
-    return `${API_BASE}${url}`; // Add API_BASE prefix
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   }
   return url.startsWith("/") ? `${API_BASE}${url}` : `${API_BASE}/${url}`;
 }
@@ -50,18 +46,10 @@ export default function AdminLayout({children}){
     setIsLoading(false);
   }, [router]);
 
-<<<<<<< HEAD
-=======
-  // Fetch UI design config and landing content
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const fetchUIDesign = async () => {
       try {
         const token = Cookies.get("token");
-<<<<<<< HEAD
-=======
-        // Fix: Change from /studentUI to /api/studentUI
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const response = await fetch(`${API_BASE}/api/studentUI`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -92,10 +80,6 @@ export default function AdminLayout({children}){
     }
   }, [isAuthorized]);
 
-<<<<<<< HEAD
-=======
-  // Style logic
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const containerStyle = {
     minHeight: "100vh",
     backgroundImage:
@@ -109,10 +93,6 @@ export default function AdminLayout({children}){
     position: "relative",
   };
 
-<<<<<<< HEAD
-=======
-  // Optionally, you can add the landing page layout here as a background
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   const LandingPageLayout = () => {
     if (!landingContent) return null;
     return (

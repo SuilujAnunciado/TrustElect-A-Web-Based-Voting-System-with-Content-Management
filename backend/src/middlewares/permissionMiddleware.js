@@ -1,9 +1,5 @@
 const { hasPermission } = require("../models/adminPermissionModel");
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 /**
  * @param {string} module 
  * @param {string} action 
@@ -22,10 +18,6 @@ const checkPermission = (module, action) => {
         return res.status(401).json({ message: "Authentication required" });
       }
 
-<<<<<<< HEAD
-=======
-      // Remove any existing 'can_' prefix and ensure proper format
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const cleanAction = action.replace(/^can_?/, '').toLowerCase();
       const permitted = await hasPermission(adminId, module, cleanAction);
       

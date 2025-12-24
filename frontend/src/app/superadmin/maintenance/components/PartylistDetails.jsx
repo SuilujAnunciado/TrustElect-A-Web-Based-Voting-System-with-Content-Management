@@ -214,11 +214,6 @@ const PartylistDetails = ({
   
   const tryLocalStorageFallback = (electionTypeId = 1) => {
     try {
-<<<<<<< HEAD
-
-=======
-      console.log("Trying localStorage fallback for positions");
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const positionsData = JSON.parse(localStorage.getItem('electionPositions') || '{}');
 
       let storedPositions = positionsData[electionTypeId] || [];
@@ -228,16 +223,9 @@ const PartylistDetails = ({
       }
       
       if (storedPositions.length > 0) {
-<<<<<<< HEAD
 
         setPositions(storedPositions);
       } else {
-=======
-        console.log("Found positions in localStorage:", storedPositions);
-        setPositions(storedPositions);
-      } else {
-        console.log("No positions found in localStorage. Using default positions");
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setPositions([
           { id: "1", name: "President" },
           { id: "2", name: "Vice President" },
@@ -453,10 +441,6 @@ const PartylistDetails = ({
     );
 
     if (existingCandidate) {
-<<<<<<< HEAD
-=======
-      console.log('Found existing candidate:', existingCandidate);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       return true;
     }
     return false;
@@ -629,12 +613,6 @@ const PartylistDetails = ({
 
       setCandidateForm(prev => ({ ...prev, image: file }));
       setCandidateFormPreview(URL.createObjectURL(file));
-<<<<<<< HEAD
-
-=======
-      
-      // Clear any previous errors
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors.candidateFormImage;
@@ -681,10 +659,6 @@ const PartylistDetails = ({
       const token = Cookies.get("token");
       let imageUrl = null;
 
-<<<<<<< HEAD
-=======
-      // Upload image if provided
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       if (candidateForm.image) {
         const formData = new FormData();
         formData.append('image', candidateForm.image);
@@ -714,12 +688,6 @@ const PartylistDetails = ({
         isRepresentative: candidateForm.isRepresentative,
         imageUrl
       };
-<<<<<<< HEAD
-
-=======
-      
-      console.log('Adding candidate with data:', requestData);
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       
       const response = await axios.post(
         `/api/partylists/${partylist.id}/candidates`, 
@@ -736,10 +704,6 @@ const PartylistDetails = ({
       if (response.data && response.data.success) {
         toast.success("Candidate added successfully");
         
-<<<<<<< HEAD
-=======
-        // Reset form
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         setCandidateForm({
           studentNumber: "",
           firstName: "",
@@ -892,10 +856,6 @@ const PartylistDetails = ({
         [candidateId]: previewUrl
       }));
 
-<<<<<<< HEAD
-=======
-      // Store the file for later saving
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setPendingImages(prev => ({
         ...prev,
         [candidateId]: file
@@ -947,10 +907,6 @@ const PartylistDetails = ({
         throw new Error('Failed to upload image');
       }
 
-<<<<<<< HEAD
-=======
-      // Update candidate with new image URL
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       await axios.put(
         `${API_BASE}/partylist-candidates/candidates/${candidateId}`,
         { imageUrl: imageResponse.data.filePath },
@@ -962,10 +918,6 @@ const PartylistDetails = ({
         }
       );
 
-<<<<<<< HEAD
-=======
-      // Update local state
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setCandidates(prev => 
         prev.map(cand => 
           cand.id === candidateId 
@@ -974,10 +926,6 @@ const PartylistDetails = ({
         )
       );
 
-<<<<<<< HEAD
-=======
-      // Clear pending image and preview
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       setPendingImages(prev => {
         const newPending = { ...prev };
         delete newPending[candidateId];
@@ -1005,11 +953,6 @@ const PartylistDetails = ({
   };
 
   const cancelImageUpload = (candidateId) => {
-<<<<<<< HEAD
-
-=======
-    // Clear pending image and preview
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     setPendingImages(prev => {
       const newPending = { ...prev };
       delete newPending[candidateId];
@@ -1032,11 +975,7 @@ const PartylistDetails = ({
   const renderCandidateRow = (candidate) => (
     <div key={candidate.id} className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50">
       <div className="grid grid-cols-12 gap-4 items-center">
-<<<<<<< HEAD
    
-=======
-        {/* Photo */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <div className="col-span-2">
           <label className="block w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 overflow-hidden cursor-pointer hover:border-blue-500 transition-colors relative group">
             {imagePreviews[candidate.id] ? (
@@ -1111,11 +1050,6 @@ const PartylistDetails = ({
         {/* Actions */}
         <div className="col-span-2 text-center">
           <div className="flex flex-col space-y-1">
-<<<<<<< HEAD
-
-=======
-            {/* Save/Cancel buttons for pending images */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
             {pendingImages[candidate.id] && (
               <div className="flex space-x-1">
                 <button
@@ -1158,13 +1092,6 @@ const PartylistDetails = ({
       )}
       
       <div className="flex justify-between items-center mb-6">
-<<<<<<< HEAD
-
-=======
-        {/*
-          <h2 className="text-xl font-semibold text-black">Partylist: {partylist.name}</h2>
-        */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         <button
           onClick={onClose}
           className="px-3 py-1 text-sm rounded bg-gray-200 text-gray-800 hover:bg-gray-300"
@@ -1493,19 +1420,10 @@ const PartylistDetails = ({
                       </div>
                     ))}
                   
-<<<<<<< HEAD
                   {representatives.length > 0 && (
                     <div className="mb-6">
                       <h4 className="px-4 py-2 bg-gray-100 font-bold text-black">Representatives</h4>
 
-=======
-                  {/* Display representatives only if there are any */}
-                  {representatives.length > 0 && (
-                    <div className="mb-6">
-                      <h4 className="px-4 py-2 bg-gray-100 font-bold text-black">Representatives</h4>
-                      
-                      {/* Header labels for representatives */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                       <div className="px-4 py-3 bg-gray-50 border-b">
                         <div className="grid grid-cols-12 gap-4 items-center">
                           <div className="col-span-2 text-xs font-medium text-gray-600 uppercase tracking-wider">

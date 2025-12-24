@@ -1,16 +1,8 @@
 const pool = require('../config/db');
-<<<<<<< HEAD
 /**
 
  * @param {Object} logData
  * @returns {Promise<Object>} 
-=======
-
-/**
- * Create a new audit log entry
- * @param {Object} logData - Audit log data
- * @returns {Promise<Object>} Created audit log
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const createAuditLog = async (logData) => {
   const {
@@ -77,14 +69,8 @@ const createAuditLog = async (logData) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Object} options 
  * @returns {Promise<Array>} 
-=======
- * Get audit logs with filtering options
- * @param {Object} options - Filter options
- * @returns {Promise<Array>} List of audit logs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const getAuditLogs = async (options = {}) => {
   const {
@@ -221,14 +207,8 @@ const getAuditLogs = async (options = {}) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Object} options 
  * @returns {Promise<Number>} 
-=======
- * Get audit logs count
- * @param {Object} options - Filter options
- * @returns {Promise<Number>} Count of matching audit logs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const getAuditLogsCount = async (options = {}) => {
   const {
@@ -340,37 +320,18 @@ const getAuditLogsCount = async (options = {}) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Number} days 
  * @returns {Promise<Object>} 
-=======
- * Get audit logs summary statistics
- * @param {Number} days - Number of days to look back
- * @returns {Promise<Object>} Summary statistics
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const getAuditLogsSummary = async (days = 30) => {
   try {
     const queries = [
-<<<<<<< HEAD
       `SELECT COUNT(*) as total_activities FROM audit_logs`,
 
       `SELECT COUNT(DISTINCT user_id) as unique_users FROM audit_logs`,
  
       `SELECT COUNT(*) as total_votes FROM audit_logs WHERE action = 'VOTE'`,
 
-=======
-      // Total activities
-      `SELECT COUNT(*) as total_activities FROM audit_logs`,
-      
-      // Unique users
-      `SELECT COUNT(DISTINCT user_id) as unique_users FROM audit_logs`,
-      
-      // Total votes
-      `SELECT COUNT(*) as total_votes FROM audit_logs WHERE action = 'VOTE'`,
-      
-      // Activities today
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       `SELECT COUNT(*) as activities_today FROM audit_logs 
        WHERE created_at >= CURRENT_DATE`
     ];
@@ -392,14 +353,8 @@ const getAuditLogsSummary = async (days = 30) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {Date} olderThan 
  * @returns {Promise<Number>} 
-=======
- * Delete audit logs older than a specified date
- * @param {Date} olderThan - Date threshold
- * @returns {Promise<Number>} Count of deleted logs
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const deleteOldAuditLogs = async (olderThan) => {
   try {
@@ -413,16 +368,9 @@ const deleteOldAuditLogs = async (olderThan) => {
 };
 
 /**
-<<<<<<< HEAD
  * @param {string} query 
  * @param {Array} values 
  * @returns {Promise<Object>}
-=======
- * Execute a custom SQL query
- * @param {string} query - SQL query to execute
- * @param {Array} values - Values for parameterized query
- * @returns {Promise<Object>} Query result
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
  */
 const executeQuery = async (query, values = []) => {
   try {

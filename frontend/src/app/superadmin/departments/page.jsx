@@ -8,10 +8,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function DepartmentsPage() {
   const router = useRouter();
   const [departments, setDepartments] = useState([]);
@@ -47,7 +43,6 @@ export default function DepartmentsPage() {
       });
   
       const departmentsArray = res.data.departments || res.data || [];
-      console.log('All Departments Loaded:', departmentsArray);
       setDepartments(departmentsArray);
 
       fetchAdmins();
@@ -82,11 +77,7 @@ export default function DepartmentsPage() {
         admin.is_active && 
         !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
       );
-      
-      console.log('All Admins Loaded:', filteredAdmins);
-      console.log('Admins with Student Services in department field:', filteredAdmins.filter(admin => 
-        admin.department && admin.department.toLowerCase().includes('student services')
-      ));
+
       setAdmins(filteredAdmins);
     } catch (error) {
       console.error("Error fetching admins:", error);
@@ -101,10 +92,6 @@ export default function DepartmentsPage() {
   const filteredDepartments = departments.filter(dept => {
     const matchesSearch = dept.department_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === "All" || dept.department_type === filter;
-<<<<<<< HEAD
-=======
-    // Only show active departments (not archived or deleted)
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
     const isActive = dept.is_active && !dept.is_deleted;
     return matchesSearch && matchesFilter && isActive;
   });
@@ -194,10 +181,6 @@ export default function DepartmentsPage() {
         </select>
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* Add Department Button and Archive Button */}
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       <div className="mb-4 flex gap-4">
         <button
           onClick={() => setShowAddModal(true)}
@@ -226,7 +209,6 @@ export default function DepartmentsPage() {
         </button>
       </div>
 
-      {/* Departments Table */}
       {loading ? (
         <div className="text-center py-8">Loading departments...</div>
       ) : filteredDepartments.length > 0 ? (
@@ -256,22 +238,9 @@ export default function DepartmentsPage() {
                   const isMatch = departments.some(dept => 
                     dept.toLowerCase() === department.department_name.toLowerCase()
                   );
-<<<<<<< HEAD
 
                   if (department.department_name.toLowerCase().includes('student services')) {
 
-=======
-                  
-                  // Debug logging for Student Services
-                  if (department.department_name.toLowerCase().includes('student services')) {
-                    console.log('Student Services Admin Filter Debug:', {
-                      departmentName: department.department_name,
-                      adminName: admin.first_name + ' ' + admin.last_name,
-                      adminDepartmentRaw: admin.department,
-                      splitAdminDepartments: departments,
-                      isMatch: isMatch
-                    });
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
                   }
                   
                   return isMatch;
@@ -413,10 +382,6 @@ export default function DepartmentsPage() {
   );
 }
 
-<<<<<<< HEAD
-=======
-// Add Department Modal
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 function AddDepartmentModal({ onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     department_name: "",
@@ -522,10 +487,6 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
   const [availableAdmins, setAvailableAdmins] = useState([]);
   const [processingAdminIds, setProcessingAdminIds] = useState([]);
 
-<<<<<<< HEAD
-=======
-  // Fetch the latest admin data when the modal opens
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
   useEffect(() => {
     const fetchAdmins = async () => {
       setFetchingAdmins(true);
@@ -545,24 +506,12 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         
         
         const adminsArray = res.data.admins || res.data || [];
-<<<<<<< HEAD
-
-=======
-        
-        // Filter out inactive admins and super admins
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const filteredAdmins = adminsArray.filter(admin => 
           admin.is_active && 
           !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
         );
 
         setAvailableAdmins(filteredAdmins);
-<<<<<<< HEAD
-
-=======
-        
-        // Set selected admins based on current department assignments
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const currentAdmins = filteredAdmins.filter(admin => {
           if (!admin.department) return false;
           const departments = admin.department.split(',').map(d => d.trim());
@@ -574,10 +523,6 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         
       } catch (error) {
         console.error("Error fetching fresh admin data:", error);
-<<<<<<< HEAD
-=======
-        // Fall back to using the initial admin data
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const available = initialAdmins.filter(admin => 
           admin.is_active && 
           !(admin.role_id === 1 || (admin.department === "Administration" && !admin.employee_number))
@@ -618,23 +563,11 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
 
     try {
       const token = Cookies.get("token");
-<<<<<<< HEAD
-
-=======
-      
-      // Process admins being assigned to this department
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const adminsToAssign = selectedAdmins.map(adminId => {
         const admin = availableAdmins.find(a => a.id === adminId);
         if (!admin) return null;
 
         setProcessingAdminIds(prev => [...prev, adminId]);
-<<<<<<< HEAD
-
-=======
-        
-        // Get current departments and add the new one if not already present
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
         const currentDepartments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
         const isAlreadyAssigned = currentDepartments.some(dept => 
           dept.toLowerCase() === department.department_name.toLowerCase()
@@ -660,10 +593,6 @@ function AssignAdminModal({ department, admins: initialAdmins, onClose, onSucces
         });
       }).filter(Boolean);
 
-<<<<<<< HEAD
-=======
-      // Process admins being removed from this department
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
       const adminsToRemove = availableAdmins.filter(admin => {
         if (!admin.department) return false;
         const departments = admin.department.split(',').map(d => d.trim());
@@ -860,15 +789,8 @@ function EditDepartmentModal({ department, onClose, onSuccess }) {
         }
       );
 
-<<<<<<< HEAD
       if (formData.department_name !== department.department_name && admins.length > 0) {
         const updatePromises = admins.map(admin => {
-=======
-      // If department name has changed, update all assigned admins with the new department name
-      if (formData.department_name !== department.department_name && admins.length > 0) {
-        const updatePromises = admins.map(admin => {
-          // Get current departments and replace the old name with the new one
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
           const departments = admin.department ? admin.department.split(',').map(d => d.trim()) : [];
           const updatedDepartments = departments.map(d => 
             d.toLowerCase() === department.department_name.toLowerCase() ? formData.department_name : d

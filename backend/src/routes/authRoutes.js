@@ -23,10 +23,6 @@ const {
 const { verifyToken } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post(
   "/login",
   [
@@ -41,24 +37,13 @@ router.post("/check-email", checkEmailExists);
 router.post('/request-otp', requestOTP);
 router.post('/verify-otp', verifyOTP);
 
-<<<<<<< HEAD
 router.post('/logout', logoutUser);
 
-=======
-// Logout route - changed to not require authentication
-router.post('/logout', logoutUser);
-
-// First-time login password change routes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.get('/check-first-login', verifyToken, checkFirstLogin);
 router.post('/change-first-password', verifyToken, [
   check("newPassword", "Password must be at least 8 characters").isLength({ min: 8 }),
 ], changeFirstLoginPassword);
 
-<<<<<<< HEAD
-=======
-// Forgot password routes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post('/forgot-password', [
   check("email", "Valid email is required").isEmail(),
 ], forgotPassword);
@@ -73,10 +58,6 @@ router.post('/reset-password', [
   check("newPassword", "Password must be at least 8 characters").isLength({ min: 8 }),
 ], resetPassword);
 
-<<<<<<< HEAD
-=======
-// Phone registration and SMS OTP routes
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 router.post('/register-phone', registerPhone);
 router.post('/check-phone-registration', checkPhoneRegistration);
 router.post('/send-sms-otp', sendSmsOtp);

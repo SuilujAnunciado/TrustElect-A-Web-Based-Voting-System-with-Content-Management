@@ -9,10 +9,6 @@ import { toast } from "react-hot-toast";
 import usePermissions from "@/hooks/usePermissions";
 import ConfirmationModal from "@/components/Modals/ConfirmationModal";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ac434e8b601aa8f13314f50695a5c13d407298b
 export default function AdminDepartmentsPage() {
   const router = useRouter();
   const [departments, setDepartments] = useState([]);
@@ -465,17 +461,7 @@ export default function AdminDepartmentsPage() {
                   const isMatch = departments.some(dept => 
                     dept.toLowerCase() === department.department_name.toLowerCase()
                   );
-
-                  if (department.department_name.toLowerCase().includes('student services')) {
-                    console.log('Admin Page - Student Services Debug:', {
-                      departmentName: department.department_name,
-                      adminName: admin.first_name + ' ' + admin.last_name,
-                      adminDepartmentRaw: admin.department,
-                      splitAdminDepartments: departments,
-                      isMatch: isMatch
-                    });
-                  }
-                  
+                                 
                   return isMatch;
                 });
                 
