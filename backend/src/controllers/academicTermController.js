@@ -9,7 +9,6 @@ const {
   getStudentCountByTerm
 } = require('../models/academicTermModel');
 
-
 exports.getAcademicTerms = async (req, res) => {
   try {
     const terms = await getAllAcademicTerms();
